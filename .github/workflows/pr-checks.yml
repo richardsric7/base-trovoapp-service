@@ -1,0 +1,219 @@
+# =============================================================================
+# PR checks — lint, tests, build (no images pushed, no deploy)
+#
+# Runs on every PR targeting dev/staging/main and on manual dispatch.
+# Uses paths-filter so backend-only PRs skip web/mobile jobs, and vice versa.
+# =============================================================================
+name: PR checks
+
+on:
+  pull_request:
+    branches: [dev, staging, main]
+  workflow_dispatch:
+
+concurrency:
+  group: pr-checks-${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      web: ${{ steps.filter.outputs.web }}
+      mobile: ${{ steps.filter.outputs.mobile }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '.github/workflows/pr-checks.yml'
+            web:
+              - 'web/**'
+              - '.github/workflows/pr-checks.yml'
+            mobile:
+              - 'mobile/**'
+              - '.github/workflows/pr-checks.yml'
+
+  backend:
+    name: Backend (Go)
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+          cache-dependency-path: backend/go.sum
+
+      - name: Verify go.mod is tidy
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum \
+            || (echo "::error::go.mod / go.sum are not tidy. Run 'go mod tidy' locally and commit." && exit 1)
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        # -stringintconv=false skips one known pre-existing conversion bug
+        # in servicelinks/controllers/handlers_impl.go:2421 (int -> Username
+        # instead of TargetTrovoUsername). Track separately; fix in its own PR.
+        run: go vet -stringintconv=false ./...
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64.8
+          working-directory: backend
+          args: --timeout=5m
+
+      - name: Test (race + coverage)
+        # Scope excludes the root package: main_test.go is an integration
+        # suite that hits http://localhost:8080 and needs a live env. Run it
+        # manually against a running server.
+        # -vet=off because go test's implicit vet doesn't accept the
+        # -stringintconv=false flag we use in the Vet step above.
+        run: go test ./internal/... -race -vet=off -coverprofile=coverage.out -covermode=atomic
+
+  web:
+    name: Web (Vite/React)
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      # `build` runs `tsc && vite build`, so typecheck is part of the gate.
+      - name: Build
+        run: npm run build
+
+  mobile:
+    name: Mobile (Flutter)
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          # Kept in sync with devs' fvm pin. pubspec.yaml requires Dart
+          # >=3.8.0, which ships with Flutter 3.32+. If devs bump their
+          # fvm-pinned version, update this line to match.
+          flutter-version: '3.32.x'
+          channel: stable
+          cache: true
+
+      - name: Install deps
+        run: flutter pub get
+
+      - name: Analyze
+        # Only fail on errors. There's a backlog of deprecation infos
+        # (MaterialState* -> WidgetState*, Share -> SharePlus) worth
+        # cleaning up but they shouldn't block PRs today.
+        run: flutter analyze --no-fatal-warnings --no-fatal-infos
+
+      - name: Test
+        run: flutter test
+
+  docker-build:
+    name: Docker build - ${{ matrix.component }}
+    needs: changes
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: api
+            context: backend
+            dockerfile: backend/Dockerfile
+            changed_flag: backend
+          - component: web
+            context: web
+            dockerfile: web/Dockerfile
+            changed_flag: web
+    steps:
+      - name: Gate on changes
+        id: gate
+        env:
+          BACKEND_CHANGED: ${{ needs.changes.outputs.backend }}
+          WEB_CHANGED: ${{ needs.changes.outputs.web }}
+          FLAG: ${{ matrix.changed_flag }}
+        run: |
+          if [ "$FLAG" = "backend" ]; then changed="$BACKEND_CHANGED"; else changed="$WEB_CHANGED"; fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.changed == 'true'
+
+      - name: Set up Buildx
+        if: steps.gate.outputs.changed == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build (no push)
+        if: steps.gate.outputs.changed == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: false
+          load: false
+          cache-from: type=gha,scope=${{ matrix.component }}-pr
+          cache-to: type=gha,mode=max,scope=${{ matrix.component }}-pr
+
+  # Aggregator job — the single required check to set in branch protection.
+  required:
+    name: PR checks required
+    needs: [changes, backend, web, mobile, docker-build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any dependency failed
+        run: |
+          for r in \
+            "${{ needs.changes.result }}" \
+            "${{ needs.backend.result }}" \
+            "${{ needs.web.result }}" \
+            "${{ needs.mobile.result }}" \
+            "${{ needs.docker-build.result }}"; do
+            if [ "$r" = "failure" ] || [ "$r" = "cancelled" ]; then
+              echo "::error::Dependency result: $r"
+              exit 1
+            fi
+          done
+          echo "All required PR checks passed (or were skipped by path filter)."

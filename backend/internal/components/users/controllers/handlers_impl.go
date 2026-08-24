@@ -887,7 +887,7 @@ func postUsersFiatFlutterwaveHandler(callBackRetryChan chan userModels.RetryCall
 		tInput.Status = "PENDING"
 		tInput.Username = user.Username
 
-		err = userServices.SaveUserPaymentInvoiceData(user.Username, tInput.ServiceProvider, tInput.PaymentType, tInput.ID, "PENDING", tInput.Amount, gc)
+		err = userServices.SaveUserPaymentInvoiceData(user.Username, tInput.ServiceProvider, tInput.PaymentType, tInput.ID, "PENDING", &user.Username, &user.PublicKey, nil, nil, nil, tInput.Amount, gc)
 		if err != nil {
 
 			var ex tErrors.GenericError
@@ -1225,28 +1225,28 @@ func putUsersUploadPictureHandler(callBackRetryChan chan userModels.RetryCallbac
 // @Router /v1/users/stablerail/banks [get]
 func getUsersStablerailBanksHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
+		var err error
 
-			_, err = usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		_, err = usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-
-			//get amount for activation
-			banks := userServices.GetStablerailBanks(gc)
-
-			c.JSON(http.StatusOK, banks)
+			return
 		}
+
+		//get amount for activation
+		banks := userServices.GetStablerailBanks(gc)
+
+		c.JSON(http.StatusOK, banks)
+	}
 }
 
 // postUsersStablerailOnboarduserBvnHandler godoc
@@ -1260,45 +1260,45 @@ func getUsersStablerailBanksHandler(callBackRetryChan chan userModels.RetryCallb
 // @Router /v1/users/stablerail/onboarduser/{bvn} [post]
 func postUsersStablerailOnboarduserBvnHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
+		var err error
 
-			user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-			// check BVN that it has 11 digits
-			bvn := c.Param("bvn")
-			if len(bvn) != 11 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid-bvn-format", "message": "BVN format is invalid"})
-				return
-			}
-			//get amount for activation
-			msg, err := userServices.StablerailInitiateOnboardUser(&user, bvn, gc)
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, msg)
+			return
 		}
+		// check BVN that it has 11 digits
+		bvn := c.Param("bvn")
+		if len(bvn) != 11 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid-bvn-format", "message": "BVN format is invalid"})
+			return
+		}
+		//get amount for activation
+		msg, err := userServices.StablerailInitiateOnboardUser(&user, bvn, gc)
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, msg)
+	}
 }
 
 // postUsersStablerailOnrampcngnAmountHandler godoc
@@ -1312,60 +1312,60 @@ func postUsersStablerailOnboarduserBvnHandler(callBackRetryChan chan userModels.
 // @Router /v1/users/stablerail/onrampcngn/{amount} [post]
 func postUsersStablerailOnrampcngnAmountHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
+		var err error
 
-			user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-			wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-			// check amount is valid
-			amountStr := c.Param("amount")
-			amountDec, amountError := decimal.NewFromString(amountStr)
-			if amountError != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid-amont", "message": "Amount is invalid"})
-				return
-			}
-			//get amount for activation
-			rv, err := userServices.StablerailInitiateCNGNOnrampRequest(&user, &wallet, amountDec.InexactFloat64(), gc)
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, rv)
+			return
 		}
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+		// check amount is valid
+		amountStr := c.Param("amount")
+		amountDec, amountError := decimal.NewFromString(amountStr)
+		if amountError != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid-amont", "message": "Amount is invalid"})
+			return
+		}
+		//get amount for activation
+		rv, err := userServices.StablerailInitiateCNGNOnrampRequest(&user, &wallet, amountDec.InexactFloat64(), gc)
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, rv)
+	}
 }
 
 // postUsersAssetOptInHandler godoc
@@ -4391,99 +4391,99 @@ func getTrovoManagerWalletBalancesWalletPublicKeyHandler(callBackRetryChan chan 
 // @Router /v1/users/trades [post]
 func postUsersTradesHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
+		var err error
 
-			var makeOfferRequest userModels.MarketOfferRequest
-			// var err error
+		var makeOfferRequest userModels.MarketOfferRequest
+		// var err error
 
-			data, _ := io.ReadAll(c.Request.Body)
+		data, _ := io.ReadAll(c.Request.Body)
 
-			err = json.Unmarshal(data, &makeOfferRequest)
+		err = json.Unmarshal(data, &makeOfferRequest)
 
-			var invalidJSON tErrors.ErrorInvalidJSON
+		var invalidJSON tErrors.ErrorInvalidJSON
 
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-
-			signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-			walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-			wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-			if wallet.WalletType != 0 {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
-				return
-			}
-			if signerUser.PrimarySigner != wallet.Signer {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission on this wallet."})
-				return
-			}
-			conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/trades %v", wallet.Alias), gc.DB)
-
-			err = userServices.MakeOffer(&signerUser, &walletOwner, &wallet, &makeOfferRequest, gc)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			if walletOwner.PushNotificationToken != nil && len(makeOfferRequest.TransactionID) > 0 && makeOfferRequest.TransactionID != "PENDING_AUTH" {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = ""
-				pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("%v %v %v offer accepted on %v!", makeOfferRequest.Quantity, makeOfferRequest.AssetCode, makeOfferRequest.OfferType, wallet.Alias), fmt.Sprintf("You have successfully submitted a market offer to %v %v %v @ %v %v on the wallet with alias [%v].", makeOfferRequest.OfferType, makeOfferRequest.Quantity, makeOfferRequest.AssetCode, makeOfferRequest.PricePerUnit, makeOfferRequest.CurrencyCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			}
-			walletOwner.InvalidateUserCache(gc)
-			//At this point, there was no error.
-
-			c.JSON(http.StatusOK, makeOfferRequest)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
 		}
+
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+		if wallet.WalletType != 0 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
+			return
+		}
+		if signerUser.PrimarySigner != wallet.Signer {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission on this wallet."})
+			return
+		}
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/trades %v", wallet.Alias), gc.DB)
+
+		err = userServices.MakeOffer(&signerUser, &walletOwner, &wallet, &makeOfferRequest, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if walletOwner.PushNotificationToken != nil && len(makeOfferRequest.TransactionID) > 0 && makeOfferRequest.TransactionID != "PENDING_AUTH" {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("%v %v %v offer accepted on %v!", makeOfferRequest.Quantity, makeOfferRequest.AssetCode, makeOfferRequest.OfferType, wallet.Alias), fmt.Sprintf("You have successfully submitted a market offer to %v %v %v @ %v %v on the wallet with alias [%v].", makeOfferRequest.OfferType, makeOfferRequest.Quantity, makeOfferRequest.AssetCode, makeOfferRequest.PricePerUnit, makeOfferRequest.CurrencyCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+		walletOwner.InvalidateUserCache(gc)
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, makeOfferRequest)
+	}
 }
 
 // getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler godoc
@@ -4497,141 +4497,141 @@ func postUsersTradesHandler(callBackRetryChan chan userModels.RetryCallbacks, gc
 // @Router /v1/crypto/withdrawal-history/{currency}/{targetPublicKeyForHistory} [get]
 func getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error
-			currency := strings.ToUpper(c.Param("currency"))
+		// var err error
+		currency := strings.ToUpper(c.Param("currency"))
 
-			targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
+		targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
 
-			_, err := keypair.ParseAddress(targetPublicKeyForHistory)
-			if err != nil {
+		_, err := keypair.ParseAddress(targetPublicKeyForHistory)
+		if err != nil {
 
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error invalid address", "message": "Only valid addresses are allowed"}
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error invalid address", "message": "Only valid addresses are allowed"}
 
-				c.JSON(statusCode, response)
+			c.JSON(statusCode, response)
+			return
+		}
+		cacheKey := fmt.Sprintf("[GET] /v1/crypto/withdrawal-history/%v/%v", currency, targetPublicKeyForHistory)
+		cacheKeyParameters := c.Request.URL.RequestURI()
+		{
+			// check cache
+			ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
+
+			if ok {
+				// log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
+				c.JSON(status, response)
 				return
 			}
-			cacheKey := fmt.Sprintf("[GET] /v1/crypto/withdrawal-history/%v/%v", currency, targetPublicKeyForHistory)
-			cacheKeyParameters := c.Request.URL.RequestURI()
-			{
-				// check cache
-				ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
-
-				if ok {
-					// log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
-					c.JSON(status, response)
-					return
-				}
-
-			}
-			// cacheDurationInSeconds := 1 * 60 //1 minutes
-			cacheDurationInSeconds := 20 //in seconds
-			conDB.PrintDBStats(fmt.Sprintf("/v1/crypto/withdrawal-history/%v/%v", currency, targetPublicKeyForHistory), gc.DB)
-
-			signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
-
-			if err != nil {
-				log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
-				return
-			}
-			wallet, temp, err := usersDB.GetWallet(targetPublicKeyForHistory, gc.DB)
-
-			if err != nil {
-				log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
-				return
-			}
-			if temp {
-
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error only main wallets allowed", "message": "Only main wallets are allowed. The address you provided is not a main wallet."}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			targetOwnerUser, err := usersDB.GetUser(targetPublicKeyForHistory, gc.DB, gc)
-
-			if err != nil {
-				log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
-				return
-			}
-
-			{
-				// gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
-
-				//check if the owner is the one accessing it or if the one accessing it has access to access it.
-
-				if (signerUser.Username != targetOwnerUser.Username) && !wallet.SignerHasAccess(&signerUser, gc) {
-					te := &tErrors.ErrorInvalidAuthorization{}
-
-					log.Println("[GET HISTORY] Invalid access for user:", signerUser.Username, "error: ", te.Error())
-					c.JSON(te.HTTPCode(), te.JSONError())
-					return
-				}
-
-			}
-			//Get Payment history
-			historyRecords := paymentServices.GetCryptoWithdrawalHistory(targetPublicKeyForHistory, currency, gc, c)
-
-			c.JSON(http.StatusOK, historyRecords)
-			// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
-			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
 
 		}
+		// cacheDurationInSeconds := 1 * 60 //1 minutes
+		cacheDurationInSeconds := 20 //in seconds
+		conDB.PrintDBStats(fmt.Sprintf("/v1/crypto/withdrawal-history/%v/%v", currency, targetPublicKeyForHistory), gc.DB)
+
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+		wallet, temp, err := usersDB.GetWallet(targetPublicKeyForHistory, gc.DB)
+
+		if err != nil {
+			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+		if temp {
+
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error only main wallets allowed", "message": "Only main wallets are allowed. The address you provided is not a main wallet."}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		targetOwnerUser, err := usersDB.GetUser(targetPublicKeyForHistory, gc.DB, gc)
+
+		if err != nil {
+			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+
+		{
+			// gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
+
+			//check if the owner is the one accessing it or if the one accessing it has access to access it.
+
+			if (signerUser.Username != targetOwnerUser.Username) && !wallet.SignerHasAccess(&signerUser, gc) {
+				te := &tErrors.ErrorInvalidAuthorization{}
+
+				log.Println("[GET HISTORY] Invalid access for user:", signerUser.Username, "error: ", te.Error())
+				c.JSON(te.HTTPCode(), te.JSONError())
+				return
+			}
+
+		}
+		//Get Payment history
+		historyRecords := paymentServices.GetCryptoWithdrawalHistory(targetPublicKeyForHistory, currency, gc, c)
+
+		c.JSON(http.StatusOK, historyRecords)
+		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
+		gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
+
+	}
 }
 
 // getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler godoc
@@ -4645,141 +4645,141 @@ func getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler(callBack
 // @Router /v1/crypto/deposit-history/{currency}/{targetPublicKeyForHistory} [get]
 func getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error
-			currency := strings.ToUpper(c.Param("currency"))
+		// var err error
+		currency := strings.ToUpper(c.Param("currency"))
 
-			targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
+		targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
 
-			_, err := keypair.ParseAddress(targetPublicKeyForHistory)
-			if err != nil {
+		_, err := keypair.ParseAddress(targetPublicKeyForHistory)
+		if err != nil {
 
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error invalid address", "message": "Only valid addresses are allowed"}
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error invalid address", "message": "Only valid addresses are allowed"}
 
-				c.JSON(statusCode, response)
+			c.JSON(statusCode, response)
+			return
+		}
+		cacheKey := fmt.Sprintf("[GET] /v1/crypto/deposit-history/%v/%v", currency, targetPublicKeyForHistory)
+		cacheKeyParameters := c.Request.URL.RequestURI()
+		{
+			// check cache
+			ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
+
+			if ok {
+				// log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
+				c.JSON(status, response)
 				return
 			}
-			cacheKey := fmt.Sprintf("[GET] /v1/crypto/deposit-history/%v/%v", currency, targetPublicKeyForHistory)
-			cacheKeyParameters := c.Request.URL.RequestURI()
-			{
-				// check cache
-				ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
-
-				if ok {
-					// log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
-					c.JSON(status, response)
-					return
-				}
-
-			}
-			// cacheDurationInSeconds := 1 * 60 //1 minutes
-			cacheDurationInSeconds := 20 //in seconds
-			conDB.PrintDBStats(fmt.Sprintf("/v1/crypto/deposit-history/%v/%v", currency, targetPublicKeyForHistory), gc.DB)
-
-			signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
-
-			if err != nil {
-				log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
-				return
-			}
-			wallet, temp, err := usersDB.GetWallet(targetPublicKeyForHistory, gc.DB)
-
-			if err != nil {
-				log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
-				return
-			}
-			if temp {
-
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error only main wallets allowed", "message": "Only main wallets are allowed. The address you provided is not a main wallet."}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			targetOwnerUser, err := usersDB.GetUser(targetPublicKeyForHistory, gc.DB, gc)
-
-			if err != nil {
-				log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
-				return
-			}
-
-			{
-				// gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
-
-				//check if the owner is the one accessing it or if the one accessing it has access to access it.
-
-				if (signerUser.Username != targetOwnerUser.Username) && !wallet.SignerHasAccess(&signerUser, gc) {
-					te := &tErrors.ErrorInvalidAuthorization{}
-
-					log.Println("[GET HISTORY] Invalid access for user:", signerUser.Username, "error: ", te.Error())
-					c.JSON(te.HTTPCode(), te.JSONError())
-					return
-				}
-
-			}
-			//Get Payment history
-			historyRecords := paymentServices.GetCryptoDepositHistory(targetPublicKeyForHistory, currency, gc, c)
-
-			c.JSON(http.StatusOK, historyRecords)
-			// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
-			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
 
 		}
+		// cacheDurationInSeconds := 1 * 60 //1 minutes
+		cacheDurationInSeconds := 20 //in seconds
+		conDB.PrintDBStats(fmt.Sprintf("/v1/crypto/deposit-history/%v/%v", currency, targetPublicKeyForHistory), gc.DB)
+
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+		wallet, temp, err := usersDB.GetWallet(targetPublicKeyForHistory, gc.DB)
+
+		if err != nil {
+			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+		if temp {
+
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error only main wallets allowed", "message": "Only main wallets are allowed. The address you provided is not a main wallet."}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		targetOwnerUser, err := usersDB.GetUser(targetPublicKeyForHistory, gc.DB, gc)
+
+		if err != nil {
+			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+
+		{
+			// gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
+
+			//check if the owner is the one accessing it or if the one accessing it has access to access it.
+
+			if (signerUser.Username != targetOwnerUser.Username) && !wallet.SignerHasAccess(&signerUser, gc) {
+				te := &tErrors.ErrorInvalidAuthorization{}
+
+				log.Println("[GET HISTORY] Invalid access for user:", signerUser.Username, "error: ", te.Error())
+				c.JSON(te.HTTPCode(), te.JSONError())
+				return
+			}
+
+		}
+		//Get Payment history
+		historyRecords := paymentServices.GetCryptoDepositHistory(targetPublicKeyForHistory, currency, gc, c)
+
+		c.JSON(http.StatusOK, historyRecords)
+		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
+		gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
+
+	}
 }
 
 // getCryptoWithdrawalNetworksCurrencyHandler godoc
@@ -4792,35 +4792,35 @@ func getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRet
 // @Router /v1/crypto/withdrawal-networks/{currency} [get]
 func getCryptoWithdrawalNetworksCurrencyHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error
-			currency := strings.ToUpper(c.Param("currency"))
+		// var err error
+		currency := strings.ToUpper(c.Param("currency"))
 
-			wdlNetworks, err := userServices.GetWithdrawalNetworks(currency, gc)
-			if err != nil {
-				log.Println("[GET Wdl networks] error: ", err)
+		wdlNetworks, err := userServices.GetWithdrawalNetworks(currency, gc)
+		if err != nil {
+			log.Println("[GET Wdl networks] error: ", err)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
 
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
-				return
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
-			c.JSON(http.StatusOK, gin.H{"networks": wdlNetworks, "serviceFee": os.Getenv("CRYPTO_WITHDRAWAL_SERVICE_FEE")})
 
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
 		}
+		c.JSON(http.StatusOK, gin.H{"networks": wdlNetworks, "serviceFee": os.Getenv("CRYPTO_WITHDRAWAL_SERVICE_FEE")})
+
+	}
 }
 
 // postCryptoWithdrawalsHandler godoc
@@ -4835,100 +4835,100 @@ func getCryptoWithdrawalNetworksCurrencyHandler(callBackRetryChan chan userModel
 // @Router /v1/crypto/withdrawals [post]
 func postCryptoWithdrawalsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+		var err error
+		accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
-			if getUserError != nil {
-				log.Printf("[GENERATE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+		if getUserError != nil {
+			log.Printf("[GENERATE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
-			}
-
-			walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			var wdlInput userModels.WithdrawalRequestInput
-
-			data, _ := io.ReadAll(c.Request.Body)
-			// log.Println(string(data))
-			err = json.Unmarshal(data, &wdlInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-			wdlInput.Currency = strings.ToUpper(wdlInput.Currency)
-			wallet, temp, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-			if temp {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error-wallet-forbidden", "message": "Wallet forbidden."})
-				return
-			}
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			err = userServices.QueueWithdrawalRequest(&accountSignerUser, &wallet, &wdlInput, gc)
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			if len(wdlInput.TransactionID) == 0 {
-				c.JSON(http.StatusAccepted, wdlInput)
-				return
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
 			} else {
-				c.JSON(http.StatusOK, wdlInput)
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 			}
-
-			if walletOwner.PushNotificationToken != nil && len(wdlInput.TransactionID) > 0 && wdlInput.TransactionID != "PENDING_AUTH" {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = "cryptoHistory"
-				walletOwner.SendPushMessage(fmt.Sprintf("%v %v withdrawal on %v has been submitted!", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), fmt.Sprintf("You have successfully submitted a withdrawal request for %v %v on the wallet with alias [%v].", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), "", dataPayload, gc)
-			}
-			walletOwner.InvalidateUserCache(gc)
-
+			return
 		}
+
+		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		var wdlInput userModels.WithdrawalRequestInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &wdlInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		wdlInput.Currency = strings.ToUpper(wdlInput.Currency)
+		wallet, temp, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		if temp {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-wallet-forbidden", "message": "Wallet forbidden."})
+			return
+		}
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		err = userServices.QueueWithdrawalRequest(&accountSignerUser, &wallet, &wdlInput, gc)
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if len(wdlInput.TransactionID) == 0 {
+			c.JSON(http.StatusAccepted, wdlInput)
+			return
+		} else {
+			c.JSON(http.StatusOK, wdlInput)
+		}
+
+		if walletOwner.PushNotificationToken != nil && len(wdlInput.TransactionID) > 0 && wdlInput.TransactionID != "PENDING_AUTH" {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = "cryptoHistory"
+			walletOwner.SendPushMessage(fmt.Sprintf("%v %v withdrawal on %v has been submitted!", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), fmt.Sprintf("You have successfully submitted a withdrawal request for %v %v on the wallet with alias [%v].", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), "", dataPayload, gc)
+		}
+		walletOwner.InvalidateUserCache(gc)
+
+	}
 }
 
 // postSharedAccessCryptoWithdrawalsHandler godoc
@@ -4943,141 +4943,141 @@ func postCryptoWithdrawalsHandler(callBackRetryChan chan userModels.RetryCallbac
 // @Router /v1/shared-access/crypto/withdrawals [post]
 func postSharedAccessCryptoWithdrawalsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+		var err error
+		accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
-			if getUserError != nil {
-				log.Printf("[GENERATE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+		if getUserError != nil {
+			log.Printf("[GENERATE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
-			}
-
-			walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			var wdlInput userModels.WithdrawalRequestInput
-
-			data, _ := io.ReadAll(c.Request.Body)
-			log.Println(string(data))
-			err = json.Unmarshal(data, &wdlInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-			wdlInput.Currency = strings.ToUpper(wdlInput.Currency)
-			wallet, temp, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-			if temp {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error-wallet-forbidden", "message": "Wallet forbidden."})
-				return
-			}
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			//check if shared wallet, then check if user has access
-			if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
-				//check if signer has access
-				hasInitiatorAccess := false
-				// check if user has initiator access to wallet.
-				for _, p := range accountSignerUser.WalletsSharedWithUser {
-					if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
-						hasInitiatorAccess = true
-					}
-				}
-				if !hasInitiatorAccess {
-					c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
-					return
-				}
-			}
-
-			if wallet.HasViewOnlyAccess(gc) {
-				if wallet.UserID != accountSignerUser.ID {
-					c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission to access this wallet."})
-					return
-				}
-			}
-
-			err = userServices.QueueWithdrawalRequest(&accountSignerUser, &wallet, &wdlInput, gc)
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-			if wdlInput.TransactionID != "PENDING_AUTH" {
-				c.JSON(http.StatusAccepted, wdlInput)
-				return
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
 			} else {
-				c.JSON(http.StatusOK, wdlInput)
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 			}
+			return
+		}
 
-			if walletOwner.PushNotificationToken != nil && len(wdlInput.TransactionID) > 0 && wdlInput.TransactionID == "PENDING_AUTH" {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = ""
-				accountSignerUser.SendPushMessage(fmt.Sprintf("%v %v withdrawal request on %v has been submitted!", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), fmt.Sprintf("You have successfully submitted a withdrawal request for %v %v on the wallet with alias [%v]. All approvers have been notified.", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), "", dataPayload, gc)
+		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
 
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-			{
-				//start push notificationMessage
+			return
+		}
 
-				permissionList := wallet.Permissions
-				for _, v := range permissionList {
-					u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
-					if e != nil {
-						continue
-					}
+		var wdlInput userModels.WithdrawalRequestInput
 
-					dataPayload := make(map[string]string)
-					dataPayload["route"] = "pendingApproval"
-					if wdlInput.TransactionID == "PENDING_AUTH" {
-						u.SendPushMessage(fmt.Sprintf("%v %v withdrawal request submitted on %v!", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), fmt.Sprintf("Request:\n %v", wdlInput.ReturnedDescription), "", dataPayload, gc)
-					}
+		data, _ := io.ReadAll(c.Request.Body)
+		log.Println(string(data))
+		err = json.Unmarshal(data, &wdlInput)
 
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		wdlInput.Currency = strings.ToUpper(wdlInput.Currency)
+		wallet, temp, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		if temp {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-wallet-forbidden", "message": "Wallet forbidden."})
+			return
+		}
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		//check if shared wallet, then check if user has access
+		if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
+			//check if signer has access
+			hasInitiatorAccess := false
+			// check if user has initiator access to wallet.
+			for _, p := range accountSignerUser.WalletsSharedWithUser {
+				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
+					hasInitiatorAccess = true
 				}
 			}
-			walletOwner.InvalidateUserCache(gc)
+			if !hasInitiatorAccess {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+				return
+			}
+		}
+
+		if wallet.HasViewOnlyAccess(gc) {
+			if wallet.UserID != accountSignerUser.ID {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission to access this wallet."})
+				return
+			}
+		}
+
+		err = userServices.QueueWithdrawalRequest(&accountSignerUser, &wallet, &wdlInput, gc)
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+		if wdlInput.TransactionID != "PENDING_AUTH" {
+			c.JSON(http.StatusAccepted, wdlInput)
+			return
+		} else {
+			c.JSON(http.StatusOK, wdlInput)
+		}
+
+		if walletOwner.PushNotificationToken != nil && len(wdlInput.TransactionID) > 0 && wdlInput.TransactionID == "PENDING_AUTH" {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			accountSignerUser.SendPushMessage(fmt.Sprintf("%v %v withdrawal request on %v has been submitted!", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), fmt.Sprintf("You have successfully submitted a withdrawal request for %v %v on the wallet with alias [%v]. All approvers have been notified.", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), "", dataPayload, gc)
 
 		}
+		{
+			//start push notificationMessage
+
+			permissionList := wallet.Permissions
+			for _, v := range permissionList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+				if e != nil {
+					continue
+				}
+
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = "pendingApproval"
+				if wdlInput.TransactionID == "PENDING_AUTH" {
+					u.SendPushMessage(fmt.Sprintf("%v %v withdrawal request submitted on %v!", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), fmt.Sprintf("Request:\n %v", wdlInput.ReturnedDescription), "", dataPayload, gc)
+				}
+
+			}
+		}
+		walletOwner.InvalidateUserCache(gc)
+
+	}
 }
 
 // postCryptoGenerateAddressesCurrencyHandler godoc
@@ -5091,77 +5091,77 @@ func postSharedAccessCryptoWithdrawalsHandler(callBackRetryChan chan userModels.
 // @Router /v1/crypto/generate-addresses/{currency} [post]
 func postCryptoGenerateAddressesCurrencyHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error
-			currency := strings.ToUpper(c.Param("currency"))
-			wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		// var err error
+		currency := strings.ToUpper(c.Param("currency"))
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-			accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
-
-			if getUserError != nil {
-				log.Printf("[GENERATE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
-			}
-			//check if shared wallet, then check if user has access
-			if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
-				//check if signer has access
-				hasInitiatorAccess := false
-				// check if user has initiator access to wallet.
-				for _, p := range accountSignerUser.WalletsSharedWithUser {
-					if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
-						hasInitiatorAccess = true
-					}
-				}
-				if !hasInitiatorAccess {
-					c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
-					return
-				}
-			}
-
-			if wallet.SharedAccessEnabled == 0 || wallet.HasViewOnlyAccess(gc) {
-				if wallet.UserID != accountSignerUser.ID {
-					c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission to access this wallet."})
-					return
-				}
-			}
-
-			depositAddresses, err := userServices.GenerateDepositAddresses(&wallet, currency, gc)
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-			c.JSON(http.StatusOK, depositAddresses)
-
+			return
 		}
+		accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+
+		if getUserError != nil {
+			log.Printf("[GENERATE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+		//check if shared wallet, then check if user has access
+		if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
+			//check if signer has access
+			hasInitiatorAccess := false
+			// check if user has initiator access to wallet.
+			for _, p := range accountSignerUser.WalletsSharedWithUser {
+				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
+					hasInitiatorAccess = true
+				}
+			}
+			if !hasInitiatorAccess {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+				return
+			}
+		}
+
+		if wallet.SharedAccessEnabled == 0 || wallet.HasViewOnlyAccess(gc) {
+			if wallet.UserID != accountSignerUser.ID {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission to access this wallet."})
+				return
+			}
+		}
+
+		depositAddresses, err := userServices.GenerateDepositAddresses(&wallet, currency, gc)
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+		c.JSON(http.StatusOK, depositAddresses)
+
+	}
 }
 
 // getPatronHandler godoc
@@ -5173,44 +5173,44 @@ func postCryptoGenerateAddressesCurrencyHandler(callBackRetryChan chan userModel
 // @Router /v1/patron [get]
 func getPatronHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error//true-client-ip
+		// var err error//true-client-ip
 
-			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 
-			userSigner, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		userSigner, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			if err != nil {
-				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
 
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
 
-			patronPackages := userServices.GetPatronPackages(gc)
-			patronTiers := userServices.GetPatronTiers(gc)
-			patronLogs := userSigner.GetPatronSubscriptionLogs(gc)
-			memberships := userServices.GetPatronMembershipGrades(gc)
-			//
-			paymentAssets := userServices.GetPatronSubscriptionPaymentAssets(gc)
-
-			c.JSON(http.StatusOK, gin.H{"membershipGrades": memberships, "patronPackages": patronPackages, "patronTiers": patronTiers, "patronSubscriptionLogs": patronLogs, "subscriptionPaymentAssets": paymentAssets})
-
+			c.JSON(statusCode, response)
+			return
 		}
+
+		patronPackages := userServices.GetPatronPackages(gc)
+		patronTiers := userServices.GetPatronTiers(gc)
+		patronLogs := userSigner.GetPatronSubscriptionLogs(gc)
+		memberships := userServices.GetPatronMembershipGrades(gc)
+		//
+		paymentAssets := userServices.GetPatronSubscriptionPaymentAssets(gc)
+
+		c.JSON(http.StatusOK, gin.H{"membershipGrades": memberships, "patronPackages": patronPackages, "patronTiers": patronTiers, "patronSubscriptionLogs": patronLogs, "subscriptionPaymentAssets": paymentAssets})
+
+	}
 }
 
 // postPatronHandler godoc
@@ -5225,80 +5225,80 @@ func getPatronHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *shar
 // @Router /v1/patron [post]
 func postPatronHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+		var err error
+		accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
-			if getUserError != nil {
-				log.Printf("[GENERATE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+		if getUserError != nil {
+			log.Printf("[GENERATE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
-			}
-
-			var subInput userModels.PatronSubscriptionInput
-
-			data, _ := io.ReadAll(c.Request.Body)
-			// log.Println(string(data))
-			err = json.Unmarshal(data, &subInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-
-			priceConfig, err := userModels.PatronMembershipGradeID(subInput.PatronMembershipGradeID).GetPatronMemberShipConfig(gc)
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			sublog, err := userServices.SubscribeToPatronPackage(&accountSignerUser, &subInput, gc)
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			if len(subInput.TransactionID) == 0 {
-				c.JSON(http.StatusAccepted, subInput)
-				return
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
 			} else {
-				c.JSON(http.StatusOK, subInput)
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 			}
-
-			if accountSignerUser.PushNotificationToken != nil && len(subInput.TransactionID) > 0 {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = "patrons"
-				accountSignerUser.SendPushMessage("Patron membership subscription updated!", fmt.Sprintf("You have updated your patron subscription to %v %v, Effective as from %v", priceConfig.PatronPackage, priceConfig.PatronTierID, sublog.EffectiveDate), "", dataPayload, gc)
-			}
-			accountSignerUser.InvalidateUserCache(gc)
-
+			return
 		}
+
+		var subInput userModels.PatronSubscriptionInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &subInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		priceConfig, err := userModels.PatronMembershipGradeID(subInput.PatronMembershipGradeID).GetPatronMemberShipConfig(gc)
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		sublog, err := userServices.SubscribeToPatronPackage(&accountSignerUser, &subInput, gc)
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if len(subInput.TransactionID) == 0 {
+			c.JSON(http.StatusAccepted, subInput)
+			return
+		} else {
+			c.JSON(http.StatusOK, subInput)
+		}
+
+		if accountSignerUser.PushNotificationToken != nil && len(subInput.TransactionID) > 0 {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = "patrons"
+			accountSignerUser.SendPushMessage("Patron membership subscription updated!", fmt.Sprintf("You have updated your patron subscription to %v %v, Effective as from %v", priceConfig.PatronPackage, priceConfig.PatronTierID, sublog.EffectiveDate), "", dataPayload, gc)
+		}
+		accountSignerUser.InvalidateUserCache(gc)
+
+	}
 }
 
 // getClosedGroupsHandler godoc
@@ -5310,39 +5310,39 @@ func postPatronHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sha
 // @Router /v1/closed-groups [get]
 func getClosedGroupsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error//true-client-ip
-			// countryCode := c.Param("countryCode")
-			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+		// var err error//true-client-ip
+		// countryCode := c.Param("countryCode")
+		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 
-			groupOwner, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		groupOwner, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			if err != nil {
-				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
 
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
 
-			groupList := userServices.GetClosedGroupByOwner(groupOwner.Username, gc.DB)
-
-			c.JSON(http.StatusOK, gin.H{"closedGroups": groupList})
-
+			c.JSON(statusCode, response)
+			return
 		}
+
+		groupList := userServices.GetClosedGroupByOwner(groupOwner.Username, gc.DB)
+
+		c.JSON(http.StatusOK, gin.H{"closedGroups": groupList})
+
+	}
 }
 
 // getBanksCountryCodeHandler godoc
@@ -5355,39 +5355,39 @@ func getClosedGroupsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc
 // @Router /v1/banks/{countryCode} [get]
 func getBanksCountryCodeHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error//true-client-ip
-			countryCode := c.Param("countryCode")
-			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+		// var err error//true-client-ip
+		countryCode := c.Param("countryCode")
+		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 
-			_, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		_, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			if err != nil {
-				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
 
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
 
-			bankList := userServices.GetBanks(countryCode, gc.DB)
-
-			c.JSON(http.StatusOK, gin.H{"bankList": bankList})
-
+			c.JSON(statusCode, response)
+			return
 		}
+
+		bankList := userServices.GetBanks(countryCode, gc.DB)
+
+		c.JSON(http.StatusOK, gin.H{"bankList": bankList})
+
+	}
 }
 
 // getFormsFormIdHandler godoc
@@ -5400,49 +5400,49 @@ func getBanksCountryCodeHandler(callBackRetryChan chan userModels.RetryCallbacks
 // @Router /v1/forms/{formId} [get]
 func getFormsFormIdHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error//true-client-ip
-			formIDstr := strings.ReplaceAll(c.Param("formId"), " ", "")
-			if len(formIDstr) == 0 {
+		// var err error//true-client-ip
+		formIDstr := strings.ReplaceAll(c.Param("formId"), " ", "")
+		if len(formIDstr) == 0 {
 
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error-invlaid-form-id", "message": "Form ID is invalid."}
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invlaid-form-id", "message": "Form ID is invalid."}
 
-				c.JSON(statusCode, response)
-				return
-			}
-			formId, _ := strconv.Atoi(formIDstr)
-
-			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
-
-			_, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
-
-			if err != nil {
-				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			form := userServices.GetTokenizationFormByID(uint64(formId), gc)
-
-			c.JSON(http.StatusOK, gin.H{"formString": form.JsonString})
-
+			c.JSON(statusCode, response)
+			return
 		}
+		formId, _ := strconv.Atoi(formIDstr)
+
+		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+
+		_, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		form := userServices.GetTokenizationFormByID(uint64(formId), gc)
+
+		c.JSON(http.StatusOK, gin.H{"formString": form.JsonString})
+
+	}
 }
 
 // getTrovoManagerBanksCountryCodeHandler godoc
@@ -5455,52 +5455,52 @@ func getFormsFormIdHandler(callBackRetryChan chan userModels.RetryCallbacks, gc 
 // @Router /v1/trovo-manager/banks/{countryCode} [get]
 func getTrovoManagerBanksCountryCodeHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			au, err := middleware.ExtractTokenMetadata(c.Request)
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			if err != nil {
+		if err != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-
-			_, err = userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-			}
-			countryCode := c.Param("countryCode")
-
-			bankList := userServices.GetBanks(countryCode, gc.DB)
-
-			c.JSON(http.StatusOK, gin.H{"bankList": bankList})
-
+			return
 		}
+
+		_, err = userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+		countryCode := c.Param("countryCode")
+
+		bankList := userServices.GetBanks(countryCode, gc.DB)
+
+		c.JSON(http.StatusOK, gin.H{"bankList": bankList})
+
+	}
 }
 
 // getPublicTokenizationHandler godoc
@@ -5512,53 +5512,53 @@ func getTrovoManagerBanksCountryCodeHandler(callBackRetryChan chan userModels.Re
 // @Router /v1/public/tokenization [get]
 func getPublicTokenizationHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error//true-client-ip
+		// var err error//true-client-ip
 
-			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 
-			// _, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		// _, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			// if err != nil {
-			// 	log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+		// if err != nil {
+		// 	log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
 
-			// 	var ex tErrors.GenericError
-			// 	var ok bool
+		// 	var ex tErrors.GenericError
+		// 	var ok bool
 
-			// 	ex, ok = err.(tErrors.GenericError)
-			// 	var statusCode int = 0
-			// 	var response interface{}
+		// 	ex, ok = err.(tErrors.GenericError)
+		// 	var statusCode int = 0
+		// 	var response interface{}
 
-			// 	if ok {
-			// 		statusCode = ex.HTTPCode()
-			// 		response = ex.JSONError()
-			// 	} else {
-			// 		statusCode = http.StatusBadRequest
-			// 		response = gin.H{"error": err.Error(), "message": err.Error()}
-			// 	}
+		// 	if ok {
+		// 		statusCode = ex.HTTPCode()
+		// 		response = ex.JSONError()
+		// 	} else {
+		// 		statusCode = http.StatusBadRequest
+		// 		response = gin.H{"error": err.Error(), "message": err.Error()}
+		// 	}
 
-			// 	c.JSON(statusCode, response)
-			// 	return
-			// }
+		// 	c.JSON(statusCode, response)
+		// 	return
+		// }
 
-			sectorList := userServices.GetTokenizedAssetSectorList(gc.DB)
-			subsectorList := userServices.GetTokenizedAssetSubSectorList(gc.DB)
-			assetTypes := userServices.GetTokenizedAssetTypes(gc.DB)
-			docTypes := userServices.GetAssetTokenizationDocumentTypes(gc.DB)
-			custdians := userServices.GetApprovedAssetCustodians(gc.DB)
-			managers := userServices.GetAssetManagers(gc.DB)
-			issuers := userServices.GetAssetIssuingHouses(gc.DB)
+		sectorList := userServices.GetTokenizedAssetSectorList(gc.DB)
+		subsectorList := userServices.GetTokenizedAssetSubSectorList(gc.DB)
+		assetTypes := userServices.GetTokenizedAssetTypes(gc.DB)
+		docTypes := userServices.GetAssetTokenizationDocumentTypes(gc.DB)
+		custdians := userServices.GetApprovedAssetCustodians(gc.DB)
+		managers := userServices.GetAssetManagers(gc.DB)
+		issuers := userServices.GetAssetIssuingHouses(gc.DB)
 
-			// fees := userServices.GetTokenizationFees(gc.DB)
-			// log.Printf("\n[TOKENIZATION FEES] %+v\n\n", fees)
-			currencies := userServices.GetTokenizationCurrencies(gc.DB)
-			// apo := userServices.GetAssetProtectionOptions(gc.DB)
-			// apc := userServices.GetAssetProceedCycle(gc.DB)
-			ac := userServices.GetTokenizationPublicAssetAllowedCountries(gc.DB)
+		// fees := userServices.GetTokenizationFees(gc.DB)
+		// log.Printf("\n[TOKENIZATION FEES] %+v\n\n", fees)
+		currencies := userServices.GetTokenizationCurrencies(gc.DB)
+		// apo := userServices.GetAssetProtectionOptions(gc.DB)
+		// apc := userServices.GetAssetProceedCycle(gc.DB)
+		ac := userServices.GetTokenizationPublicAssetAllowedCountries(gc.DB)
 
-			c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes, "assetCustodians": custdians, "assetManagers": managers,
-				"assetIssuingHouses": issuers, "tokenizationCurrencies": currencies, "publicListingAllowedCountries": ac, "tokenizationDocumentTypes": docTypes})
+		c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes, "assetCustodians": custdians, "assetManagers": managers,
+			"assetIssuingHouses": issuers, "tokenizationCurrencies": currencies, "publicListingAllowedCountries": ac, "tokenizationDocumentTypes": docTypes})
 
-		}
+	}
 }
 
 // getTokenizationHandler godoc
@@ -5570,58 +5570,58 @@ func getPublicTokenizationHandler(callBackRetryChan chan userModels.RetryCallbac
 // @Router /v1/tokenization [get]
 func getTokenizationHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error//true-client-ip
+		// var err error//true-client-ip
 
-			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 
-			_, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		_, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			if err != nil {
-				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
 
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
 
-			sectorList := userServices.GetTokenizedAssetSectorList(gc.DB)
-			subsectorList := userServices.GetTokenizedAssetSubSectorList(gc.DB)
-			assetTypes := userServices.GetTokenizedAssetTypes(gc.DB)
-			docTypes := userServices.GetAssetTokenizationDocumentTypes(gc.DB)
-			custdians := userServices.GetApprovedAssetCustodians(gc.DB)
-			managers := userServices.GetAssetManagers(gc.DB)
-			issuers := userServices.GetAssetIssuingHouses(gc.DB)
-			fees := userServices.GetTokenizationFees(gc.DB)
-			statuses := userServices.GetTokenizationStatuses(gc.DB)
-			// log.Printf("\n[TOKENIZATION FEES] %+v\n\n", fees)
-			currencies := userServices.GetTokenizationCurrencies(gc.DB)
-			apo := userServices.GetAssetProtectionOptions(gc.DB)
-			apc := userServices.GetAssetProceedCycle(gc.DB)
-			ac := userServices.GetTokenizationPublicAssetAllowedCountries(gc.DB)
-			fpms := userServices.GetTokenizationFeePaymentMethods(gc.DB)
-			countries := userServices.GetCountries(gc.DB)
-			countryConfigs := userServices.GetCountryConfigs(gc.DB)
-
-			c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes, "assetCustodians": custdians, "assetManagers": managers,
-				"assetIssuingHouses": issuers, "tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc,
-				"publicListingAllowedCountries": ac, "tokenizationDocumentTypes": docTypes,
-				"tokenizationStatuses": statuses, "feePaymentMethods": fpms, "countryConfigs": countryConfigs, "countries": countries})
-
+			c.JSON(statusCode, response)
+			return
 		}
+
+		sectorList := userServices.GetTokenizedAssetSectorList(gc.DB)
+		subsectorList := userServices.GetTokenizedAssetSubSectorList(gc.DB)
+		assetTypes := userServices.GetTokenizedAssetTypes(gc.DB)
+		docTypes := userServices.GetAssetTokenizationDocumentTypes(gc.DB)
+		custdians := userServices.GetApprovedAssetCustodians(gc.DB)
+		managers := userServices.GetAssetManagers(gc.DB)
+		issuers := userServices.GetAssetIssuingHouses(gc.DB)
+		fees := userServices.GetTokenizationFees(gc.DB)
+		statuses := userServices.GetTokenizationStatuses(gc.DB)
+		// log.Printf("\n[TOKENIZATION FEES] %+v\n\n", fees)
+		currencies := userServices.GetTokenizationCurrencies(gc.DB)
+		apo := userServices.GetAssetProtectionOptions(gc.DB)
+		apc := userServices.GetAssetProceedCycle(gc.DB)
+		ac := userServices.GetTokenizationPublicAssetAllowedCountries(gc.DB)
+		fpms := userServices.GetTokenizationFeePaymentMethods(gc.DB)
+		countries := userServices.GetCountries(gc.DB)
+		countryConfigs := userServices.GetCountryConfigs(gc.DB)
+
+		c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes, "assetCustodians": custdians, "assetManagers": managers,
+			"assetIssuingHouses": issuers, "tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc,
+			"publicListingAllowedCountries": ac, "tokenizationDocumentTypes": docTypes,
+			"tokenizationStatuses": statuses, "feePaymentMethods": fpms, "countryConfigs": countryConfigs, "countries": countries})
+
+	}
 }
 
 // getTrovoManagerTokenizationHandler godoc
@@ -5633,70 +5633,70 @@ func getTokenizationHandler(callBackRetryChan chan userModels.RetryCallbacks, gc
 // @Router /v1/trovo-manager/tokenization [get]
 func getTrovoManagerTokenizationHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			au, err := middleware.ExtractTokenMetadata(c.Request)
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			if err != nil {
+		if err != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-
-			_, err = userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			sectorList := userServices.GetTokenizedAssetSectorList(gc.DB)
-			subsectorList := userServices.GetTokenizedAssetSubSectorList(gc.DB)
-			assetTypes := userServices.GetTokenizedAssetTypes(gc.DB)
-			docTypes := userServices.GetAssetTokenizationDocumentTypes(gc.DB)
-			custdians := userServices.GetApprovedAssetCustodians(gc.DB)
-			managers := userServices.GetAssetManagers(gc.DB)
-			issuers := userServices.GetAssetIssuingHouses(gc.DB)
-			fees := userServices.GetTokenizationFees(gc.DB)
-			statuses := userServices.GetTokenizationStatuses(gc.DB)
-			// log.Printf("\n[TOKENIZATION FEES] %+v\n\n", fees)
-			currencies := userServices.GetTokenizationCurrencies(gc.DB)
-			apo := userServices.GetAssetProtectionOptions(gc.DB)
-			apc := userServices.GetAssetProceedCycle(gc.DB)
-			ac := userServices.GetTokenizationPublicAssetAllowedCountries(gc.DB)
-			fpms := userServices.GetTokenizationFeePaymentMethods(gc.DB)
-			countries := userServices.GetCountries(gc.DB)
-			countryConfigs := userServices.GetCountryConfigs(gc.DB)
-
-			c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes, "assetCustodians": custdians, "assetManagers": managers,
-				"assetIssuingHouses": issuers, "tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc,
-				"publicListingAllowedCountries": ac, "tokenizationDocumentTypes": docTypes,
-				"tokenizationStatuses": statuses, "feePaymentMethods": fpms, "countryConfigs": countryConfigs, "countries": countries})
-
+			return
 		}
+
+		_, err = userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		sectorList := userServices.GetTokenizedAssetSectorList(gc.DB)
+		subsectorList := userServices.GetTokenizedAssetSubSectorList(gc.DB)
+		assetTypes := userServices.GetTokenizedAssetTypes(gc.DB)
+		docTypes := userServices.GetAssetTokenizationDocumentTypes(gc.DB)
+		custdians := userServices.GetApprovedAssetCustodians(gc.DB)
+		managers := userServices.GetAssetManagers(gc.DB)
+		issuers := userServices.GetAssetIssuingHouses(gc.DB)
+		fees := userServices.GetTokenizationFees(gc.DB)
+		statuses := userServices.GetTokenizationStatuses(gc.DB)
+		// log.Printf("\n[TOKENIZATION FEES] %+v\n\n", fees)
+		currencies := userServices.GetTokenizationCurrencies(gc.DB)
+		apo := userServices.GetAssetProtectionOptions(gc.DB)
+		apc := userServices.GetAssetProceedCycle(gc.DB)
+		ac := userServices.GetTokenizationPublicAssetAllowedCountries(gc.DB)
+		fpms := userServices.GetTokenizationFeePaymentMethods(gc.DB)
+		countries := userServices.GetCountries(gc.DB)
+		countryConfigs := userServices.GetCountryConfigs(gc.DB)
+
+		c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes, "assetCustodians": custdians, "assetManagers": managers,
+			"assetIssuingHouses": issuers, "tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc,
+			"publicListingAllowedCountries": ac, "tokenizationDocumentTypes": docTypes,
+			"tokenizationStatuses": statuses, "feePaymentMethods": fpms, "countryConfigs": countryConfigs, "countries": countries})
+
+	}
 }
 
 // getTokenizationDetailTidHandler godoc
@@ -5709,61 +5709,61 @@ func getTrovoManagerTokenizationHandler(callBackRetryChan chan userModels.RetryC
 // @Router /v1/tokenization/detail/{tid} [get]
 func getTokenizationDetailTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error//true-client-ip
+		// var err error//true-client-ip
 
-			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
-			tid := c.Param("tid")
-			if strings.EqualFold(tid, "null") {
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+		tid := c.Param("tid")
+		if strings.EqualFold(tid, "null") {
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
 
-				c.JSON(statusCode, response)
-				return
-			}
-
-			// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
-			_, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
-
-			if err != nil {
-				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tid, gc.DB)
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, tokenizedAsset.ToJSON(gc))
-
+			c.JSON(statusCode, response)
+			return
 		}
+
+		// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
+		_, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tid, gc.DB)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, tokenizedAsset.ToJSON(gc))
+
+	}
 }
 
 // getTrovoManagerTokenizationDetailTidHandler godoc
@@ -5777,72 +5777,72 @@ func getTokenizationDetailTidHandler(callBackRetryChan chan userModels.RetryCall
 func getTrovoManagerTokenizationDetailTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-			tid := c.Param("tid")
-			if strings.EqualFold(tid, "null") {
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+		tid := c.Param("tid")
+		if strings.EqualFold(tid, "null") {
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
 
-				c.JSON(statusCode, response)
-				return
-			}
-			var err error
-			au, err := middleware.ExtractTokenMetadata(c.Request)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			_, err = userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tid, gc.DB)
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, tokenizedAsset.ToJSON(gc))
-
+			c.JSON(statusCode, response)
+			return
 		}
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		_, err = userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tid, gc.DB)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, tokenizedAsset.ToJSON(gc))
+
+	}
 }
 
 // getTokenizationListHandler godoc
@@ -5854,39 +5854,39 @@ func getTrovoManagerTokenizationDetailTidHandler(callBackRetryChan chan userMode
 // @Router /v1/tokenization/list [get]
 func getTokenizationListHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error//true-client-ip
+		// var err error//true-client-ip
 
-			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
-			// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
-			user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+		// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			if err != nil {
-				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
 
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
 
-			tokenizationList := userServices.GetTokenizationList(&user, false, gc, c)
-
-			c.JSON(http.StatusOK, tokenizationList)
-
+			c.JSON(statusCode, response)
+			return
 		}
+
+		tokenizationList := userServices.GetTokenizationList(&user, false, gc, c)
+
+		c.JSON(http.StatusOK, tokenizationList)
+
+	}
 }
 
 // getTrovoManagerTokenizationListHandler godoc
@@ -5898,51 +5898,51 @@ func getTokenizationListHandler(callBackRetryChan chan userModels.RetryCallbacks
 // @Router /v1/trovo-manager/tokenization/list [get]
 func getTrovoManagerTokenizationListHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			au, err := middleware.ExtractTokenMetadata(c.Request)
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			if err != nil {
+		if err != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-
-			user, err := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			tokenizationList := userServices.GetTokenizationList(&user, true, gc, c)
-			//get the stats.
-			c.JSON(http.StatusOK, tokenizationList)
-
+			return
 		}
+
+		user, err := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		tokenizationList := userServices.GetTokenizationList(&user, true, gc, c)
+		//get the stats.
+		c.JSON(http.StatusOK, tokenizationList)
+
+	}
 }
 
 // getTrovoManagerTokenizationStatHandler godoc
@@ -5954,51 +5954,51 @@ func getTrovoManagerTokenizationListHandler(callBackRetryChan chan userModels.Re
 // @Router /v1/trovo-manager/tokenization/stat [get]
 func getTrovoManagerTokenizationStatHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			au, err := middleware.ExtractTokenMetadata(c.Request)
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			if err != nil {
+		if err != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-
-			_, err = userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			tokenizationStat := userServices.GetTMTokenizationStat(gc)
-			//get the stats.
-			c.JSON(http.StatusOK, tokenizationStat)
-
+			return
 		}
+
+		_, err = userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		tokenizationStat := userServices.GetTMTokenizationStat(gc)
+		//get the stats.
+		c.JSON(http.StatusOK, tokenizationStat)
+
+	}
 }
 
 // postTokenizationExpressedInterestsTokenizedAssetIDHandler godoc
@@ -6014,114 +6014,114 @@ func getTrovoManagerTokenizationStatHandler(callBackRetryChan chan userModels.Re
 // @Router /v1/tokenization/expressed-interests/{tokenizedAssetID} [post]
 func postTokenizationExpressedInterestsTokenizedAssetIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error//true-client-ip
+		// var err error//true-client-ip
 
-			tokenizedAssetID := c.Param("tokenizedAssetID")
-			user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		tokenizedAssetID := c.Param("tokenizedAssetID")
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			if err != nil {
-				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
 
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-			}
-			// //get the wallet you are sending payment from
-			subscriberWallet, _, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-
-			if getWalletError != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getWalletError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-				}
-				return
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
 
-			// if temp {
-			// 	errAccountIsTemp := &tErrors.CustomError{
-			// 		Param:      "Username",
-			// 		Err:        "error-account-not-temporary-wallet",
-			// 		ErrMessage: "Only normal/standard wallets are allowed for this request.",
-			// 		Code:       http.StatusForbidden,
-			// 	}
-
-			// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-			// 	return
-
-			// }
-
-			tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			var tInput userModels.ExpressionOfInterestInput
-
-			data, _ := io.ReadAll(c.Request.Body)
-			// log.Println(string(data))
-			err = json.Unmarshal(data, &tInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-
-			interest, err := userServices.ExpressInterest(&user, &tokenizedAsset, &tInput, gc)
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, interest)
-
-			if user.PushNotificationToken != nil {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = "expressionOfInterest"
-				user.SendPushMessage(fmt.Sprintf("You have successfully expressed interest on %v", *tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully expressed interest to purchase %v %v on the wallet with alias [%v].", interest.Amount, *tokenizedAsset.AssetCode, subscriberWallet.Alias), "", dataPayload, gc)
-			}
-
+			c.JSON(statusCode, response)
+			return
 		}
+		// //get the wallet you are sending payment from
+		subscriberWallet, _, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if getWalletError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getWalletError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			}
+			return
+		}
+
+		// if temp {
+		// 	errAccountIsTemp := &tErrors.CustomError{
+		// 		Param:      "Username",
+		// 		Err:        "error-account-not-temporary-wallet",
+		// 		ErrMessage: "Only normal/standard wallets are allowed for this request.",
+		// 		Code:       http.StatusForbidden,
+		// 	}
+
+		// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+		// 	return
+
+		// }
+
+		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		var tInput userModels.ExpressionOfInterestInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		interest, err := userServices.ExpressInterest(&user, &tokenizedAsset, &tInput, gc)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, interest)
+
+		if user.PushNotificationToken != nil {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = "expressionOfInterest"
+			user.SendPushMessage(fmt.Sprintf("You have successfully expressed interest on %v", *tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully expressed interest to purchase %v %v on the wallet with alias [%v].", interest.Amount, *tokenizedAsset.AssetCode, subscriberWallet.Alias), "", dataPayload, gc)
+		}
+
+	}
 }
 
 // postTokenizationSubscriptionsTokenizedAssetIDHandler godoc
@@ -6137,115 +6137,225 @@ func postTokenizationExpressedInterestsTokenizedAssetIDHandler(callBackRetryChan
 // @Router /v1/tokenization/subscriptions/{tokenizedAssetID} [post]
 func postTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error//true-client-ip
+		// var err error//true-client-ip
 
-			tokenizedAssetID := c.Param("tokenizedAssetID")
-			user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		tokenizedAssetID := c.Param("tokenizedAssetID")
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			if err != nil {
-				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
 
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-			}
-			//get the wallet you are sending payment from
-			subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-
-			if getWalletError != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getWalletError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-				}
-				return
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
 
-			if temp {
-				errAccountIsTemp := &tErrors.CustomError{
-					Param:      "Username",
-					Err:        "error-account-not-temporary-wallet",
-					ErrMessage: "Only normal/standard wallets are allowed for this request.",
-					Code:       http.StatusForbidden,
-				}
+			c.JSON(statusCode, response)
+			return
+		}
+		//get the wallet you are sending payment from
+		subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
-				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-				return
+		if getWalletError != nil {
 
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getWalletError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			}
+			return
+		}
+
+		if temp {
+			errAccountIsTemp := &tErrors.CustomError{
+				Param:      "Username",
+				Err:        "error-account-not-temporary-wallet",
+				ErrMessage: "Only normal/standard wallets are allowed for this request.",
+				Code:       http.StatusForbidden,
 			}
 
-			tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			var tInput userModels.TokenizedAssetSubscriptionInput
-
-			data, _ := io.ReadAll(c.Request.Body)
-			// log.Println(string(data))
-			err = json.Unmarshal(data, &tInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-
-			sub, err := userServices.SubscribeToTokenizedAsset(&user, &subscriberWallet, &tokenizedAsset, &tInput, gc)
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, tInput)
-
-			if user.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID != "PENDING_AUTH" {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = "assetSubscription"
-				user.SendPushMessage(fmt.Sprintf("You have successfully subscribed to %v", *tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully purchased %v %v worth of %v on the wallet with alias [%v].", sub.Amount, *tokenizedAsset.AssetQuoteCurrency, *tokenizedAsset.AssetCode, subscriberWallet.Alias), "", dataPayload, gc)
-			}
-			user.InvalidateUserCache(gc)
+			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			return
 
 		}
+
+		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		var tInput userModels.TokenizedAssetSubscriptionInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		sub, err := userServices.SubscribeToTokenizedAsset(&user, &subscriberWallet, &tokenizedAsset, &tInput, gc)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, tInput)
+
+		if user.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID != "PENDING_AUTH" {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = "assetSubscription"
+			user.SendPushMessage(fmt.Sprintf("You have successfully subscribed to %v", *tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully purchased %v %v worth of %v on the wallet with alias [%v].", sub.Amount, *tokenizedAsset.AssetQuoteCurrency, *tokenizedAsset.AssetCode, subscriberWallet.Alias), "", dataPayload, gc)
+		}
+		user.InvalidateUserCache(gc)
+
+	}
+}
+
+// postTokenizationSubscriptionsFiatTokenizedAssetIDHandler godoc
+// @Summary POST /v1/tokenization/subscriptions/fiat/:tokenizedAssetID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param tokenizedAssetID path string true "Tokenized asset ID"
+// @Param body body userModels.FiatTokenizedAssetSubscriptionInput true "Fiat subscription payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /v1/tokenization/subscriptions/fiat/{tokenizedAssetID} [post]
+//
+// Drives the two-call fiat asset purchase flow. Call 1 (no transactionSignature in the body) generates
+// and returns the transaction xdr for the caller to sign; call 2 (same id, transactionSignature set)
+// persists that signature and creates the pending FiatPaymentInvoice. Neither call submits anything to
+// the blockchain - that only happens later, from postCallbacksFlutterwaveWebhookHandler once Flutterwave
+// confirms the fiat payment.
+func postTokenizationSubscriptionsFiatTokenizedAssetIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenizedAssetID := c.Param("tokenizedAssetID")
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+		//get the wallet you are subscribing from
+		subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if getWalletError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getWalletError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			}
+			return
+		}
+
+		if temp {
+			errAccountIsTemp := &tErrors.CustomError{
+				Param:      "Username",
+				Err:        "error-account-not-temporary-wallet",
+				ErrMessage: "Only normal/standard wallets are allowed for this request.",
+				Code:       http.StatusForbidden,
+			}
+
+			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			return
+
+		}
+
+		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		var tInput userModels.FiatTokenizedAssetSubscriptionInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		err = json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		invoice, err := userServices.SubscribeToTokenizedAssetByFiat(&user, &subscriberWallet, &tokenizedAsset, &tInput, gc)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, invoice)
+	}
 }
 
 // postSharedAccessTokenizationSubscriptionsTokenizedAssetIDHandler godoc
@@ -6261,176 +6371,176 @@ func postTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan chan
 // @Router /v1/shared-access/tokenization/subscriptions/{tokenizedAssetID} [post]
 func postSharedAccessTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error//true-client-ip
+		// var err error//true-client-ip
 
-			tokenizedAssetID := c.Param("tokenizedAssetID")
-			accountSignerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		tokenizedAssetID := c.Param("tokenizedAssetID")
+		accountSignerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			if err != nil {
-				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
 
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-			}
-			//get the wallet you are sending payment from
-			subscriptionWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-
-			if getWalletError != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getWalletError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-				}
-				return
-			}
-
-			if temp {
-				errAccountIsTemp := &tErrors.CustomError{
-					Param:      "Username",
-					Err:        "error-account-not-temporary-wallet",
-					ErrMessage: "Only normal/standard wallets are allowed for this request.",
-					Code:       http.StatusForbidden,
-				}
-
-				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-				return
-
-			}
-
-			walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-			tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			var tInput userModels.TokenizedAssetSubscriptionInput
-
-			data, _ := io.ReadAll(c.Request.Body)
-			// log.Println(string(data))
-			err = json.Unmarshal(data, &tInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-
-			//check if shared wallet, then check if user has access
-			if subscriptionWallet.SharedAccessEnabled == 1 && subscriptionWallet.NumberOfApprovalsNeeded > 0 {
-				//check if signer has access
-				hasInitiatorAccess := false
-				// check if user has initiator access to wallet.
-				for _, p := range accountSignerUser.WalletsSharedWithUser {
-					if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
-						hasInitiatorAccess = true
-					}
-				}
-				if !hasInitiatorAccess {
-					c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
-					return
-				}
-			}
-
-			if subscriptionWallet.HasViewOnlyAccess(gc) {
-				if subscriptionWallet.UserID != accountSignerUser.ID {
-					c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission to access this wallet."})
-					return
-				}
-			}
-
-			_, err = userServices.SubscribeToTokenizedAsset(&accountSignerUser, &subscriptionWallet, &tokenizedAsset, &tInput, gc)
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			if tInput.TransactionID != "PENDING_AUTH" {
-				c.JSON(http.StatusAccepted, tInput)
-				return
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
 			} else {
-				c.JSON(http.StatusOK, tInput)
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
 
-			if walletOwner.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID == "PENDING_AUTH" {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = ""
-				accountSignerUser.SendPushMessage(fmt.Sprintf("%v purchase request using %v %v on %v!", *tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), *tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), fmt.Sprintf("You have successfully submitted a purchase request for %v using %v %v on the wallet with alias [%v]. All approvers have been notified.", *tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), *tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), "", dataPayload, gc)
+			c.JSON(statusCode, response)
+			return
+		}
+		//get the wallet you are sending payment from
+		subscriptionWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
+		if getWalletError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getWalletError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
 			}
-			{
-				//start push notificationMessage
+			return
+		}
 
-				permissionList := subscriptionWallet.Permissions
-				for _, v := range permissionList {
-					u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
-					if e != nil {
-						continue
-					}
-
-					dataPayload := make(map[string]string)
-					dataPayload["route"] = "pendingApproval"
-					if tInput.TransactionID == "PENDING_AUTH" {
-						u.SendPushMessage(fmt.Sprintf("%v purchase request using %v %v submitted on %v!", *tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), *tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), fmt.Sprintf("Request:\n %v", tInput.ReturnedDescription), "", dataPayload, gc)
-					}
-
-				}
+		if temp {
+			errAccountIsTemp := &tErrors.CustomError{
+				Param:      "Username",
+				Err:        "error-account-not-temporary-wallet",
+				ErrMessage: "Only normal/standard wallets are allowed for this request.",
+				Code:       http.StatusForbidden,
 			}
-			walletOwner.InvalidateUserCache(gc)
+
+			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			return
 
 		}
+
+		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		var tInput userModels.TokenizedAssetSubscriptionInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		//check if shared wallet, then check if user has access
+		if subscriptionWallet.SharedAccessEnabled == 1 && subscriptionWallet.NumberOfApprovalsNeeded > 0 {
+			//check if signer has access
+			hasInitiatorAccess := false
+			// check if user has initiator access to wallet.
+			for _, p := range accountSignerUser.WalletsSharedWithUser {
+				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
+					hasInitiatorAccess = true
+				}
+			}
+			if !hasInitiatorAccess {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+				return
+			}
+		}
+
+		if subscriptionWallet.HasViewOnlyAccess(gc) {
+			if subscriptionWallet.UserID != accountSignerUser.ID {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission to access this wallet."})
+				return
+			}
+		}
+
+		_, err = userServices.SubscribeToTokenizedAsset(&accountSignerUser, &subscriptionWallet, &tokenizedAsset, &tInput, gc)
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if tInput.TransactionID != "PENDING_AUTH" {
+			c.JSON(http.StatusAccepted, tInput)
+			return
+		} else {
+			c.JSON(http.StatusOK, tInput)
+		}
+
+		if walletOwner.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID == "PENDING_AUTH" {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			accountSignerUser.SendPushMessage(fmt.Sprintf("%v purchase request using %v %v on %v!", *tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), *tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), fmt.Sprintf("You have successfully submitted a purchase request for %v using %v %v on the wallet with alias [%v]. All approvers have been notified.", *tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), *tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), "", dataPayload, gc)
+
+		}
+		{
+			//start push notificationMessage
+
+			permissionList := subscriptionWallet.Permissions
+			for _, v := range permissionList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+				if e != nil {
+					continue
+				}
+
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = "pendingApproval"
+				if tInput.TransactionID == "PENDING_AUTH" {
+					u.SendPushMessage(fmt.Sprintf("%v purchase request using %v %v submitted on %v!", *tokenizedAsset.AssetCode, decimal.NewFromFloat(tInput.Amount).String(), *tokenizedAsset.AssetQuoteCurrency, subscriptionWallet.Alias), fmt.Sprintf("Request:\n %v", tInput.ReturnedDescription), "", dataPayload, gc)
+				}
+
+			}
+		}
+		walletOwner.InvalidateUserCache(gc)
+
+	}
 }
 
 // getTokenizationExpressedInterestsHandler godoc
@@ -6442,39 +6552,39 @@ func postSharedAccessTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRe
 // @Router /v1/tokenization/expressed-interests [get]
 func getTokenizationExpressedInterestsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error//true-client-ip
+		// var err error//true-client-ip
 
-			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
-			// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
-			user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+		// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			if err != nil {
-				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
 
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
 
-			interestList := userServices.GetExpressionOfInterestList(&user, gc, c)
-
-			c.JSON(http.StatusOK, interestList)
-
+			c.JSON(statusCode, response)
+			return
 		}
+
+		interestList := userServices.GetExpressionOfInterestList(&user, gc, c)
+
+		c.JSON(http.StatusOK, interestList)
+
+	}
 }
 
 // getTokenizationSubscriptionsHandler godoc
@@ -6486,67 +6596,67 @@ func getTokenizationExpressedInterestsHandler(callBackRetryChan chan userModels.
 // @Router /v1/tokenization/subscriptions [get]
 func getTokenizationSubscriptionsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// var err error//true-client-ip
+		// var err error//true-client-ip
 
-			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
-			// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
-			signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+		// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
-			if err != nil {
-				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
 
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error(), "message": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
-			walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
 
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
+			c.JSON(statusCode, response)
+			return
+		}
+		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-			permitted := false
+			return
+		}
+		permitted := false
 
-			for _, k := range signerUser.WalletsSharedWithUser {
-				if k.TargetUsername == signerUser.Username && k.WalletPublicKey == middleware.ExtractPublicKey(c) {
-					permitted = true
-				}
-			}
-			if walletOwner.Username == signerUser.Username {
+		for _, k := range signerUser.WalletsSharedWithUser {
+			if k.TargetUsername == signerUser.Username && k.WalletPublicKey == middleware.ExtractPublicKey(c) {
 				permitted = true
 			}
-			if !permitted {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permissions to access this wallet."})
-				return
-			}
-
-			subList := userServices.GetTokenizedAssetSubscriptionList(&signerUser, gc, c)
-
-			c.JSON(http.StatusOK, subList)
-
 		}
+		if walletOwner.Username == signerUser.Username {
+			permitted = true
+		}
+		if !permitted {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permissions to access this wallet."})
+			return
+		}
+
+		subList := userServices.GetTokenizedAssetSubscriptionList(&signerUser, gc, c)
+
+		c.JSON(http.StatusOK, subList)
+
+	}
 }
 
 // postTokenizationHandler godoc
@@ -6561,57 +6671,57 @@ func getTokenizationSubscriptionsHandler(callBackRetryChan chan userModels.Retry
 // @Router /v1/tokenization [post]
 func postTokenizationHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+		var err error
+		initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
-			if getUserError != nil {
-				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+		if getUserError != nil {
+			log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 			}
-
-			var tInput userModels.TokenizedAssetJSONInput
-
-			data, _ := io.ReadAll(c.Request.Body)
-			// log.Println(string(data))
-			err = json.Unmarshal(data, &tInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-
-			//perform request action
-			ta, err := userServices.SubmitTokenizationAssetInfoByInitiator(&initiator, &tInput, gc)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, ta.ToJSON(gc))
-
+			return
 		}
+
+		var tInput userModels.TokenizedAssetJSONInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		//perform request action
+		ta, err := userServices.SubmitTokenizationAssetInfoByInitiator(&initiator, &tInput, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, ta.ToJSON(gc))
+
+	}
 }
 
 // putTrovoManagerTokenizationUpdateTidHandler godoc
@@ -6627,85 +6737,85 @@ func postTokenizationHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 // @Router /v1/trovo-manager/tokenization/update/{tid} [put]
 func putTrovoManagerTokenizationUpdateTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			au, err := middleware.ExtractTokenMetadata(c.Request)
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			if err != nil {
+		if err != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-
-			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
-
-			if getUserError != nil {
-				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
-			}
-
-			tid := c.Param("tid")
-			if strings.EqualFold(tid, "null") {
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			var tInput userModels.TokenizedAssetJSONInput
-
-			data, _ := io.ReadAll(c.Request.Body)
-			// log.Println(string(data))
-			err = json.Unmarshal(data, &tInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-
-			//perform request action
-			ta, _, err := userServices.SubmitTokenizationAssetInfo(tid, &initiator, &tInput, gc)
-
-			if err != nil {
-				log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] RawData: %s\n\nUnmarshalled: %#v\n\n", string(data), tInput)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] Error: [%#v]\n\n", ex.JSONError())
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] Error: [%v]\n\n", err.Error())
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, ta.ToJSON(gc))
-
+			return
 		}
+
+		initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+			log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		tid := c.Param("tid")
+		if strings.EqualFold(tid, "null") {
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		var tInput userModels.TokenizedAssetJSONInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		//perform request action
+		ta, _, err := userServices.SubmitTokenizationAssetInfo(tid, &initiator, &tInput, gc)
+
+		if err != nil {
+			log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] RawData: %s\n\nUnmarshalled: %#v\n\n", string(data), tInput)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] Error: [%#v]\n\n", ex.JSONError())
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				log.Printf("\n\n[SubmitTokenizationAssetInfo:ERROR] Error: [%v]\n\n", err.Error())
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, ta.ToJSON(gc))
+
+	}
 }
 
 // putTrovoManagerTokenizationSalesdateTidHandler godoc
@@ -6721,89 +6831,89 @@ func putTrovoManagerTokenizationUpdateTidHandler(callBackRetryChan chan userMode
 // @Router /v1/trovo-manager/tokenization/salesdate/{tid} [put]
 func putTrovoManagerTokenizationSalesdateTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			au, err := middleware.ExtractTokenMetadata(c.Request)
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			if err != nil {
+		if err != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-
-			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
-
-			if getUserError != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
-			}
-
-			tid := c.Param("tid")
-			if strings.EqualFold(tid, "null") {
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			var tInput userModels.TokenizedAssetSalesDatesInput
-
-			data, _ := io.ReadAll(c.Request.Body)
-			// log.Println(string(data))
-			err = json.Unmarshal(data, &tInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-
-			//perform request action
-			ta, err := userServices.UpdateTokenizedAssetSalesDates(tid, &initiator, &tInput, gc)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, ta.ToJSON(gc))
-			// originalOwner, err := userModels.Username(ta.InitiatorUsername).GetFullUser(gc.DB, gc)
-			// if err == nil {
-			// 	if originalOwner.PushNotificationToken != nil {
-			// 		dataPayload := make(map[string]string)
-			// 		dataPayload["route"] = ""
-			// 		pns.SendFirebaseMessage(*originalOwner.PushNotificationToken, "Your tokenization request vetted!", fmt.Sprintf("Your tokenization request for %v[%v] has been vetted. Please proceed to next stage to make fee payments.", *ta.AssetSector, *ta.AssetSubSector), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			// 	}
-			// }
-
+			return
 		}
+
+		initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		tid := c.Param("tid")
+		if strings.EqualFold(tid, "null") {
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		var tInput userModels.TokenizedAssetSalesDatesInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		//perform request action
+		ta, err := userServices.UpdateTokenizedAssetSalesDates(tid, &initiator, &tInput, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, ta.ToJSON(gc))
+		// originalOwner, err := userModels.Username(ta.InitiatorUsername).GetFullUser(gc.DB, gc)
+		// if err == nil {
+		// 	if originalOwner.PushNotificationToken != nil {
+		// 		dataPayload := make(map[string]string)
+		// 		dataPayload["route"] = ""
+		// 		pns.SendFirebaseMessage(*originalOwner.PushNotificationToken, "Your tokenization request vetted!", fmt.Sprintf("Your tokenization request for %v[%v] has been vetted. Please proceed to next stage to make fee payments.", *ta.AssetSector, *ta.AssetSubSector), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		// 	}
+		// }
+
+	}
 }
 
 // putTrovoManagerTokenizationVetTidHandler godoc
@@ -6819,92 +6929,92 @@ func putTrovoManagerTokenizationSalesdateTidHandler(callBackRetryChan chan userM
 // @Router /v1/trovo-manager/tokenization/vet/{tid} [put]
 func putTrovoManagerTokenizationVetTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			au, err := middleware.ExtractTokenMetadata(c.Request)
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			if err != nil {
+		if err != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-
-			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
-
-			if getUserError != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
-			}
-
-			tid := c.Param("tid")
-			if strings.EqualFold(tid, "null") {
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			var tInput userModels.VetTokenizedAssetJSONInput
-
-			data, _ := io.ReadAll(c.Request.Body)
-			// log.Println(string(data))
-			err = json.Unmarshal(data, &tInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-
-			//perform request action
-			ta, err := userServices.VetTokenizationAssetInfo(tid, &initiator, &tInput, gc)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-					log.Printf("[VETTOKENIZATION]Data: %v, Error:%+v\n", tInput, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-					log.Printf("[VETTOKENIZATION]Data: %v, Error:%+v\n", tInput, err)
-
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, ta.ToJSON(gc))
-			originalOwner, err := userModels.Username(ta.InitiatorUsername).GetFullUser(gc.DB, gc)
-			if err == nil {
-				if originalOwner.PushNotificationToken != nil {
-					dataPayload := make(map[string]string)
-					dataPayload["route"] = ""
-					pns.SendFirebaseMessage(*originalOwner.PushNotificationToken, "Your tokenization request vetted!", fmt.Sprintf("Your tokenization request for %v[%v] has been vetted. Please proceed to next stage to make fee payments.", *ta.AssetSector, *ta.AssetSubSector), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-				}
-			}
-
+			return
 		}
+
+		initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		tid := c.Param("tid")
+		if strings.EqualFold(tid, "null") {
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		var tInput userModels.VetTokenizedAssetJSONInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		//perform request action
+		ta, err := userServices.VetTokenizationAssetInfo(tid, &initiator, &tInput, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+				log.Printf("[VETTOKENIZATION]Data: %v, Error:%+v\n", tInput, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				log.Printf("[VETTOKENIZATION]Data: %v, Error:%+v\n", tInput, err)
+
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, ta.ToJSON(gc))
+		originalOwner, err := userModels.Username(ta.InitiatorUsername).GetFullUser(gc.DB, gc)
+		if err == nil {
+			if originalOwner.PushNotificationToken != nil {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				pns.SendFirebaseMessage(*originalOwner.PushNotificationToken, "Your tokenization request vetted!", fmt.Sprintf("Your tokenization request for %v[%v] has been vetted. Please proceed to next stage to make fee payments.", *ta.AssetSector, *ta.AssetSubSector), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			}
+		}
+
+	}
 }
 
 // postTrovoManagerTokenizationFailddTidHandler godoc
@@ -6920,94 +7030,94 @@ func putTrovoManagerTokenizationVetTidHandler(callBackRetryChan chan userModels.
 // @Router /v1/trovo-manager/tokenization/faildd/{tid} [post]
 func postTrovoManagerTokenizationFailddTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			au, err := middleware.ExtractTokenMetadata(c.Request)
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			if err != nil {
+		if err != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-
-			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
-
-			if getUserError != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
-			}
-
-			tid := c.Param("tid")
-			if strings.EqualFold(tid, "null") {
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			var tInput userModels.FailDueDiligence
-
-			data, _ := io.ReadAll(c.Request.Body)
-			// log.Println(string(data))
-			err = json.Unmarshal(data, &tInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-
-			//perform request action
-			ta, err := userServices.FailTokenizationDueDiligence(tid, &initiator, tInput.Reason, gc)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					log.Printf("[FAILDD]Error:%+v\n", ex.JSONError())
-
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					log.Printf("[FAILDD]Error:%v\n", err)
-
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, ta.ToJSON(gc))
-			originalOwner, err := userModels.Username(ta.InitiatorUsername).GetFullUser(gc.DB, gc)
-			if err == nil {
-				if originalOwner.PushNotificationToken != nil {
-					dataPayload := make(map[string]string)
-					dataPayload["route"] = ""
-					pns.SendFirebaseMessage(*originalOwner.PushNotificationToken, "Your tokenization request failed Due Diligence!", fmt.Sprintf("Your tokenization request for %v[%v] has failed due diligience check. Please proceed to next stage to rectify any issues.", *ta.AssetSector, *ta.AssetSubSector), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-				}
-			}
-
+			return
 		}
+
+		initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		tid := c.Param("tid")
+		if strings.EqualFold(tid, "null") {
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		var tInput userModels.FailDueDiligence
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		//perform request action
+		ta, err := userServices.FailTokenizationDueDiligence(tid, &initiator, tInput.Reason, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				log.Printf("[FAILDD]Error:%+v\n", ex.JSONError())
+
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				log.Printf("[FAILDD]Error:%v\n", err)
+
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, ta.ToJSON(gc))
+		originalOwner, err := userModels.Username(ta.InitiatorUsername).GetFullUser(gc.DB, gc)
+		if err == nil {
+			if originalOwner.PushNotificationToken != nil {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				pns.SendFirebaseMessage(*originalOwner.PushNotificationToken, "Your tokenization request failed Due Diligence!", fmt.Sprintf("Your tokenization request for %v[%v] has failed due diligience check. Please proceed to next stage to rectify any issues.", *ta.AssetSector, *ta.AssetSubSector), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			}
+		}
+
+	}
 }
 
 // postTrovoManagerTokenizationFeeTidHandler godoc
@@ -7021,93 +7131,93 @@ func postTrovoManagerTokenizationFailddTidHandler(callBackRetryChan chan userMod
 // @Router /v1/trovo-manager/tokenization/fee/{tid} [post]
 func postTrovoManagerTokenizationFeeTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			au, err := middleware.ExtractTokenMetadata(c.Request)
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			if err != nil {
+		if err != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-
-			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
-
-			if getUserError != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
-			}
-
-			tid := c.Param("tid")
-			if strings.EqualFold(tid, "null") {
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			// var tInput userModels.FailDueDiligence
-
-			// data, _ := io.ReadAll(c.Request.Body)
-			// // log.Println(string(data))
-			// err = json.Unmarshal(data, &tInput)
-
-			// var invalidJSON tErrors.ErrorInvalidJSON
-
-			// if err != nil {
-			// 	c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-			// 	return
-			// }
-
-			//perform request action
-			ta, err := userServices.AcknowledgeTokenizationFeePayment(tid, &initiator, gc)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					log.Printf("[FEEACKNOWLEDGEMENT]Error:%+v\n", ex.JSONError())
-
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					log.Printf("[FEEACKNOWLEDGEMENT]Error:%v\n", err)
-
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, ta.ToJSON(gc))
-			originalOwner, err := userModels.Username(ta.InitiatorUsername).GetFullUser(gc.DB, gc)
-			if err == nil {
-				if originalOwner.PushNotificationToken != nil {
-					dataPayload := make(map[string]string)
-					dataPayload["route"] = ""
-					pns.SendFirebaseMessage(*originalOwner.PushNotificationToken, "Your tokenization request fee payment acknowledged!", fmt.Sprintf("Your tokenization request fee payment for %v[%v] has been acknowledged. Application will now go through Due Diligence.", *ta.AssetSector, *ta.AssetSubSector), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-				}
-			}
-
+			return
 		}
+
+		initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		tid := c.Param("tid")
+		if strings.EqualFold(tid, "null") {
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		// var tInput userModels.FailDueDiligence
+
+		// data, _ := io.ReadAll(c.Request.Body)
+		// // log.Println(string(data))
+		// err = json.Unmarshal(data, &tInput)
+
+		// var invalidJSON tErrors.ErrorInvalidJSON
+
+		// if err != nil {
+		// 	c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+		// 	return
+		// }
+
+		//perform request action
+		ta, err := userServices.AcknowledgeTokenizationFeePayment(tid, &initiator, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				log.Printf("[FEEACKNOWLEDGEMENT]Error:%+v\n", ex.JSONError())
+
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				log.Printf("[FEEACKNOWLEDGEMENT]Error:%v\n", err)
+
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, ta.ToJSON(gc))
+		originalOwner, err := userModels.Username(ta.InitiatorUsername).GetFullUser(gc.DB, gc)
+		if err == nil {
+			if originalOwner.PushNotificationToken != nil {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				pns.SendFirebaseMessage(*originalOwner.PushNotificationToken, "Your tokenization request fee payment acknowledged!", fmt.Sprintf("Your tokenization request fee payment for %v[%v] has been acknowledged. Application will now go through Due Diligence.", *ta.AssetSector, *ta.AssetSubSector), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			}
+		}
+
+	}
 }
 
 // postTrovoManagerTokenizationMintTidHandler godoc
@@ -7121,94 +7231,94 @@ func postTrovoManagerTokenizationFeeTidHandler(callBackRetryChan chan userModels
 // @Router /v1/trovo-manager/tokenization/mint/{tid} [post]
 func postTrovoManagerTokenizationMintTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			au, err := middleware.ExtractTokenMetadata(c.Request)
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			if err != nil {
+		if err != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
+			return
+		}
 
-			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+		initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
 
-			if getUserError != nil {
+		if getUserError != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 			}
+			return
+		}
 
-			tid := c.Param("tid")
-			if strings.EqualFold(tid, "null") {
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+		tid := c.Param("tid")
+		if strings.EqualFold(tid, "null") {
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
 
-				c.JSON(statusCode, response)
-				return
+			c.JSON(statusCode, response)
+			return
+		}
+
+		//perform request action
+		ta, err := userServices.MintRegulatedTokenizedAsset(tid, &initiator, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				log.Printf("[MINT TOKEN]Error:%+v\n", ex.JSONError())
+
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				log.Printf("[MINT TOKEN]Error:%v\n", err)
+
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
+			return
+		}
 
-			//perform request action
-			ta, err := userServices.MintRegulatedTokenizedAsset(tid, &initiator, gc)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					log.Printf("[MINT TOKEN]Error:%+v\n", ex.JSONError())
-
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					log.Printf("[MINT TOKEN]Error:%v\n", err)
-
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+		c.JSON(http.StatusOK, ta.ToJSON(gc))
+		originalOwner, err := userModels.Username(ta.InitiatorUsername).GetFullUser(gc.DB, gc)
+		if err == nil {
+			if originalOwner.PushNotificationToken != nil {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				pns.SendFirebaseMessage(*originalOwner.PushNotificationToken, "Your tokenization request is now awaiting minting!", fmt.Sprintf("Your tokenization request for %v[%v] has been approved and now waiting for minting.", *ta.AssetSector, *ta.AssetSubSector), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 			}
+		}
+		//get list of approvers
+		approvers := strings.Split(strings.ReplaceAll(strings.ToLower(*ta.MintingApprovers), " ", ","), ",")
+		for _, v := range approvers {
 
-			c.JSON(http.StatusOK, ta.ToJSON(gc))
-			originalOwner, err := userModels.Username(ta.InitiatorUsername).GetFullUser(gc.DB, gc)
-			if err == nil {
-				if originalOwner.PushNotificationToken != nil {
-					dataPayload := make(map[string]string)
-					dataPayload["route"] = ""
-					pns.SendFirebaseMessage(*originalOwner.PushNotificationToken, "Your tokenization request is now awaiting minting!", fmt.Sprintf("Your tokenization request for %v[%v] has been approved and now waiting for minting.", *ta.AssetSector, *ta.AssetSubSector), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-				}
-			}
-			//get list of approvers
-			approvers := strings.Split(strings.ReplaceAll(strings.ToLower(*ta.MintingApprovers), " ", ","), ",")
-			for _, v := range approvers {
-
-				u, e := userModels.Username(v).GetSimpleUser(gc.DB, gc)
-				if e == nil && u.PushNotificationToken != nil {
-					log.Println("notifying approver:", v)
-					dataPayload := make(map[string]string)
-					dataPayload["route"] = "pendingApproval"
-					u.SendPushMessage(fmt.Sprintf("Pending Approval: Mint asset %v!", *ta.AssetCode), fmt.Sprintf("You have a pending approval to mint the asset %v (%v). Please tap to choose the appropriate action.", *ta.AssetCode, *ta.AssetName), "", dataPayload, gc)
-
-				}
+			u, e := userModels.Username(v).GetSimpleUser(gc.DB, gc)
+			if e == nil && u.PushNotificationToken != nil {
+				log.Println("notifying approver:", v)
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = "pendingApproval"
+				u.SendPushMessage(fmt.Sprintf("Pending Approval: Mint asset %v!", *ta.AssetCode), fmt.Sprintf("You have a pending approval to mint the asset %v (%v). Please tap to choose the appropriate action.", *ta.AssetCode, *ta.AssetName), "", dataPayload, gc)
 
 			}
 
 		}
+
+	}
 }
 
 // putTokenizationConfirmTokenizationIDHandler godoc
@@ -7224,56 +7334,56 @@ func postTrovoManagerTokenizationMintTidHandler(callBackRetryChan chan userModel
 // @Router /v1/tokenization/confirm/{tokenizationID} [put]
 func putTokenizationConfirmTokenizationIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+		var err error
+		initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
-			if getUserError != nil {
-				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+		if getUserError != nil {
+			log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 			}
-
-			var tInput userModels.ConfirmTokenizedAssetJSONInput
-
-			data, _ := io.ReadAll(c.Request.Body)
-			// log.Println(string(data))
-			err = json.Unmarshal(data, &tInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-			//confirm request
-			_, err = userServices.ConfirmTokenizationApplicationInfoByInitiator(&initiator, c.Param("tokenizationID"), &tInput, gc)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, tInput)
-
+			return
 		}
+
+		var tInput userModels.ConfirmTokenizedAssetJSONInput
+
+		data, _ := io.ReadAll(c.Request.Body)
+		// log.Println(string(data))
+		err = json.Unmarshal(data, &tInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		//confirm request
+		_, err = userServices.ConfirmTokenizationApplicationInfoByInitiator(&initiator, c.Param("tokenizationID"), &tInput, gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, tInput)
+
+	}
 }
 
 // deleteTokenizationTokenizationIDHandler godoc
@@ -7286,43 +7396,43 @@ func putTokenizationConfirmTokenizationIDHandler(callBackRetryChan chan userMode
 // @Router /v1/tokenization/{tokenizationID} [delete]
 func deleteTokenizationTokenizationIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+		var err error
+		initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
-			if getUserError != nil {
-				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+		if getUserError != nil {
+			log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 			}
-
-			ta, err := userServices.DeleteTokenization(&initiator, c.Param("tokenizationID"), gc)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, ta)
-
+			return
 		}
+
+		ta, err := userServices.DeleteTokenization(&initiator, c.Param("tokenizationID"), gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, ta)
+
+	}
 }
 
 // deleteTrovoManagerTokenizationTokenizationIDHandler godoc
@@ -7335,68 +7445,68 @@ func deleteTokenizationTokenizationIDHandler(callBackRetryChan chan userModels.R
 // @Router /v1/trovo-manager/tokenization/{tokenizationID} [delete]
 func deleteTrovoManagerTokenizationTokenizationIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			au, err := middleware.ExtractTokenMetadata(c.Request)
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			if err != nil {
+		if err != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-
-			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
-
-			if getUserError != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
-			}
-
-			tid := c.Param("tokenizationID")
-			if strings.EqualFold(tid, "null") {
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			//update request
-			ta, err := userServices.TrovoManagerDeleteTokenization(&initiator, c.Param("tokenizationID"), gc)
-
-			if err != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, ta)
-
+			return
 		}
+
+		initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		tid := c.Param("tokenizationID")
+		if strings.EqualFold(tid, "null") {
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		//update request
+		ta, err := userServices.TrovoManagerDeleteTokenization(&initiator, c.Param("tokenizationID"), gc)
+
+		if err != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, ta)
+
+	}
 }
 
 // putTokenizationDocumentHandler godoc
@@ -7412,131 +7522,131 @@ func deleteTrovoManagerTokenizationTokenizationIDHandler(callBackRetryChan chan 
 func putTokenizationDocumentHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-			var err error
-			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+		var err error
+		initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
-			if getUserError != nil {
-				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+		if getUserError != nil {
+			log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 			}
-
-			const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
-			r := c.Request
-			// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
-			if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size", "message": "document cannot be more than 900kb in file size"})
-				return
-			}
-
-			f, fileHeader, err := r.FormFile("documentFile")
-
-			if err != nil {
-				log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
-				return
-			}
-			defer f.Close()
-			blobFile, err := fileHeader.Open()
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded", "message": "error attempting to validate the document uploaded"})
-
-				return
-			}
-			defer blobFile.Close()
-
-			fnameSplit := strings.Split(fileHeader.Filename, ".")
-			fileExtension := fnameSplit[len(fnameSplit)-1]
-
-			{
-				//check for unsupported extension
-				if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") && !strings.EqualFold(fileExtension, "pdf") {
-					c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported", "message": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported"})
-
-					return
-				}
-			}
-
-			var tokenizationInput userModels.AssetTokenizationInputDocument
-
-			err = c.ShouldBind(&tokenizationInput)
-			// data, _ := io.ReadAll(c.Request.Body)
-			// // log.Println(string(data))
-			// err = json.Unmarshal(data, &tokenizationInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				log.Printf("Error Getting Uploaded file with param DocumentFile:%+v\n error: %v", r.Body, err)
-
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-			if tokenizationInput.DocumentType == "" {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified", "message": "document type not specified"})
-				return
-			}
-			if len(tokenizationInput.DocumentTitle) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Document title not valid. Must be at least 5 characters long", "message": "Document title not valid. Must be at least 5 characters long"})
-				return
-			}
-			t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
-
-			if len(t.ID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
-				return
-			}
-			if t.AssetTokenizationStatus > 0 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
-				return
-			}
-			tokenizationInput.TokenizedAssetID = t.ID
-			if len(tokenizationInput.TokenizedAssetID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid. Ensure you ahve an open tokenizstion and try again."})
-				return
-			}
-
-			conDB.PrintDBStats(fmt.Sprintf("PUT /v1/tokenization/document %v", initiator.Username), gc.DB)
-
-			url, err := userServices.UploadTokenizationDocument(&initiator, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, tokenizationInput.DocumentTitle, tokenizationInput.TokenizedAssetID, fileExtension), &tokenizationInput, gc)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			if initiator.PushNotificationToken != nil && len(url) > 0 {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = ""
-				pns.SendFirebaseMessage(*initiator.PushNotificationToken, tokenizationInput.DocumentTitle+" updated!", fmt.Sprintf("You have successfully uploaded %v[%v].", tokenizationInput.DocumentTitle, tokenizationInput.DocumentType), url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			}
-
-			userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
-
-			gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
-
-			//At this point, there was no error.
-
-			c.JSON(http.StatusOK, url)
+			return
 		}
+
+		const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
+		r := c.Request
+		// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+		if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size", "message": "document cannot be more than 900kb in file size"})
+			return
+		}
+
+		f, fileHeader, err := r.FormFile("documentFile")
+
+		if err != nil {
+			log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
+			return
+		}
+		defer f.Close()
+		blobFile, err := fileHeader.Open()
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded", "message": "error attempting to validate the document uploaded"})
+
+			return
+		}
+		defer blobFile.Close()
+
+		fnameSplit := strings.Split(fileHeader.Filename, ".")
+		fileExtension := fnameSplit[len(fnameSplit)-1]
+
+		{
+			//check for unsupported extension
+			if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") && !strings.EqualFold(fileExtension, "pdf") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported", "message": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported"})
+
+				return
+			}
+		}
+
+		var tokenizationInput userModels.AssetTokenizationInputDocument
+
+		err = c.ShouldBind(&tokenizationInput)
+		// data, _ := io.ReadAll(c.Request.Body)
+		// // log.Println(string(data))
+		// err = json.Unmarshal(data, &tokenizationInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			log.Printf("Error Getting Uploaded file with param DocumentFile:%+v\n error: %v", r.Body, err)
+
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		if tokenizationInput.DocumentType == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified", "message": "document type not specified"})
+			return
+		}
+		if len(tokenizationInput.DocumentTitle) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Document title not valid. Must be at least 5 characters long", "message": "Document title not valid. Must be at least 5 characters long"})
+			return
+		}
+		t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+
+		if len(t.ID) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
+			return
+		}
+		if t.AssetTokenizationStatus > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
+			return
+		}
+		tokenizationInput.TokenizedAssetID = t.ID
+		if len(tokenizationInput.TokenizedAssetID) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid. Ensure you ahve an open tokenizstion and try again."})
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/tokenization/document %v", initiator.Username), gc.DB)
+
+		url, err := userServices.UploadTokenizationDocument(&initiator, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, tokenizationInput.DocumentTitle, tokenizationInput.TokenizedAssetID, fileExtension), &tokenizationInput, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if initiator.PushNotificationToken != nil && len(url) > 0 {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*initiator.PushNotificationToken, tokenizationInput.DocumentTitle+" updated!", fmt.Sprintf("You have successfully uploaded %v[%v].", tokenizationInput.DocumentTitle, tokenizationInput.DocumentType), url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+		gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, url)
+	}
 }
 
 // putTokenizationLogoHandler godoc
@@ -7552,103 +7662,103 @@ func putTokenizationDocumentHandler(callBackRetryChan chan userModels.RetryCallb
 func putTokenizationLogoHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-			var err error
-			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+		var err error
+		initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
-			if getUserError != nil {
-				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+		if getUserError != nil {
+			log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 			}
-
-			const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
-			r := c.Request
-			// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
-			if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size", "message": "document cannot be more than 900kb in file size"})
-				return
-			}
-
-			f, fileHeader, err := r.FormFile("documentFile")
-
-			if err != nil {
-				log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
-				return
-			}
-			defer f.Close()
-			blobFile, err := fileHeader.Open()
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded", "message": "error attempting to validate the logo uploaded"})
-
-				return
-			}
-			defer blobFile.Close()
-
-			fnameSplit := strings.Split(fileHeader.Filename, ".")
-			fileExtension := fnameSplit[len(fnameSplit)-1]
-
-			{
-				//check for unsupported extension
-				if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") {
-					c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif are supported", "message": "Unsurported document format. Only jpg, jpeg, png and gif are supported"})
-
-					return
-				}
-			}
-
-			t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
-
-			if len(t.ID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
-				return
-			}
-			if t.AssetTokenizationStatus > 0 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
-				return
-			}
-
-			conDB.PrintDBStats(fmt.Sprintf("PUT /v1/tokenization/logo %v", initiator.Username), gc.DB)
-
-			url, err := userServices.UploadTokenizationAssetLogo(&initiator, &t, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, "logo", t.ID, fileExtension), gc)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			if initiator.PushNotificationToken != nil && len(url) > 0 {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = ""
-				pns.SendFirebaseMessage(*initiator.PushNotificationToken, "Asset Logo updated!", "You have successfully uploaded asset logo.", url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			}
-
-			userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
-
-			gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
-
-			//At this point, there was no error.
-
-			c.JSON(http.StatusOK, url)
+			return
 		}
+
+		const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
+		r := c.Request
+		// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+		if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size", "message": "document cannot be more than 900kb in file size"})
+			return
+		}
+
+		f, fileHeader, err := r.FormFile("documentFile")
+
+		if err != nil {
+			log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
+			return
+		}
+		defer f.Close()
+		blobFile, err := fileHeader.Open()
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded", "message": "error attempting to validate the logo uploaded"})
+
+			return
+		}
+		defer blobFile.Close()
+
+		fnameSplit := strings.Split(fileHeader.Filename, ".")
+		fileExtension := fnameSplit[len(fnameSplit)-1]
+
+		{
+			//check for unsupported extension
+			if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif are supported", "message": "Unsurported document format. Only jpg, jpeg, png and gif are supported"})
+
+				return
+			}
+		}
+
+		t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+
+		if len(t.ID) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
+			return
+		}
+		if t.AssetTokenizationStatus > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/tokenization/logo %v", initiator.Username), gc.DB)
+
+		url, err := userServices.UploadTokenizationAssetLogo(&initiator, &t, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, "logo", t.ID, fileExtension), gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if initiator.PushNotificationToken != nil && len(url) > 0 {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*initiator.PushNotificationToken, "Asset Logo updated!", "You have successfully uploaded asset logo.", url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+		gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, url)
+	}
 }
 
 // putTrovoManagerTokenizationLogoTidHandler godoc
@@ -7665,127 +7775,127 @@ func putTokenizationLogoHandler(callBackRetryChan chan userModels.RetryCallbacks
 func putTrovoManagerTokenizationLogoTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-			var err error
-			au, err := middleware.ExtractTokenMetadata(c.Request)
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			if err != nil {
+		if err != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-
-			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
-
-			if getUserError != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
-			}
-
-			tid := c.Param("tid")
-			if strings.EqualFold(tid, "null") {
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
-
-				c.JSON(statusCode, response)
-				return
-			}
-
-			const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
-			r := c.Request
-			// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
-			if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "logo-size-invalid", "message": "Logo cannot be more than 900kb in file size"})
-				return
-			}
-
-			f, fileHeader, err := r.FormFile("documentFile")
-
-			if err != nil {
-				log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
-				return
-			}
-			defer f.Close()
-			blobFile, err := fileHeader.Open()
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error-validating-logo", "message": "Error occured while attempting to validate the logo uploaded"})
-
-				return
-			}
-			defer blobFile.Close()
-
-			fnameSplit := strings.Split(fileHeader.Filename, ".")
-			fileExtension := fnameSplit[len(fnameSplit)-1]
-
-			{
-				//check for unsupported extension
-				if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") {
-					c.JSON(http.StatusBadRequest, gin.H{"error": "error-unsupported-format", "message": "Unsupported format. Only jpg, jpeg, png and gif are supported"})
-
-					return
-				}
-			}
-
-			t, _, _ := userServices.GetTokenizedAssetByID(tid, gc.DB)
-
-			if len(t.ID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-tokenized-asset", "message": "Tokenized Asset not valid"})
-				return
-			}
-			// if t.AssetTokenizationStatus > 0 {
-			// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
-			// 	return
-			// }
-
-			conDB.PrintDBStats(fmt.Sprintf("PUT /v1/trovo-manager/tokenization/logo/%v", tid), gc.DB)
-
-			url, err := userServices.UploadTokenizationAssetLogo(&initiator, &t, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, "logo", t.ID, fileExtension), gc)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			if initiator.PushNotificationToken != nil && len(url) > 0 {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = ""
-				pns.SendFirebaseMessage(*initiator.PushNotificationToken, "Asset Logo updated!", "You have successfully uploaded asset logo.", url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			}
-
-			userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
-
-			gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
-
-			//At this point, there was no error.
-
-			c.JSON(http.StatusOK, url)
+			return
 		}
+
+		initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		tid := c.Param("tid")
+		if strings.EqualFold(tid, "null") {
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
+		r := c.Request
+		// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+		if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "logo-size-invalid", "message": "Logo cannot be more than 900kb in file size"})
+			return
+		}
+
+		f, fileHeader, err := r.FormFile("documentFile")
+
+		if err != nil {
+			log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
+			return
+		}
+		defer f.Close()
+		blobFile, err := fileHeader.Open()
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-validating-logo", "message": "Error occured while attempting to validate the logo uploaded"})
+
+			return
+		}
+		defer blobFile.Close()
+
+		fnameSplit := strings.Split(fileHeader.Filename, ".")
+		fileExtension := fnameSplit[len(fnameSplit)-1]
+
+		{
+			//check for unsupported extension
+			if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error-unsupported-format", "message": "Unsupported format. Only jpg, jpeg, png and gif are supported"})
+
+				return
+			}
+		}
+
+		t, _, _ := userServices.GetTokenizedAssetByID(tid, gc.DB)
+
+		if len(t.ID) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-tokenized-asset", "message": "Tokenized Asset not valid"})
+			return
+		}
+		// if t.AssetTokenizationStatus > 0 {
+		// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
+		// 	return
+		// }
+
+		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/trovo-manager/tokenization/logo/%v", tid), gc.DB)
+
+		url, err := userServices.UploadTokenizationAssetLogo(&initiator, &t, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, "logo", t.ID, fileExtension), gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if initiator.PushNotificationToken != nil && len(url) > 0 {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*initiator.PushNotificationToken, "Asset Logo updated!", "You have successfully uploaded asset logo.", url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+		gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, url)
+	}
 }
 
 // putTrovoManagerTokenizationDocumentHandler godoc
@@ -7801,182 +7911,182 @@ func putTrovoManagerTokenizationLogoTidHandler(callBackRetryChan chan userModels
 func putTrovoManagerTokenizationDocumentHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-			var err error
-			au, err := middleware.ExtractTokenMetadata(c.Request)
+		var err error
+		au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			if err != nil {
+		if err != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-
-			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
-
-			if getUserError != nil {
-				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
-			}
-			var tokenizationInput userModels.AssetTokenizationInputDocument
-
-			err = c.ShouldBind(&tokenizationInput)
-			// data, _ := io.ReadAll(c.Request.Body)
-			// // log.Println(string(data))
-			// err = json.Unmarshal(data, &tokenizationInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				log.Printf("Error Getting Uploaded file with param DocumentFile:%+v\n error: %v", c.Request.Body, err)
-
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-			if tokenizationInput.DocumentType == "" {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified", "message": "document type not specified"})
-				return
-			}
-			if len(tokenizationInput.DocumentTitle) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Document title not valid. Must be at least 5 characters long", "message": "Document title not valid. Must be at least 5 characters long"})
-				return
-			}
-			t, _, _ := userServices.GetTokenizedAssetByID(tokenizationInput.TokenizedAssetID, gc.DB)
-
-			if len(t.ID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
-				return
-			}
-			if t.AssetTokenizationStatus < 2 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please ensure application has confirmed payment."})
-				return
-			}
-
-			if !userServices.IsTokenizationMintingApprover(initiator.Username, gc.DB) && !userServices.IsTokenizationMintingInitiator(initiator.Username, gc.DB) {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have a permission for this operation."})
-				return
-			}
-
-			issuingWallet, temp, getWalletError := usersDB.GetWallet(*t.IssuingWalletPublicKey, gc.DB)
-
-			if getWalletError != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getWalletError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
-				}
-				return
-			}
-
-			if temp {
-				errAccountIsTemp := &tErrors.CustomError{
-					Param:      "Username",
-					Err:        "error-account-not-issuing-wallet-alias",
-					ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
-					Code:       http.StatusForbidden,
-				}
-
-				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-				return
-
-			}
-
-			if issuingWallet.WalletType != 1 {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing/M wallets are allowed for tokenization operation."})
-				return
-			}
-
-			const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
-			r := c.Request
-			// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
-			if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size", "message": "document cannot be more than 900kb in file size"})
-				return
-			}
-
-			f, fileHeader, err := r.FormFile("documentFile")
-
-			if err != nil {
-				log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
-				return
-			}
-			defer f.Close()
-			blobFile, err := fileHeader.Open()
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded", "message": "error attempting to validate the document uploaded"})
-
-				return
-			}
-			defer blobFile.Close()
-
-			fnameSplit := strings.Split(fileHeader.Filename, ".")
-			fileExtension := fnameSplit[len(fnameSplit)-1]
-
-			{
-				//check for unsupported extension
-				if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") && !strings.EqualFold(fileExtension, "pdf") {
-					c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported", "message": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported"})
-
-					return
-				}
-			}
-
-			// t := userModels.IssuingWalletPublicKey(issuingWallet.ID).GetTokenization(gc)
-
-			conDB.PrintDBStats(fmt.Sprintf("PUT /v1/tokenization/document %v", t.ID), gc.DB)
-
-			url, err := userServices.UploadTokenizationDocument(&initiator, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, tokenizationInput.DocumentTitle, tokenizationInput.TokenizedAssetID, fileExtension), &tokenizationInput, gc)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			if initiator.PushNotificationToken != nil && len(url) > 0 {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = ""
-				pns.SendFirebaseMessage(*initiator.PushNotificationToken, tokenizationInput.DocumentTitle+" updated!", fmt.Sprintf("You have successfully uploaded %v[%v].", tokenizationInput.DocumentTitle, tokenizationInput.DocumentType), url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			}
-
-			userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
-
-			gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
-
-			//At this point, there was no error.
-
-			c.JSON(http.StatusOK, url)
+			return
 		}
+
+		initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+
+		if getUserError != nil {
+			log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+		var tokenizationInput userModels.AssetTokenizationInputDocument
+
+		err = c.ShouldBind(&tokenizationInput)
+		// data, _ := io.ReadAll(c.Request.Body)
+		// // log.Println(string(data))
+		// err = json.Unmarshal(data, &tokenizationInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			log.Printf("Error Getting Uploaded file with param DocumentFile:%+v\n error: %v", c.Request.Body, err)
+
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		if tokenizationInput.DocumentType == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified", "message": "document type not specified"})
+			return
+		}
+		if len(tokenizationInput.DocumentTitle) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Document title not valid. Must be at least 5 characters long", "message": "Document title not valid. Must be at least 5 characters long"})
+			return
+		}
+		t, _, _ := userServices.GetTokenizedAssetByID(tokenizationInput.TokenizedAssetID, gc.DB)
+
+		if len(t.ID) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid"})
+			return
+		}
+		if t.AssetTokenizationStatus < 2 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please ensure application has confirmed payment."})
+			return
+		}
+
+		if !userServices.IsTokenizationMintingApprover(initiator.Username, gc.DB) && !userServices.IsTokenizationMintingInitiator(initiator.Username, gc.DB) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have a permission for this operation."})
+			return
+		}
+
+		issuingWallet, temp, getWalletError := usersDB.GetWallet(*t.IssuingWalletPublicKey, gc.DB)
+
+		if getWalletError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getWalletError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+			}
+			return
+		}
+
+		if temp {
+			errAccountIsTemp := &tErrors.CustomError{
+				Param:      "Username",
+				Err:        "error-account-not-issuing-wallet-alias",
+				ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
+				Code:       http.StatusForbidden,
+			}
+
+			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+			return
+
+		}
+
+		if issuingWallet.WalletType != 1 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing/M wallets are allowed for tokenization operation."})
+			return
+		}
+
+		const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
+		r := c.Request
+		// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+		if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size", "message": "document cannot be more than 900kb in file size"})
+			return
+		}
+
+		f, fileHeader, err := r.FormFile("documentFile")
+
+		if err != nil {
+			log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
+			return
+		}
+		defer f.Close()
+		blobFile, err := fileHeader.Open()
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded", "message": "error attempting to validate the document uploaded"})
+
+			return
+		}
+		defer blobFile.Close()
+
+		fnameSplit := strings.Split(fileHeader.Filename, ".")
+		fileExtension := fnameSplit[len(fnameSplit)-1]
+
+		{
+			//check for unsupported extension
+			if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") && !strings.EqualFold(fileExtension, "pdf") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported", "message": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported"})
+
+				return
+			}
+		}
+
+		// t := userModels.IssuingWalletPublicKey(issuingWallet.ID).GetTokenization(gc)
+
+		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/tokenization/document %v", t.ID), gc.DB)
+
+		url, err := userServices.UploadTokenizationDocument(&initiator, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, tokenizationInput.DocumentTitle, tokenizationInput.TokenizedAssetID, fileExtension), &tokenizationInput, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if initiator.PushNotificationToken != nil && len(url) > 0 {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*initiator.PushNotificationToken, tokenizationInput.DocumentTitle+" updated!", fmt.Sprintf("You have successfully uploaded %v[%v].", tokenizationInput.DocumentTitle, tokenizationInput.DocumentType), url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+		gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, url)
+	}
 }
 
 // postTokenizationFeeTokenizationIDHandler godoc
@@ -7990,45 +8100,45 @@ func putTrovoManagerTokenizationDocumentHandler(callBackRetryChan chan userModel
 // @Router /v1/tokenization/fee/{tokenizationID} [post]
 func postTokenizationFeeTokenizationIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-			var err error
-			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+		var err error
+		initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
-			if getUserError != nil {
-				log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+		if getUserError != nil {
+			log.Printf("[TOKENIZE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 			}
-
-			//confirm request
-			ta, err := userServices.ConfirmTokenizationFeePaymentByInitiator(&initiator, c.Param("tokenizationID"), gc)
-
-			if err != nil {
-				log.Printf("[ConfirmTokenizationFeePaymentByInitiator] tokenizedAsset: %+v\n Error: %v\n", err)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, ta)
-
+			return
 		}
+
+		//confirm request
+		ta, err := userServices.ConfirmTokenizationFeePaymentByInitiator(&initiator, c.Param("tokenizationID"), gc)
+
+		if err != nil {
+			log.Printf("[ConfirmTokenizationFeePaymentByInitiator] tokenizedAsset: %+v\n Error: %v\n", ta, err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, ta)
+
+	}
 }
 
 // putTokenizationFeeTokenizedAssetIDHandler godoc
@@ -8045,161 +8155,161 @@ func postTokenizationFeeTokenizationIDHandler(callBackRetryChan chan userModels.
 func putTokenizationFeeTokenizedAssetIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-			var err error
-			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+		var err error
+		initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
-			if getUserError != nil {
-				log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+		if getUserError != nil {
+			log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 			}
-
-			const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
-			r := c.Request
-			// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
-			if err = r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
-				log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] ERROR PARSING MULTIPART FORM, error: [%v]\n", err)
-
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-size", "message": "Document cannot be more than 900kb in file size"})
-				return
-			}
-
-			f, fileHeader, err := r.FormFile("documentFile")
-			if err != nil {
-				log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] Error Getting Uploaded file with param DocumentFile:%v\n", err)
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
-				return
-			}
-			defer f.Close()
-			blobFile, err := fileHeader.Open()
-
-			if err != nil {
-				log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] Error opening file with param DocumentFile:%v\n", err)
-
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error-unable-to-validate", "message": "error attempting to validate the document uploaded"})
-
-				return
-			}
-			defer blobFile.Close()
-
-			fnameSplit := strings.Split(fileHeader.Filename, ".")
-			fileExtension := fnameSplit[len(fnameSplit)-1]
-
-			{
-				//check for unsupported extension
-				if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") && !strings.EqualFold(fileExtension, "pdf") {
-					log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] Error unsorported file format file:%v\n", fileExtension)
-
-					c.JSON(http.StatusBadRequest, gin.H{"error": "error-unsurported-format", "message": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported"})
-
-					return
-				}
-			}
-			var tokenizationInput userModels.TokenizationFeeProofOfPaymentInput
-
-			err = c.ShouldBind(&tokenizationInput)
-			// data, _ := io.ReadAll(c.Request.Body)
-			// // log.Println(string(data))
-			// err = json.Unmarshal(data, &tokenizationInput)
-
-			var invalidJSON tErrors.ErrorInvalidJSON
-
-			if err != nil {
-				log.Printf("Error binding to fileds:%+v\n error: %v", r.Body, err)
-
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
-			if tokenizationInput.TokenizationFeePaymentMethodID == "" {
-				log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error payment method not specified:%+v\n", tokenizationInput)
-
-				c.JSON(http.StatusBadRequest, gin.H{"error": "payment-type-not-specified", "message": "payment type not specified"})
-				return
-			}
-			//c.Param("tokenizedAssetID")
-			t, _, err := userModels.Username(initiator.Username).GetFeeReadyTokenizedAssetApplicationByInitiatorUsername(gc.DB)
-			if err != nil {
-				log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] ERROR GETTING TOKENIZED ASSERT FROM DB [%v], error: [%v]\n", initiator.Username, err)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			if t.InitiatorUsername != initiator.Username {
-				log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error invalid tokenized asset by owner:%+v\n", initiator.Username)
-
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error-tokenized-asset-not-valid", "message": "Tokenized Asset not valid for you."})
-				return
-			}
-			if len(t.ID) < 5 {
-				log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error invalid tokenized asset by owner:%+v\n", initiator.Username)
-
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error-tokenized-asset-not-valid", "message": "Tokenized Asset not valid"})
-				return
-			}
-			if t.AssetTokenizationStatus < 1 {
-				log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error status still open:%+v\n", tokenizationInput)
-
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-status", "message": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
-				return
-			}
-
-			if t.VettingStatus == 0 {
-				log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error. still not vetted:%+v\n", tokenizationInput)
-
-				c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-status", "message": "tokenization Request is still being vetted by the team, therefore cannot be modified or updated at this time. Please excercise patience."})
-				return
-			}
-
-			conDB.PrintDBStats(fmt.Sprintf("PUT /v1/tokenization/fee/%v %v", t.ID, initiator.Username), gc.DB)
-
-			url, err := userServices.UploadTokenizationFeeProofOfPaymentDocument(&initiator, t.ID, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, uuid.NewString(), t.ID, fileExtension), &tokenizationInput, gc)
-
-			if err != nil {
-				log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Erroruploading document:%+v\n", err)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			c.JSON(http.StatusOK, url)
-
-			if initiator.PushNotificationToken != nil && len(url) > 0 {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = ""
-				pns.SendFirebaseMessage(*initiator.PushNotificationToken, "Proof of payment updated!", "You have successfully uploaded proof of payment.", url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			}
-
-			userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
-
-			gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
-
+			return
 		}
+
+		const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
+		r := c.Request
+		// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+		if err = r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+			log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] ERROR PARSING MULTIPART FORM, error: [%v]\n", err)
+
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-size", "message": "Document cannot be more than 900kb in file size"})
+			return
+		}
+
+		f, fileHeader, err := r.FormFile("documentFile")
+		if err != nil {
+			log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] Error Getting Uploaded file with param DocumentFile:%v\n", err)
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
+			return
+		}
+		defer f.Close()
+		blobFile, err := fileHeader.Open()
+
+		if err != nil {
+			log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] Error opening file with param DocumentFile:%v\n", err)
+
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-unable-to-validate", "message": "error attempting to validate the document uploaded"})
+
+			return
+		}
+		defer blobFile.Close()
+
+		fnameSplit := strings.Split(fileHeader.Filename, ".")
+		fileExtension := fnameSplit[len(fnameSplit)-1]
+
+		{
+			//check for unsupported extension
+			if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") && !strings.EqualFold(fileExtension, "pdf") {
+				log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] Error unsorported file format file:%v\n", fileExtension)
+
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error-unsurported-format", "message": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported"})
+
+				return
+			}
+		}
+		var tokenizationInput userModels.TokenizationFeeProofOfPaymentInput
+
+		err = c.ShouldBind(&tokenizationInput)
+		// data, _ := io.ReadAll(c.Request.Body)
+		// // log.Println(string(data))
+		// err = json.Unmarshal(data, &tokenizationInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			log.Printf("Error binding to fileds:%+v\n error: %v", r.Body, err)
+
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		if tokenizationInput.TokenizationFeePaymentMethodID == "" {
+			log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error payment method not specified:%+v\n", tokenizationInput)
+
+			c.JSON(http.StatusBadRequest, gin.H{"error": "payment-type-not-specified", "message": "payment type not specified"})
+			return
+		}
+		//c.Param("tokenizedAssetID")
+		t, _, err := userModels.Username(initiator.Username).GetFeeReadyTokenizedAssetApplicationByInitiatorUsername(gc.DB)
+		if err != nil {
+			log.Printf("[TOKENIZE  FEE PAYMENT DOCUMENT] ERROR GETTING TOKENIZED ASSERT FROM DB [%v], error: [%v]\n", initiator.Username, err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if t.InitiatorUsername != initiator.Username {
+			log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error invalid tokenized asset by owner:%+v\n", initiator.Username)
+
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-tokenized-asset-not-valid", "message": "Tokenized Asset not valid for you."})
+			return
+		}
+		if len(t.ID) < 5 {
+			log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error invalid tokenized asset by owner:%+v\n", initiator.Username)
+
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-tokenized-asset-not-valid", "message": "Tokenized Asset not valid"})
+			return
+		}
+		if t.AssetTokenizationStatus < 1 {
+			log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error status still open:%+v\n", tokenizationInput)
+
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-status", "message": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
+			return
+		}
+
+		if t.VettingStatus == 0 {
+			log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Error. still not vetted:%+v\n", tokenizationInput)
+
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-status", "message": "tokenization Request is still being vetted by the team, therefore cannot be modified or updated at this time. Please excercise patience."})
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/tokenization/fee/%v %v", t.ID, initiator.Username), gc.DB)
+
+		url, err := userServices.UploadTokenizationFeeProofOfPaymentDocument(&initiator, t.ID, blobFile, fmt.Sprintf("%s-%s-%s.%s", initiator.Username, uuid.NewString(), t.ID, fileExtension), &tokenizationInput, gc)
+
+		if err != nil {
+			log.Printf("[TOKENIZE FEE PAYMENT DOCUMENT] Erroruploading document:%+v\n", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, url)
+
+		if initiator.PushNotificationToken != nil && len(url) > 0 {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*initiator.PushNotificationToken, "Proof of payment updated!", "You have successfully uploaded proof of payment.", url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+		gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+	}
 }
 
 // deleteTokenizationDocumentDocumentIDHandler godoc
@@ -8213,73 +8323,73 @@ func putTokenizationFeeTokenizedAssetIDHandler(callBackRetryChan chan userModels
 func deleteTokenizationDocumentDocumentIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-			var err error
-			documentIDStr := c.Param("documentID")
-			documentID, _ := strconv.ParseUint(documentIDStr, 10, 64)
-			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+		var err error
+		documentIDStr := c.Param("documentID")
+		documentID, _ := strconv.ParseUint(documentIDStr, 10, 64)
+		initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
-			if getUserError != nil {
-				log.Printf("[TOKENIZE ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+		if getUserError != nil {
+			log.Printf("[TOKENIZE ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 			}
-
-			t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
-
-			if t.InitiatorUsername != initiator.Username {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid for you."})
-				return
-			}
-
-			if len(t.ID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": initiator.Username + " does not have a valid tokenized asset."})
-				return
-			}
-			if t.AssetTokenizationStatus > 0 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option withint the tokenization detail."})
-				return
-			}
-
-			conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/tokenization/document/%v %v", documentID, initiator.Username), gc.DB)
-
-			document, err := userServices.DeleteTokenizationDocument(&initiator, documentID, gc)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			if initiator.PushNotificationToken != nil {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = ""
-				pns.SendFirebaseMessage(*initiator.PushNotificationToken, document.DocumentTitle+" deleted!", fmt.Sprintf("You have successfully deleted %v[%v].", document.DocumentTitle, document.DocumentType), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			}
-
-			userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
-
-			gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
-
-			//At this point, there was no error.
-
-			c.JSON(http.StatusOK, document)
+			return
 		}
+
+		t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+
+		if t.InitiatorUsername != initiator.Username {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid for you."})
+			return
+		}
+
+		if len(t.ID) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": initiator.Username + " does not have a valid tokenized asset."})
+			return
+		}
+		if t.AssetTokenizationStatus > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option withint the tokenization detail."})
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/tokenization/document/%v %v", documentID, initiator.Username), gc.DB)
+
+		document, err := userServices.DeleteTokenizationDocument(&initiator, documentID, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if initiator.PushNotificationToken != nil {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*initiator.PushNotificationToken, document.DocumentTitle+" deleted!", fmt.Sprintf("You have successfully deleted %v[%v].", document.DocumentTitle, document.DocumentType), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+		gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, document)
+	}
 }
 
 // deleteTrovoManagerTokenizationDocumentDocumentIDHandler godoc
@@ -8293,78 +8403,78 @@ func deleteTokenizationDocumentDocumentIDHandler(callBackRetryChan chan userMode
 func deleteTrovoManagerTokenizationDocumentDocumentIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-			var err error
-			documentIDStr := c.Param("documentID")
-			documentID, _ := strconv.ParseUint(documentIDStr, 10, 64)
-			au, err := middleware.ExtractTokenMetadata(c.Request)
+		var err error
+		documentIDStr := c.Param("documentID")
+		documentID, _ := strconv.ParseUint(documentIDStr, 10, 64)
+		au, err := middleware.ExtractTokenMetadata(c.Request)
 
-			if err != nil {
+		if err != nil {
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
-
-			initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
-			if getUserError != nil {
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
-			}
-
-			t := userServices.GetTokenizationByDocumentID(documentID, gc)
-
-			if len(t.ID) == 0 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Document ID not valid", "message": "Document ID is not valid."})
-				return
-			}
-
-			conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/trovo-manager/tokenization/document/%v %v", documentID, initiator.Username), gc.DB)
-
-			document, err := userServices.DeleteTokenizationDocument(&initiator, documentID, gc)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			if initiator.PushNotificationToken != nil {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = ""
-				pns.SendFirebaseMessage(*initiator.PushNotificationToken, document.DocumentTitle+" deleted!", fmt.Sprintf("You have successfully deleted %v[%v].", document.DocumentTitle, document.DocumentType), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			}
-
-			userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
-
-			gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
-
-			//At this point, there was no error.
-
-			c.JSON(http.StatusOK, document)
+			return
 		}
+
+		initiator, getUserError := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+		if getUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
+			}
+			return
+		}
+
+		t := userServices.GetTokenizationByDocumentID(documentID, gc)
+
+		if len(t.ID) == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Document ID not valid", "message": "Document ID is not valid."})
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/trovo-manager/tokenization/document/%v %v", documentID, initiator.Username), gc.DB)
+
+		document, err := userServices.DeleteTokenizationDocument(&initiator, documentID, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if initiator.PushNotificationToken != nil {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*initiator.PushNotificationToken, document.DocumentTitle+" deleted!", fmt.Sprintf("You have successfully deleted %v[%v].", document.DocumentTitle, document.DocumentType), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+		gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, document)
+	}
 }
 
 // deleteTokenizationFeeDocumentIDHandler godoc
@@ -8378,71 +8488,71 @@ func deleteTrovoManagerTokenizationDocumentDocumentIDHandler(callBackRetryChan c
 func deleteTokenizationFeeDocumentIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-			var err error
-			documentIDStr := c.Param("documentID")
-			documentID, _ := strconv.ParseUint(documentIDStr, 10, 64)
-			initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+		var err error
+		documentIDStr := c.Param("documentID")
+		documentID, _ := strconv.ParseUint(documentIDStr, 10, 64)
+		initiator, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
-			if getUserError != nil {
-				log.Printf("[TOKENIZE ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+		if getUserError != nil {
+			log.Printf("[TOKENIZE ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
-				var ex tErrors.GenericError
-				var ok bool
+			var ex tErrors.GenericError
+			var ok bool
 
-				ex, ok = getUserError.(tErrors.GenericError)
-				if ok {
-					c.JSON(ex.HTTPCode(), ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
-				}
-				return
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error(), "message": getUserError.Error()})
 			}
-
-			t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
-
-			if t.InitiatorUsername != initiator.Username {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid for you."})
-				return
-			}
-
-			if len(t.ID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": initiator.Username + " does not have a valid tokenized asset."})
-				return
-			}
-			if t.AssetTokenizationStatus != 1 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
-				return
-			}
-
-			conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/tokenization/fee/%v %v", documentID, initiator.Username), gc.DB)
-
-			document, err := userServices.DeleteTokenizationFeePaymentDocument(&initiator, documentID, gc)
-
-			if err != nil {
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				if ok {
-					c.JSON(http.StatusBadRequest, ex.JSONError())
-				} else {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-				}
-				return
-			}
-
-			if initiator.PushNotificationToken != nil {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = ""
-				pns.SendFirebaseMessage(*initiator.PushNotificationToken, "Proof of payment deleted!", fmt.Sprintf("You have successfully deleted document with ID [%v].", documentID), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			}
-
-			userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
-
-			gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
-
-			//At this point, there was no error.
-
-			c.JSON(http.StatusOK, document)
+			return
 		}
+
+		t, _, _ := userModels.Username(initiator.Username).GetOpenTokenizedAssetByInitiatorUsername(gc.DB)
+
+		if t.InitiatorUsername != initiator.Username {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid", "message": "Tokenized Asset not valid for you."})
+			return
+		}
+
+		if len(t.ID) < 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": initiator.Username + " does not have a valid tokenized asset."})
+			return
+		}
+		if t.AssetTokenizationStatus != 1 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenization Request cannot be altered at this stage through this option. Please use the option within the tokenization detail."})
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/tokenization/fee/%v %v", documentID, initiator.Username), gc.DB)
+
+		document, err := userServices.DeleteTokenizationFeePaymentDocument(&initiator, documentID, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		if initiator.PushNotificationToken != nil {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*initiator.PushNotificationToken, "Proof of payment deleted!", fmt.Sprintf("You have successfully deleted document with ID [%v].", documentID), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", initiator.Username)
+
+		gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, document)
+	}
 }

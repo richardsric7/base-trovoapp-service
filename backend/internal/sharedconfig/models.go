@@ -35,6 +35,7 @@ type GlobalConfig struct {
 	// DynamicLinkServiceURLChan  chan string
 	PushNotificationClient     *messaging.Client
 	FirebaseStorageUploader    *ClientUploader
+	StakeholderDocumentStorage DocumentStorage
 	PNSContext                 context.Context
 	RedisCache                 *cache.RedisCache
 	DB                         *gorm.DB

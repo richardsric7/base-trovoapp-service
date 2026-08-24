@@ -1,0 +1,69 @@
+name: iOS Deploy to TestFlight
+
+on:
+  push:
+    branches:
+      - deploy-ios
+      - shortlinks
+  pull_request:
+    types: [merged]
+    branches:
+      - deploy-ios
+
+jobs:
+  deploy-ios:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.0' # update if needed
+
+      # Get Flutter version from pubspec.yaml
+      - name: Get Flutter Version
+        id: flutter_version
+        uses: bungabear/flutter_version_read@main
+        with:
+          file: ./pubspec.yaml
+
+      - name: Flutter App Version Number
+        run: echo 'version_number:' ${{ steps.flutter_version.outputs.version_number }}
+
+      - name: Flutter App Build Number
+        run: echo 'build_number:' ${{ steps.flutter_version.outputs.build_number }}
+
+      - name: Install Flutter dependencies
+        run: |
+          flutter pub cache clean
+          flutter pub get
+
+      - name: Install Fastlane
+        working-directory: ios
+        run: |
+          gem install fastlane
+
+      - name: Setup SSH Access to fastlane-private
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest
+
+      - name: Deploy to TestFlight via Fastlane
+        working-directory: ios
+        run: fastlane ios release_beta
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.GIT_PAT_TOKEN }}
+          VERSION_NAME: ${{ steps.flutter_version.outputs.version_number }}
+          BUILD_NUMBER: ${{ steps.flutter_version.outputs.build_number }}
