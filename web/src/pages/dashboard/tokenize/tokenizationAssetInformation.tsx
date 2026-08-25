@@ -900,20 +900,26 @@ function resolveFieldValue(field: FormField): string {
 function evaluateCondition(
   condition: FormCondition | undefined,
   definition: FormDefinition | null,
+  externalData?: Record<string, unknown>,
 ) {
-  if (
-    !condition ||
-    !definition ||
-    !condition.section ||
-    !condition.targetName
-  ) {
+  if (!condition || !condition.targetName) {
     return true;
   }
 
-  const sectionKey = String(condition.section);
-  const targetSection = definition[sectionKey];
-  const targetField = targetSection?.body?.[condition.targetName];
-  const targetValue = targetField?.value ?? targetField?.defaultValue;
+  let targetValue: unknown = undefined;
+
+  // If section is specified, look in the form definition
+  if (condition.section && definition) {
+    const sectionKey = String(condition.section);
+    const targetSection = definition[sectionKey];
+    const targetField = targetSection?.body?.[condition.targetName];
+    targetValue = targetField?.value ?? targetField?.defaultValue;
+  }
+  // Otherwise, look in external data (previous page values)
+  else if (externalData) {
+    targetValue = externalData[condition.targetName];
+  }
+
   const normalizedTargetValue = String(targetValue ?? '').toLowerCase();
 
   if (condition.type === 'hasvalue') {
@@ -1484,6 +1490,7 @@ export function TokenizationAssetInformation() {
                 const isSectionVisible = evaluateCondition(
                   section.when,
                   formDefinition,
+                  activeTokenizationRecord as unknown as Record<string, unknown>,
                 );
                 if (!isSectionVisible) {
                   return null;
