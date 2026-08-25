@@ -1445,7 +1445,20 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                                   ?.toLowerCase()
                                                   .capitalizeEachWord() ??
                                               '',
-                                          'Rating Agency': '',
+                                          'Asset Trustee':
+                                              tokenizedAsset
+                                                  .assetTrusteeInfo
+                                                  ?.trusteeName
+                                                  ?.toLowerCase()
+                                                  .capitalizeEachWord() ??
+                                              '',
+                                          'Rating Agency':
+                                              tokenizedAsset
+                                                  .assetRatingAgencyInfo
+                                                  ?.agencyName
+                                                  ?.toLowerCase()
+                                                  .capitalizeEachWord() ??
+                                              '',
                                         };
                                         displayDetails(
                                           "Stakeholders Information",

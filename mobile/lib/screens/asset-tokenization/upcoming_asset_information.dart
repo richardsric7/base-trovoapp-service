@@ -205,13 +205,11 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
         ),
       );
     }
-    interestRepaymentFrequency = isFoundInterest
-        ? interestRepaymentFrequency
-        : null;
+    interestRepaymentFrequency =
+        isFoundInterest ? interestRepaymentFrequency : null;
 
-    debtInstrumentRepaymentFrequency = isFoundDebtInstrument
-        ? debtInstrumentRepaymentFrequency
-        : null;
+    debtInstrumentRepaymentFrequency =
+        isFoundDebtInstrument ? debtInstrumentRepaymentFrequency : null;
     return debtRepaymentFrequencyOptions;
   }
 
@@ -250,9 +248,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
         ),
       );
     }
-    debtInstrumentRepaymentSource = isFound
-        ? debtInstrumentRepaymentSource
-        : null;
+    debtInstrumentRepaymentSource =
+        isFound ? debtInstrumentRepaymentSource : null;
 
     return repaymentSourceOptions;
   }
@@ -291,9 +288,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
         ),
       );
     }
-    debtInstrumentGuaranteesOrEnhancements = isFound
-        ? debtInstrumentGuaranteesOrEnhancements
-        : null;
+    debtInstrumentGuaranteesOrEnhancements =
+        isFound ? debtInstrumentGuaranteesOrEnhancements : null;
     return guaranteesOptions;
   }
 
@@ -344,8 +340,7 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
     fundingStructure = data['fundingStructure'] ?? 0;
     currentValueOfAsset =
         double.tryParse(data['assetCurrentValue'].toString()) ?? 0;
-    assetOwnerRetainedOrContributedValue =
-        double.tryParse(
+    assetOwnerRetainedOrContributedValue = double.tryParse(
           data['assetOwnerRetainedOrContributedValue'].toString(),
         ) ??
         0;
@@ -380,20 +375,19 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
 
     assetOwnership =
         data['ownershipType'] != null && data['ownershipType'].isNotEmpty
-        ? data['ownershipType']
-        : 'DIRECT';
+            ? data['ownershipType']
+            : 'DIRECT';
     thirdPartyOwnerType =
         data['ownershipKind'] != null && data['ownershipKind'].isNotEmpty
-        ? data['ownershipKind']
-        : 'INDIVIDUAL';
+            ? data['ownershipKind']
+            : 'INDIVIDUAL';
     assetName = data['assetName'] ?? "";
     assetAlreadyExists = data!['assetAlreadyExists'] == 1;
     assetDescription = data['assetDescription'] ?? "";
     assetPhysicalAddress = data['assetPhysicalAddress'] ?? "";
     nameOfOwner = data['assetOwnerName'] ?? "";
     addressOfOwner = data['assetOwnerAddress'] ?? "";
-    assetProtectionInPlace =
-        data['protectionMethods'] == null ||
+    assetProtectionInPlace = data['protectionMethods'] == null ||
             data['protectionMethods'].toString().isEmpty
         ? []
         : data['protectionMethods'].toString().split(',');
@@ -405,13 +399,12 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
     valueOfAssetController.text = currentValueOfAsset == 0
         ? ''
         : formatNumberForInput(currentValueOfAsset);
-    miscCostOfAssetController.text = assetMiscCost == 0
-        ? ''
-        : formatNumberForInput(assetMiscCost);
+    miscCostOfAssetController.text =
+        assetMiscCost == 0 ? '' : formatNumberForInput(assetMiscCost);
     assetOwnerRetainedOrContributedValueController.text =
         assetOwnerRetainedOrContributedValue == 0
-        ? ''
-        : formatNumberForInput(assetOwnerRetainedOrContributedValue);
+            ? ''
+            : formatNumberForInput(assetOwnerRetainedOrContributedValue);
     percentValueOfInsuranceController.text = percentageValueOfInsurance == 0
         ? ''
         : percentageValueOfInsurance.toString();
@@ -458,19 +451,16 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
         data['physicalConditionNoUndisclosedEasements'] == 1;
     physicalConditionNolease = data['physicalConditionNolease'] == 1;
     hasInsurance = data['insuranceCompanyName'].toString().isNotEmpty;
-    hasIndependentMonitoring = data['independentMonitoringList']
-        .toString()
-        .isNotEmpty;
+    hasIndependentMonitoring =
+        data['independentMonitoringList'].toString().isNotEmpty;
     hasLegalAdvisor = data['legalAdvisor'].toString().isNotEmpty;
     hasFinancialAdvisor = data['financialAdvisor'].toString().isNotEmpty;
-    hasOtherAssetProtection = data['otherAssetProtection']
-        .toString()
-        .isNotEmpty;
+    hasOtherAssetProtection =
+        data['otherAssetProtection'].toString().isNotEmpty;
 
     projectStrategicObjectives = data['projectStrategicObjectives'] ?? "";
     projectDevelopmentTimeline = data['projectDevelopmentTimeline'] ?? "";
-    projectKeyMilestoneAndDates =
-        data['projectKeyMilestoneAndDates'] == null ||
+    projectKeyMilestoneAndDates = data['projectKeyMilestoneAndDates'] == null ||
             data['projectKeyMilestoneAndDates'].toString().isEmpty
         ? []
         : data['projectKeyMilestoneAndDates'].toString().split(',');
@@ -483,28 +473,22 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
     projectFinancialPartners = data['projectFinancialPartners'] ?? "";
 
     debtInstrumentType = data['debtInstrumentType'].toString().nullIfEmpty();
-    principalPaymentMethod = data['principalPaymentMethod']
-        .toString()
-        .nullIfEmpty();
-    debtInstrumentRepaymentSource = data['debtInstrumentRepaymentSource']
-        .toString()
-        .nullIfEmpty();
-    securityOrCollateralOffered = data['securityOrCollateralOffered']
-        .toString()
-        .nullIfEmpty();
+    principalPaymentMethod =
+        data['principalPaymentMethod'].toString().nullIfEmpty();
+    debtInstrumentRepaymentSource =
+        data['debtInstrumentRepaymentSource'].toString().nullIfEmpty();
+    securityOrCollateralOffered =
+        data['securityOrCollateralOffered'].toString().nullIfEmpty();
     debtInstrumentGuaranteesOrEnhancements =
         data['debtInstrumentGuaranteesOrEnhancements'].toString().nullIfEmpty();
     debtInstrumentDefaultAndRecoveryTerms =
         data['debtInstrumentDefaultAndRecoveryTerms'] ?? "";
-    debtInstrumentRepaymentFrequency = data['debtInstrumentRepaymentFrequency']
-        .toString()
-        .nullIfEmpty();
-    interestRepaymentFrequency = data['interestRepaymentFrequency']
-        .toString()
-        .nullIfEmpty();
-    earlyRedemptionOption = data['earlyRedemptionOption']
-        .toString()
-        .nullIfEmpty();
+    debtInstrumentRepaymentFrequency =
+        data['debtInstrumentRepaymentFrequency'].toString().nullIfEmpty();
+    interestRepaymentFrequency =
+        data['interestRepaymentFrequency'].toString().nullIfEmpty();
+    earlyRedemptionOption =
+        data['earlyRedemptionOption'].toString().nullIfEmpty();
     dcsrDetails = data['dcsrDetails'] ?? "";
     sinkingFundStructure = data['sinkingFundStructure'] ?? "";
     covenantMonitoringAgent = data['covenantMonitoringAgent'] ?? "";
@@ -675,23 +659,22 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                       maxWords: assetDescriptionMaxWords,
                       keyboardtype: TextInputType.multiline,
                       controller: assetDescriptionController,
-                      buildCounter:
-                          (context, {currentLength, isFocused, maxLength}) {
-                            var maxWords = assetDescriptionMaxWords;
-                            int length = assetDescriptionController.text
-                                .split(' ')
-                                .length;
-                            return Container(
-                              child: Text(
-                                '$length/$maxWords words',
-                                style: TextStyle(
-                                  color: length > maxWords
-                                      ? Colors.red
-                                      : notifier.getdarkgrey,
-                                ),
-                              ),
-                            );
-                          },
+                      buildCounter: (context,
+                          {currentLength, isFocused, maxLength}) {
+                        var maxWords = assetDescriptionMaxWords;
+                        int length =
+                            assetDescriptionController.text.split(' ').length;
+                        return Container(
+                          child: Text(
+                            '$length/$maxWords words',
+                            style: TextStyle(
+                              color: length > maxWords
+                                  ? Colors.red
+                                  : notifier.getdarkgrey,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -1717,12 +1700,12 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
 
                         assetOwnerRetainedOrContributedValue =
                             ((currentValueOfAsset * percentageFromPromoters) /
-                            100);
+                                100);
                         assetOwnerRetainedOrContributedValueController.text =
                             truncateToDecimalPlaces(
-                              assetOwnerRetainedOrContributedValue,
-                              decimalPlaces: 10,
-                            );
+                          assetOwnerRetainedOrContributedValue,
+                          decimalPlaces: 10,
+                        );
                       },
                       validator: (value) {
                         if (value.isEmpty) {
@@ -1792,8 +1775,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
 
                         percentageFromPromoters =
                             ((assetOwnerRetainedOrContributedValue /
-                                currentValueOfAsset) *
-                            100);
+                                    currentValueOfAsset) *
+                                100);
                         percentageFromPromotersController.text =
                             formatNumberShort(percentageFromPromoters);
                       },
@@ -2317,8 +2300,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                           projectIdentifiedOperationalOrExecutionRisks,
                       onChanged: (value) {
                         setState(() {
-                          projectIdentifiedOperationalOrExecutionRisks = value!
-                              .toString();
+                          projectIdentifiedOperationalOrExecutionRisks =
+                              value!.toString();
                         });
                       },
                       validator: (value) {
@@ -2328,8 +2311,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                         return null;
                       },
                       onSaved: (value) {
-                        projectIdentifiedOperationalOrExecutionRisks = value!
-                            .toString();
+                        projectIdentifiedOperationalOrExecutionRisks =
+                            value!.toString();
                       },
                       minLines: 3,
                       maxLines: null,
@@ -2421,8 +2404,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                       initialValue: projectIdentifiedOtherRelevantRisks,
                       onChanged: (value) {
                         setState(() {
-                          projectIdentifiedOtherRelevantRisks = value!
-                              .toString();
+                          projectIdentifiedOtherRelevantRisks =
+                              value!.toString();
                         });
                       },
                       validator: (value) {
@@ -2555,7 +2538,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 20.0,
                                             ),
-                                            child: CustomTextFormField.textField(
+                                            child:
+                                                CustomTextFormField.textField(
                                               "companyname".tr(),
                                               notifier.getbluecolor,
                                               null,
@@ -2609,7 +2593,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 20.0,
                                             ),
-                                            child: CustomTextFormField.textField(
+                                            child:
+                                                CustomTextFormField.textField(
                                               "insurancypolicynumber".tr(),
                                               notifier.getbluecolor,
                                               null,
@@ -2664,7 +2649,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 20.0,
                                             ),
-                                            child: CustomTextFormField.textField(
+                                            child:
+                                                CustomTextFormField.textField(
                                               "insurancypolicyholder".tr(),
                                               notifier.getbluecolor,
                                               null,
@@ -2719,7 +2705,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 20.0,
                                             ),
-                                            child: CustomTextFormField.textField(
+                                            child:
+                                                CustomTextFormField.textField(
                                               "percentagevalueofinsurance".tr(),
                                               notifier.getbluecolor,
                                               null,
@@ -2744,10 +2731,10 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                                               autoFormatNumber: true,
                                               controller:
                                                   percentValueOfInsuranceController,
-                                              keyboardtype:
-                                                  TextInputType.numberWithOptions(
-                                                    decimal: true,
-                                                  ),
+                                              keyboardtype: TextInputType
+                                                  .numberWithOptions(
+                                                decimal: true,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -2965,8 +2952,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                                             Padding(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                    horizontal: 20.0,
-                                                  ),
+                                                horizontal: 20.0,
+                                              ),
                                               child: Container(
                                                 width: 260,
                                                 child: Text(
@@ -2989,8 +2976,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                                             Padding(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                    horizontal: 20.0,
-                                                  ),
+                                                horizontal: 20.0,
+                                              ),
                                               child: multilineInput(
                                                 "List details of independent monitors",
                                                 notifier.getbluecolor,
@@ -3916,9 +3903,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                         notifier.getgrey,
                         85,
                         300.sp,
-                        initialValue: gracePeriod == 0
-                            ? ''
-                            : gracePeriod.toString(),
+                        initialValue:
+                            gracePeriod == 0 ? '' : gracePeriod.toString(),
                         onChanged: (value) {
                           setState(() {
                             gracePeriod = int.tryParse(value.toString()) ?? 0;
@@ -3981,110 +3967,6 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                     },
                   ),
                 ),
-                SizedBox(height: height / 50),
-                // Row(
-                //   children: [
-                //     Padding(
-                //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                //       child: Text(
-                //         "Repayment Schedule",
-                //         style: TextStyle(
-                //           fontSize: 12,
-                //           fontFamily: fontsemibold,
-                //           color: notifier.getbluewhitecolor,
-                //         ),
-                //       ),
-                //     ),
-                //   ],
-                // ),
-                // Row(
-                //   children: [
-                //     GestureDetector(
-                //       onTap: () {
-                //         getFile();
-                //       },
-                //       child: Column(
-                //         children: [
-                //           SizedBox(height: height / 50),
-                //           Padding(
-                //             padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                //             child: Container(
-                //               decoration: BoxDecoration(
-                //                 border: Border.all(
-                //                   color: notifier.getbluewhitecolor,
-                //                   width: 1,
-                //                 ),
-                //                 borderRadius: const BorderRadius.all(
-                //                   Radius.circular(15.0),
-                //                 ),
-                //                 color: notifier.isDark
-                //                     ? darktilewhitecolor
-                //                     : notifier.getaddsubwalletgrey,
-                //               ),
-                //               child: Column(
-                //                 children: [
-                //                   SizedBox(
-                //                     width: width / 1.2,
-                //                     height: height / 6,
-                //                     child: Center(
-                //                       child: Wrap(
-                //                         alignment: WrapAlignment.center,
-                //                         children: [
-                //                           Text(
-                //                             "browsefiles".tr(),
-                //                             textAlign: TextAlign.center,
-                //                             style: TextStyle(
-                //                               color: notifier.getbluewhitecolor,
-                //                               fontFamily: fontsemibold,
-                //                               fontSize: 12.sp,
-                //                             ),
-                //                           ),
-                //                         ],
-                //                       ),
-                //                     ),
-                //                   ),
-                //                   const SizedBox(height: 2),
-                //                 ],
-                //               ),
-                //             ),
-                //           ),
-                //         ],
-                //       ),
-                //     ),
-                //   ],
-                // ),
-                // if (true) ...[
-                //   Row(
-                //     children: [
-                //       Padding(
-                //         padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                //         child: Text(
-                //           'Please upload file',
-                //           style: TextStyle(
-                //             fontSize: 12,
-                //             fontFamily: fontbody,
-                //             color: Colors.red,
-                //           ),
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // ],
-                // if (true) ...[
-                //   GestureDetector(
-                //     onTap: () {
-                //       getFile();
-                //     },
-                //     child: Padding(
-                //       padding: const EdgeInsets.all(15.0),
-                //       child: Image.network(
-                //         'https://picsum.photos/200/200',
-                //         width: width / 1.3,
-                //         height: height / 6,
-                //       ),
-                //     ),
-                //   ),
-                // ],
                 SizedBox(height: height / 50),
                 Row(
                   children: [
@@ -4318,8 +4200,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                   child: dropdown(
                     (value) {
                       setState(() {
-                        debtInstrumentGuaranteesOrEnhancements = value
-                            .toString();
+                        debtInstrumentGuaranteesOrEnhancements =
+                            value.toString();
                       });
                     },
                     getGuaranteesOptions,
@@ -4532,9 +4414,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                         notifier.getgrey,
                         85,
                         300.sp,
-                        initialValue: dcsrRatio == 0
-                            ? ''
-                            : dcsrRatio.toCleanString(),
+                        initialValue:
+                            dcsrRatio == 0 ? '' : dcsrRatio.toCleanString(),
                         onChanged: (value) {
                           setState(() {
                             dcsrRatio = double.tryParse(value.toString()) ?? 0;
@@ -4588,9 +4469,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
                         notifier.getgrey,
                         85,
                         300.sp,
-                        initialValue: ltvRatio == 0
-                            ? ''
-                            : ltvRatio.toCleanString(),
+                        initialValue:
+                            ltvRatio == 0 ? '' : ltvRatio.toCleanString(),
                         onChanged: (value) {
                           setState(() {
                             ltvRatio = double.tryParse(value.toString()) ?? 0;
@@ -5231,9 +5111,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
 
       newData['contractualProtectionRevGuarantees'] =
           contractualProtectionRevGuarantees ? 1 : 0;
-      newData['contractualProtectionPerfBond'] = contractualProtectionPerfBond
-          ? 1
-          : 0;
+      newData['contractualProtectionPerfBond'] =
+          contractualProtectionPerfBond ? 1 : 0;
       newData['contractualProtectionSLA'] = contractualProtectionSLA ? 1 : 0;
       newData['riskSharingMechanismPPPs'] = riskSharingMechanismPPPs ? 1 : 0;
       newData['riskSharingMechanismHedgeInstruments'] =
@@ -5242,9 +5121,8 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
           riskSharingMechanismCompletionGuarantees ? 1 : 0;
       newData['eSGSafeguardsSusCerts'] = eSGSafeguardsSusCerts ? 1 : 0;
       newData['eSGSafeguardsCommEngPlans'] = eSGSafeguardsCommEngPlans ? 1 : 0;
-      newData['securityMeasuresAccessControl'] = securityMeasuresAccessControl
-          ? 1
-          : 0;
+      newData['securityMeasuresAccessControl'] =
+          securityMeasuresAccessControl ? 1 : 0;
       newData['securityMeasuresSurveilanceSystems'] =
           securityMeasuresSurveilanceSystems ? 1 : 0;
       newData['securityMeasuresOnSiteSecurityPersonnel'] =
@@ -5263,12 +5141,10 @@ class _UpcomingAssetInformationView extends State<UpcomingAssetInformationView>
           outstandingFinancialRespNoDebts ? 1 : 0;
       newData['outstandingFinancialRespNoHiddenLiabilities'] =
           outstandingFinancialRespNoHiddenLiabilities ? 1 : 0;
-      newData['riskManagementFullyInsured'] = riskManagementFullyInsured
-          ? 1
-          : 0;
-      newData['riskManagementDeclaredValue'] = riskManagementDeclaredValue
-          ? 1
-          : 0;
+      newData['riskManagementFullyInsured'] =
+          riskManagementFullyInsured ? 1 : 0;
+      newData['riskManagementDeclaredValue'] =
+          riskManagementDeclaredValue ? 1 : 0;
       newData['physicalConditionSound'] = physicalConditionSound ? 1 : 0;
       newData['physicalConditionNoUndisclosedEasements'] =
           physicalConditionNoUndisclosedEasements ? 1 : 0;

@@ -594,6 +594,7 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
             AssetVerificationDocumentOptionsView(),
             AssetVerificationDocumentOptionsViewPageConfig,
           );
+          break;
         case Pages.DebtMutualFundsAssetInformationView:
           _addPageData(
             DebtMutualFundsAssetInformationView(),
@@ -617,11 +618,13 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
             BondAssetInformationView(),
             BondAssetInformationViewPageConfig,
           );
+          break;
         case Pages.CorporateBondAssetInformationView:
           _addPageData(
             CorporateBondAssetInformationView(),
             CorporateBondAssetInformationViewPageConfig,
           );
+          break;
         case Pages.CommodityAssetInformationView:
           _addPageData(
             CommodityAssetInformationView(),

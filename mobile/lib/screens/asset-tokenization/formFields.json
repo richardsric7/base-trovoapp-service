@@ -6203,7 +6203,7 @@
             "widgetType": "text",
             "label": "Asset Name",
             "placeholderText": "AA Farms",
-            "value": null,
+            "value": "",
             "options": [],
             "isFiat": false,
             "required": true,
@@ -6215,189 +6215,57 @@
             "label": "Asset Description",
             "maxWords": 100,
             "placeholderText": "24K refined gold bars",
-            "value": null,
+            "value": "",
             "options": [],
             "isFiat": false,
             "required": true,
             "public": true
           },
-          "projectStrategicObjectives": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Project Strategic Objectives",
-            "placeholderText": "",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          },
-          "projectScope": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Project Scope",
-            "placeholderText": "Grade A",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          }          
-        }
-      },
-      "1": {
-        "sectionName": "Project Timeline",
-        "description": "Please provide the following information about the project's relevant dates",
-        "body": {
-          "projectDevelopmentTimeline": {
-            "type": "string",
-            "widgetType": "text",
-            "label": "Project Development Timeline (in months)",
-            "placeholderText": "Time to go live in months",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": false
-          },
-          "estimatedProjectPaybackPeriodsInMonths": {
-            "type": "int",
-            "widgetType": "text",
-            "label": "Project Estimated Payback Period (in Months)",
-            "placeholderText": "20",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          },
-          "projectKeyMilestoneAndDates": {
-            "type": "string",
-            "widgetType": "list",
-            "label": "5 Key Milestones & Dates",
-            "placeholderText": "Atleast 5 milestones",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          }          
-        }
-      },
-      "2": {
-        "sectionName": "Project Benefits",
-        "description": "Please provide the following information about the project's benefits",
-        "body": {
-          "projectEconomicBenefits": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Project Economic Benefits",
-            "placeholderText": "Enter intended economic benefits",
-            "value": null,
-            "options": [],
-            "isFiat": true
-          },
-          "projectExpectedNoOfJobs": {
-            "type": "int",
-            "widgetType": "text",
-            "label": "Expected No. of Job to be Created",
-            "placeholderText": "Enter number of jobs",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": false
-          },
-          "projectIntendedSocialBenefits": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Project Intended Social Benefits",
-            "placeholderText": "Enter intended social benefits",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          }          
-        }
-      },
-      "3": {
-        "sectionName": "Partners",
-        "description": "Please provide the following information about the project's partners if any",
-        "body": {
-          "projectTechnicalPartners": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Technical Partners",
-            "placeholderText": "Enter name of technical partners",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          },
-          "projectFinancialPartners": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Financial Partners",
-            "placeholderText": "Enter details of financial partners",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          }
-        }
-      },
-      "4": {
-        "sectionName": "Asset Location",
-        "description": "Please provide the following information about the asset's location",
-        "body": {
           "assetPhysicalAddress": {
             "type": "string",
             "widgetType": "text",
             "label": "Asset Physical Address",
             "placeholderText": "Asset physical address",
-            "value": null,
+            "value": "",
             "options": [],
             "isFiat": false,
             "required": true,
             "public": true
           },
-          "latitude": {
+          "assetLatitude": {
             "type": "string",
             "widgetType": "text",
             "label": "Google Map Latitude",
             "placeholderText": "Latitude coordinate",
-            "value": null,
+            "value": 0,
             "options": [],
             "isFiat": false,
             "required": true,
             "public": true
           },
-          "longitude": {
+          "assetLongitude": {
             "type": "string",
             "widgetType": "text",
             "label": "Google Map Longitude",
             "placeholderText": "Longitude coordinate",
-            "value": null,
+            "value": 0,
             "options": [],
             "isFiat": false,
             "required": true,
             "public": true
           }
         }
-      },
-      "5": {
-        "sectionName": "Asset Value & Financing",
-        "description": "Please provide the following information about the asset value",
+      },      
+      "1": {
+        "sectionName": "Asset Value",
+        "description": "Please provide the asset value information",
         "body": {
-          "currentValueOfAsset": {
+          "assetCurrentValue": {
             "type": "double",
             "widgetType": "text",
-            "label": "What is the Total Estimated Project Budget",
+            "label": "Current Value of Asset",
             "placeholderText": "How much?",
-            "value": null,
+            "value": 0,
             "options": [],
             "isFiat": false,
             "required": true,
@@ -6406,9 +6274,9 @@
           "percentageFromPromoters": {
             "type": "double",
             "widgetType": "text",
-            "label": "How Much Equity is Contributed by Promoters (%)",
+            "label": "What percentage do you want to retain? (%)",
             "placeholderText": "How much (%)",
-            "value": null,
+            "value": 0,
             "options": [],
             "isFiat": false,
             "required": true,
@@ -6417,9 +6285,20 @@
           "assetOwnerRetainedOrContributedValue": {
             "type": "double",
             "widgetType": "text",
-            "label": "Value of the Equity Contributed by the Promoter(s)",
+            "label": "Value of the asset retained",
             "placeholderText": "How much (%)",
-            "value": null,
+            "value": 0,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "assetMscCostOutisdeOfValuation": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Any Other Incurred Cost Outside Valuation",
+            "placeholderText": "Miscellaneous cost",
+            "value": 0,
             "options": [],
             "isFiat": false,
             "required": true,
@@ -6427,199 +6306,687 @@
           }
         }
       },
-      "6": {
-        "sectionName": "Asset Financial Performance",
-        "description": "Provide projections of your project’s future financial performance to help assess the viability and potential growth trajectory of your project",
-        "body": {
-          "estimatedProjectIRR": {
-            "type": "double",
-            "widgetType": "text",
-            "label": "Estimated Project IRR (in %)",
-            "placeholderText": "Enter estimate",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          },
-          "estimatedProjectROI": {
-            "type": "double",
-            "widgetType": "text",
-            "label": "Estimated Project ROI in 5 years (in %)",
-            "placeholderText": "Enter estimate",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          },
-          "estimatedProjectNPV": {
-            "type": "double",
-            "widgetType": "text",
-            "label": "Estimated Project NPV at Launch (Day 1)",
-            "placeholderText": "Enter estimate",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          },
-          "estimatedProjectPaybackPeriodsInMonths": {
-            "type": "int",
-            "widgetType": "text",
-            "label": "Estimated Project Payback Periods?",
-            "placeholderText": "Enter estimate",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          },
-          "keyAssumptionsList": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "List all Key Assumptions Including Values Assumed (If any)",
-            "placeholderText": "List all key assumptions",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          }
-        }
-      },
-      "7": {
-        "sectionName": "Project Risk Assessment",
-        "description": "Outline the types of risks you anticipate, their likelihood and potential impact, This assessment will help us understand your risk management approach and consider how these factors may influence project outcomes.",
-        "body": {
-          "projectIdentifiedLegalRisks": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Legal Risks Identified (Provide Details)",
-            "placeholderText": "Enter legal risks identified",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          },
-          "projectIdentifiedRegulatoryRisks": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Regulatory Risks Identified (Provide Details)",
-            "placeholderText": "Enter regulatory risks identified",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          },
-          "projectIdentifiedOperationalOrExecutionRisks": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Operational/Execution Risks Identified (Provide Details)",
-            "placeholderText": "Enter operational/execution risks identified",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          },
-          "projectIdentifiedMarketRisks": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Market Risks Identified (Provide Details)",
-            "placeholderText": "Enter market risks identified",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          },
-          "projectIdentifiedOtherRelevantRisks": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Other Relevant Risks Identified (Provide Details)",
-            "placeholderText": "Enter other relevant risks identified",
-            "value": null,
-            "options": [],
-            "isFiat": false,
-            "required": true,
-            "public": true
-          }
-        }
-      },
-      "8": {
+      "2": {
         "sectionName": "Asset Protection In Place",
-        "description": "Check each asset protection that has been put in place for the asset and enter the information needed for each protection.",
-        "body": {          
-        }
-      },
-      "9": {
-        "sectionName": "Asset Protection In Place",
-        "description": "Check each asset protection that has been put in place for the asset and enter the information needed for each protection.",
-        "body": {          
-        }
-      },
-      "10": {
-        "sectionName": "Debt Instrument Structure",
         "description": "Check each asset protection that has been put in place for the asset and enter the information needed for each protection.",
         "body": {    
-          "projectIdentifiedLegalRisks": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Legal Risks Identified (Provide Details)",
-            "placeholderText": "Enter legal risks identified",
-            "value": null,
+          "hasInsurance": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Comprehensive Insurance",
+            "placeholderText": "",
+            "value": false,
             "options": [],
             "isFiat": false,
             "required": true,
             "public": true
           },
-          "projectIdentifiedRegulatoryRisks": {
+          "insuranceCompanyName": {
             "type": "string",
-            "widgetType": "longtext",
-            "label": "Regulatory Risks Identified (Provide Details)",
-            "placeholderText": "Enter regulatory risks identified",
-            "value": null,
+            "widgetType": "text",
+            "label": "Insurance Company Name",
+            "placeholderText": "Company Name",
+            "value": "",
             "options": [],
             "isFiat": false,
             "required": true,
+            "public": true,
+            "when": {
+              "targetName": "hasInsurance",
+              "section": 2,
+              "value": true
+            }
+          },
+          "insurancePolicyNumber": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Insurance Policy Number",
+            "placeholderText": "Insurance Policy Number",
+            "value": "",
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true,
+            "when": {
+              "targetName": "hasInsurance",
+              "section": 2,
+              "value": true
+            }
+          },
+          "insurancePolicyHolder": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Insurance Policy Holder",
+            "placeholderText": "Insurance Policy Holder",
+            "value": "",
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true,
+            "when": {
+              "targetName": "hasInsurance",
+              "section": 2,
+              "value": true
+            }
+          },
+          "percentageValueOfInsurance": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Percentage Value Of Insurance",
+            "placeholderText": "Percentage Value",
+            "value": 0,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true,
+            "when": {
+              "targetName": "hasInsurance",
+              "section": 2,
+              "value": true
+            }
+          },
+          "contractualProtectionRevGuarantees": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Revenue Guarantees",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": false,
             "public": true
           },
-          "projectIdentifiedOperationalOrExecutionRisks": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Operational/Execution Risks Identified (Provide Details)",
-            "placeholderText": "Enter operational/execution risks identified",
-            "value": null,
+          "contractualProtectionSLA": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Service Level Agreements (SLAs)",
+            "placeholderText": "",
+            "value": false,
             "options": [],
             "isFiat": false,
-            "required": true,
+            "required": false,
             "public": true
           },
-          "projectIdentifiedMarketRisks": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Market Risks Identified (Provide Details)",
-            "placeholderText": "Enter market risks identified",
-            "value": null,
+          "securityMeasuresAccessControl": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Access Control",
+            "placeholderText": "",
+            "value": false,
             "options": [],
             "isFiat": false,
-            "required": true,
+            "required": false,
             "public": true
           },
-          "projectIdentifiedOtherRelevantRisks": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Other Relevant Risks Identified (Provide Details)",
-            "placeholderText": "Enter other relevant risks identified",
-            "value": null,
+          "securityMeasuresSurveilanceSystems": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Surveillance Systems",
+            "placeholderText": "",
+            "value": false,
             "options": [],
             "isFiat": false,
-            "required": true,
+            "required": false,
             "public": true
+          },
+          "securityMeasuresOnSiteSecurityPersonnel": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "On-Site Security Personnel",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "securityMeasuresPerimeterSecurity": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Perimeter Security",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "securityMeasuresCriticalInfraProtections": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Critical Infrastructure Protections",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },          
+          "legalAdvisor": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Name Of Legal Advisor",
+            "placeholderText": "Enter legal advisor name",
+            "value": "",
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true,
+            "when": {
+              "targetName": "hasLegalAdvisor",
+              "section": 2,
+              "value": true
+            }
+          },          
+          "financialAdvisor": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Name Of Financial Advisor",
+            "placeholderText": "Enter financial advisor name",
+            "value": "",
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true,
+            "when": {
+              "targetName": "hasFinancialAdvisor",
+              "section": 2,
+              "value": true
+            }
+          },
+          "otherAssetProtection": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Enter Other Protections In Place",
+            "placeholderText": "Describe other protections",
+            "value": "",
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true,
+            "when": {
+              "targetName": "hasOtherAssetProtection",
+              "section": 2,
+              "value": true
+            }
           }      
+        }
+      },
+      "3": {
+        "sectionName": "Asset Verification Undertaking",
+        "description": "",
+        "body": {
+          "undertakingNoLien": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that this asset is free of all liens, mortgages, and outstanding loans.",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true,
+            "when": {
+              "targetName": "assetAlreadyExists",
+              "section": 9,
+              "value": true
+            }
+          },
+          "undertakingNotCollateral": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that this asset is not pledged as collateral for any debts and has no use restrictions.",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true            
+          },
+          "undertakingNoClaims": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that no third party has any claims, rights, or interests in this asset.",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "undertakingNoForeclosure": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that this asset is free of any foreclosure, bankruptcy proceedings, legal disputes, judgments, or court-ordered payments.",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "complianceNoViolation": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that this asset complies with all environmental and land use regulations and is free of violations.",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "complianceAllPermits": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that all necessary permits, licenses, and approvals for the use and ownership of this asset are in place.",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "outstandingFinancialRespNoDebts": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that there are no unpaid taxes, utility bills, fees, or other property-related expenses associated with this asset.",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "outstandingFinancialRespNoHiddenLiabilities": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that this asset does not have any hidden liabilities or obligations that have not been disclosed.",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "riskManagementFullyInsured": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that this asset is adequately insured against risks such as fire, theft, and natural disasters.",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "riskManagementDeclaredValue": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that the declared value of this asset reflects its current market value and condition.",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "physicalConditionNoUndisclosedEasements": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that this asset is not affected by undisclosed easements, rights of way, expropriation, or condemnation.",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "physicalConditionSound": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that this asset is structurally sound and has no unresolved maintenance or safety issues.",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "physicalConditionNolease": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that this asset is not subject to any agreements, such as leases or contracts, that could limit its use or transfer.",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }                   
+        }
+      },
+      "4": {
+        "sectionName": "Debt Instrument Structure",
+        "description": "",
+        "body": {
+          "debtInstrumentType": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Debt Instrument Type",
+            "placeholderText": "Select type",
+            "value": "",
+            "options": [
+              "Term Loan",
+              "Bond",
+              "Promissory Note",
+              "Debenture",
+              "Sukuk"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "tenure": {
+            "type": "int",
+            "widgetType": "text",
+            "label": "Loan Tenure (Total Repayment Period in Months)",
+            "placeholderText": "Enter value",
+            "value": 0,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "gracePeriod": {
+            "type": "int",
+            "widgetType": "text",
+            "label": "Grace Period",
+            "placeholderText": "Enter value",
+            "value": 0,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "debtInstrumentRepaymentFrequency": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Repayment Frequency",
+            "placeholderText": "Select type",
+            "value": "",
+            "options": [
+              "Monthly",
+              "Quarterly",
+              "Semi-Annually",
+              "Bullet (at maturity)"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "debtInstrumentInterestRate": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Interest Rate (Coupon Rate-Fixed or Floating rate)",
+            "placeholderText": "Enter value",
+            "value": 0,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "interestRepaymentFrequency": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Interest Repayment Frequency",
+            "placeholderText": "Select type",
+            "value": "",
+            "options": [
+              "Monthly",
+              "Quarterly",
+              "Semi-Annually",
+              "Bullet (at maturity)"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "principalPaymentMethod": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Principal Payment Method",
+            "placeholderText": "Select type",
+            "value": "",
+            "options": [
+              "Bullet",
+              "Equal Installments",
+              "Balloon"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "debtInstrumentRepaymentSource": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Repayment Source",
+            "placeholderText": "Select source",
+            "value": "",
+            "options": [
+              "Rental Income",
+              "Operations Revenue"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "securityOrCollateralOffered": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Security/Collateral Offered",
+            "placeholderText": "Select option",
+            "value": "",
+            "options": [
+              "Secured (Real Estate, Equipment)",
+              "Unsecured"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "debtInstrumentGuaranteesOrEnhancements": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Guarantees/Enhancements",
+            "placeholderText": "Select type",
+            "value": "",
+            "options": [
+              "None",
+              "Guarantee",
+              "DSRA",
+              "Insurance"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "debtInstrumentDefaultAndRecoveryTerms": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Default & Recovery Terms",
+            "placeholderText": "What happens in case of missed payment",
+            "value": "",
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "earlyRedemptionOption": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Early Redemption",
+            "placeholderText": "Select type",
+            "value": "",
+            "options": [
+              "Yes",
+              "No"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "earlyRedemptionPenalty": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Early Redemption Penalty",
+            "placeholderText": "Enter penalty",
+            "value": "",
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true,
+            "when": {
+              "targetName": "earlyRedemptionOption",
+              "section": 4,
+              "value": "Yes"
+            }
+          },
+          "dcsrRatio": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Debt Service Coverage Ratio (DSCR) (Minimum DSCR expected)",
+            "placeholderText": "Enter value",
+            "value": 0,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "ltvRatio": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Loan-to-Value Ratio (LTV)",
+            "placeholderText": "Enter value",
+            "value": 0,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "interestCoverageRatio": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Interest Coverage Ratio (ICR)",
+            "placeholderText": "Enter value",
+            "value": 0,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "maximumLeverageRatio": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Maximum Leverage Ratio if any (optional)",
+            "placeholderText": "Enter value",
+            "value": 0,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "trusteeAppointed": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Trustee Appointed?",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "trusteeName": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Name of bond/debt trustee",
+            "placeholderText": "Enter value",
+            "value": "",
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true,
+            "when": {
+              "targetName": "trusteeAppointed",
+              "section": 4,
+              "value": true
+            }
+          },
+          "reserveFundInPlace": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Reserve Fund in Place?",
+            "placeholderText": "",
+            "value": false,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "dcsrDetails": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Debt service reserve account (DSRA) details",
+            "placeholderText": "Give details",
+            "value": "",
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true,
+            "when": {
+              "targetName": "reserveFundInPlace",
+              "section": 4,
+              "value": true
+            }
+          },
+          "sinkingFundStructure": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Sinking Fund Structure (Gradual principal repayment details)",
+            "placeholderText": "Give details",
+            "value": "",
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "covenantMonitoringAgent": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Covenant Monitoring Agent (Entity overseeing covenant compliance)",
+            "placeholderText": "Give details",
+            "value": "",
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "rightOfRecourse": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Right of Recourse",
+            "placeholderText": "Select recourse",
+            "value": "",
+            "options": [
+              "Full Recourse",
+              "Limited Recourse",
+              "Non-Recourse"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }
         }
       }
     },
@@ -6944,7 +7311,134 @@
           }
         ]
       }
-    }
+    },
+    "behaviors": [
+      {
+        "id": "auto-set-hasInsurance-from-data",
+        "event": "onInit",
+        "watch": ["insuranceCompanyName", "insurancePolicyNumber", "insurancePolicyHolder"],
+        "when": {
+          "op": "or",
+          "args": [
+            { "op": "notEmpty", "field": "insuranceCompanyName" },
+            { "op": "notEmpty", "field": "insurancePolicyNumber" },
+            { "op": "notEmpty", "field": "insurancePolicyHolder" }
+          ]
+        },
+        "actions": [
+          { "type": "setValue", "field": "hasInsurance", "value": true }
+        ]
+      },
+      {
+        "id": "compute-percentage-on-init",
+        "event": "onInit",
+        "when": {
+          "op": "gt",
+          "field": "assetCurrentValue",
+          "value": 0
+        },
+        "actions": [
+          {
+            "type": "setValue",
+            "field": "percentageFromPromoters",
+            "valueExpr": {
+              "op": "round",
+              "digits": 2,
+              "value": {
+                "op": "mul",
+                "args": [
+                  {
+                    "op": "div",
+                    "args": [
+                      {
+                        "op": "toNumber",
+                        "field": "assetOwnerRetainedOrContributedValue",
+                        "default": 0
+                      },
+                      {
+                        "op": "toNumber",
+                        "field": "assetCurrentValue",
+                        "default": 0
+                      }
+                    ]
+                  },
+                  100
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "compute-owner-contributed-value",
+        "event": "onChange",
+        "watch": ["assetCurrentValue", "percentageFromPromoters"],
+        "actions": [
+          {
+            "type": "setValue",
+            "field": "assetOwnerRetainedOrContributedValue",
+            "valueExpr": {
+              "op": "round",
+              "digits": 2,
+              "value": {
+                "op": "mul",
+                "args": [
+                  { "op": "toNumber", "field": "assetCurrentValue", "default": 0 },
+                  {
+                    "op": "div",
+                    "args": [
+                      { "op": "toNumber", "field": "percentageFromPromoters", "default": 0 },
+                      100
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "compute-percentage-from-owner-contributed-value",
+        "event": "onChange",
+        "watch": ["assetCurrentValue", "assetOwnerRetainedOrContributedValue"],
+        "when": {
+          "op": "gt",
+          "field": "assetCurrentValue",
+          "value": 0
+        },
+        "actions": [
+          {
+            "type": "setValue",
+            "field": "percentageFromPromoters",
+            "valueExpr": {
+              "op": "round",
+              "digits": 2,
+              "value": {
+                "op": "mul",
+                "args": [
+                  {
+                    "op": "div",
+                    "args": [
+                      {
+                        "op": "toNumber",
+                        "field": "assetOwnerRetainedOrContributedValue",
+                        "default": 0
+                      },
+                      {
+                        "op": "toNumber",
+                        "field": "assetCurrentValue",
+                        "default": 0
+                      }
+                    ]
+                  },
+                  100
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
   },
   "2": {
     "fields": {
@@ -7118,7 +7612,7 @@
             "required": true,
             "public": true
           },
-          "latitude": {
+          "assetLatitude": {
             "type": "string",
             "widgetType": "text",
             "label": "Google Map Latitude",
@@ -7129,7 +7623,7 @@
             "required": true,
             "public": true
           },
-          "longitude": {
+          "assetLongitude": {
             "type": "string",
             "widgetType": "text",
             "label": "Google Map Longitude",
@@ -7146,7 +7640,7 @@
         "sectionName": "Asset Value & Financing",
         "description": "Please provide the following information about the asset value",
         "body": {
-          "currentValueOfAsset": {
+          "assetCurrentValue": {
             "type": "double",
             "widgetType": "text",
             "label": "What is the Total Estimated Project Budget",
@@ -7305,71 +7799,718 @@
       },
       "8": {
         "sectionName": "Asset Protection In Place",
-        "description": "Check each asset protection that has been put in place for the asset and enter the information needed for each protection.",
-        "body": {          
+        "description": "Check each asset protection that has been put in place for the asset and enter the information needed for each protection",
+        "body": {
+          "hasInsurance": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Comprehensive Insurance",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "insuranceCompanyName": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Insurance Company Name",
+            "placeholderText": "Company Name",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true,
+            "when": {
+              "targetName": "hasInsurance",
+              "section": 8,
+              "value": true
+            }
+          },
+          "insurancePolicyNumber": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Insurance Policy Number",
+            "placeholderText": "Insurance Policy Number",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true,
+            "when": {
+              "targetName": "hasInsurance",
+              "section": 8,
+              "value": true
+            }
+          },
+          "insurancePolicyHolder": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Insurance Policy Holder",
+            "placeholderText": "Insurance Policy Holder",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true,
+            "when": {
+              "targetName": "hasInsurance",
+              "section": 8,
+              "value": true
+            }
+          },
+          "percentageValueOfInsurance": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Percentage Value Of Insurance",
+            "placeholderText": "Percentage Value",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true,
+            "when": {
+              "targetName": "hasInsurance",
+              "section": 8,
+              "value": true
+            }
+          },
+          "contractualProtectionPerfBond": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Performance Bond",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "contractualProtectionRevGuarantees": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Revenue Guarantees",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "contractualProtectionSLA": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Service Level Agreements",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "riskSharingMechanismPPPs": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Public Private Partnerships",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "riskSharingMechanismHedgeInstruments": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Hedge Instruments",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "riskSharingMechanismCompletionGuarantees": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Completion Guarantees",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "hasIndependentMonitoring": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Independent Monitoring",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "independentMonitoringList": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "List details of independent monitors",
+            "placeholderText": "List details of independent monitors",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true,
+            "when": {
+              "targetName": "hasIndependentMonitoring",
+              "section": 8,
+              "value": true
+            }
+          },
+          "eSGSafeguardsSusCerts": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Sustainability Certifications",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "eSGSafeguardsCommEngPlans": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Community Engagement Plans",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "securityMeasuresAccessControl": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Access Control",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "securityMeasuresSurveilanceSystems": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Surveillance Systems",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "securityMeasuresOnSiteSecurityPersonnel": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "On-Site Security Personnel",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "securityMeasuresPerimeterSecurity": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Perimeter Security",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "securityMeasuresCriticalInfraProtections": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Critical Infrastructure Protections",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "hasLegalAdvisor": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Legal Advisor",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "legalAdvisor": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Name Of Legal Advisor",
+            "placeholderText": "Enter legal advisor name",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true,
+            "when": {
+              "targetName": "hasLegalAdvisor",
+              "section": 8,
+              "value": true
+            }
+          },
+          "hasFinancialAdvisor": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Financial Advisor",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "financialAdvisor": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Name Of Financial Advisor",
+            "placeholderText": "Enter financial advisor name",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true,
+            "when": {
+              "targetName": "hasFinancialAdvisor",
+              "section": 8,
+              "value": true
+            }
+          },
+          "hasOtherAssetProtection": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Other Asset Protection",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "otherAssetProtection": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Enter Other Protections In Place",
+            "placeholderText": "Describe other protections",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true,
+            "when": {
+              "targetName": "hasOtherAssetProtection",
+              "section": 8,
+              "value": true
+            }
+          }
         }
       },
       "9": {
-        "sectionName": "Asset Protection In Place",
-        "description": "Check each asset protection that has been put in place for the asset and enter the information needed for each protection.",
-        "body": {          
+        "sectionName": "Asset Verification Undertaking",
+        "description": "",
+        "body": {
+          "complianceNoViolation": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that this asset complies with all environmental and land use regulations and is free of violations.",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "complianceAllPermits": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that all necessary permits, licenses, and approvals for the use and ownership of this asset are in place.",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "outstandingFinancialRespNoHiddenLiabilities": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that this asset does not have any hidden liabilities or obligations that have not been disclosed.",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "riskManagementFullyInsured": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that this asset is adequately insured against risks such as fire, theft, and natural disasters.",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "physicalConditionNoUndisclosedEasements": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "I confirm that this asset is not affected by undisclosed easements, rights of way, expropriation, or condemnation.",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          }
         }
       },
       "10": {
         "sectionName": "Debt Instrument Structure",
         "description": "Check each asset protection that has been put in place for the asset and enter the information needed for each protection.",
+        "when": {
+          "targetName": "fundingStructure",
+          "value": [1, 2]
+        },
         "body": {    
-          "projectIdentifiedLegalRisks": {
+          "debtInstrumentType": {
             "type": "string",
-            "widgetType": "longtext",
-            "label": "Legal Risks Identified (Provide Details)",
-            "placeholderText": "Enter legal risks identified",
+            "widgetType": "dropdown",
+            "label": "Debt Instrument Type",
+            "placeholderText": "Select type",
+            "value": null,
+            "options": [
+              "Term Loan",
+              "Bond",
+              "Promissory Note",
+              "Debenture",
+              "Sukuk"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "tenure": {
+            "type": "int",
+            "widgetType": "text",
+            "label": "Loan Tenure (Total Repayment Period in Months)",
+            "placeholderText": "Enter value",
             "value": null,
             "options": [],
             "isFiat": false,
             "required": true,
             "public": true
           },
-          "projectIdentifiedRegulatoryRisks": {
-            "type": "string",
-            "widgetType": "longtext",
-            "label": "Regulatory Risks Identified (Provide Details)",
-            "placeholderText": "Enter regulatory risks identified",
+          "gracePeriod": {
+            "type": "int",
+            "widgetType": "text",
+            "label": "Grace Period",
+            "placeholderText": "Enter value",
             "value": null,
             "options": [],
             "isFiat": false,
             "required": true,
             "public": true
           },
-          "projectIdentifiedOperationalOrExecutionRisks": {
+          "debtInstrumentRepaymentFrequency": {
             "type": "string",
-            "widgetType": "longtext",
-            "label": "Operational/Execution Risks Identified (Provide Details)",
-            "placeholderText": "Enter operational/execution risks identified",
+            "widgetType": "dropdown",
+            "label": "Repayment Frequency",
+            "placeholderText": "Select type",
+            "value": null,
+            "options": [
+              "Monthly",
+              "Quarterly",
+              "Semi-Annually",
+              "Bullet (at maturity)"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "debtInstrumentInterestRate": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Interest Rate (Coupon Rate-Fixed or Floating rate)",
+            "placeholderText": "Enter value",
             "value": null,
             "options": [],
             "isFiat": false,
             "required": true,
             "public": true
           },
-          "projectIdentifiedMarketRisks": {
+          "interestRepaymentFrequency": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Interest Repayment Frequency",
+            "placeholderText": "Select type",
+            "value": null,
+            "options": [
+              "Monthly",
+              "Quarterly",
+              "Semi-Annually",
+              "Bullet (at maturity)"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "principalPaymentMethod": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Principal Payment Method",
+            "placeholderText": "Select type",
+            "value": null,
+            "options": [
+              "Bullet",
+              "Equal Installments",
+              "Balloon"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "debtInstrumentRepaymentSource": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Repayment Source",
+            "placeholderText": "Select source",
+            "value": null,
+            "options": [
+              "Rental Income",
+              "Operations Revenue"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "securityOrCollateralOffered": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Security/Collateral Offered",
+            "placeholderText": "Select option",
+            "value": null,
+            "options": [
+              "Secured (Real Estate, Equipment)",
+              "Unsecured"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "debtInstrumentGuaranteesOrEnhancements": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Guarantees/Enhancements",
+            "placeholderText": "Select type",
+            "value": null,
+            "options": [
+              "None",
+              "Guarantee",
+              "DSRA",
+              "Insurance"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "debtInstrumentDefaultAndRecoveryTerms": {
             "type": "string",
             "widgetType": "longtext",
-            "label": "Market Risks Identified (Provide Details)",
-            "placeholderText": "Enter market risks identified",
+            "label": "Default & Recovery Terms",
+            "placeholderText": "What happens in case of missed payment",
             "value": null,
             "options": [],
             "isFiat": false,
             "required": true,
             "public": true
           },
-          "projectIdentifiedOtherRelevantRisks": {
+          "earlyRedemptionOption": {
             "type": "string",
-            "widgetType": "longtext",
-            "label": "Other Relevant Risks Identified (Provide Details)",
-            "placeholderText": "Enter other relevant risks identified",
+            "widgetType": "dropdown",
+            "label": "Early Redemption",
+            "placeholderText": "Select type",
+            "value": null,
+            "options": [
+              "Yes",
+              "No"
+            ],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "earlyRedemptionPenalty": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Early Redemption Penalty",
+            "placeholderText": "Enter penalty",
             "value": null,
             "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true,
+            "when": {
+              "targetName": "earlyRedemptionOption",
+              "section": 10,
+              "value": "Yes"
+            }
+          },
+          "dcsrRatio": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Debt Service Coverage Ratio (DSCR) (Minimum DSCR expected)",
+            "placeholderText": "Enter value",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "ltvRatio": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Loan-to-Value Ratio (LTV)",
+            "placeholderText": "Enter value",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "interestCoverageRatio": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Interest Coverage Ratio (ICR)",
+            "placeholderText": "Enter value",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "maximumLeverageRatio": {
+            "type": "double",
+            "widgetType": "text",
+            "label": "Maximum Leverage Ratio if any (optional)",
+            "placeholderText": "Enter value",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "trusteeAppointed": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Trustee Appointed?",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "trusteeName": {
+            "type": "string",
+            "widgetType": "text",
+            "label": "Name of bond/debt trustee",
+            "placeholderText": "Enter value",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true,
+            "when": {
+              "targetName": "trusteeAppointed",
+              "section": 10,
+              "value": true
+            }
+          },
+          "reserveFundInPlace": {
+            "type": "boolean",
+            "widgetType": "checkbox",
+            "label": "Reserve Fund in Place?",
+            "placeholderText": "",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": false,
+            "public": true
+          },
+          "dcsrDetails": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Debt service reserve account (DSRA) details",
+            "placeholderText": "Give details",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true,
+            "when": {
+              "targetName": "reserveFundInPlace",
+              "section": 4,
+              "value": true
+            }
+          },
+          "sinkingFundStructure": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Sinking Fund Structure (Gradual principal repayment details)",
+            "placeholderText": "Give details",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "covenantMonitoringAgent": {
+            "type": "string",
+            "widgetType": "longtext",
+            "label": "Covenant Monitoring Agent (Entity overseeing covenant compliance)",
+            "placeholderText": "Give details",
+            "value": null,
+            "options": [],
+            "isFiat": false,
+            "required": true,
+            "public": true
+          },
+          "rightOfRecourse": {
+            "type": "string",
+            "widgetType": "dropdown",
+            "label": "Right of Recourse",
+            "placeholderText": "Select recourse",
+            "value": null,
+            "options": [
+              "Full Recourse",
+              "Limited Recourse",
+              "Non-Recourse"
+            ],
             "isFiat": false,
             "required": true,
             "public": true

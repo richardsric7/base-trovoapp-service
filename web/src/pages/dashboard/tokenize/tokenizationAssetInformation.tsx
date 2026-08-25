@@ -27,7 +27,7 @@ type FormCondition = {
   type?: string;
   section?: string | number;
   targetName?: string;
-  value?: string | number | boolean | null;
+  value?: string | number | boolean | null | (string | number | boolean)[];
 };
 
 type FormField = {
@@ -48,6 +48,7 @@ type FormField = {
 type FormSection = {
   title?: string;
   description?: string;
+  when?: FormCondition;
   body: Record<string, FormField>;
 };
 
@@ -332,9 +333,34 @@ function normalizeFormDefinition(payload: unknown): FormDefinition {
         {},
       );
 
+      const sectionWhen =
+        section.when && typeof section.when === 'object'
+          ? {
+              type: String(
+                (section.when as Record<string, unknown>).type ?? '',
+              ),
+              section: (section.when as Record<string, unknown>)
+                .section as string | number | undefined,
+              targetName: (section.when as Record<string, unknown>)
+                .targetName
+                ? String(
+                    (section.when as Record<string, unknown>).targetName,
+                  )
+                : undefined,
+              value: (section.when as Record<string, unknown>).value as
+                | string
+                | number
+                | boolean
+                | null
+                | (string | number | boolean)[]
+                | undefined,
+            }
+          : undefined;
+
       accumulator[sectionKey] = {
         title: String(sectionName),
         description: String(section.description ?? ''),
+        when: sectionWhen,
         body,
       };
 
@@ -889,7 +915,6 @@ function evaluateCondition(
   const targetField = targetSection?.body?.[condition.targetName];
   const targetValue = targetField?.value ?? targetField?.defaultValue;
   const normalizedTargetValue = String(targetValue ?? '').toLowerCase();
-  const normalizedExpectedValue = String(condition.value ?? '').toLowerCase();
 
   if (condition.type === 'hasvalue') {
     return normalizedTargetValue.length > 0;
@@ -899,6 +924,16 @@ function evaluateCondition(
     return normalizedTargetValue.length === 0;
   }
 
+  // Handle array of values (OR logic)
+  if (Array.isArray(condition.value)) {
+    return condition.value.some((val) => {
+      const normalizedVal = String(val ?? '').toLowerCase();
+      return normalizedTargetValue === normalizedVal;
+    });
+  }
+
+  // Handle single value
+  const normalizedExpectedValue = String(condition.value ?? '').toLowerCase();
   return normalizedTargetValue === normalizedExpectedValue;
 }
 
@@ -1445,7 +1480,16 @@ export function TokenizationAssetInformation() {
 
         {formDefinition
           ? Object.entries(formDefinition).map(
-              ([sectionName, section], index, sections) => (
+              ([sectionName, section], index, sections) => {
+                const isSectionVisible = evaluateCondition(
+                  section.when,
+                  formDefinition,
+                );
+                if (!isSectionVisible) {
+                  return null;
+                }
+
+                return (
                 <div key={sectionName}>
                   <div className="flex flex-col gap-6 md:flex-row md:gap-x-6 pb-8">
                     <div className="w-full md:w-2/6">
@@ -1512,7 +1556,8 @@ export function TokenizationAssetInformation() {
                     <hr className="border-gray-200" />
                   ) : null}
                 </div>
-              ),
+                );
+              },
             )
           : null}
       </div>
