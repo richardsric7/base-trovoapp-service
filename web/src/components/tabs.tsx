@@ -10,8 +10,8 @@ export default function Tabs({ tabList, children = [], onTabChanged }: Props) {
   const [openTab, setOpenTab] = React.useState(1);
   const tabItems = tabList.map((item, index) => (
     <li
-      key={`${new Date().getTime()}${item.replace(' ', '')}`}
-      id={`${new Date().getTime()}${item.replace(' ', '')}`}
+      key={`tab-${item.replace(/\s+/g, '')}-${index}`}
+      id={`tab-${item.replace(/\s+/g, '')}-${index}`}
       className="-mb-px mr-2 last:mr-0 flex-auto text-center md:text-lg"
     >
       <a
@@ -31,10 +31,11 @@ export default function Tabs({ tabList, children = [], onTabChanged }: Props) {
     </li>
   ));
 
-  const tabBodies = children?.map((body, index) => (
+  const childArray = React.Children.toArray(children);
+  const tabBodies = childArray.map((body, index) => (
     <div
       className={openTab === index + 1 ? 'block' : 'hidden'}
-      key={`${new Date().getTime()}${index}`}
+      key={`body-${index}`}
       id={`link${index + 1}`}
     >
       {body}

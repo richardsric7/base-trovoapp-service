@@ -1,2 +1,3 @@
 export * from './main';
-export * from './tokenizationApplication';
+export * from './tokenizationSetupAndCompliance';
+export * from './confirmTokenizationDetails';

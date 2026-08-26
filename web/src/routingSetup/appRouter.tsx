@@ -21,13 +21,31 @@ import RestoreInactiveAccount from '../pages/accountRecovery/restoreInactiveAcco
 import WalletView from '../pages/dashboard/wallet/walletView';
 import SendAssetReceipt from '../pages/pdfPages/sendAssetReceipt';
 import { History } from '../pages/dashboard/history';
-import { Tokenize, TokenizeAssetForm } from '../pages/dashboard';
+import {
+  Tokenize,
+  TokenizationSetupAndCompliance,
+  ConfirmTokenizationDetails,
+} from '../pages/dashboard';
 import AssetDetail from '../pages/dashboard/wallet/assetDetails';
 import YieldView from '../pages/dashboard/wallet/yield';
 import EarlyExitView from '../pages/dashboard/wallet/earlyExit';
 import TokenizedAssetsListView from '../pages/dashboard/tokenizedAssets/assetsListView';
 import TokenizedAssetDetailsView from '../pages/dashboard/tokenizedAssets/tokenizedAsset';
 import AssetsList from '../pages/dashboard/addOrRemoveAssets/assetsList';
+import { TokenizationApplication } from '../pages/dashboard/tokenize/tokenizationApplication';
+import { TokenizationAssetInformation } from '../pages/dashboard/tokenize/tokenizationAssetInformation';
+import { TokenizationAssetDocuments } from '../pages/dashboard/tokenize/tokenizationAssetDocuments';
+import { TokenizationAssetTokenInformation } from '../pages/dashboard/tokenize/tokenizationAssetTokenInformation';
+import TokenizationAssetDashboard from '../pages/dashboard/tokenize/tokenizationAssetDashboard';
+import { TokenizationFeePayment } from '../pages/dashboard/tokenize/tokenizationFeePayment';
+import {
+  SharedAccessLanding,
+  SharedAccessWalletInfo,
+  SharedAccessUpdate,
+  SharedAccessApprovals,
+  SharedAccessApprovalDetails,
+  SharedAccessAdd,
+} from '../pages/dashboard/sharedAccess';
 
 export default function AppRouter() {
   return (
@@ -78,8 +96,61 @@ export default function AppRouter() {
             <Route path="add-remove-assets" element={<AssetsList />} />
             <Route path="wallet" element={<WalletView />} />
             <Route path="history" element={<History />} />
+            <Route path="shared-access" element={<SharedAccessLanding />} />
+            <Route
+              path="shared-access/wallets"
+              element={<SharedAccessLanding />}
+            />
+            <Route
+              path="shared-access/wallets/:publicKey"
+              element={<SharedAccessWalletInfo />}
+            />
+            <Route
+              path="shared-access/update"
+              element={<SharedAccessUpdate />}
+            />
+            <Route
+              path="shared-access/approvals"
+              element={<SharedAccessApprovals />}
+            />
+            <Route
+              path="shared-access/approvals/:id"
+              element={<SharedAccessApprovalDetails />}
+            />
+            <Route path="shared-access/add" element={<SharedAccessAdd />} />
             <Route path="tokenize" element={<Tokenize />}></Route>
-            <Route path="tokenize/apply" element={<TokenizeAssetForm />} />
+            <Route
+              path="tokenize/confirm-details"
+              element={<ConfirmTokenizationDetails />}
+            />
+            <Route
+              path="tokenize/confirm-details/:id"
+              element={<ConfirmTokenizationDetails />}
+            />
+            <Route
+              path="tokenize/asset-dashboard/:id"
+              element={<TokenizationAssetDashboard />}
+            />
+            <Route
+              path="tokenize/fee-payment/:id"
+              element={<TokenizationFeePayment />}
+            />
+            <Route path="tokenize/apply" element={<TokenizationApplication />}>
+              <Route index element={<TokenizationSetupAndCompliance />} />
+              <Route path=":id" element={<TokenizationSetupAndCompliance />} />
+              <Route
+                path=":id/asset-information"
+                element={<TokenizationAssetInformation />}
+              />
+              <Route
+                path=":id/asset-documents"
+                element={<TokenizationAssetDocuments />}
+              />
+              <Route
+                path=":id/asset-token-information"
+                element={<TokenizationAssetTokenInformation />}
+              />
+            </Route>
             <Route
               path="setup-security-questions"
               element={<SetupSecurityQuestions />}

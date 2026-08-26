@@ -7,8 +7,14 @@ import { showToaster, showHideLoader as toggle, showLoader as showL, hideLoader 
 export const showNotification = (type: 'success' | 'info' | 'error' | undefined, message: string, delay?: number) => {
     store.dispatch(showToaster({ type, message, delay }));
 };
-export const toggleLoader = () => {
-    store.dispatch(toggle());
+export const toggleLoader = (show?: boolean) => {
+    if (show === true) {
+        store.dispatch(showL());
+    } else if (show === false) {
+        store.dispatch(hideL());
+    } else {
+        store.dispatch(toggle());
+    }
 };
 
 export const showLoader = () => {

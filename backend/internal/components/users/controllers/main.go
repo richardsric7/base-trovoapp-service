@@ -1,14 +1,24 @@
 package users
 
-import (
-	"os"
-	userModels "trovo-wallet-api/internal/components/users/models"
+// build-marker: CI/deploy pipeline test (2026-08-21) — safe to remove
 
+import (
+	"encoding/json"
+	"fmt"
+	"io"
 	"log"
+	"net/http"
+	"os"
+
+	usersDB "trovo-wallet-api/internal/components/users/db"
+	userModels "trovo-wallet-api/internal/components/users/models"
+	userServices "trovo-wallet-api/internal/components/users/services"
+	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/middleware"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shopspring/decimal"
 )
 
 // Init initializes /v1/users endpoint
@@ -222,7 +232,290 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		router.POST("/v1/tokenization/subscriptions/:tokenizedAssetID", middleware.AuthenticationMiddlewareUsingTimestamp(), postTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan, gc))
 
+		router.POST("/v1/tokenization/subscriptions/fiat/:tokenizedAssetID", middleware.AuthenticationMiddlewareUsingTimestamp(), postTokenizationSubscriptionsFiatTokenizedAssetIDHandler(callBackRetryChan, gc))
+
 		router.POST("/v1/shared-access/tokenization/subscriptions/:tokenizedAssetID", middleware.AuthenticationMiddlewareUsingTimestamp(), postSharedAccessTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan, gc))
+
+		router.POST("/v1/tokenization/early-exit/:tokenizedAssetID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			// var err error//true-client-ip
+
+			tokenizedAssetID := c.Param("tokenizedAssetID")
+			user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+			if err != nil {
+				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				return
+			}
+			//get the wallet you are exiting from
+			exitingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+			if getWalletError != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getWalletError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+				}
+				return
+			}
+
+			if temp {
+				errAccountIsTemp := &tErrors.CustomError{
+					Param:      "Username",
+					Err:        "error-account-not-temporary-wallet",
+					ErrMessage: "Only normal/standard wallets are allowed for this request.",
+					Code:       http.StatusForbidden,
+				}
+
+				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+				return
+
+			}
+
+			tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			var tInput userModels.TokenizedAssetEarlyExitInput
+
+			data, _ := io.ReadAll(c.Request.Body)
+			err = json.Unmarshal(data, &tInput)
+
+			var invalidJSON tErrors.ErrorInvalidJSON
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
+			}
+
+			ee, err := userServices.EarlyExit(&user, &exitingWallet, &tokenizedAsset, &tInput, gc)
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			c.JSON(http.StatusOK, tInput)
+
+			if user.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID != "PENDING_AUTH" {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = "tokenizedAssetEarlyExit"
+				user.SendPushMessage(fmt.Sprintf("You have successfully exited %v", *tokenizedAsset.AssetCode), fmt.Sprintf("You have successfully exited %v %v on the wallet with alias [%v]. Estimated payout: %v %v.", decimal.NewFromFloat(ee.TokenQuantityToExit).String(), *tokenizedAsset.AssetCode, exitingWallet.Alias, decimal.NewFromFloat(ee.EstimatedPayoutAmount).String(), ee.PayoutCurrency), "", dataPayload, gc)
+			}
+			user.InvalidateUserCache(gc)
+
+		})
+
+		router.POST("/v1/shared-access/tokenization/early-exit/:tokenizedAssetID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			// var err error//true-client-ip
+
+			tokenizedAssetID := c.Param("tokenizedAssetID")
+			accountSignerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+			if err != nil {
+				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				return
+			}
+			//get the wallet you are exiting from
+			exitingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+			if getWalletError != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getWalletError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
+				}
+				return
+			}
+
+			if temp {
+				errAccountIsTemp := &tErrors.CustomError{
+					Param:      "Username",
+					Err:        "error-account-not-temporary-wallet",
+					ErrMessage: "Only normal/standard wallets are allowed for this request.",
+					Code:       http.StatusForbidden,
+				}
+
+				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+				return
+
+			}
+
+			walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+			tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			var tInput userModels.TokenizedAssetEarlyExitInput
+
+			data, _ := io.ReadAll(c.Request.Body)
+			err = json.Unmarshal(data, &tInput)
+
+			var invalidJSON tErrors.ErrorInvalidJSON
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
+			}
+
+			//check if shared wallet, then check if user has access
+			if exitingWallet.SharedAccessEnabled == 1 && exitingWallet.NumberOfApprovalsNeeded > 0 {
+				//check if signer has access
+				hasInitiatorAccess := false
+				// check if user has initiator access to wallet.
+				for _, p := range accountSignerUser.WalletsSharedWithUser {
+					if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
+						hasInitiatorAccess = true
+					}
+				}
+				if !hasInitiatorAccess {
+					c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+					return
+				}
+			}
+
+			if exitingWallet.HasViewOnlyAccess(gc) {
+				if exitingWallet.UserID != accountSignerUser.ID {
+					c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission to access this wallet."})
+					return
+				}
+			}
+
+			ee, err := userServices.EarlyExit(&accountSignerUser, &exitingWallet, &tokenizedAsset, &tInput, gc)
+			if err != nil {
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			if tInput.TransactionID != "PENDING_AUTH" {
+				c.JSON(http.StatusAccepted, tInput)
+				return
+			} else {
+				c.JSON(http.StatusOK, tInput)
+			}
+
+			if walletOwner.PushNotificationToken != nil && len(tInput.TransactionID) > 0 && tInput.TransactionID == "PENDING_AUTH" {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				accountSignerUser.SendPushMessage(fmt.Sprintf("%v early exit request on %v!", *tokenizedAsset.AssetCode, exitingWallet.Alias), fmt.Sprintf("You have successfully submitted an early exit request for %v %v of %v on the wallet with alias [%v]. All approvers have been notified.", decimal.NewFromFloat(tInput.TokenQuantityToExit).String(), *tokenizedAsset.AssetCode, decimal.NewFromFloat(ee.EstimatedPayoutAmount).String(), exitingWallet.Alias), "", dataPayload, gc)
+
+			}
+			{
+				//start push notificationMessage
+
+				permissionList := exitingWallet.Permissions
+				for _, v := range permissionList {
+					u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+					if e != nil {
+						continue
+					}
+
+					dataPayload := make(map[string]string)
+					dataPayload["route"] = "pendingApproval"
+					if tInput.TransactionID == "PENDING_AUTH" {
+						u.SendPushMessage(fmt.Sprintf("%v early exit request submitted on %v!", *tokenizedAsset.AssetCode, exitingWallet.Alias), fmt.Sprintf("Request:\n %v", tInput.ReturnedDescription), "", dataPayload, gc)
+					}
+
+				}
+			}
+			walletOwner.InvalidateUserCache(gc)
+
+		})
 
 		router.GET("/v1/tokenization/expressed-interests", middleware.AuthenticationMiddlewareUsingTimestamp(), getTokenizationExpressedInterestsHandler(callBackRetryChan, gc))
 

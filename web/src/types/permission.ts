@@ -5,7 +5,11 @@ export type Permission = {
     targetUsername: string,
     fullName: string,
     permission: string,
-    permissionState: PermissionState,    
+    permissionState?: PermissionState | null,    
 }
   
-enum PermissionState {Revoked, Modified, Added}
+export enum PermissionState {
+    Revoked = 'Revoked',
+    Modified = 'Modified',
+    Added = 'Added'
+}

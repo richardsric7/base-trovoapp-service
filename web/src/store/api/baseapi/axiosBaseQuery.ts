@@ -41,13 +41,22 @@ export const axiosBaseQuery =
   async ({ url, method, data, headers = {} }: AxiosRequestConfig<any>) => {
     const creds = data?.creds as Credentials;
     const payload = data?.payload;
+    const isFormData = data?.isFormData as boolean | undefined;
     try {
+      const requestHeaders: any = creds
+        ? { ...baseHeaders, ...headers, ...getRequestHeaders(url!, creds.signer, creds.publicKey, creds.secretKey) }
+        : { ...baseHeaders, ...headers };
+
+      // For FormData uploads, let axios set Content-Type automatically
+      if (isFormData) {
+        delete requestHeaders['Content-Type'];
+      }
+
       const result = await axios({
         url: baseUrl + url,
         method,
         data: payload,
-        headers: creds ? { ...baseHeaders, ...headers, ...getRequestHeaders(url!, creds.signer, creds.publicKey, creds.secretKey) } 
-                      : { ...baseHeaders, ...headers},
+        headers: requestHeaders,
       });
       return { data: result.data };
     } catch (axiosError: any) {

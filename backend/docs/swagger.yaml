@@ -1174,6 +1174,8 @@ definitions:
         type: number
       feeBreakdownSummary:
         type: string
+      financialAdviserId:
+        type: integer
       financialAdvisor:
         type: string
       fundAdministrator:
@@ -1310,6 +1312,8 @@ definitions:
         type: string
       keyAssumptionsList:
         type: string
+      legalAdviserId:
+        type: integer
       legalAdvisor:
         type: string
       legalAndProfesionalPartnerId:
@@ -2000,6 +2004,10 @@ definitions:
       assetQuoteCurrency:
         type: string
       excludeSecFee:
+        type: integer
+      financialAdviserId:
+        type: integer
+      legalAdviserId:
         type: integer
       legalAndProfesionalPartnerFeeFixed:
         type: number
@@ -4472,6 +4480,98 @@ paths:
             additionalProperties: true
             type: object
       summary: GET /v1/trovo-api/payment/request/:targetUser
+      tags:
+      - servicelinks
+  /v1/trovo-api/stakeholder-documents:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: PDF, JPEG, or PNG document (max 10MB)
+        in: formData
+        name: document_file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Upload private stakeholder document
+      tags:
+      - servicelinks
+  /v1/trovo-api/stakeholder-documents/{objectID}:
+    delete:
+      parameters:
+      - description: Storage object ID
+        in: path
+        name: objectID
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete private stakeholder document
+      tags:
+      - servicelinks
+    get:
+      parameters:
+      - description: Storage object ID
+        in: path
+        name: objectID
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Download private stakeholder document
       tags:
       - servicelinks
   /v1/trovo-api/tokens/mint:

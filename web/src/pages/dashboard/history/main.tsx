@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Document,
   Page,
@@ -65,8 +66,22 @@ const defaultFilters: FilterState = {
 
 export const History = () => {
   const appUser = useSelector((state: RootState) => state.auth.user!);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const queryWallet = searchParams.get('wallet');
+  const queryRel = searchParams.get('rel');
+  const isShared = queryRel === 'shared';
+
   const [secretKey, setSecretKey] = useState('');
-  const [selectedWallet, setSelectedWallet] = useState('');
+  const [selectedWallet, setSelectedWallet] = useState(
+    isShared && queryWallet ? queryWallet : '',
+  );
+
+  useEffect(() => {
+    if (isShared && queryWallet) {
+      setSelectedWallet(queryWallet);
+    }
+  }, [isShared, queryWallet]);
   const [selectedAsset, setSelectedAsset] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [showAmountModal, setShowAmountModal] = useState(false);
@@ -293,7 +308,7 @@ export const History = () => {
   };
 
   const resetAllFilters = () => {
-    setSelectedWallet('');
+    setSelectedWallet(isShared && queryWallet ? queryWallet : '');
     setSelectedAsset('');
     setSelectedType('');
     setMinAmountInput('');
@@ -394,6 +409,14 @@ export const History = () => {
       <div className={styles.pageBody}>
         <section className={styles.panel}>
           <div className={styles.topRow}>
+            <button
+              onClick={() => navigate('/dashboard/shared-access')}
+              className="flex items-center gap-2 text-primary-800 font-montserratSemiBold hover:text-primary-700 text-lg"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
+                <path d="m313-440 224 224-57 57-320-320 320-320 57 57-224 224h527v80H313Z" />
+              </svg>
+            </button>
             <h3 className={styles.headerText}>Transaction History</h3>
           </div>
 
@@ -403,6 +426,7 @@ export const History = () => {
                 value={selectedWallet}
                 onChange={setSelectedWallet}
                 options={walletOptions}
+                disabled={isShared && !!queryWallet}
               />
               <HistorySelect
                 value={selectedAsset}
@@ -468,11 +492,10 @@ export const History = () => {
                     onClick={() => setSelectedHistoryRow(row)}
                   >
                     <div
-                      className={`${styles.price} ${
-                        row.type === 'Sent'
-                          ? styles.priceNegative
-                          : styles.pricePositive
-                      }`}
+                      className={`${styles.price} ${row.type === 'Sent'
+                        ? styles.priceNegative
+                        : styles.pricePositive
+                        }`}
                     >
                       {row.price}
                     </div>
@@ -763,10 +786,12 @@ const HistorySelect = ({
   value,
   onChange,
   options,
+  disabled,
 }: {
   value: string;
   onChange: (value: string) => void;
   options: Array<{ label: string; value: string }>;
+  disabled?: boolean;
 }) => {
   return (
     <div className={styles.selectWrap}>
@@ -774,6 +799,7 @@ const HistorySelect = ({
         className={styles.select}
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        disabled={disabled}
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

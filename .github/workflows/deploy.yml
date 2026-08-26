@@ -1,0 +1,330 @@
+# =============================================================================
+# Build & Push - Trovo Wallet monorepo images -> DOCR
+#
+# Builds backend (Go) and web frontend (Vite -> nginx) images and pushes them
+# to DigitalOcean Container Registry. Deployment is driven by Portainer
+# webhooks: this workflow pushes the new image, then pings Portainer, which
+# repulls.
+#
+# Branch -> tag:  dev -> dev  (staging / main added later)
+# =============================================================================
+name: Build & Push
+
+on:
+  push:
+    branches: [dev, staging, main]
+    paths:
+      - "backend/**"
+      - "web/**"
+      - "trovotech-io/**"
+      - "trovo-app-website/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # -- Map branch -> image tag ------------------------------------------------
+  resolve:
+    name: Resolve tag
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.set.outputs.image_tag }}
+    steps:
+      - id: set
+        run: |
+          case "${{ github.ref_name }}" in
+            dev)     tag=dev ;;
+            staging) tag=staging ;;
+            main)    tag=prod ;;
+            *) echo "::error::No tag mapping for ${{ github.ref_name }}"; exit 1 ;;
+          esac
+          echo "image_tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "-> ${{ github.ref_name }} -> tag:$tag"
+
+  # -- Detect which services changed -----------------------------------------
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      web: ${{ steps.filter.outputs.web }}
+      website: ${{ steps.filter.outputs.website }}
+      app_website: ${{ steps.filter.outputs.app_website }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          base: ${{ github.event.before }}
+          ref: ${{ github.sha }}
+          filters: |
+            backend:
+              - 'backend/**'
+            web:
+              - 'web/**'
+            website:
+              - 'trovotech-io/**'
+            app_website:
+              - 'trovo-app-website/**'
+      - name: Debug detected changes
+        run: |
+          echo "before=${{ github.event.before }} sha=${{ github.sha }}"
+          echo "backend changed = ${{ steps.filter.outputs.backend }}"
+          echo "web changed = ${{ steps.filter.outputs.web }}"
+          echo "website changed = ${{ steps.filter.outputs.website }}"
+          echo "app_website changed = ${{ steps.filter.outputs.app_website }}"
+
+  # -- Build & push each service ---------------------------------------------
+  build:
+    name: Build & Push - ${{ matrix.component }}
+    needs: [resolve, changes]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: api
+            context: backend
+            dockerfile: backend/Dockerfile
+            changed_flag: backend
+          - component: web
+            context: web
+            dockerfile: web/Dockerfile
+            changed_flag: web
+          - component: website
+            context: trovotech-io
+            dockerfile: trovotech-io/Dockerfile
+            changed_flag: website
+          - component: app-website
+            context: trovo-app-website
+            dockerfile: trovo-app-website/Dockerfile
+            changed_flag: app_website
+    steps:
+      - name: Check if this service changed
+        id: gate
+        env:
+          BACKEND_CHANGED: ${{ needs.changes.outputs.backend }}
+          WEB_CHANGED: ${{ needs.changes.outputs.web }}
+          WEBSITE_CHANGED: ${{ needs.changes.outputs.website }}
+          APP_WEBSITE_CHANGED: ${{ needs.changes.outputs.app_website }}
+          FLAG: ${{ matrix.changed_flag }}
+        run: |
+          case "$FLAG" in
+            backend)     changed="$BACKEND_CHANGED" ;;
+            web)         changed="$WEB_CHANGED" ;;
+            website)     changed="$WEBSITE_CHANGED" ;;
+            app_website) changed="$APP_WEBSITE_CHANGED" ;;
+          esac
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+          if [ "$changed" != "true" ]; then
+            echo "::notice::Skipping ${{ matrix.component }} - no changes in $FLAG/"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.changed == 'true'
+
+      - name: Set up Buildx
+        if: steps.gate.outputs.changed == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to DigitalOcean Container Registry
+        if: steps.gate.outputs.changed == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: registry.digitalocean.com
+          username: ${{ secrets.DOCR_TOKEN }}
+          password: ${{ secrets.DOCR_TOKEN }}
+
+      - name: Metadata
+        id: meta
+        if: steps.gate.outputs.changed == 'true'
+        uses: docker/metadata-action@v5
+        with:
+          images: registry.digitalocean.com/service-images/trovo-wallet
+          tags: |
+            type=raw,value=${{ matrix.component }}-${{ needs.resolve.outputs.image_tag }}
+            type=sha,prefix=${{ matrix.component }}-${{ needs.resolve.outputs.image_tag }}-
+
+      - name: Build & push
+        if: steps.gate.outputs.changed == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.component }}
+
+  # -- DB migration (runs BEFORE deploy; gates the app redeploy) --------------
+  # Runs migrations against the (externally reachable) DB using the freshly-built
+  # api image in MIGRATE_ONLY mode, WHILE the old app keeps serving users. If this
+  # fails, notify-portainer for `api` is skipped -> the old app stays up. Only runs
+  # when the backend changed.
+  #
+  # SECURITY: this connects to the DB from the GitHub runner, so the DB must be
+  # reachable from GitHub Actions IPs. Intended for the dev environment; for
+  # staging/prod prefer an on-server migrator so the DB stays private.
+  migrate:
+    name: DB migrate (backend)
+    needs: [resolve, changes, build]
+    # DISABLED: GORM AutoMigrate from a GitHub runner takes >20 min because each of
+    # its ~800 catalog round-trips crosses the public internet, and this org is on
+    # the Free plan (2000 private-repo minutes/month). Migrations run on the server
+    # at boot for now. To re-enable, set repo variable RUN_CI_MIGRATION to '1'
+    # (ideally alongside a self-hosted runner so the DB need not be internet-facing).
+    if: ${{ needs.changes.outputs.backend == 'true' && vars.RUN_CI_MIGRATION == '1' }}
+    runs-on: ubuntu-latest
+    # GORM AutoMigrate re-inspects all ~107 models on every run, so this is slow
+    # by nature. The cap stops a lock-blocked migration from hanging the pipeline.
+    timeout-minutes: 20
+    steps:
+      - name: Log in to DigitalOcean Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.digitalocean.com
+          username: ${{ secrets.DOCR_TOKEN }}
+          password: ${{ secrets.DOCR_TOKEN }}
+
+      - name: Run migrations (one-shot, exits when done)
+        env:
+          IMAGE: registry.digitalocean.com/service-images/trovo-wallet:api-${{ needs.resolve.outputs.image_tag }}
+          # No CDB_CONNECTION_STRING: RoachDB belongs to the payment-history
+          # service. Under MIGRATE_ONLY the app neither opens nor migrates it,
+          # so CI needs no credentials for a second service's database.
+          DB_CONNECTION_STRING: ${{ secrets.MIGRATION_DB_CONNECTION_STRING }}
+        run: |
+          if [ -z "$DB_CONNECTION_STRING" ]; then
+            echo "::error::MIGRATION_DB_CONNECTION_STRING secret is not set"
+            exit 1
+          fi
+          # Fail fast with a clear message if the DSN looks wrong. pgx does NOT
+          # error on a bad connection string: sql.Open swallows it and falls back
+          # to libpq defaults, surfacing as the confusing
+          # `host=/tmp user=root database=` error far from the real cause.
+          # Only the SHAPE of the value is printed, never the secret itself.
+          DSN="$(printf '%s' "$DB_CONNECTION_STRING" | tr -d '\r\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+          case "$DSN" in
+            postgres://*|postgresql://*) ;;
+            *=postgres://*|*=postgresql://*)
+              echo "::error::The secret contains a 'NAME=' prefix. Paste ONLY the URL, e.g. postgres://user:pass@IP:5432/db"
+              exit 1 ;;
+            \"*|\'*)
+              echo "::error::The secret is wrapped in quotes. Paste the bare URL with no surrounding quotes."
+              exit 1 ;;
+            *)
+              echo "::error::DSN must start with postgres:// or postgresql://. Paste only the URL into the secret."
+              exit 1 ;;
+          esac
+          # host:port sits between the last '@' and the following '/' or '?'.
+          hostport="${DSN#*://}"; hostport="${hostport##*@}"
+          hostport="${hostport%%/*}"; hostport="${hostport%%\?*}"
+          echo "DSN shape: host:port=${hostport} db=$(echo "$DSN" | sed 's|.*://[^/]*/||; s|?.*||') length=${#DSN}"
+          case "$hostport" in
+            localhost*|127.0.0.1*|postgres:*|db:*)
+              echo "::error::host '${hostport}' is not reachable from a GitHub runner. Use the public server IP."
+              exit 1 ;;
+          esac
+
+          docker pull "$IMAGE"
+
+          # Pass the secret via --env-file rather than -e VAR="$VAR". An inline -e
+          # value goes through the shell, so a DSN containing $, !, backticks or
+          # quotes can be mangled before Docker ever sees it; --env-file is read
+          # verbatim by Docker. Written under $RUNNER_TEMP and removed on exit.
+          # MIGRATE_ONLY=1 -> run migrations then exit 0/1 without serving.
+          # DB_AUTOMIGRATE=1 -> set HERE, independently of the server's env file.
+          # The serving container keeps DB_AUTOMIGRATE=0 (that is what removes the
+          # user-facing startup wait); the migrator needs it on to do the work.
+          ENV_FILE="$RUNNER_TEMP/migrate.env"
+          umask 077
+          {
+            echo "MIGRATE_ONLY=1"
+            echo "DB_AUTOMIGRATE=1"
+            echo "DB_TYPE=postgres"
+            printf 'DB_CONNECTION_STRING=%s\n' "$DSN"
+          } > "$ENV_FILE"
+
+          trap 'rm -f "$ENV_FILE"' EXIT
+          docker run --rm --env-file "$ENV_FILE" "$IMAGE"
+          echo "::notice::Migrations completed successfully."
+
+  # -- Trigger Portainer redeploy via per-stack webhooks ---------------------
+  notify-portainer:
+    name: Trigger Portainer - ${{ matrix.component }}
+    needs: [resolve, changes, build, migrate]
+    if: ${{ always() && needs.build.result != 'cancelled' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: api
+            changed_flag: backend
+            secret_name: PORTAINER_WEBHOOK_URL_API
+          - component: web
+            changed_flag: web
+            secret_name: PORTAINER_WEBHOOK_URL_WEB
+          - component: website
+            changed_flag: website
+            secret_name: PORTAINER_WEBHOOK_URL_WEBSITE
+          - component: app-website
+            changed_flag: app_website
+            secret_name: PORTAINER_WEBHOOK_URL_APP_WEBSITE
+    steps:
+      - name: Check if this service changed
+        id: gate
+        env:
+          BACKEND_CHANGED: ${{ needs.changes.outputs.backend }}
+          WEB_CHANGED: ${{ needs.changes.outputs.web }}
+          WEBSITE_CHANGED: ${{ needs.changes.outputs.website }}
+          APP_WEBSITE_CHANGED: ${{ needs.changes.outputs.app_website }}
+          FLAG: ${{ matrix.changed_flag }}
+          MIGRATE_RESULT: ${{ needs.migrate.result }}
+        run: |
+          case "$FLAG" in
+            backend)     changed="$BACKEND_CHANGED" ;;
+            web)         changed="$WEB_CHANGED" ;;
+            website)     changed="$WEBSITE_CHANGED" ;;
+            app_website) changed="$APP_WEBSITE_CHANGED" ;;
+          esac
+
+          # Only the api deploy depends on migrations. A failed migration must not
+          # hold the frontends hostage, so the gate is applied per-component here
+          # rather than on the whole matrix job.
+          if [ "$FLAG" = "backend" ] && [ "$changed" = "true" ]; then
+            if [ "$MIGRATE_RESULT" != "success" ] && [ "$MIGRATE_RESULT" != "skipped" ] && [ -n "$MIGRATE_RESULT" ]; then
+              echo "::error::DB migration did not succeed (result=$MIGRATE_RESULT) - not deploying the api. The previous version keeps serving."
+              exit 1
+            fi
+          fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+
+      - name: Skip notice
+        if: steps.gate.outputs.changed != 'true'
+        run: echo "::notice::Skipping Portainer webhook for wallet-${{ matrix.component }} - no changes in ${{ matrix.changed_flag }}/"
+
+      - name: POST webhook
+        if: steps.gate.outputs.changed == 'true'
+        env:
+          WEBHOOK: ${{ secrets[matrix.secret_name] }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "::error::${{ matrix.secret_name }} secret is not set"
+            exit 1
+          fi
+          code=$(curl -fsS -o /dev/null -w '%{http_code}' -X POST "$WEBHOOK") || curl_rc=$?
+          if [ "${code:-000}" != "204" ] && [ "${code:-000}" != "200" ]; then
+            echo "::error::Portainer webhook for wallet-${{ matrix.component }} returned HTTP ${code:-000} (curl exit ${curl_rc:-0})"
+            exit 1
+          fi
+          echo "::notice::Portainer redeploy triggered for wallet-${{ matrix.component }} (HTTP $code)"

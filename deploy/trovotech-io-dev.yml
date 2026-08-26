@@ -1,0 +1,29 @@
+version: '3.8'
+
+# ---------------------------------------------------------------------------
+# Portainer stack: trovotech-io-dev
+#
+# Marketing website (trovotech-io/). Static Next.js export served by nginx
+# inside the container; Traefik handles TLS + host routing.
+#
+# Image is pre-built by .github/workflows/deploy.yml and pushed to DOCR.
+# ---------------------------------------------------------------------------
+
+services:
+  trovotech-io-dev:
+    container_name: trovotech-io-dev
+    image: registry.digitalocean.com/service-images/trovo-wallet:website-dev
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.trovotech-io-dev.entrypoints=websecure"
+      - "traefik.http.routers.trovotech-io-dev.rule=Host(`dev.trovotech.trovo.app`)"
+      - "traefik.http.routers.trovotech-io-dev.service=trovotech-io-dev"
+      - "traefik.http.routers.trovotech-io-dev.tls.certresolver=leresolver"
+      - "traefik.http.services.trovotech-io-dev.loadbalancer.server.port=80"
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    external: true

@@ -1,7 +1,7 @@
 import Button from '../../../components/button';
 import Header from '../../../components/header';
 import Tabs from '../../../components/tabs';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import WalletCard from '../../../components/walletCard';
 import { useDispatch, useSelector } from 'react-redux';
@@ -45,6 +45,10 @@ export default function WalletView() {
   const ref = useRef<HTMLDivElement>(null);
   const appUser = useSelector((state: RootState) => state.auth.user!);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isSharedRel = searchParams.get('rel') === 'shared';
+  const walletQueryParam = searchParams.get('wallet');
+
   let mutableWalletArray = [...appUser.userWallets];
   const [wallets, setWallets] = useState(
     mutableWalletArray.sort((w) => (w.primaryWallet ? 0 : 1)),
@@ -141,36 +145,61 @@ export default function WalletView() {
 
   useEffect(() => {
     console.log('using effect here!');
-    setWallets(
-      mutableWalletArray
-        .filter((w) => {
-          if (currentTabIndex === 1) {
-            return w;
-          } else if (
-            currentTabIndex === 2 &&
-            (w.owner === appUser.username ||
-              !w.sharedAccessEnabled ||
-              w.walletThreshold === 2)
-          ) {
-            return w;
-          } else if (currentTabIndex === 3 && w.sharedAccessEnabled) {
-            return w;
-          }
-        })
-        .sort((w) => (w.primaryWallet ? 0 : 1)),
-    );
+    let filtered = mutableWalletArray
+      .filter((w) => {
+        if (currentTabIndex === 1) {
+          return w;
+        } else if (
+          currentTabIndex === 2 &&
+          (w.owner === appUser.username ||
+            !w.sharedAccessEnabled ||
+            w.walletThreshold === 2)
+        ) {
+          return w;
+        } else if (currentTabIndex === 3 && w.sharedAccessEnabled) {
+          return w;
+        }
+      })
+      .sort((w) => (w.primaryWallet ? 0 : 1));
 
-    setActiveWalletIndex(0);
-    const ref = itemRefs.current[0];
-    if (ref) {
-      // Change background color
-      ref.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
-      });
+    if (isSharedRel && walletQueryParam) {
+      filtered = filtered.filter((w) => w.publicKey === walletQueryParam);
     }
-  }, [currentTabIndex]);
+
+    setWallets(filtered);
+
+    let targetIndex = 0;
+    if (isSharedRel && walletQueryParam) {
+      const idx = filtered.findIndex((w) => w.publicKey === walletQueryParam);
+      if (idx !== -1) {
+        targetIndex = idx;
+      }
+    }
+
+    setActiveWalletIndex(targetIndex);
+    if (filtered[targetIndex]) {
+      setActiveWallet(filtered[targetIndex]);
+      const nativeAsset = filtered[targetIndex].claimedAssets.find(
+        (a) => a.assetCode === '' && a.assetIssuer === '',
+      );
+      if (nativeAsset) {
+        setSelectedAsset(nativeAsset);
+        setGas(nativeAsset.amount);
+      }
+    }
+
+    setTimeout(() => {
+      const ref = itemRefs.current[targetIndex];
+      if (ref) {
+        // Change background color
+        ref.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center',
+        });
+      }
+    }, 100);
+  }, [currentTabIndex, isSharedRel, walletQueryParam]);
 
   useEffect(() => {
     setGas(
@@ -363,20 +392,34 @@ export default function WalletView() {
         <div className="flex md:h-screen w-full items-center justify-center">
           <div className="h-full w-full md:p-3">
             <div className="flex md:pt-5 p-5 rounded-lg flex-col items-center bg-primary-100 max-w-5xl min-h-full">
-              <div className="w-full flex justify-between space-x-5">
-                <Tabs
-                  tabList={['All Wallets', 'My Wallets', 'Shared Wallets']}
-                  onTabChanged={(index) => {
-                    setCurrentTabIndex(index);
-                  }}
-                />
-                <div className="w-1/4">
-                  <Button
-                    label="Add Subwallet"
-                    onclick={() => setShowAddSubwalletModal(true)}
-                  />
+              {isSharedRel ? (
+                <div className="w-full flex justify-start mb-4">
+                  <button
+                    onClick={() => navigate('/dashboard/shared-access')}
+                    className="flex items-center gap-2 text-primary-800 font-montserratSemiBold hover:text-primary-700 text-lg"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor">
+                      <path d="m313-440 224 224-57 57-320-320 320-320 57 57-224 224h527v80H313Z"/>
+                    </svg>
+                    <span>Back</span>
+                  </button>
                 </div>
-              </div>
+              ) : (
+                <div className="w-full flex justify-between space-x-5">
+                  <Tabs
+                    tabList={['All Wallets', 'My Wallets', 'Shared Wallets']}
+                    onTabChanged={(index) => {
+                      setCurrentTabIndex(index);
+                    }}
+                  />
+                  <div className="w-1/4">
+                    <Button
+                      label="Add Subwallet"
+                      onclick={() => setShowAddSubwalletModal(true)}
+                    />
+                  </div>
+                </div>
+              )}
               <div className="relative max-w-full">
                 <div
                   className="flex overflow-x-hidden whitespace-nowrap w-full space-x-4 "

@@ -241,15 +241,22 @@ const AssetsList = () => {
         </form>
         {filteredWallets && (
           <div className="w-full space-y-3">
-            {filteredWallets.map((asset, index) => (
-              <CuratedAssetTile
-                key={index}
-                assetTile={asset}
-                wallet={activeWallet!}
-                secretKey={secretKey}
-                onImport={() => importWallet()}
-              />
-            ))}
+            {[...filteredWallets]
+              .sort((a, b) =>
+                a.asset.assetCode.localeCompare(b.asset.assetCode),
+              )
+              .map((asset, index) => {
+                if (asset.asset.assetCode != 'NGN')
+                  return (
+                    <CuratedAssetTile
+                      key={index}
+                      assetTile={asset}
+                      wallet={activeWallet!}
+                      secretKey={secretKey}
+                      onImport={() => importWallet()}
+                    />
+                  );
+              })}
           </div>
         )}
       </div>

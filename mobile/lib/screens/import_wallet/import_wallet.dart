@@ -1,0 +1,689 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:toggle_switch/toggle_switch.dart';
+import 'package:trovo_app/custom_bloc_observer/colors.dart';
+import 'package:trovo_app/custom_bloc_observer/fonts.dart';
+import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_app/functions/trovo-sdk.dart';
+import 'package:trovo_app/services/push_fcm_service.dart';
+import 'package:trovo_app/storage/cache.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_app/models/user.dart';
+import 'package:trovo_app/widgets/utilities.dart';
+import '../../custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
+import '../../custom_bloc_observer/button/custtom_button.dart';
+import '../../custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
+import '../../custom_bloc_observer/custtom_textfild/custtom_password.dart';
+import '../../network/requests.dart';
+import '../../router/page_actions.dart';
+import '../../router/ui_pages.dart';
+import '../../storage/state.dart';
+import '../../storage/store.dart';
+import '../../utils/medeiaqury/medeiaqury.dart';
+import '../../widgets/loader.dart';
+import '../../widgets/popups.dart';
+import '../../widgets/terms_of_service.dart';
+
+class ImportWallet extends StatefulWidget {
+  const ImportWallet({Key? key}) : super(key: key);
+
+  @override
+  State<ImportWallet> createState() => _ImportWalletState();
+}
+
+class _ImportWalletState extends State<ImportWallet> {
+  late ColorNotifier notifier;
+  bool hasAgreed = false;
+  bool showTermsError = false;
+  bool usePassPhrase = false;
+  late int walletMode = 0; // mainnet by default;
+  late FocusNode passPhraseFocusNode;
+  late FocusNode secretKeyFocusNode;
+  final _formKey = GlobalKey<FormState>();
+  String? username;
+  String? passPhrase;
+  String? secretKey;
+  String? password;
+  Account? info;
+  late DataProvider appState;
+
+  getdarkmodepreviousstate() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool? previusstate = prefs.getBool("setIsDark");
+    if (previusstate == null) {
+      notifier.setIsDark = false;
+    } else {
+      notifier.setIsDark = previusstate;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getdarkmodepreviousstate();
+    passPhraseFocusNode = FocusNode();
+    secretKeyFocusNode = FocusNode();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    walletMode = appState.walletMode.toLowerCase() == 'mainnet' ? 0 : 1;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    notifier = Provider.of<ColorNotifier>(context, listen: true);
+    height = MediaQuery.of(context).size.height;
+    width = MediaQuery.of(context).size.width;
+
+    return ScreenUtilInit(
+      builder: (context, child) => Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: notifier.getwihitecolor,
+        appBar: CustomAppBar(
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              "import".tr(),
+                              style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 26.sp,
+                                fontFamily: fontsemibold,
+                              ),
+                            ),
+                            SizedBox(width: width / 50),
+                            Text(
+                              "wallet".tr(),
+                              style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 26.sp,
+                                fontFamily: fontsemibold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: height / 20),
+                        ToggleSwitch(
+                          minHeight: height / 16,
+                          customWidths: [width / 2.4, width / 2.4],
+                          customTextStyles: [
+                            TextStyle(
+                              fontSize: height / 55,
+                              color: walletMode == 0 ? wihitecolor : darkblck,
+                              fontFamily: fontbody,
+                            ),
+                            TextStyle(
+                              fontSize: height / 55,
+                              color: walletMode == 1 ? wihitecolor : darkblck,
+                              fontFamily: fontbody,
+                            ),
+                          ],
+                          fontSize: 16.0,
+                          initialLabelIndex: walletMode,
+                          activeBgColor: [
+                            notifier.isDark
+                                ? notifier.getbluecolor50
+                                : notifier.getbluecolor,
+                          ],
+                          inactiveBgColor: notifier.getsplashgrey,
+                          inactiveFgColor: notifier.getblck,
+                          totalSwitches: 2,
+                          labels: ['Mainnet', 'Testnet'],
+                          onToggle: (index) {
+                            setState(() {
+                              // walletMode = index!;
+                              handleEnvironmentSwitch(
+                                index == 0 ? 'Mainnet' : 'Testnet',
+                              );
+                            });
+                          },
+                        ),
+                        SizedBox(height: height / 30),
+                        // Email address
+                        CustomTextFormField.textField(
+                          "usernameoremail".tr(),
+                          notifier.getbluecolor,
+                          Icons.email,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          70.sp,
+                          300.sp,
+                          validator: (value) {
+                            var trimmedVal = value!.trim().replaceAll(' ', '');
+                            if (trimmedVal.isEmpty) {
+                              return "usernameoremailempty".tr();
+                            }
+
+                            if (trimmedVal.length < 3) {
+                              return "usernameoremailinvalid".tr();
+                            }
+                          },
+                          onSaved: storeUsernameOrEmail,
+                          keyboardtype: TextInputType.emailAddress,
+                        ),
+                        // Row(
+                        //   children: [
+                        //     Container(
+                        //       width: width / 1.2,
+                        //       child: checkUsePassphrase(),
+                        //     ),
+                        //   ],
+                        // ),
+                        // if (usePassPhrase) ...[
+                        //   // Pass phrase/Mnemonic
+                        //   passPhraseInput(
+                        //     "passphrase".tr(),
+                        //     notifier.getbluecolor,
+                        //     notifier.getgrey,
+                        //     notifier.getblck,
+                        //     notifier.getgrey,
+                        //     100.sp,
+                        //     300.sp,
+                        //     validator: (value) {
+                        //       if (value.isEmpty) {
+                        //         return "enterpassphraseempty".tr();
+                        //       }
+                        //     },
+                        //     onSaved: (value) {
+                        //       passPhrase = value;
+                        //     },
+                        //     minLines: 3,
+                        //     maxLines: null,
+                        //     keyboardtype: TextInputType.multiline,
+                        //     focusNode: passPhraseFocusNode,
+                        //   ),
+                        // ] else ...[
+                        // Secret Key
+                        CustomPasswordFormField(
+                          "secretkey".tr(),
+                          notifier.getbluecolor,
+                          Icons.lock,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          70.sp,
+                          300.sp,
+                          onChanged: (value) async {
+                            if (value != null && value.length == 56) {
+                              setState(() {
+                                info = parseKey(context, value)!;
+                              });
+                            } else {
+                              setState(() {
+                                info = null;
+                              });
+                            }
+                          },
+                          validator: (value) {
+                            var trimmedVal = value!.trim().replaceAll(' ', '');
+                            if (trimmedVal.isEmpty) {
+                              return "entersecretkeyempty".tr();
+                            }
+
+                            if (trimmedVal.length < 56) {
+                              return "secretkeyinvalid".tr();
+                            }
+                            return null;
+                          },
+                          onSaved: (value) {
+                            secretKey = value!.trim().replaceAll(' ', '');
+                          },
+                          maxLength: 56,
+                          focusNode: secretKeyFocusNode,
+                        ),
+                        // ],
+                        if (info != null) ...[
+                          SizedBox(height: height / 90),
+                          Container(
+                            constraints: BoxConstraints(maxWidth: width / 1.2),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'publickey'.tr(),
+                                  overflow: TextOverflow.visible,
+                                  style: TextStyle(
+                                    color: notifier.getblck,
+                                    fontSize: 15,
+                                    fontFamily: fontbody,
+                                  ),
+                                ),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      constraints: BoxConstraints(
+                                        maxWidth: width / 1.4,
+                                      ),
+                                      child: Text(
+                                        info?.publicKey ?? '',
+                                        overflow: TextOverflow.visible,
+                                        style: TextStyle(
+                                          color: notifier.getblck,
+                                          fontSize: 13,
+                                          fontFamily: fontbody,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: IconButton(
+                                        onPressed: () => {
+                                          Clipboard.setData(
+                                            ClipboardData(
+                                              text: info!.publicKey,
+                                            ),
+                                          ),
+                                          showSnackBar(
+                                            "publickey".tr(),
+                                            context,
+                                          ),
+                                        },
+                                        icon: Icon(Icons.copy, size: 20),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        SizedBox(height: height / 40),
+                        CustomPasswordFormField(
+                          "password".tr(),
+                          notifier.getbluecolor,
+                          Icons.lock,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          70.sp,
+                          300.sp,
+                          onChanged: (value) {
+                            setState(() {
+                              password = value!.trim().replaceAll(' ', '');
+                            });
+                          },
+                          validator: validatePassword,
+                        ),
+                        SizedBox(height: height / 80),
+                        CustomPasswordFormField(
+                          "confirmPassword".tr(),
+                          notifier.getbluecolor,
+                          Icons.lock,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          70.sp,
+                          300.sp,
+                          validator: validateConfirmPassword,
+                        ),
+                        // Terms of Service
+                        TermsOfService(
+                          value: hasAgreed,
+                          showError: showTermsError,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              hasAgreed = value!;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 20),
+              Button(
+                "continuee".tr(),
+                notifier.getbluecolor,
+                wihitecolor,
+                onTap: () => saveForm(),
+              ),
+              SizedBox(height: height / 10),
+              Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void handleEnvironmentSwitch(String? newValue) async {
+    if (newValue != appState.walletMode) {
+      showSwitchEnvironmentPopup(
+        context,
+        onProceed: () async {
+          await appState.changeWalletMode(newValue.toString());
+        },
+        onCancel: () {
+          setState(() {
+            walletMode = appState.walletMode.toLowerCase() == 'mainnet' ? 0 : 1;
+          });
+        },
+        toEnvironment: newValue!,
+      );
+    }
+  }
+
+  Widget checkUsePassphrase() {
+    return Row(
+      children: [
+        Transform.scale(
+          scale: 1.sp,
+          child: Checkbox(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(5.sp)),
+            ),
+            activeColor: notifier.isDark
+                ? notifier.getbluecolor50
+                : notifier.getbluecolor90,
+            side: BorderSide(
+              color: notifier.isDark
+                  ? notifier.getbluecolor50
+                  : notifier.getbluecolor90,
+            ),
+            value: usePassPhrase,
+            onChanged: (bool? value) {
+              setState(() {
+                usePassPhrase = value!;
+                if (usePassPhrase) {
+                  passPhraseFocusNode.requestFocus();
+                } else {
+                  secretKeyFocusNode.requestFocus();
+                }
+              });
+            },
+          ),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  "enterpassphrase".tr(),
+                  style: TextStyle(
+                    fontSize: height / 55,
+                    color: notifier.getblck,
+                    fontFamily: fontbody,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget passPhraseInput(
+    labletext,
+    focuscolor,
+    lablecolor,
+    textcolor,
+    bordercolor,
+    h,
+    w, {
+    onChanged,
+    maxLength,
+    minLines,
+    maxLines,
+    validator,
+    onSaved,
+    keyboardtype,
+    focusNode,
+  }) {
+    return Container(
+      color: Colors.transparent,
+      height: h,
+      width: w,
+      child: TextFormField(
+        focusNode: focusNode,
+        maxLength: maxLength,
+        minLines: minLines,
+        maxLines: maxLines,
+        style: TextStyle(color: textcolor, fontFamily: fontbody),
+        cursorColor: lablecolor,
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          hintText: labletext,
+          hintStyle: TextStyle(color: lablecolor),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.sp),
+          ),
+          labelStyle: TextStyle(color: lablecolor),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.sp),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: bordercolor, width: 1),
+            borderRadius: BorderRadius.circular(15.sp),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: focuscolor, width: 1),
+            borderRadius: BorderRadius.circular(15.sp),
+          ),
+        ),
+        keyboardType: keyboardtype,
+        validator: validator,
+        onSaved: onSaved,
+      ),
+    );
+  }
+
+  String? storeUsernameOrEmail(String? value) {
+    var currValue = value!.trim().replaceAll(' ', '');
+    if (currValue.isEmpty) {
+      return "emailvalidateempty".tr();
+    }
+
+    setState(() {
+      username = currValue;
+    });
+    return null;
+  }
+
+  saveForm() async {
+    try {
+      final form = _formKey.currentState;
+      if (!form!.validate()) {
+        checkTerms();
+        return;
+      }
+
+      // check that terms and conditions has been accepted
+      if (!checkTerms()) return;
+
+      showLoader(context);
+      form.save();
+
+      Account? creds = usePassPhrase
+          ? await getCredsFromPassPhrase()
+          : parseKey(context, secretKey!)!;
+
+      if (creds != null) {
+        // store these credentials and the password before making request
+        // to get userinfo from the server. This way we can use these stored data
+        // to create new user account if the provided user account does not exist
+        appState.setTempPassword = password;
+        appState.setTempPublicKey = creds.publicKey;
+        appState.setTempSecretKey = creds.secretKey;
+        String result = await FCM().getPushNotificationToken();
+        var token = result.split('|').first;
+
+        Map responseData = await makeGetRequest(
+          uri: '/v1/users/${username}?type=import&pnt=$token',
+          signer: creds.publicKey,
+          publicKey: creds.publicKey,
+          secretKey: creds.secretKey,
+        );
+
+        if (responseData['statusCode'] == 200) {
+          fetchNotifications(appState);
+          getFiatRates(appState);
+          storeUserInfo(responseData['data']);
+          appState.currentAction = PageAction(
+            state: PageState.addPage,
+            page: FingerprintPageConfig,
+          );
+        } else if (responseData['statusCode'] == 404) {
+          accountNotFoundPopup(context);
+        } else {
+          // must be some sort of server error
+          // let's throw it
+          popup(
+            context,
+            title: "error".tr(),
+            message: responseData['data']['message'],
+          );
+        }
+      }
+      hideLoader(context);
+    } catch (e) {
+      hideLoader(context);
+    }
+  }
+
+  storeUserInfo(userInfoMap) async {
+    var userInfo = userInfoMap['userData'] as Map<String, dynamic>;
+    var assetBalances = userInfoMap['assetBalances'] as Map<String, dynamic>;
+    var nfts = userInfoMap['nfts'] ?? {};
+    var walletsSharedWithUser = userInfoMap['walletsSharedWithUser'] ?? [];
+    var defaultAssets = userInfoMap['defaultAssets'] ?? [];
+
+    // delete all user data already stored on the app
+    await StoreData().storeDeleteData();
+
+    if (userInfo.isNotEmpty) {
+      await StoreData().storeInsertData('userInfo', userInfo);
+    }
+
+    if (assetBalances.isNotEmpty) {
+      await StoreData().storeInsertData('assetBalances', assetBalances);
+    }
+    await StoreData().storeInsertData('nfts', nfts);
+    await StoreData().storeInsertData(
+      'walletsSharedWithUser',
+      walletsSharedWithUser,
+    );
+    await StoreData().storeInsertData('defaultAssets', defaultAssets);
+    await StoreData().storeInsertData('isFirstTime', false);
+    await StoreData().storeInsertData('password', appState.tempPassword);
+    await StoreData().storeInsertData('publicKey', appState.tempPublicKey);
+    await StoreData().storeInsertData('walletMode', appState.walletMode);
+    await StoreData().storeInsertData('secretKey', <String>[
+      appState.tempSecretKey,
+    ]);
+
+    // save useInfo to appstate
+    appState.setUser = UserInfo().deserializeJson(
+      userInfo,
+      walletsSharedWithUser,
+      assetBalances,
+    );
+    appState.setNFTs = nfts;
+    appState.setSharedWallets = walletsSharedWithUser;
+    appState.assetBalances = assetBalances;
+
+    // save secrets to appstate
+    appState.setSecretKeys = await StoreData().storeGetData('secretKey');
+    appState.setPassword = appState.tempPassword;
+    appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
+      (wallet) => wallet.primaryWallet == 1,
+    );
+    fetchCuratedSwapList(appState);
+  }
+
+  String? validatePassword(value) {
+    if (value.isEmpty) {
+      //return "Enter a password";
+      return "passwordemptyerror".tr();
+    }
+
+    if (value.trim().replaceAll(' ', '').length < 6) {
+      //return 'Use 6 characters or more for your password';
+      return "hinterrorpassword".tr();
+    }
+
+    return null;
+  }
+
+  String? validateConfirmPassword(value) {
+    if (value.isEmpty) {
+      // return "Confirm your password";
+      return "confirmpasswordemptyerror".tr();
+    }
+
+    if (value.trim().replaceAll(' ', '').length < 6) {
+      // return 'Use 6 characters or more for your password';
+      return "hinterrorpassword".tr();
+    }
+
+    if (password != value.trim().replaceAll(' ', '')) {
+      //  return 'Those passwords didn\’t match. Try again.';
+      return "passwordmismatcherror".tr();
+    }
+
+    return null;
+  }
+
+  bool checkTerms() {
+    if (!hasAgreed) {
+      // show error message if the user has not
+      // agreed to terms and conditions
+      setState(() {
+        showTermsError = true;
+      });
+      return false;
+    } else {
+      setState(() {
+        showTermsError = false;
+      });
+      return true;
+    }
+  }
+
+  Future<Account?> getCredsFromPassPhrase() async {
+    try {
+      var trimmedPassprase = passPhrase!.trimLeft().trimRight();
+      Account account = await TrovoWalletSDK()
+          .retrieveCredentialsFromPassPhrase(trimmedPassprase);
+      return account;
+    } catch (e) {
+      // must be some sort of server error
+      // let's throw it
+      popup(context, title: "error".tr(), message: "invalidcredentials".tr());
+      return null;
+    }
+  }
+
+  @override
+  void dispose() {
+    passPhraseFocusNode.dispose();
+    secretKeyFocusNode.dispose();
+    super.dispose();
+  }
+}

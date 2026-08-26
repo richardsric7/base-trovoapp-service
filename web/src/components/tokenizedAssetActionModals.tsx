@@ -67,7 +67,6 @@ export function ExpressInterestModal({
             inputType="text"
             label=""
             placeholder="100"
-            trailingIcon="/images/trovIcon.png"
             trailingText="CNGN"
             onInputChange={(value) => {
               try {

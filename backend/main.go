@@ -36,13 +36,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/protocols/horizon/operations"
 	"github.com/stellar/go/txnbuild"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -61,6 +61,13 @@ func main() {
 		log.Printf("could not find or load any .env file from %v...skipping...\n", path)
 	}
 
+	// MIGRATE_ONLY: this process is a one-shot migrator run by CI BEFORE the app
+	// is deployed, while the previous version keeps serving users. It opens only
+	// the databases, runs the migrations, and exits — deliberately skipping the
+	// ~50 required-env-var check below, which the app needs to serve but a
+	// migrator does not. Exits non-zero on any failure so CI blocks the deploy.
+	migrateOnly := os.Getenv("MIGRATE_ONLY") == "1"
+
 	//setup DB
 
 	var database, roachDB *gorm.DB
@@ -75,19 +82,29 @@ func main() {
 		}
 	}
 	{
+		// The CI migrator only owns the wallet's own Postgres schema. RoachDB is
+		// the payment-history service's database, so the migrator neither opens
+		// nor migrates it — that stays a boot-time concern on the server, exactly
+		// as before. Skipping the open matters: OpenRoachDB log.Fatal-s internally,
+		// and with no CDB_CONNECTION_STRING it fails as `host=/tmp user=root`.
+		if !migrateOnly {
+			var err error
+			roachDB, err = db.OpenRoachDB()
 
-		var err error
-		roachDB, err = db.OpenRoachDB()
-
-		if err != nil {
-			log.Fatalf("[main]Error opening RoachDB %s", err)
-			return
+			if err != nil {
+				log.Fatalf("[main]Error opening RoachDB %s", err)
+				return
+			}
 		}
 	}
 
 	//check other required environment variables.
 
-	{
+	// A one-shot migrator only needs DB connectivity, so skip the serving app's
+	// required-env-var wall. Without this the migrator would hit `exit = true`
+	// and `return` (exit code 0) BEFORE reaching the migrations below — a green
+	// CI step that migrated nothing.
+	if !migrateOnly {
 		exit := false
 		requiredEnvironmentVariables := []string{"EXPANSION_URL", "BLOCKCHAIN_NETWORK_PASSPHRASE",
 			"MNEMONIC_TEMP_ACCOUNTS", "BLOCKCHAIN_BASE_RESERVE", "MAILGUN_PRIVATE_API_KEY", "CDB_CONNECTION_STRING",
@@ -156,7 +173,9 @@ func main() {
 		// }
 
 		if exit {
-			return
+			// Non-zero: a missing required env var is a startup failure, and an
+			// exit code of 0 would read as success to orchestrators and CI.
+			os.Exit(1)
 		}
 
 		if os.Getenv("ENABLE_EMAIL_NOTIFICATIONS") == "" {
@@ -191,23 +210,39 @@ func main() {
 	//migrate DB models if any
 	db.MigrateDB(database)
 
-	errMigrate := roachDB.AutoMigrate(&paymentModels.TrackedWallet{})
-	if errMigrate != nil {
-		if !strings.Contains(errMigrate.Error(), "constraint") {
-			log.Fatalf("Error migrating TrackedWallet model, error: %v", errMigrate)
+	// RoachDB migrations are left exactly as they were originally: ungated by
+	// DB_AUTOMIGRATE, run on every server boot. They are two small tables, so
+	// they cost ~nothing at startup. Only the CI migrator skips them, because it
+	// never opened this database.
+	if !migrateOnly {
+		errMigrate := roachDB.AutoMigrate(&paymentModels.TrackedWallet{})
+		if errMigrate != nil {
+			if !strings.Contains(errMigrate.Error(), "constraint") {
+				log.Fatalf("Error migrating TrackedWallet model, error: %v", errMigrate)
+			}
 		}
-	}
-	log.Println("migrating tracked wallet done...")
-	errMigrate = roachDB.AutoMigrate(&paymentModels.TrackedPublicKey{})
-	if errMigrate != nil {
-		if !strings.Contains(errMigrate.Error(), "constraint") {
-			log.Fatalf("Error migrating TrackedPublicKey model, error: %v", errMigrate)
+		log.Println("migrating tracked wallet done...")
+		errMigrate = roachDB.AutoMigrate(&paymentModels.TrackedPublicKey{})
+		if errMigrate != nil {
+			if !strings.Contains(errMigrate.Error(), "constraint") {
+				log.Fatalf("Error migrating TrackedPublicKey model, error: %v", errMigrate)
+			}
 		}
+		log.Println("migrating tracked public key done...")
 	}
-	log.Println("migrating tracked public key done...")
 
 	//setup redis
 	log.Println("migration done...")
+
+	// Migrations are done. Exit 0 so the CI migrate step passes and the deploy
+	// proceeds. Any migration failure above already log.Fatal-ed (non-zero exit)
+	// and blocks the deploy, leaving the previous version serving. The serving
+	// app runs WITHOUT MIGRATE_ONLY and with DB_AUTOMIGRATE=0, so it never
+	// migrates and boots straight into serving traffic.
+	if migrateOnly {
+		log.Println("MIGRATE_ONLY=1 set — migrations complete, exiting without starting the server")
+		os.Exit(0)
+	}
 	enableCaching := false
 
 	if os.Getenv("ENABLE_CACHING") == "1" {
@@ -291,6 +326,11 @@ func main() {
 			BucketName: os.Getenv("STORAGE_BUCKET_NAME"),
 			UploadPath: os.Getenv("STORAGE_BUCKET_NAME"),
 		},
+	}
+	if bucketName := strings.TrimSpace(os.Getenv("STAKEHOLDER_DOCUMENTS_BUCKET_NAME")); bucketName != "" {
+		globalConfig.StakeholderDocumentStorage = sharedconfig.NewGCSPrivateDocumentStorage(storageClient, bucketName, "stakeholder-documents")
+	} else {
+		log.Println("STAKEHOLDER_DOCUMENTS_BUCKET_NAME is not configured; stakeholder document storage endpoints will return 503")
 	}
 	{
 
@@ -377,6 +417,36 @@ func main() {
 
 					}
 
+				}
+				{
+					//check if channel account is currently reserved by a fiat asset purchase invoice
+					//(the async fiat purchase flow never creates a PendingAuth row, so it isn't caught
+					//by the check above)
+					var fiatInvoice userModels.FiatPaymentInvoice
+					errFetchFiat := database.Where("transaction_source = ?", k.Address()).First(&fiatInvoice).Error
+
+					if errFetchFiat == nil {
+						if fiatInvoice.Status == "PENDING" {
+							//still mid-flight, awaiting the payment provider's webhook - genuinely in use
+							log.Printf("[ADDING KEY TO IN-USE CHANNEL ACCOUNT LIST] %v\n", k.Address())
+
+							globalConfig.StoreInUseChannelAccount(k)
+							//skip adding it to available channel accounts
+							continue
+
+						}
+						if fiatInvoice.Status == "COMPLETED" {
+							//the webhook's success path should already have released this account - its
+							//presence here means that release didn't run for some reason (e.g. a crash
+							//between the status flip and the release call). self-heal: don't mark it
+							//in-use, fall through to the available pool below, and clear the stale
+							//reference so this isn't re-detected on every future restart.
+							log.Printf("[CHANNEL ACCOUNT RELEASE NOT PERSISTED - SELF-HEALING] %v (invoice %v was COMPLETED but still held a channel account)\n", k.Address(), fiatInvoice.ID)
+							database.Model(&userModels.FiatPaymentInvoice{}).Where("id = ?", fiatInvoice.ID).Update("transaction_source", nil)
+						}
+						//any other status (e.g. EXPIRED) already had its channel account released by
+						//the ExpireStalePaymentInvoices sweep - nothing to do, falls through to the pool
+					}
 				}
 				// log.Printf("Channel Account to be used:%v\n", k.Address())
 				//check minimum balance
@@ -810,6 +880,19 @@ func main() {
 					log.Printf("[Error Fetching stablerail banks] %v\n", e)
 				}
 				time.Sleep(10 * time.Minute)
+			}
+		}()
+	}
+
+	{
+		//Expire fiat payment invoices (e.g. fiat asset purchases) that have been stuck PENDING for
+		//more than 2 days without a webhook confirmation
+		go func() {
+			for {
+				if e := userServices.ExpireStalePaymentInvoices(&globalConfig); e != nil {
+					log.Printf("[MAIN] error expiring stale payment invoices: %v\n", e)
+				}
+				time.Sleep(30 * time.Minute)
 			}
 		}()
 	}
