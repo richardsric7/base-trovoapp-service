@@ -1,0 +1,31 @@
+[package]
+name = "wallet_core"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "wallet_core"
+# cdylib: shared library for Flutter (dart:ffi) and native tooling.
+# staticlib: static library, an alternative link mode for mobile builds.
+# rlib: normal Rust lib, for native `cargo test`.
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+k256 = { version = "0.13", features = ["ecdsa", "std"] }
+sha3 = "0.10"
+tiny-hderive = "0.3"
+bip39 = "2"
+hex = "0.4"
+base64 = "0.22"
+rand_core = { version = "0.6", features = ["getrandom"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+getrandom = "0.2"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+getrandom = { version = "0.2", features = ["js"] }
+
+[profile.release]
+opt-level = "s"
+lto = true

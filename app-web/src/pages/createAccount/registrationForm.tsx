@@ -206,11 +206,11 @@ export default function RegistrationForm() {
     if (
       importExistingWallet &&
       !usePassphrase &&
-      secretKey.trim().replaceAll(' ', '').length < 56
+      secretKey.trim().replace(/^0x/, '').length !== 64
     ) {
       newObj = {
         ...newObj,
-        secretKey: 'Secret key must be 56 characters long',
+        secretKey: 'Secret key must be a 64-character hex string',
       };
       isValid = false;
     } else {

@@ -1,4 +1,3 @@
-// import { Asset } from "@stellar/stellar-base";
 import { DefaultAsset } from "../types/defaultAsset";
 import { Permission } from "../types/permission";
 import { SharedWallet } from "../types/sharedWallet";

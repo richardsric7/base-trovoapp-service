@@ -304,7 +304,7 @@ export default function TokenizedAssetDetailsView() {
                   src="/images/buy_with_fiat.png"
                   height={24}
                   width={24}
-                  alt="Buy XBN on TrovoP2P"
+                  alt="Buy ETH on TrovoP2P"
                 />
               }
               additionalClasses="bg-primary-600 text-white font-montserratSemiBold"

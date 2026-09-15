@@ -277,7 +277,7 @@ export default function WalletOperations({
       };
       isValid = false;
     } else if (
-      getAssetCode(selectedAsset!.assetCode) == 'XBN' &&
+      getAssetCode(selectedAsset!.assetCode) == 'ETH' &&
       Number(formData.amount) > selectedAsset!.amount! - 6
     ) {
       newObj = {
@@ -368,7 +368,7 @@ export default function WalletOperations({
       };
       isValid = false;
     } else if (
-      getAssetCode(selectedAsset!.assetCode) == 'XBN' &&
+      getAssetCode(selectedAsset!.assetCode) == 'ETH' &&
       Number(formData.amount) > selectedAsset!.amount! - 6
     ) {
       newObj = {
@@ -574,7 +574,7 @@ export default function WalletOperations({
                               ...activeWallet.claimedAssets.map((asset) => ({
                                 text:
                                   asset.assetCode === ''
-                                    ? 'XBN'
+                                    ? 'ETH'
                                     : asset.assetCode,
                                 value: asset,
                               })),
@@ -686,7 +686,7 @@ export default function WalletOperations({
                               options={[
                                 ...activeWallet.claimedAssets.map((w) => ({
                                   text:
-                                    w.assetCode === '' ? 'XBN' : w.assetCode,
+                                    w.assetCode === '' ? 'ETH' : w.assetCode,
                                   value: w,
                                 })),
                               ]}

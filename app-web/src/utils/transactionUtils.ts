@@ -78,5 +78,5 @@ export const getTransactionAssetCode = (item: Record<string, any>) => {
     }
   }
 
-  return 'XBN';
+  return 'ETH';
 };

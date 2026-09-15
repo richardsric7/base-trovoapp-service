@@ -27,7 +27,7 @@ function AssetItem({
         <img
           className="h-10 w-10 rounded-full"
           src={image}
-          alt={assetCode === '' ? 'XBN' : assetCode}
+          alt={assetCode === '' ? 'ETH' : assetCode}
         />
         <div className="flex items-start flex-col">
           <p className="font-semibold md:text-xl">{assetCode}</p>

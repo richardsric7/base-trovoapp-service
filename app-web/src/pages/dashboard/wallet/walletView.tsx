@@ -508,7 +508,7 @@ export default function WalletView() {
                     height="30"
                   />
                 </div>
-                <p>{formatToDecimal(gas)} XBN</p>
+                <p>{formatToDecimal(gas)} ETH</p>
               </div>
               <div className="w-full p-3 mt-7">
                 <div className="flex justify-between w-full">
@@ -537,7 +537,7 @@ export default function WalletView() {
                 {activeWallet.claimedAssets.filter((a) => {
                   if (assetFilterMode === 0) return a.tokenizedAsset;
                   else return !a.tokenizedAsset;
-                }).length > 1 ? ( // since every wallet must have an XBN asset check length greater than 1
+                }).length > 1 ? ( // since every wallet must have an ETH asset check length greater than 1
                   // if filter is set on other tokens
                   assetFilterMode === 0 ? (
                     activeWallet.claimedAssets.map(

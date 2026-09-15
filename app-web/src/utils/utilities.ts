@@ -37,12 +37,12 @@ const canInitiate = (wallet: Wallet) => {
 }
 
 const getAssetCode = (assetCode: string) => {
-    // assign XBN to the asset which has an
+    // assign ETH to the asset which has an
     // empty assetCode value.
-    // native token of the bantu blockchain
+    // native token of the Base blockchain
     // has empty values as assetCode and
     // assetIssuer
-    return !assetCode ? 'XBN' : assetCode.toString();
+    return !assetCode ? 'ETH' : assetCode.toString();
   }
 
 const totalAccountBalanceInCurrency = (allWallets: Wallet[], fiatRate: number) => {

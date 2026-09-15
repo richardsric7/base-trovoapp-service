@@ -82,7 +82,7 @@ export default function Home() {
     },
     customizations: {
       title: 'Activate Trovo Account',
-      description: 'Buy XBN and TROV with fiat',
+      description: 'Buy ETH and TROV with fiat',
       logo: 'https://st2.depositphotos.com/4403291/7418/v/450/depositphotos_74189661-stock-illustration-online-shop-log.jpg',
     },
   };
@@ -107,11 +107,11 @@ export default function Home() {
   const [showP2pComingSoonModal, setShowP2pComingSoonModal] = useState(false);
   const [showCopiedModal, setShowCopiedModal] = useState(false);
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
-  const [showRequestXBNModal, setShowRequestXBNModal] = useState(false);
-  const [showBuyXBNWithFiatModal, setShowBuyXBNWithFiatModal] = useState(false);
+  const [showRequestETHModal, setShowRequestETHModal] = useState(false);
+  const [showBuyETHWithFiatModal, setShowBuyETHWithFiatModal] = useState(false);
   const [activationAmount, setActivationAmount] = useState(0);
   const [gasPercent, setGasPercent] = useState(0);
-  const [confirmRequestXBNModal, setConfirmRequestXBNModal] = useState(false);
+  const [confirmRequestETHModal, setConfirmRequestETHModal] = useState(false);
   const [qrCodeLink, setQrCodeLink] = useState('');
   const [receiveAsset] = useLazyReceiveAssetQuery();
   const [fetchFiatAmounts] = useLazyFetchFiatAmountForActivationQuery();
@@ -201,8 +201,8 @@ export default function Home() {
     if ('data' in res) {
       console.log('response', res);
       setQrCodeLink(res.data.qrCode);
-      setConfirmRequestXBNModal(true);
-      setShowRequestXBNModal(false);
+      setConfirmRequestETHModal(true);
+      setShowRequestETHModal(false);
     } else if ('error' in res) {
       const errorResponse = res.error as ErrorResponse;
       showNotification(
@@ -227,7 +227,7 @@ export default function Home() {
       console.log('response', res.data);
       setActivationAmount(res.data.activationAmount);
       setGasPercent(res.data.gasPercent);
-      setShowBuyXBNWithFiatModal(true);
+      setShowBuyETHWithFiatModal(true);
     } else if ('error' in res) {
       const errorResponse = res.error as ErrorResponse;
       showNotification(
@@ -590,17 +590,17 @@ export default function Home() {
                     <div className="space-y-2">
                       <p className="text-md text-center">
                         But you cannot use it for any transaction just yet until
-                        it is activated with atleast 10 Bantu tokens (XBN)
+                        it is activated with atleast 10 Bantu tokens (ETH)
                       </p>
                       <p className="text-md text-center">
-                        You can get Bantu tokens (XBN) for your wallet using
+                        You can get Bantu tokens (ETH) for your wallet using
                         either of the 3 easy ways displayed below
                       </p>
                     </div>
                     <div className="px-3 pb-5 space-y-3">
                       <div className="flex space-x-5 ">
                         <Button
-                          label="Buy XBN with Fiat"
+                          label="Buy ETH with Fiat"
                           additionalClasses="font-montserratSemiBold py-10 px-5"
                           onclick={handleBuyWithFiat}
                           leftIcon={
@@ -613,7 +613,7 @@ export default function Home() {
                           }
                         />
                         <Button
-                          label="Buy XBN on TrovoP2P"
+                          label="Buy ETH on TrovoP2P"
                           additionalClasses="font-montserratSemiBold py-10 px-5"
                           onclick={() => {
                             // navigate('/import');
@@ -624,17 +624,17 @@ export default function Home() {
                               src="/images/buy_from_trovop2p.png"
                               height={40}
                               width={40}
-                              alt="Buy XBN on TrovoP2P"
+                              alt="Buy ETH on TrovoP2P"
                             />
                           }
                         />
                       </div>
                       <div className="flex space-x-5 ">
                         <Button
-                          label="Request XBN from Trovo User"
+                          label="Request ETH from Trovo User"
                           additionalClasses="font-montserratSemiBold py-10 px-5"
                           onclick={() => {
-                            setShowRequestXBNModal(true);
+                            setShowRequestETHModal(true);
                           }}
                           leftIcon={
                             <img
@@ -646,7 +646,7 @@ export default function Home() {
                           }
                         />
                         <Button
-                          label="Send XBN to your Wallet"
+                          label="Send ETH to your Wallet"
                           additionalClasses="font-montserratSemiBold py-10 px-5"
                           onclick={() => {
                             navigator.clipboard
@@ -663,7 +663,7 @@ export default function Home() {
                               src="/images/send_to_wallet.png"
                               height={40}
                               width={40}
-                              alt="Send XBN to your Wallet"
+                              alt="Send ETH to your Wallet"
                             />
                           }
                         />
@@ -705,16 +705,16 @@ export default function Home() {
                     </div>
                   </div>
                 </Modal>
-                {/* Request XBN modal */}
+                {/* Request ETH modal */}
                 <Modal
-                  showModal={showRequestXBNModal}
+                  showModal={showRequestETHModal}
                   onClose={() => {
-                    setShowRequestXBNModal(false);
+                    setShowRequestETHModal(false);
                   }}
                 >
                   <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
                     <p className="text-primary-800 w-full mb-5 text-lg md:text-xl font-montserratSemiBold">
-                      Request XBN
+                      Request ETH
                     </p>
                     <div className="w-full">
                       <TextInput
@@ -794,14 +794,14 @@ export default function Home() {
                   </div>
                 </Modal>
                 <Modal
-                  showModal={confirmRequestXBNModal}
+                  showModal={confirmRequestETHModal}
                   onClose={() => {
-                    setConfirmRequestXBNModal(false);
+                    setConfirmRequestETHModal(false);
                   }}
                 >
                   <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
                     <p className="text-primary-800 w-full mb-5 text-lg font-montserratSemiBold">
-                      Receive {formData.amount} XBN
+                      Receive {formData.amount} ETH
                     </p>
                     <div className="flex w-full py-3 px-2 xl:px-5 xl:space-y-5 rounded-xl flex-col items-center bg-primary-100">
                       <div className="flex flex-col space-y-2 w-full justify-between">
@@ -857,26 +857,26 @@ export default function Home() {
                         label="Share"
                         additionalClasses="font-montserratSemiBold"
                         onclick={() => {
-                          setConfirmRequestXBNModal(false);
+                          setConfirmRequestETHModal(false);
                         }}
                       />
                       <ButtonSecondary
                         label="Back"
                         additionalClasses="font-montserratSemiBold"
                         onclick={() => {
-                          setShowRequestXBNModal(true);
-                          setConfirmRequestXBNModal(false);
+                          setShowRequestETHModal(true);
+                          setConfirmRequestETHModal(false);
                         }}
                       />
                     </div>
                     <div />
                   </div>
                 </Modal>
-                {/* Buy XBN with FIAT */}
+                {/* Buy ETH with FIAT */}
                 <Modal
-                  showModal={showBuyXBNWithFiatModal}
+                  showModal={showBuyETHWithFiatModal}
                   onClose={() => {
-                    setShowBuyXBNWithFiatModal(false);
+                    setShowBuyETHWithFiatModal(false);
                   }}
                 >
                   <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
@@ -893,7 +893,7 @@ export default function Home() {
                         <p className="text-center">
                           An easy option to quickly activate your account and
                           buy your first virtual asset on the Trovo App. You
-                          will get XBN as well as TROV when you send fiat.
+                          will get ETH as well as TROV when you send fiat.
                         </p>
                       </div>
                     </div>
@@ -925,7 +925,7 @@ export default function Home() {
                         label="Make Payment"
                         additionalClasses="font-montserratSemiBold"
                         onclick={() => {
-                          // setConfirmRequestXBNModal(false);
+                          // setConfirmRequestETHModal(false);
                           handleFlutterPayment({
                             callback: (response) => {
                               console.log(response);
