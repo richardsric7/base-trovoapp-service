@@ -7,7 +7,7 @@ import (
 //Announcement model
 type Announcement struct {
 	ID             uint64    `gorm:"primaryKey" json:"id"`
-	CreatedAt      time.Time `gorm:"default:now()" json:"createdAt"`
+	CreatedAt      time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"createdAt"`
 	Expiry         time.Time `json:"expiry"`
 	Message        string    `gorm:"not null" json:"message"`
 	Title          string    `gorm:"size:100;null" json:"title"`

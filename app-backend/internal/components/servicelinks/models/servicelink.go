@@ -56,7 +56,7 @@ type ServiceLinkLoginSession struct {
 type ServiceLinkAuthorization struct {
 	ID             string `gorm:"size:100;primaryKey"`
 	CreatedAt      time.Time
-	ExpiresAt      time.Time `gorm:"default:now()"`
+	ExpiresAt      time.Time `gorm:"default:CURRENT_TIMESTAMP"`
 	UpdatedAt      time.Time
 	ApiKey         string  `gorm:"size:50"`
 	OwnerUsername  string  `gorm:"size:100;index:idx_authdata;not null;check:,length(owner_username) >= 2"`
@@ -69,7 +69,7 @@ type ServiceLinkAuthorization struct {
 type ServiceLinkEvent struct {
 	ID            string `gorm:"size:100;primaryKey"`
 	CreatedAt     time.Time
-	ExpiresAt     time.Time `gorm:"default:now()"`
+	ExpiresAt     time.Time `gorm:"default:CURRENT_TIMESTAMP"`
 	UpdatedAt     time.Time
 	ApiKey        string  `gorm:"size:50"`
 	OwnerUsername string  `gorm:"size:100;index:idx_eventdata;not null;check:,length(owner_username) >= 2"`

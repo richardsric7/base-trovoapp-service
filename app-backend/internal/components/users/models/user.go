@@ -325,7 +325,7 @@ type InactiveAccountRecoveryRequest struct {
 
 type PendingAuth struct {
 	CreatedAt                    time.Time                     `json:"createdAt"`
-	UpdatedAt                    time.Time                     `gorm:"default:now()" json:"updatedAt"`
+	UpdatedAt                    time.Time                     `gorm:"default:CURRENT_TIMESTAMP" json:"updatedAt"`
 	ID                           string                        `gorm:"size:56" json:"id"`
 	Initiator                    string                        `gorm:"size:20;not null;index:idx_pending_auth_initiator" json:"initiator"`
 	InitiatorSignerPublicKey     string                        `gorm:"size:56;not null;index:idx_pending_auth_signer_public_key" json:"initiatorSignerPublicKey"`

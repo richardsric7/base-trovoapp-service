@@ -20,9 +20,10 @@ import (
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	evmkeypair "trovo-wallet-api/internal/evmkeypair"
+
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/keypair"
 	"gorm.io/gorm/clause"
 )
 
@@ -643,7 +644,7 @@ func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.H
 				return
 			}
 
-			faucetKP := keypair.MustParseFull(faucet.SecretKey)
+			faucetKP := evmkeypair.MustParseFull(faucet.SecretKey)
 			sourceWallet, err := userModels.UserWalletID(faucetKP.Address()).GetWallet(gc.DB, gc)
 			if err != nil {
 				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch FAUCET wallet for [%v]. Err: %v\n", "ACTIVATION", err))

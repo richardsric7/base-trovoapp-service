@@ -29,10 +29,11 @@ import (
 	"strings"
 	"trovo-wallet-api/internal/middleware"
 
+	evmkeypair "trovo-wallet-api/internal/evmkeypair"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/keypair"
 	"gorm.io/gorm/clause"
 
 	"github.com/gin-gonic/gin"
@@ -2870,7 +2871,7 @@ func getTrovoApiUsersPaymentHistoryWalletPublicKeyHandler(gc *sharedconfig.Globa
 
 		}
 
-		_, err = keypair.ParseAddress(walletPublicKey)
+		_, err = evmkeypair.ParseAddress(walletPublicKey)
 		if err != nil {
 
 			statusCode := http.StatusBadRequest

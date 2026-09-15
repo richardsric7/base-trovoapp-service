@@ -38,7 +38,7 @@ type FiatPayment struct {
 
 type FiatPaymentInvoice struct {
 	ID                   string    `json:"id"`
-	CreatedAt            time.Time `gorm:"default:now()" json:"createdAt"`
+	CreatedAt            time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"createdAt"`
 	ServiceProvider      string    `json:"serviceProvider"`
 	Username             string    `json:"username"`
 	Amount               float64   `json:"amount"`

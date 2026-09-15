@@ -23,10 +23,11 @@ import (
 	"trovo-wallet-api/internal/middleware"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	evmkeypair "trovo-wallet-api/internal/evmkeypair"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/keypair"
 )
 
 // getStreamWsTargetUserHandler godoc
@@ -145,7 +146,7 @@ func getUsersPaymentsTargetPublicKeyForHistoryHandler(callBackRetryChan chan use
 
 		targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
 
-		_, err := keypair.ParseAddress(targetPublicKeyForHistory)
+		_, err := evmkeypair.ParseAddress(targetPublicKeyForHistory)
 		if err != nil {
 
 			statusCode := http.StatusBadRequest
@@ -4502,7 +4503,7 @@ func getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler(callBack
 
 		targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
 
-		_, err := keypair.ParseAddress(targetPublicKeyForHistory)
+		_, err := evmkeypair.ParseAddress(targetPublicKeyForHistory)
 		if err != nil {
 
 			statusCode := http.StatusBadRequest
@@ -4650,7 +4651,7 @@ func getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRet
 
 		targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
 
-		_, err := keypair.ParseAddress(targetPublicKeyForHistory)
+		_, err := evmkeypair.ParseAddress(targetPublicKeyForHistory)
 		if err != nil {
 
 			statusCode := http.StatusBadRequest
