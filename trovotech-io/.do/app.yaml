@@ -1,4 +1,0 @@
-name: trovotech-website
-static_sites:
-  - name: website
-    catchall_document: index.html
