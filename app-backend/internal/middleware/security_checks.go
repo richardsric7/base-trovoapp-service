@@ -7,14 +7,13 @@ import (
 	"strings"
 
 	tErrors "trovo-wallet-api/internal/errors"
-
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/txnbuild"
+	"trovo-wallet-api/internal/evmkeypair"
 )
 
-// SignString returns a signed base64 encoded string of toSign
+// SignString returns an EIP-191 personal_sign, base64 encoded signature of
+// toSign - the Base equivalent of the original's Stellar ed25519 signature.
 func SignString(toSign string, secretKey string) (string, error) {
-	kp, keyPairError := keypair.ParseFull(secretKey)
+	kp, keyPairError := evmkeypair.ParseFull(secretKey)
 	if keyPairError != nil {
 		return "", keyPairError
 	}
@@ -45,32 +44,30 @@ func SignHttp(fullPathWithQuery string, keyParam string, secretKey string) (stri
 	return signature, nil
 }
 
-// SignBase64Txn signs the transaction hash from base64Txn string using the secret key
+// SignBase64Txn signs a transaction digest with the secret key. On Base,
+// there is no XDR envelope to parse and re-hash: the unsigned digest
+// (base64Txn - kept named for call-site compatibility, but now a
+// base64-encoded 32-byte Base tx/SafeTxHash digest, not an XDR blob) is
+// computed once upstream when the transaction is built (internal/network),
+// and this function's job is only to sign it. networkPassPhrase is
+// vestigial (Stellar network-passphrase domain separation has no Base
+// equivalent - chain ID is already baked into the digest upstream) and is
+// kept only so existing call sites don't need to change their argument
+// count; it is ignored here.
 func SignBase64Txn(secretKey string, base64Txn string, networkPassPhrase string) (string, error) {
+	_ = networkPassPhrase
 
-	kp, keyPairError := keypair.ParseFull(secretKey)
+	kp, keyPairError := evmkeypair.ParseFull(secretKey)
 	if keyPairError != nil {
 		return "", keyPairError
 	}
 
-	tx, err := txnbuild.TransactionFromXDR(base64Txn)
+	digest, err := base64.StdEncoding.DecodeString(base64Txn)
 	if err != nil {
-		return "", err
+		return "", errors.New("could not decode transaction digest")
 	}
 
-	txn, b := tx.Transaction()
-
-	if !b {
-		return "", errors.New("not a txn")
-	}
-
-	bytes, err := txn.Hash(networkPassPhrase)
-
-	if err != nil {
-		return "", errors.New("could not hash txn")
-	}
-
-	signature, err := kp.SignBase64(bytes[:])
+	signature, err := kp.SignBase64(digest)
 
 	if err != nil {
 		return "", err
@@ -80,59 +77,47 @@ func SignBase64Txn(secretKey string, base64Txn string, networkPassPhrase string)
 
 }
 
-// SignBase64Txn signs the transaction hash from base64Txn string using the secret key
+// SignSubwalletBase64Txn signs the same transaction digest with up to three
+// signers (primary, sub-wallet, and an optional linked wallet) - the Base
+// equivalent of co-signing one Stellar multisig-account transaction: each
+// signer's personal_sign signature over the same digest is returned for
+// the caller to relay together. See SignBase64Txn for why base64Txn is now
+// a raw digest and networkPassPhrase is unused.
 func SignSubwalletBase64Txn(primarySecretKey, subWalletSecretKey, linkedWalletSecret string, base64Txn string, networkPassPhrase string) (primarySignature, subWalletSignature, linkedWalletSignature string, err error) {
+	_ = networkPassPhrase
 
-	primaryKP, keyPairError := keypair.ParseFull(primarySecretKey)
+	primaryKP, keyPairError := evmkeypair.ParseFull(primarySecretKey)
 	if keyPairError != nil {
 		return "", "", "", keyPairError
 	}
-	subWalletKP, keyPairError := keypair.ParseFull(subWalletSecretKey)
+	subWalletKP, keyPairError := evmkeypair.ParseFull(subWalletSecretKey)
 	if keyPairError != nil {
 		return "", "", "", keyPairError
 	}
 
-	// if len(linkedWalletSecret) > 0 {
-	// 	_, keyPairError := keypair.ParseFull(linkedWalletSecret)
-	// 	if keyPairError != nil {
-	// 		return "", "", "", keyPairError
-	// 	}
-	// }
-
-	tx, err := txnbuild.TransactionFromXDR(base64Txn)
+	digest, err := base64.StdEncoding.DecodeString(base64Txn)
 	if err != nil {
-		return "", "", "", err
+		return "", "", "", errors.New("could not decode transaction digest")
 	}
 
-	txn, b := tx.Transaction()
-
-	if !b {
-		return "", "", "", errors.New("not a txn")
-	}
-
-	bytes, err := txn.Hash(networkPassPhrase)
-
-	if err != nil {
-		return "", "", "", errors.New("could not hash txn")
-	}
-
-	primarySignature, err = primaryKP.SignBase64(bytes[:])
+	primarySignature, err = primaryKP.SignBase64(digest)
 
 	if err != nil {
 		return "", "", "", err
 	}
-	subWalletSignature, err = subWalletKP.SignBase64(bytes[:])
+	subWalletSignature, err = subWalletKP.SignBase64(digest)
 
 	if err != nil {
 		return "", "", "", err
 	}
 
-	if len(linkedWalletSecret) == 56 {
-		linkedWalletKP, keyPairError := keypair.ParseFull(linkedWalletSecret)
+	trimmedLinkedWalletSecret := strings.TrimPrefix(strings.TrimSpace(linkedWalletSecret), "0x")
+	if len(trimmedLinkedWalletSecret) == 64 {
+		linkedWalletKP, keyPairError := evmkeypair.ParseFull(linkedWalletSecret)
 		if keyPairError != nil {
 			return "", "", "", keyPairError
 		}
-		linkedWalletSignature, err = linkedWalletKP.SignBase64(bytes[:])
+		linkedWalletSignature, err = linkedWalletKP.SignBase64(digest)
 
 		if err != nil {
 			return "", "", "", err
@@ -145,7 +130,7 @@ func SignSubwalletBase64Txn(primarySecretKey, subWalletSecretKey, linkedWalletSe
 
 // VerifySignatureString verifies if the signatures match with the one to be generated from toSign. toSign = publicKey+timestamp
 func VerifySignatureString(toSign string, base64Signature string, signerPublicKey string) error {
-	kp, errParsingPublicKey := keypair.ParseAddress(signerPublicKey)
+	kp, errParsingPublicKey := evmkeypair.ParseAddress(signerPublicKey)
 	if errParsingPublicKey != nil {
 		return &tErrors.ErrorInvalidPublicKey{}
 	}

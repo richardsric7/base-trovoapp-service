@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/stellar/go/keypair"
+	"trovo-wallet-api/internal/evmkeypair"
 )
 
-func RecoveryAccountKeypair(username, publicKey string) (*keypair.Full, error) {
+func RecoveryAccountKeypair(username, publicKey string) (*evmkeypair.Full, error) {
 	kAccountSalt := "e45nDk4rk4LAhbX"
 	kExtraAccountSalt := os.Getenv("ACCOUNT_RECOVERY_SALT")
 	if len(kExtraAccountSalt) == 0 {
@@ -30,7 +30,7 @@ func RecoveryAccountKeypair(username, publicKey string) (*keypair.Full, error) {
 	var rawSeed [32]byte
 	copy(rawSeed[:], hashed[0:32])
 
-	return keypair.FromRawSeed([32]byte(rawSeed))
+	return evmkeypair.FromRawSeed([32]byte(rawSeed))
 
 }
 
@@ -44,7 +44,7 @@ func GetRecoveryAccountAddress(username, publicKey string) (recoveryAddress stri
 
 }
 
-func MarketMakingSignerKeypair(username, walletPublicKey string) (*keypair.Full, error) {
+func MarketMakingSignerKeypair(username, walletPublicKey string) (*evmkeypair.Full, error) {
 	kAccountSalt := "e45nDk4rk4LAhbX"
 	kExtraAccountSalt := os.Getenv("MARKET_MAKING_SALT")
 	if len(kExtraAccountSalt) == 0 {
@@ -64,7 +64,7 @@ func MarketMakingSignerKeypair(username, walletPublicKey string) (*keypair.Full,
 	var rawSeed [32]byte
 	copy(rawSeed[:], hashed[0:32])
 
-	return keypair.FromRawSeed([32]byte(rawSeed))
+	return evmkeypair.FromRawSeed([32]byte(rawSeed))
 
 }
 
@@ -78,7 +78,7 @@ func GetMarketMakingSignerAddress(username, walletPublicKey string) (mmAddress s
 
 }
 
-func BulkPaymentSignerKeypair(username, walletPublicKey string) (*keypair.Full, error) {
+func BulkPaymentSignerKeypair(username, walletPublicKey string) (*evmkeypair.Full, error) {
 	kAccountSalt := "e45nDk4rk4LAhbX"
 	kExtraAccountSalt := os.Getenv("BULK_PAYMENT_SALT")
 	if len(kExtraAccountSalt) == 0 {
@@ -98,7 +98,7 @@ func BulkPaymentSignerKeypair(username, walletPublicKey string) (*keypair.Full, 
 	var rawSeed [32]byte
 	copy(rawSeed[:], hashed[0:32])
 
-	return keypair.FromRawSeed([32]byte(rawSeed))
+	return evmkeypair.FromRawSeed([32]byte(rawSeed))
 
 }
 
