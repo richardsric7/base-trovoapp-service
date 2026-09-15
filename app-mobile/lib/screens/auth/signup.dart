@@ -342,13 +342,13 @@ class _SignUpState extends State<SignUp> {
                                 '',
                               );
                               if (trimmedVal.isNotEmpty &&
-                                  trimmedVal.length < 56) {
+                                  trimmedVal.length < 64) {
                                 return "secretkeyinvalid".tr();
                               }
                               return null;
                             },
                             onChanged: (value) {
-                              if (value != null && value.length == 56) {
+                              if (value != null && (value.length == 64 || value.length == 66)) {
                                 try {
                                   setState(() {
                                     creds = parseKey(value)!;
@@ -370,7 +370,7 @@ class _SignUpState extends State<SignUp> {
                               secretKey = value!.trim().replaceAll(' ', '');
                             },
                             controller: secretKeyController,
-                            maxLength: 56,
+                            maxLength: 66,
                             focusNode: secretKeyFocusNode,
                           ),
                           if (creds != null) ...[

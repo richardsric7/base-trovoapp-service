@@ -456,7 +456,7 @@ class DataProvider with ChangeNotifier {
       if (!filterAsset.contains("*")) {
         var splitAssetInfo = filterAsset.split("|");
         uri +=
-            "&assetIssuer=${splitAssetInfo[0]}&assetCode=${splitAssetInfo[1].isEmpty ? "XBN" : splitAssetInfo[1]}";
+            "&assetIssuer=${splitAssetInfo[0]}&assetCode=${splitAssetInfo[1].isEmpty ? "ETH" : splitAssetInfo[1]}";
       }
       Map responseData = await makeGetRequest(
         uri: uri,
@@ -749,14 +749,14 @@ class DataProvider with ChangeNotifier {
           initialDynamicLink.queryParameters['assetCode'] != null) {
         showChooseWalletPopup(
           context,
-          initialDynamicLink.queryParameters['assetCode'] == 'XBN'
+          initialDynamicLink.queryParameters['assetCode'] == 'ETH'
               ? ''
               : initialDynamicLink.queryParameters['assetCode'],
           initialDynamicLink.queryParameters['assetIssuer'],
           onDone: (walletPublicKey, isSharedWallet) {
             var deeplinkInfo = {
               "assetCode":
-                  initialDynamicLink.queryParameters['assetCode'] == 'XBN'
+                  initialDynamicLink.queryParameters['assetCode'] == 'ETH'
                   ? ''
                   : initialDynamicLink.queryParameters['assetCode'],
               "assetIssuer": initialDynamicLink.queryParameters['assetIssuer'],
@@ -773,7 +773,7 @@ class DataProvider with ChangeNotifier {
             var claimedAssets =
                 transactionableWallets[walletPublicKey]['claimedAssets'];
 
-            var deeplinkAssetCode = deeplinkInfo['assetCode'] == 'XBN'
+            var deeplinkAssetCode = deeplinkInfo['assetCode'] == 'ETH'
                 ? ''
                 : deeplinkInfo['assetCode'];
 

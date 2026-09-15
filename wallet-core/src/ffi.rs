@@ -120,6 +120,35 @@ pub extern "C" fn wc_sign_personal(
     }
 }
 
+/// Signs raw bytes (e.g. a pre-computed transaction digest, which is
+/// arbitrary binary data - not valid UTF-8 in general, so it cannot go
+/// through [`wc_sign_personal`]'s NUL-terminated C string parameter) with
+/// EIP-191 personal_sign, returning `{"signature":...}` (base64). Callers
+/// own `message_ptr`'s buffer and may free it immediately after this call
+/// returns - it is only read, never retained.
+#[no_mangle]
+pub extern "C" fn wc_sign_personal_bytes(
+    private_key_hex: *const c_char,
+    message_ptr: *const u8,
+    message_len: usize,
+) -> *mut c_char {
+    let Ok(private_key_hex) = (unsafe { read_cstr(private_key_hex) }) else {
+        return err_json("invalid private key argument");
+    };
+    if message_ptr.is_null() && message_len != 0 {
+        return err_json("invalid message argument");
+    }
+    let message = if message_len == 0 {
+        &[][..]
+    } else {
+        unsafe { std::slice::from_raw_parts(message_ptr, message_len) }
+    };
+    match core::sign_personal(&private_key_hex, message) {
+        Ok(signature) => ok_json(&serde_json::json!({ "signature": signature })),
+        Err(e) => err_json(e),
+    }
+}
+
 /// Verifies a base64 EIP-191 personal_sign signature against `address`.
 /// Returns 1 (valid), 0 (invalid), or -1 (a malformed argument/signature
 /// - distinct from "invalid" so callers don't mistake a decode failure

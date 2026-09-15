@@ -6092,7 +6092,7 @@ addSubWalletPopup(context) async {
                       return "entersecretkeyempty".tr();
                     }
 
-                    if (trimmedVal.length < 56) {
+                    if (trimmedVal.length < 64) {
                       return "secretkeyinvalid".tr();
                     }
 
@@ -6110,7 +6110,7 @@ addSubWalletPopup(context) async {
                       '',
                     );
                   },
-                  maxLength: 56,
+                  maxLength: 66,
                 ),
                 if (newSubWalletKeyPair.walletType == 1) ...[
                   Row(
@@ -6173,7 +6173,7 @@ addSubWalletPopup(context) async {
                           return "entersecretkeyempty".tr();
                         }
 
-                        if (trimmedVal.length < 56) {
+                        if (trimmedVal.length < 64) {
                           return "secretkeyinvalid".tr();
                         }
 
@@ -6190,7 +6190,7 @@ addSubWalletPopup(context) async {
                             .trim()
                             .replaceAll(' ', '');
                       },
-                      maxLength: 56,
+                      maxLength: 66,
                     ),
                   ],
                 ],

@@ -4,11 +4,11 @@ String trovoServicesUrl = 'https://trovotech.io/services.html';
 String trovoLandingPage = 'https://wallet.trovotech.io';
 String privacyPolicyUrl = 'https://trovotech.io/privacy-policy.html';
 String trovoP2pUrl = 'p2p-frontend-staging-8shkr.ondigitalocean.app';
-String nativeAssetCode = 'XBN';
+String nativeAssetCode = 'ETH';
 String nativeAssetIssuer = 'Native Token';
-String bantuBlockchainExplorerBaseUrl = 'https://explorer.bantu.network/tx/';
+String bantuBlockchainExplorerBaseUrl = 'https://basescan.org/tx/';
 String bantuBlockchainExplorerTestnetBaseUrl =
-    'https://explorer-testnet.bantu.network/tx/';
+    'https://sepolia.basescan.org/tx/';
 String hideBalanceText = '********';
 String tokenizationRequirementsUrl =
     'https://tokenization-requirements-app-xu8c6.ondigitalocean.app/';

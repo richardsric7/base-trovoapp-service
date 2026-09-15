@@ -308,7 +308,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
   }
 
   Widget showAddressInfo() {
-    if (transactionData['destination'].toString().length == 56) {
+    if (transactionData['destination'].toString().length == 42) {
       // destination user is not known so we display only
       // destination public key
       return Padding(

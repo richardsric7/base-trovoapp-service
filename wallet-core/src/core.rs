@@ -47,7 +47,16 @@ pub struct Keypair {
 }
 
 fn signing_key_from_hex(private_key_hex: &str) -> Result<SigningKey, WalletCoreError> {
-    let trimmed = private_key_hex.trim().trim_start_matches("0x");
+    let trimmed = private_key_hex.trim();
+    // Strip a "0x"/"0X" prefix case-insensitively: some call sites
+    // (e.g. app-mobile's `secretKey.toUpperCase()` before parsing, kept
+    // from the original Stellar-secret-key-was-always-uppercase
+    // convention) uppercase the whole string before handing it here.
+    // hex::decode itself already accepts mixed-case hex digits.
+    let trimmed = trimmed
+        .strip_prefix("0x")
+        .or_else(|| trimmed.strip_prefix("0X"))
+        .unwrap_or(trimmed);
     let bytes = hex::decode(trimmed).map_err(|_| WalletCoreError::InvalidPrivateKey)?;
     SigningKey::from_slice(&bytes).map_err(|_| WalletCoreError::InvalidPrivateKey)
 }
@@ -273,6 +282,17 @@ mod tests {
 
         let addr_only = address_from_private_key(&kp.private_key_hex).unwrap();
         assert_eq!(kp.address, addr_only);
+    }
+
+    #[test]
+    fn import_tolerates_uppercased_prefix_and_digits() {
+        // app-mobile's original call site uppercases the secret key
+        // before parsing (a leftover Stellar-secret-key convention) -
+        // "0x" becomes "0X" and hex letters become uppercase.
+        let kp = generate_keypair();
+        let uppercased = kp.private_key_hex.to_uppercase();
+        let imported = keypair_from_private_key(&uppercased).unwrap();
+        assert_eq!(kp.address, imported.address);
     }
 
     #[test]

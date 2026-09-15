@@ -821,7 +821,7 @@ class _AllWalletsView extends State<AllWalletsView>
                   return "entersecretkeyempty".tr();
                 }
 
-                if (trimmedVal.length < 56) {
+                if (trimmedVal.length < 64) {
                   return "secretkeyinvalid".tr();
                 }
 
@@ -836,7 +836,7 @@ class _AllWalletsView extends State<AllWalletsView>
               onSaved: (value) {
                 secretKey = value!.trim().replaceAll(' ', '');
               },
-              maxLength: 56,
+              maxLength: 66,
             ),
           ],
           SizedBox(height: height / 30),

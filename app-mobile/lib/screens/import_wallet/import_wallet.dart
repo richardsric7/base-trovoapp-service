@@ -223,7 +223,7 @@ class _ImportWalletState extends State<ImportWallet> {
                           70.sp,
                           300.sp,
                           onChanged: (value) async {
-                            if (value != null && value.length == 56) {
+                            if (value != null && (value.length == 64 || value.length == 66)) {
                               setState(() {
                                 info = parseKey(context, value)!;
                               });
@@ -239,7 +239,7 @@ class _ImportWalletState extends State<ImportWallet> {
                               return "entersecretkeyempty".tr();
                             }
 
-                            if (trimmedVal.length < 56) {
+                            if (trimmedVal.length < 64) {
                               return "secretkeyinvalid".tr();
                             }
                             return null;
@@ -247,7 +247,7 @@ class _ImportWalletState extends State<ImportWallet> {
                           onSaved: (value) {
                             secretKey = value!.trim().replaceAll(' ', '');
                           },
-                          maxLength: 56,
+                          maxLength: 66,
                           focusNode: secretKeyFocusNode,
                         ),
                         // ],

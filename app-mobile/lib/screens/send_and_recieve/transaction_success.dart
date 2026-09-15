@@ -277,7 +277,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
   }
 
   Widget showUserInfo() {
-    if (viewData['destination'].toString().length == 56) {
+    if (viewData['destination'].toString().length == 42) {
       // destination user is not known so we display only
       // destination public key
       return Padding(
