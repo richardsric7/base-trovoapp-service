@@ -14,15 +14,15 @@ import (
 	"sync"
 	"time"
 	"trovo-wallet-api/internal/cache"
+	"trovo-wallet-api/internal/evmkeypair"
 
 	cs "cloud.google.com/go/storage"
 	"firebase.google.com/go/messaging"
 	"firebase.google.com/go/storage"
 	"github.com/ecnepsnai/discord"
 	"github.com/google/uuid"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/clients/horizonclient"
-	"github.com/stellar/go/keypair"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"gorm.io/gorm"
@@ -40,10 +40,10 @@ type GlobalConfig struct {
 	RedisCache                 *cache.RedisCache
 	DB                         *gorm.DB
 	RoachDB                    *gorm.DB
-	BantuExpansionClient       *horizonclient.Client
+	BantuExpansionClient       *ethclient.Client
 	BantuNetworkPassphrase     string
-	ChannelAccounts            chan *keypair.Full
-	InUseChannelAccounts       map[string]*keypair.Full
+	ChannelAccounts            chan *evmkeypair.Full
+	InUseChannelAccounts       map[string]*evmkeypair.Full
 	Mutex                      sync.Mutex
 	ChannelOfTokenizedAssetIDs chan string
 }
@@ -274,7 +274,7 @@ func (gc *GlobalConfig) ReleaseInUseChannelAccount(pk string) {
 	delete(gc.InUseChannelAccounts, pk)
 }
 
-func (gc *GlobalConfig) StoreInUseChannelAccount(kp *keypair.Full) {
+func (gc *GlobalConfig) StoreInUseChannelAccount(kp *evmkeypair.Full) {
 	if kp == nil {
 		return
 	}
