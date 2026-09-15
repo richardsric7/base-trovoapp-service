@@ -154,11 +154,11 @@ func TestHorizonUpOnAnyHTTPResponse(t *testing.T) {
 	defer srv.Close()
 
 	s := New(nil, nil, nil, nil)
-	s.horizon = srv.URL
+	s.rpcURL = srv.URL
 
-	dep := s.checkHorizon(context.Background())
+	dep := s.checkBlockchainRPC(context.Background())
 	if dep.Status != StatusUp {
-		t.Fatalf("stellar_horizon = %q, want up on a 404", dep.Status)
+		t.Fatalf("base_rpc = %q, want up on a 404", dep.Status)
 	}
 }
 
@@ -173,7 +173,7 @@ func TestHorizonDownDegradesRatherThanFails(t *testing.T) {
 	t.Setenv("ENABLE_CACHING", "0")
 
 	s := New(nil, nil, nil, nil)
-	s.horizon = closed
+	s.rpcURL = closed
 
 	report, status := s.Readiness(context.Background())
 	if status != http.StatusOK {
@@ -193,9 +193,9 @@ func TestLatencyIsRecorded(t *testing.T) {
 	defer srv.Close()
 
 	s := New(nil, nil, nil, nil)
-	s.horizon = srv.URL
+	s.rpcURL = srv.URL
 
-	dep := s.checkHorizon(context.Background())
+	dep := s.checkBlockchainRPC(context.Background())
 	if dep.LatencyMs < 1 || dep.LatencyUs < 1000 {
 		t.Errorf("latency not recorded: ms=%d us=%d", dep.LatencyMs, dep.LatencyUs)
 	}

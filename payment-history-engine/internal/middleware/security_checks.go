@@ -7,22 +7,18 @@ import (
 	"strings"
 
 	tErrors "trovo-wallet-payment-history-engine/internal/errors"
-
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/txnbuild"
+	"trovo-wallet-payment-history-engine/internal/evmkeypair"
 )
 
-//SignString returns a signed base64 encoded string of toSign
+// SignString returns an EIP-191 personal_sign, base64 encoded signature of
+// toSign - the Base equivalent of the original's Stellar ed25519 signature.
 func SignString(toSign string, secretKey string) (string, error) {
-	kp, keyPairError := keypair.ParseFull(secretKey)
+	kp, keyPairError := evmkeypair.ParseFull(secretKey)
 	if keyPairError != nil {
 		return "", keyPairError
 	}
 	toSign = strings.TrimSpace(toSign)
-	// log.Printf("toSign:[%v]\n", toSign)
 	signature, err := kp.SignBase64([]byte(toSign))
-	// ps, _ := base64.StdEncoding.DecodeString(signature)
-	// log.Printf("provided signature:[%v]\n", ps)
 
 	if err != nil {
 		return "", err
@@ -33,7 +29,6 @@ func SignString(toSign string, secretKey string) (string, error) {
 
 //SignHttp returns a signed base64 encoded string of fullPathWithQuery+keyParam. keyParam = publicKey+timestamp
 func SignHttp(fullPathWithQuery string, keyParam string, secretKey string) (string, error) {
-	// log.Printf("path + string:[%v]\n", fullPathWithQuery+body)
 	keyParam = strings.TrimSpace(keyParam)
 	fullPathWithQuery = strings.TrimSpace(fullPathWithQuery)
 	signature, err := SignString(fullPathWithQuery+keyParam, secretKey)
@@ -45,32 +40,25 @@ func SignHttp(fullPathWithQuery string, keyParam string, secretKey string) (stri
 	return signature, nil
 }
 
-//SignBase64Txn signs the transaction hash from base64Txn string using the secret key
+// SignBase64Txn signs a transaction digest with the secret key. On Base,
+// there is no XDR envelope to parse and re-hash: base64Txn is now a
+// base64-encoded transaction digest computed upstream, and this function's
+// job is only to sign it. networkPassPhrase is vestigial (kept only for
+// call-site compatibility).
 func SignBase64Txn(secretKey string, base64Txn string, networkPassPhrase string) (string, error) {
+	_ = networkPassPhrase
 
-	kp, keyPairError := keypair.ParseFull(secretKey)
+	kp, keyPairError := evmkeypair.ParseFull(secretKey)
 	if keyPairError != nil {
 		return "", keyPairError
 	}
 
-	tx, err := txnbuild.TransactionFromXDR(base64Txn)
+	digest, err := base64.StdEncoding.DecodeString(base64Txn)
 	if err != nil {
-		return "", err
+		return "", errors.New("could not decode transaction digest")
 	}
 
-	txn, b := tx.Transaction()
-
-	if !b {
-		return "", errors.New("not a txn")
-	}
-
-	bytes, err := txn.Hash(networkPassPhrase)
-
-	if err != nil {
-		return "", errors.New("could not hash txn")
-	}
-
-	signature, err := kp.SignBase64(bytes[:])
+	signature, err := kp.SignBase64(digest)
 
 	if err != nil {
 		return "", err
@@ -82,7 +70,7 @@ func SignBase64Txn(secretKey string, base64Txn string, networkPassPhrase string)
 
 //VerifySignatureString verifies if the signatures match with the one to be generated from toSign. toSign = publicKey+timestamp
 func VerifySignatureString(toSign string, base64Signature string, signerPublicKey string) error {
-	kp, errParsingPublicKey := keypair.ParseAddress(signerPublicKey)
+	kp, errParsingPublicKey := evmkeypair.ParseAddress(signerPublicKey)
 	if errParsingPublicKey != nil {
 		return &tErrors.ErrorInvalidPublicKey{}
 	}

@@ -3,8 +3,8 @@ package payments
 import "time"
 
 type MarketOffer struct {
-	CreatedAt                   time.Time `gorm:"default:now()" json:"-"`
-	UpdatedAt                   time.Time `gorm:"default:now()" json:"-"`
+	CreatedAt                   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	UpdatedAt                   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 	ID                          string    `gorm:"size:100" json:"id"`
 	SourceWalletAlias           string    `gorm:"not null;size:100" json:"sourceWalletAlias"`
 	SourceWalletPublicKey       string    `gorm:"vsize:100" json:"sourceWalletPublicKey"`

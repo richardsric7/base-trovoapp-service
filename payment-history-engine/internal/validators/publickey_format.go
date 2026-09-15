@@ -2,13 +2,12 @@ package validators
 
 import (
 	"trovo-wallet-payment-history-engine/internal/errors"
-
-	"github.com/stellar/go/keypair"
+	"trovo-wallet-payment-history-engine/internal/evmkeypair"
 )
 
 //ValidatePublicKeyFormat validates a blockchain public key
 func ValidatePublicKeyFormat(publicKey string) error {
-	_, err := keypair.ParseAddress(publicKey)
+	_, err := evmkeypair.ParseAddress(publicKey)
 
 	if err != nil {
 		var x errors.ErrorInvalidPublicKey

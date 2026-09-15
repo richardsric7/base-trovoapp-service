@@ -1,11 +1,11 @@
 // Package health exposes liveness and readiness probes for the payment history
 // engine.
 //
-// This service is a worker, not an API: it streams operations from the Stellar
-// network and writes payment history. That shape hides failure well - a stalled
-// stream returns no errors to anyone, and nobody notices until a user asks why
+// This service is a worker, not an API: it polls Base blocks/logs and writes
+// payment history. That shape hides failure well - a stalled poll loop
+// returns no errors to anyone, and nobody notices until a user asks why
 // their transaction history stopped updating. So readiness here reports not
-// just "can I reach my dependencies" but "is the stream actually advancing".
+// just "can I reach my dependencies" but "is block processing actually advancing".
 package health
 
 import (
@@ -18,7 +18,7 @@ import (
 
 	"trovo-wallet-payment-history-engine/internal/cache"
 
-	"github.com/stellar/go/clients/horizonclient"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"gorm.io/gorm"
 )
 
@@ -162,21 +162,26 @@ type Service struct {
 	db      *gorm.DB
 	roachDB *gorm.DB
 	cache   *cache.RedisCache
-	horizon string
+	rpcURL  string
 	client  *http.Client
 }
 
 // New builds the probe service. Any handle may be nil; the matching check then
-// reports "skipped" rather than failing.
-func New(db, roachDB *gorm.DB, redisCache *cache.RedisCache, horizon *horizonclient.Client) *Service {
+// reports "skipped" rather than failing. blockchainClient may be nil (its RPC
+// URL is read directly from env, matching network.GetBlockchainClient's own
+// resolution, since *ethclient.Client does not expose the URL it dialed).
+func New(db, roachDB *gorm.DB, redisCache *cache.RedisCache, blockchainClient *ethclient.Client) *Service {
 	s := &Service{
 		db:      db,
 		roachDB: roachDB,
 		cache:   redisCache,
 		client:  &http.Client{Timeout: checkTimeout},
 	}
-	if horizon != nil {
-		s.horizon = horizon.HorizonURL
+	if blockchainClient != nil {
+		s.rpcURL = os.Getenv("BASE_RPC_URL")
+		if s.rpcURL == "" {
+			s.rpcURL = os.Getenv("EXPANSION_URL")
+		}
 	}
 	return s
 }
@@ -253,7 +258,7 @@ func (s *Service) Readiness(ctx context.Context) (ReadinessResponse, int) {
 		func(c context.Context) DependencyStatus { return s.checkDB(c, "wallet_db", s.db, false) },
 		func(c context.Context) DependencyStatus { return s.checkDB(c, "roach_db", s.roachDB, true) },
 		s.checkRedis,
-		s.checkHorizon,
+		s.checkBlockchainRPC,
 	}
 
 	results := make([]DependencyStatus, len(checks))
@@ -357,12 +362,13 @@ func (s *Service) checkRedis(ctx context.Context) (dep DependencyStatus) {
 	return dep
 }
 
-// checkHorizon confirms the Stellar node is reachable. It is the source of
-// every operation this engine processes, so it is reported prominently - but
-// marked optional, because a restart cannot fix an unreachable node and the
-// engine resumes from its saved cursor once the node returns.
-func (s *Service) checkHorizon(ctx context.Context) (dep DependencyStatus) {
-	dep = DependencyStatus{Name: "stellar_horizon", Optional: true}
+// checkBlockchainRPC confirms the Base RPC node is reachable. It is the
+// source of every block/log this engine processes, so it is reported
+// prominently - but marked optional, because a restart cannot fix an
+// unreachable node and the engine resumes from its saved cursor once the
+// node returns.
+func (s *Service) checkBlockchainRPC(ctx context.Context) (dep DependencyStatus) {
+	dep = DependencyStatus{Name: "base_rpc", Optional: true}
 	start := time.Now()
 	defer func() {
 		elapsed := time.Since(start)
@@ -370,12 +376,12 @@ func (s *Service) checkHorizon(ctx context.Context) (dep DependencyStatus) {
 		dep.LatencyUs = elapsed.Microseconds()
 	}()
 
-	if s.horizon == "" {
+	if s.rpcURL == "" {
 		dep.Status = StatusSkipped
 		dep.SkipReason = "not configured"
 		return dep
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.horizon, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.rpcURL, nil)
 	if err != nil {
 		dep.Status = StatusDown
 		dep.Error = err.Error()

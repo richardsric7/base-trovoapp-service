@@ -11,10 +11,8 @@ import (
 	"time"
 
 	"github.com/ecnepsnai/discord"
-	sqliteEncrypt "github.com/jackfr0st13/gorm-sqlite-cipher"
 	"gorm.io/driver/postgres"
-
-	// "gorm.io/driver/sqlite"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -43,11 +41,23 @@ func OpenDb() (*gorm.DB, error) {
 
 	var err error
 
-	// if dbType == "sqlite" {
-	// 	gormDB, err = gorm.Open(sqlite.Open(dbConnectionString), &gorm.Config{
-	// 		QueryFields: true,
-	// 	})
-	// }
+	// SQLite (plain gorm.io/driver/sqlite, mattn/go-sqlite3) - added so this
+	// engine's models/queries can be exercised locally/in CI without a
+	// Postgres instance. dbConnectionString is a file path (or ":memory:")
+	// in this mode, not a Postgres DSN.
+	if dbType == "sqlite" {
+		once.Do(func() {
+			gormDB, err = gorm.Open(sqlite.Open(dbConnectionString), &gorm.Config{
+				Logger:      logger.Default.LogMode(logger.Silent),
+				QueryFields: true,
+			})
+		})
+		if err != nil {
+			log.Printf("[OpenDb]failed to connect sqlite database, %s\n", err)
+			return nil, err
+		}
+		return gormDB, nil
+	}
 
 	if dbType == "postgres" {
 		var maxoconn, idleCon string
@@ -98,6 +108,20 @@ func OpenDb() (*gorm.DB, error) {
 func OpenRoachDB() (*gorm.DB, error) {
 	var err error
 
+	// SQLite escape hatch for the RoachDB (payment-history) connection too,
+	// so this engine's migrations/queries can be exercised locally/in CI
+	// without a real CockroachDB/Postgres instance.
+	if os.Getenv("ROACH_DB_TYPE") == "sqlite" {
+		roachDB, err = gorm.Open(sqlite.Open(os.Getenv("CDB_CONNECTION_STRING")), &gorm.Config{
+			Logger:      logger.Default.LogMode(logger.Silent),
+			QueryFields: true,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+		return roachDB, nil
+	}
+
 	roachDB, err = gorm.Open(postgres.Open(os.Getenv("CDB_CONNECTION_STRING")), &gorm.Config{
 		Logger:      logger.Default.LogMode(logger.Silent),
 		QueryFields: true,
@@ -108,17 +132,16 @@ func OpenRoachDB() (*gorm.DB, error) {
 	return roachDB, nil
 }
 
-// OpenSqliteDB opens ecnrypted SQlite connection
+// OpenSqliteDB opens a local SQLite connection for development/testing.
+// Previously used a third-party encrypted-SQLite driver
+// (github.com/jackfr0st13/gorm-sqlite-cipher) that no longer builds against
+// current gorm - switched to the standard gorm.io/driver/sqlite. This drops
+// at-rest encryption (SQLITE_CYPER_PASSPHRASE is unused); see
+// app-backend/internal/db/main.go's OpenSqliteDB for the same change and
+// rationale.
 func OpenSqliteDB() (*gorm.DB, error) {
-
-	var errDB error
-	key := "746373408hhgdf#^hf*bhe)8"
-	if os.Getenv("SQLITE_CYPER_PASSPHRASE") != "" {
-		key = os.Getenv("SQLITE_CYPER_PASSPHRASE")
-	}
 	dbname := "dbs/bantupay.sqlite"
-	dbnameWithDSN := dbname + fmt.Sprintf("?_pragma_key=%s&_pragma_cipher_page_size=4096", key)
-	sqliteDB, errDB := gorm.Open(sqliteEncrypt.Open(dbnameWithDSN), &gorm.Config{
+	sqliteDB, errDB := gorm.Open(sqlite.Open(dbname), &gorm.Config{
 		Logger:      logger.Default.LogMode(logger.Silent),
 		QueryFields: true,
 	})

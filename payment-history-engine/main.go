@@ -5,33 +5,32 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/big"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	// bc "trovo-wallet-payment-history-engine/internal/blockchainalgofuncs"
-	bc "trovo-wallet-payment-history-engine/internal/blockchainalgofuncs"
-	// merchants "trovo-wallet-payment-history-engine/internal/components/merchants/controllers"
 	"trovo-wallet-payment-history-engine/internal/cache"
 	"trovo-wallet-payment-history-engine/internal/components/health"
 	paymentModels "trovo-wallet-payment-history-engine/internal/components/payments/models"
 	paymentServices "trovo-wallet-payment-history-engine/internal/components/payments/services"
 
-	// users "trovo-wallet-payment-history-engine/internal/components/users/controllers"
 	userModels "trovo-wallet-payment-history-engine/internal/components/users/models"
 	db "trovo-wallet-payment-history-engine/internal/db"
 	"trovo-wallet-payment-history-engine/internal/network"
 
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/clients/horizonclient"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/protocols/horizon"
-	"github.com/stellar/go/protocols/horizon/operations"
-	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm"
 )
 
@@ -249,7 +248,7 @@ func main() {
 			var userWallets []userModels.UserWallet
 			log.Println("[TRACKUserWallet] startTrackingFrom:", startTrackingFrom)
 			for {
-				e := database.Where("created_at::timestamp >= ?::timestamp AND tracked = 0", startTrackingFrom).First(&userModels.UserWallet{}).Error
+				e := database.Where("created_at >= ? AND tracked = 0", startTrackingFrom).First(&userModels.UserWallet{}).Error
 				if e != nil {
 					log.Println("[TRACKUserWallet] error getting user wallet:", e)
 					setStartStreaming(true)
@@ -261,7 +260,7 @@ func main() {
 					continue
 				}
 
-				result := database.Where("created_at::timestamp >= ?::timestamp AND tracked = 0", startTrackingFrom).FindInBatches(&userWallets, batchSize, func(tx *gorm.DB, batch int) error {
+				result := database.Where("created_at >= ? AND tracked = 0", startTrackingFrom).FindInBatches(&userWallets, batchSize, func(tx *gorm.DB, batch int) error {
 					for i, u := range userWallets {
 						log.Printf("[TRACKUserWallet] processing user wallet %+v of %v\n", u, batch)
 						trackError := paymentServices.TrackUserWallet(u, roachDB, database, isTrackPublicKey(), &redisCache)
@@ -428,13 +427,12 @@ func SaveLastCursor(lastCursor string, roachDB *gorm.DB) (e error) {
 			return e
 		}
 	}
-	log.Println("[SaveLastCursor]saved cursor:", lastCursor)
 	return nil
 
 }
 
-// GetAccountCursor returns the last processed paging token for a single tracked public key's
-// genesis backfill stream, or "0" (start from genesis) if it has never been recorded.
+// GetAccountCursor returns the last processed block number for a single tracked public key's
+// genesis backfill, or "0" (start from genesis) if it has never been recorded.
 func GetAccountCursor(publicKey string, roachDB *gorm.DB) string {
 	var mAccount paymentModels.MonitoredAccountCursor
 	e := roachDB.Where("public_key = ?", publicKey).First(&mAccount).Error
@@ -444,8 +442,8 @@ func GetAccountCursor(publicKey string, roachDB *gorm.DB) string {
 	return mAccount.LastCursor
 }
 
-// SaveAccountCursor persists the last processed paging token for a single tracked public key,
-// so its backfill stream can resume from where it left off instead of always restarting at genesis.
+// SaveAccountCursor persists the last processed block number for a single tracked public key,
+// so its backfill can resume from where it left off instead of always restarting at genesis.
 func SaveAccountCursor(publicKey, lastCursor string, roachDB *gorm.DB) error {
 	var mAccount paymentModels.MonitoredAccountCursor
 	e := roachDB.Where("public_key = ?", publicKey).First(&mAccount).Error
@@ -463,6 +461,222 @@ func SaveAccountCursor(publicKey, lastCursor string, roachDB *gorm.DB) error {
 	return roachDB.Save(&mAccount).Error
 }
 
+// transferEventSig is keccak256("Transfer(address,address,uint256)") - the
+// standard ERC-20/B20 Transfer event topic0, the Base equivalent of
+// Horizon's "payment"/"path_payment" operation types for token movement.
+var transferEventSig = crypto.Keccak256Hash([]byte("Transfer(address,address,uint256)"))
+
+var tokenMetaABI abi.ABI
+
+func init() {
+	var err error
+	tokenMetaABI, err = abi.JSON(strings.NewReader(`[
+		{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"type":"function"},
+		{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"type":"function"}
+	]`))
+	if err != nil {
+		log.Panicf("invalid embedded token-metadata ABI: %v", err)
+	}
+}
+
+type tokenMeta struct {
+	symbol   string
+	decimals int32
+}
+
+var tokenMetaCache sync.Map // string(lowercased contract address) -> tokenMeta
+
+// getTokenMeta fetches (and caches) a B20/ERC20 token contract's symbol and
+// decimals - Base tokens are self-describing via these calls the way a
+// Stellar CreditAsset's Code was self-describing in the operation itself.
+func getTokenMeta(client *ethclient.Client, contract string) tokenMeta {
+	key := strings.ToLower(contract)
+	if v, ok := tokenMetaCache.Load(key); ok {
+		return v.(tokenMeta)
+	}
+	meta := tokenMeta{symbol: contract, decimals: 18}
+	addr := common.HexToAddress(contract)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if data, err := tokenMetaABI.Pack("symbol"); err == nil {
+		if out, err := client.CallContract(ctx, ethereum.CallMsg{To: &addr, Data: data}, nil); err == nil {
+			if unpacked, err := tokenMetaABI.Unpack("symbol", out); err == nil && len(unpacked) > 0 {
+				if s, ok := unpacked[0].(string); ok && s != "" {
+					meta.symbol = s
+				}
+			}
+		}
+	}
+	if data, err := tokenMetaABI.Pack("decimals"); err == nil {
+		if out, err := client.CallContract(ctx, ethereum.CallMsg{To: &addr, Data: data}, nil); err == nil {
+			if unpacked, err := tokenMetaABI.Unpack("decimals", out); err == nil && len(unpacked) > 0 {
+				if d, ok := unpacked[0].(uint8); ok {
+					meta.decimals = int32(d)
+				}
+			}
+		}
+	}
+	tokenMetaCache.Store(key, meta)
+	return meta
+}
+
+// swapTransactionType labels a path payment as a plain SWAP, or as a MINT/BURN TOKEN (SWAP ...)
+// when one leg's issuer is also that leg's sender/receiver, mirroring the plain "payment"
+// operation's MINT TOKEN / BURN TOKEN classification (an issuer sending its own asset is a mint,
+// an issuer receiving its own asset is a burn) so mint/burn activity routed through a path
+// payment isn't hidden behind a generic swap label. Currently unused: Base has no native DEX to
+// source a path-payment-shaped swap event from (see MonitorTradeStream's doc comment) - kept for
+// a future DEX/AMM-router integration that would want the same classification.
+func swapTransactionType(from, sourceAssetIssuer, sourceAssetCode, to, destinationAssetIssuer, destinationAssetCode string) string {
+	swapLabel := fmt.Sprintf("SWAP %s>%s", sourceAssetCode, destinationAssetCode)
+	isMint := sourceAssetIssuer != "" && from == sourceAssetIssuer
+	isBurn := destinationAssetIssuer != "" && to == destinationAssetIssuer
+
+	switch {
+	case isMint && isBurn:
+		return fmt.Sprintf("MINT/BURN TOKEN (%s)", swapLabel)
+	case isMint:
+		return fmt.Sprintf("MINT TOKEN (%s)", swapLabel)
+	case isBurn:
+		return fmt.Sprintf("BURN TOKEN (%s)", swapLabel)
+	default:
+		return swapLabel
+	}
+}
+
+// lookupTrackedWallets finds the alias/name of from/to among this engine's
+// tracked wallets - the same "is this address one of our users" gate the
+// original Horizon-operation processing applied before writing history.
+func lookupTrackedWallets(roachDB *gorm.DB, from, to string) (fromAlias, fromName, toAlias, toName string, found bool) {
+	var trackedWallets []paymentModels.TrackedWallet
+	dbFetchError := roachDB.Where("(public_key = ? OR temp_public_key = ?) OR (public_key = ? OR temp_public_key = ?)", from, from, to, to).Find(&trackedWallets).Error
+	if dbFetchError != nil {
+		log.Println("[lookupTrackedWallets] unable to find tracked wallets due to:", dbFetchError)
+		return "", "", "", "", false
+	}
+	if len(trackedWallets) == 0 {
+		return "", "", "", "", false
+	}
+	for _, t := range trackedWallets {
+		if strings.EqualFold(t.PublicKey, from) {
+			fromAlias, fromName = t.Alias, t.Name
+		}
+		if strings.EqualFold(t.PublicKey, to) {
+			toAlias, toName = t.Alias, t.Name
+		}
+	}
+	return fromAlias, fromName, toAlias, toName, true
+}
+
+// processNativeTransfer records a plain Base-native-currency transfer (a
+// transaction with a non-zero Value and no calldata routed to a contract) -
+// the Base equivalent of Horizon's "payment"/"create_account" operations
+// for the native asset.
+func processNativeTransfer(from, to string, weiAmount *big.Int, txHash string, blockNumber, nonce, blockTime uint64, db, roachDB *gorm.DB) {
+	fromAlias, fromName, toAlias, toName, found := lookupTrackedWallets(roachDB, from, to)
+	if !found {
+		return
+	}
+	log.Printf("[processNativeTransfer] found trovo user wallet(s) for tx %v\n", txHash)
+
+	amount := decimal.NewFromBigInt(weiAmount, -18)
+	pt := fmt.Sprintf("%020d", blockNumber)
+
+	e := paymentServices.SavePaymentHistory(from, fromAlias, fromName, to, toAlias, toName, "", "", os.Getenv("NATIVE_ASSET_CODE"), amount.String(), txHash, "PAYMENT", pt, txHash, fmt.Sprintf("%d", nonce), time.Unix(int64(blockTime), 0), db)
+	if e != nil {
+		log.Println("[processNativeTransfer] unable to save SavePaymentHistory:", e)
+	}
+}
+
+// processB20TransferLog records one decoded B20/ERC-20 Transfer event log -
+// the Base equivalent of Horizon's "payment"/"path_payment" operations for
+// a custom (non-native) asset. Mint/burn is detected the idiomatic
+// ERC-20 way (Transfer from/to the zero address), replacing Stellar's
+// issuer-address heuristic (an issuer account sending/receiving its own
+// asset) since B20 tokens have no separate "issuer account" distinct from
+// the token contract itself.
+func processB20TransferLog(client *ethclient.Client, lg types.Log, blockTime uint64, db, roachDB *gorm.DB) {
+	if len(lg.Topics) < 3 || len(lg.Data) < 32 {
+		return // not a standard indexed Transfer(address,address,uint256) log
+	}
+	from := common.HexToAddress(lg.Topics[1].Hex()).Hex()
+	to := common.HexToAddress(lg.Topics[2].Hex()).Hex()
+	rawAmount := new(big.Int).SetBytes(lg.Data[len(lg.Data)-32:])
+	tokenContract := lg.Address.Hex()
+
+	fromAlias, fromName, toAlias, toName, found := lookupTrackedWallets(roachDB, from, to)
+	if !found {
+		return
+	}
+	log.Printf("[processB20TransferLog] found trovo user wallet(s) for tx %v log %v\n", lg.TxHash.Hex(), lg.Index)
+
+	meta := getTokenMeta(client, tokenContract)
+	amount := decimal.NewFromBigInt(rawAmount, -meta.decimals)
+
+	paymentType := "PAYMENT"
+	if from == common.HexToAddress("0x0").Hex() {
+		paymentType = "MINT TOKEN"
+	} else if to == common.HexToAddress("0x0").Hex() {
+		paymentType = "BURN TOKEN"
+	}
+
+	pt := fmt.Sprintf("%020d-%010d", lg.BlockNumber, lg.Index)
+	id := fmt.Sprintf("%s-%d", lg.TxHash.Hex(), lg.Index)
+
+	e := paymentServices.SavePaymentHistory(from, fromAlias, fromName, to, toAlias, toName, "", tokenContract, meta.symbol, amount.String(), lg.TxHash.Hex(), paymentType, pt, id, fmt.Sprintf("%d", lg.TxIndex), time.Unix(int64(blockTime), 0), db)
+	if e != nil {
+		log.Println("[processB20TransferLog] unable to save SavePaymentHistory:", e)
+	}
+}
+
+// ProcessBlock scans one Base block for native-currency transfers (plain
+// value-carrying transactions) and B20/ERC-20 Transfer event logs - the
+// Base equivalent of Horizon's per-operation stream, replayed one block at
+// a time since Base has no account-agnostic operation feed to subscribe to
+// (see MonitorPaymentStream's doc comment).
+func ProcessBlock(client *ethclient.Client, blockNumber uint64, db, roachDB *gorm.DB) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	block, err := client.BlockByNumber(ctx, new(big.Int).SetUint64(blockNumber))
+	if err != nil {
+		log.Printf("[ProcessBlock] error fetching block %d: %v\n", blockNumber, err)
+		return
+	}
+
+	signer := types.LatestSignerForChainID(network.GetBlockchainChainID())
+	for _, tx := range block.Transactions() {
+		if tx.To() == nil || tx.Value().Sign() <= 0 {
+			continue // contract creation, or a zero-value contract call - not a native transfer
+		}
+		from, errSender := types.Sender(signer, tx)
+		if errSender != nil {
+			continue
+		}
+		processNativeTransfer(from.Hex(), tx.To().Hex(), tx.Value(), tx.Hash().Hex(), blockNumber, tx.Nonce(), block.Time(), db, roachDB)
+	}
+
+	logs, err := client.FilterLogs(ctx, ethereum.FilterQuery{
+		FromBlock: new(big.Int).SetUint64(blockNumber),
+		ToBlock:   new(big.Int).SetUint64(blockNumber),
+		Topics:    [][]common.Hash{{transferEventSig}},
+	})
+	if err != nil {
+		log.Printf("[ProcessBlock] error fetching Transfer logs for block %d: %v\n", blockNumber, err)
+		return
+	}
+	for _, lg := range logs {
+		processB20TransferLog(client, lg, block.Time(), db, roachDB)
+	}
+}
+
+// MonitorPaymentStream watches every new Base block for native transfers
+// and B20 Transfer events touching a tracked wallet, and records payment
+// history for them. This replaces Horizon's account-agnostic
+// client.StreamOperations/StreamPayments SSE stream: Base has no equivalent
+// feed to subscribe to, so this polls sequentially block-by-block instead
+// (the cursor is a block number, not a Horizon paging token).
 func MonitorPaymentStream(db, roachDB *gorm.DB) {
 	checkExists := roachDB.First(&paymentModels.TrackedWallet{}).Error
 	if checkExists != nil {
@@ -485,80 +699,142 @@ func MonitorPaymentStream(db, roachDB *gorm.DB) {
 		}
 	}()
 	client := network.GetBlockchainClient()
-	workerChan := make(chan operations.Operation, 200000)
 	lastCursor := GetLastCursor(roachDB)
-	var opsRequest horizonclient.OperationRequest
-	if len(lastCursor) > 0 && lastCursor != "0" {
-		log.Printf("[MonitorPaymentStream] Starting monitoring from cursor[%v]\n", lastCursor)
-		opsRequest = horizonclient.OperationRequest{
-			Cursor: lastCursor,
-			Order:  horizonclient.OrderAsc,
-			Join:   "transactions",
-		}
+	var startBlock uint64
+	if n, err := strconv.ParseUint(lastCursor, 10, 64); err == nil && lastCursor != "0" {
+		startBlock = n + 1
+		log.Printf("[MonitorPaymentStream] Starting monitoring from block[%v]\n", startBlock)
 	} else {
 		log.Println("[MonitorPaymentStream] Starting monitoring from current state of blockchain")
-
-		// opsRequest = horizonclient.OperationRequest{
-		// 	Cursor: "0",
-		// 	Order:  horizonclient.OrderAsc,
-		// 	Join:   "transactions",
-		// }
-		opsRequest = horizonclient.OperationRequest{
-			Join: "transactions",
-		}
 	}
-	worker := func() {
-		for {
-			o := <-workerChan
-			ProcessOperation(o, db, roachDB)
-			// Tell the health probes the stream is advancing. Without this the
-			// readiness endpoint could only report that the process is alive,
-			// which says nothing about whether payment history is still being
-			// written - the failure that actually matters here.
-			health.RecordOperation(o.PagingToken())
-			//persist progress after each operation so a reconnect/restart resumes here instead of
-			//replaying the whole stream or skipping whatever happened during the gap. Only one
-			//worker consumes workerChan (see below), so these writes stay in stream order.
-			if e := SaveLastCursor(o.PagingToken(), roachDB); e != nil {
-				log.Printf("[MonitorPaymentStream.worker] unable to save last cursor: %v\n", e)
+
+	for {
+		latest, err := client.BlockNumber(context.Background())
+		if err != nil {
+			log.Printf("[MonitorPaymentStream] error fetching latest block: %v\n", err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		if startBlock == 0 {
+			// No saved cursor - start from the current chain tip rather than
+			// replaying the whole chain's history.
+			startBlock = latest
+		}
+		for b := startBlock; b <= latest; b++ {
+			ProcessBlock(client, b, db, roachDB)
+			cursor := fmt.Sprintf("%d", b)
+			health.RecordOperation(cursor)
+			if e := SaveLastCursor(cursor, roachDB); e != nil {
+				log.Printf("[MonitorPaymentStream] unable to save last cursor: %v\n", e)
 			}
 		}
-
+		startBlock = latest + 1
+		time.Sleep(4 * time.Second)
 	}
-	{
-		//start a single worker: cursor persistence above assumes in-order processing,
-		//so do not enable a second concurrent worker on this channel.
-		go worker()
-
-	}
-
-	operationsStreamHandler := func(o operations.Operation) {
-		//send to worker channel
-		workerChan <- o
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	streamOperations := func() {
-
-		err := client.StreamPayments(ctx, opsRequest, operationsStreamHandler)
-		if err != nil {
-			log.Printf("[MonitorPaymentStream.StreamPayments]stream error:[%v]", err)
-			cancel()
-		}
-
-	}
-
-	//Start stream
-	streamOperations()
-	log.Println("#####[MonitorPaymentStream]...Ending streaming operation")
-	//close channels
-	// close(workerChan)
-
 }
 
+// backfillChunkBlocks bounds each eth_getLogs range query - many public RPC
+// providers cap how many blocks a single filter query may span.
+const backfillChunkBlocks = 5000
+
+// MonitorPublicKeyPaymentStream backfills one tracked public key's B20
+// token-transfer history from its last saved cursor (or genesis) up to the
+// current chain tip, using indexed Transfer-event topic filtering
+// (eth_getLogs with the address in the "from" or "to" topic position) so it
+// does not need to scan every block. Native-currency history for a single
+// historical account has no equally efficient plain-JSON-RPC equivalent
+// (native transfers emit no logs to filter by address) - that needs a
+// block-indexing service (e.g. an Etherscan/Blockscout-style API), tracked
+// as a follow-up out of scope for this alteration pass. This is the Base
+// equivalent of Horizon's per-account client.StreamPayments(ForAccount:...).
+func MonitorPublicKeyPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *sync.WaitGroup) {
+	defer wg.Done()
+	checkExists := roachDB.Where("public_key = ? OR temp_public_key = ?", publicKey, publicKey).First(&paymentModels.TrackedWallet{}).Error
+	if checkExists != nil {
+		log.Printf("[MonitorPublicKeyPaymentStream] aborting because %v could not be found in tracked wallets table:", checkExists)
+		return
+	}
+	if !common.IsHexAddress(publicKey) {
+		log.Printf("[MonitorPublicKeyPaymentStream] aborting, %v is not a valid Base address\n", publicKey)
+		return
+	}
+	client := network.GetBlockchainClient()
+
+	lastAccountCursor := GetAccountCursor(publicKey, roachDB)
+	var startBlock uint64
+	if n, err := strconv.ParseUint(lastAccountCursor, 10, 64); err == nil && lastAccountCursor != "0" {
+		startBlock = n + 1
+	}
+	log.Printf("[MonitorPublicKeyPaymentStream] Starting monitoring for %v from block[%v]\n", publicKey, startBlock)
+
+	latest, err := client.BlockNumber(context.Background())
+	if err != nil {
+		log.Printf("[MonitorPublicKeyPaymentStream] error fetching latest block for %v: %v\n", publicKey, err)
+		return
+	}
+
+	addrTopic := common.BytesToHash(common.HexToAddress(publicKey).Bytes())
+
+	for from := startBlock; from <= latest; from += backfillChunkBlocks {
+		to := from + backfillChunkBlocks - 1
+		if to > latest {
+			to = latest
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		logsFrom, err1 := client.FilterLogs(ctx, ethereum.FilterQuery{
+			FromBlock: new(big.Int).SetUint64(from),
+			ToBlock:   new(big.Int).SetUint64(to),
+			Topics:    [][]common.Hash{{transferEventSig}, {addrTopic}},
+		})
+		logsTo, err2 := client.FilterLogs(ctx, ethereum.FilterQuery{
+			FromBlock: new(big.Int).SetUint64(from),
+			ToBlock:   new(big.Int).SetUint64(to),
+			Topics:    [][]common.Hash{{transferEventSig}, nil, {addrTopic}},
+		})
+		cancel()
+		if err1 != nil || err2 != nil {
+			log.Printf("[MonitorPublicKeyPaymentStream] error fetching logs for %v in range [%v,%v]: %v / %v\n", publicKey, from, to, err1, err2)
+			return
+		}
+
+		seen := map[string]bool{}
+		for _, lg := range append(logsFrom, logsTo...) {
+			key := fmt.Sprintf("%s-%d", lg.TxHash.Hex(), lg.Index)
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+
+			header, errH := client.HeaderByNumber(context.Background(), new(big.Int).SetUint64(lg.BlockNumber))
+			var ts uint64
+			if errH == nil {
+				ts = header.Time
+			}
+			processB20TransferLog(client, lg, ts, db, roachDB)
+		}
+
+		//persist progress so the next periodic pass over tracked_public_keys resumes
+		//here instead of re-scanning from genesis.
+		if e := SaveAccountCursor(publicKey, fmt.Sprintf("%d", to), roachDB); e != nil {
+			log.Printf("[MonitorPublicKeyPaymentStream] unable to save account cursor for %v: %v\n", publicKey, e)
+		}
+	}
+
+	log.Println("#####[MonitorPublicKeyPaymentStream]...finished backfill pass for", publicKey)
+}
+
+// MonitorTradeStream watched Horizon's global trade stream
+// (client.StreamTrades) and, for each trade filling one of this app's
+// market-making offers, built and submitted a fee-collection transaction
+// (see the former ProcessTrade). Base has no native on-chain order book to
+// source a trade event from (the same gap documented in app-backend's
+// internal/basetxn ManageSellOffer/PathPayment* operations and
+// internal/sharedconfig/order_book_summary.go) - market-making on Base
+// needs a real design (a specific DEX/AMM router integration whose swap
+// events this engine could subscribe to), tracked as a follow-up out of
+// scope for this alteration pass.
 func MonitorTradeStream(db, roachDB *gorm.DB, redisCache *cache.RedisCache) {
-	checkExists := db.Where("remaining_quantity::numeric > ? AND canceled = 0", 0).First(&paymentModels.MarketOffer{}).Error
+	checkExists := db.Where("CAST(remaining_quantity AS REAL) > ? AND canceled = 0", 0).First(&paymentModels.MarketOffer{}).Error
 
 	if checkExists != nil {
 		if !errors.Is(checkExists, gorm.ErrRecordNotFound) {
@@ -567,781 +843,6 @@ func MonitorTradeStream(db, roachDB *gorm.DB, redisCache *cache.RedisCache) {
 		log.Println("[MonitorTradeStream] exited because no market offers exists:", checkExists)
 		return
 	}
-	go func() {
-		for {
-			log.Println("[MonitorTradeStream] <<<<<<<<<<<<active and processing trade executions>>>>>>>>>>>>>")
-			time.Sleep(120 * time.Second)
-
-		}
-	}()
-	ctx, cancel := context.WithCancel(context.Background())
-	client := network.GetBlockchainClient()
-	tradeWorkerChan := make(chan horizon.Trade, 200000)
-	resumeCursor := GetTradeResumeCursor()
-	var tradeRequest horizonclient.TradeRequest
-	if len(resumeCursor) > 0 && resumeCursor != "0" {
-		log.Printf("[MonitorTradeStream] Starting monitoring from cursor[%v]\n", resumeCursor)
-		tradeRequest = horizonclient.TradeRequest{
-			Cursor: resumeCursor,
-			Order:  horizonclient.OrderAsc,
-		}
-	} else {
-		log.Println("[MonitorTradeStream] Starting monitoring from current state of blockchain")
-
-		tradeRequest = horizonclient.TradeRequest{}
-	}
-	worker := func() {
-		for {
-			tr := <-tradeWorkerChan
-			ProcessTrade(tr, db, roachDB, redisCache, cancel)
-		}
-
-	}
-	{
-		//start two workers
-		go worker()
-		// go worker()
-
-	}
-
-	tradeStreamHandler := func(t horizon.Trade) {
-		//send to worker channel
-		tradeWorkerChan <- t
-	}
-
-	streamTrades := func() {
-
-		err := client.StreamTrades(ctx, tradeRequest, tradeStreamHandler)
-		if err != nil {
-			log.Printf("[MonitorTradeStream.StreamTrades]stream error:[%v]", err)
-			cancel()
-		}
-
-	}
-
-	//Start stream
-	streamTrades()
-	log.Println("#####[MonitorTradeStream]...Ending streaming trades")
-	//close channels
-	// close(workerChan)
-
-}
-
-func MonitorPublicKeyPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *sync.WaitGroup) {
-	defer wg.Done()
-	checkExists := roachDB.Where("public_key = ? OR temp_public_key = ?", publicKey, publicKey).First(&paymentModels.TrackedWallet{}).Error
-	if checkExists != nil {
-		log.Printf("[MonitorPublicKeyPaymentStream] aborting because %v could not be found in tracked wallets table:", checkExists)
-		return
-	}
-	client := network.GetBlockchainClient()
-	workerChan := make(chan operations.Operation, 200000)
-
-	//resume from wherever this account's backfill last left off (defaults to genesis "0"
-	//the first time this key is ever monitored) instead of always restarting from genesis.
-	lastAccountCursor := GetAccountCursor(publicKey, roachDB)
-	log.Printf("[MonitorPublicKeyPaymentStream] Starting monitoring for %v from cursor[%v]\n", publicKey, lastAccountCursor)
-
-	opsRequest := horizonclient.OperationRequest{
-		ForAccount: publicKey,
-		Cursor:     lastAccountCursor,
-		Order:      horizonclient.OrderAsc,
-		Join:       "transactions",
-	}
-	ctx, cancel := context.WithCancel(context.Background())
-	worker := func() {
-		for {
-			//select from worker channel or timeout after 3mins of waiting.
-			select {
-			case o := <-workerChan:
-				ProcessOperation(o, db, roachDB)
-				//persist progress so the next periodic pass over tracked_public_keys resumes
-				//here instead of re-scanning from genesis.
-				if e := SaveAccountCursor(publicKey, o.PagingToken(), roachDB); e != nil {
-					log.Printf("[MonitorPublicKeyPaymentStream] unable to save account cursor for %v: %v\n", publicKey, e)
-				}
-			case <-time.After(30 * time.Second):
-				log.Printf("[MonitorPublicKeyPaymentStream] timeout waiting for stream on %v, will resume from saved cursor next pass\n", publicKey)
-				//NOTE: intentionally does not delete the tracked_public_keys row here anymore.
-				//A brand new/unfunded wallet would otherwise hit this timeout on its very first
-				//pass and be dropped from backfill forever. Leaving the row in place lets the
-				//periodic scan in main() retry it later, resuming cheaply from the saved cursor.
-				cancel()
-				return
-
-			}
-
-		}
-
-	}
-	{
-		//start a single worker: cursor persistence above assumes in-order processing,
-		//so do not enable a second concurrent worker on this channel.
-		go worker()
-
-	}
-
-	operationsStreamHandler := func(o operations.Operation) {
-		//send to worker channel
-		workerChan <- o
-	}
-
-	streamOperations := func() {
-
-		err := client.StreamPayments(ctx, opsRequest, operationsStreamHandler)
-		if err != nil {
-			log.Printf("[MonitorPublicKeyPaymentStream.StreamPayments]stream error:[%v]", err)
-			cancel()
-		}
-
-	}
-
-	//Start stream
-	streamOperations()
-	log.Println("#####[MonitorPublicKeyPaymentStream]...Ending streaming operation")
-	//close channels
-	// close(workerChan)
-
-}
-
-// swapTransactionType labels a path payment as a plain SWAP, or as a MINT/BURN TOKEN (SWAP ...)
-// when one leg's issuer is also that leg's sender/receiver, mirroring the plain "payment"
-// operation's MINT TOKEN / BURN TOKEN classification (an issuer sending its own asset is a mint,
-// an issuer receiving its own asset is a burn) so mint/burn activity routed through a path
-// payment isn't hidden behind a generic swap label.
-func swapTransactionType(from, sourceAssetIssuer, sourceAssetCode, to, destinationAssetIssuer, destinationAssetCode string) string {
-	swapLabel := fmt.Sprintf("SWAP %s>%s", sourceAssetCode, destinationAssetCode)
-	isMint := sourceAssetIssuer != "" && from == sourceAssetIssuer
-	isBurn := destinationAssetIssuer != "" && to == destinationAssetIssuer
-
-	switch {
-	case isMint && isBurn:
-		return fmt.Sprintf("MINT/BURN TOKEN (%s)", swapLabel)
-	case isMint:
-		return fmt.Sprintf("MINT TOKEN (%s)", swapLabel)
-	case isBurn:
-		return fmt.Sprintf("BURN TOKEN (%s)", swapLabel)
-	default:
-		return swapLabel
-	}
-}
-
-func ProcessOperation(o operations.Operation, db, roachDB *gorm.DB) {
-	//cursor persistence lives in each caller's worker (MonitorPaymentStream saves the shared
-	//global cursor, MonitorPublicKeyPaymentStream saves a per-account cursor) rather than here,
-	//since this same function is shared by both streams and they must not share one cursor.
-
-	if o.GetType() == "payment" {
-		log.Println("found payment operation....beginning processing")
-		pmt := interface{}(o).(operations.Payment)
-		//send out to be saved to db
-		assetCode := os.Getenv("NATIVE_ASSET_CODE")
-		if len(pmt.Code) > 0 {
-			assetCode = pmt.Code
-		}
-		//check if public key exists within trovo user ecosystem
-		trackedWallets := make([]paymentModels.TrackedWallet, 0)
-		// if pmt.From == "GCWNKFHXYJ7XW6ZL3UFTKXBSRFK7EKBLXXRZQR6PIK3N2KBKQ74I3RIC" || pmt.To == "GCWNKFHXYJ7XW6ZL3UFTKXBSRFK7EKBLXXRZQR6PIK3N2KBKQ74I3RIC" {
-		// 	log.Println("[ProcessOperation]^^^^^^^found payment from/to GCWNKFHXYJ7XW6ZL3UFTKXBSRFK7EKBLXXRZQR6PIK3N2KBKQ74I3RIC")
-		// 	time.Sleep(10 * time.Second)
-		// }
-		// dbFetchError := roachDB.Where(paymentModels.TrackedWallet{PublicKey: pmt.From}).Or(paymentModels.TrackedWallet{PublicKey: pmt.To}).Find(&trackedWallets).Error
-		dbFetchError := roachDB.Where("(public_key = ? OR temp_public_key = ?) OR (public_key = ? OR temp_public_key = ?)", pmt.From, pmt.From, pmt.To, pmt.To).Find(&trackedWallets).Error
-		var fromAlias, fromName, toAlias, toName string
-		if dbFetchError == nil {
-			if len(trackedWallets) == 0 {
-				log.Println("[ProcessOperation] public key not found in trovo user ecosystem")
-				return
-			}
-			//Trovo user exists
-			log.Printf("[ProcessOperation] found trovo user wallet %+v\n", trackedWallets)
-			for _, t := range trackedWallets {
-
-				if t.PublicKey == pmt.From {
-					fromAlias = t.Alias
-					fromName = t.Name
-				}
-				if t.PublicKey == pmt.To {
-					toAlias = t.Alias
-					toName = t.Name
-				}
-			}
-
-			paymentType := "PAYMENT"
-			if pmt.From == pmt.Issuer {
-				paymentType = "MINT TOKEN"
-			} else if pmt.To == pmt.Issuer {
-				paymentType = "BURN TOKEN"
-			}
-
-			e := paymentServices.SavePaymentHistory(pmt.From, fromAlias, fromName, pmt.To, toAlias, toName, pmt.Transaction.Memo, pmt.Issuer, assetCode, pmt.Amount, pmt.TransactionHash, paymentType, pmt.PT, pmt.ID, fmt.Sprintf("%v", pmt.Transaction.AccountSequence), pmt.LedgerCloseTime, db)
-			if e != nil {
-				log.Println("[ProcessOperation] unable to save SavePaymentHistory with payment Operation:", e)
-				return
-			}
-		} else {
-			log.Println("[ProcessOperation] unable to find tracked wallets for payment due to:", dbFetchError)
-		}
-
-	} else if o.GetType() == "create_account" {
-		log.Println("found create account operation....beginning processing")
-		pmt := interface{}(o).(operations.CreateAccount)
-
-		//send out to be saved to db
-		var trackedWallets []paymentModels.TrackedWallet
-		// dbFetchError := roachDB.Where(paymentModels.TrackedWallet{PublicKey: pmt.Funder}).Or(paymentModels.TrackedWallet{PublicKey: pmt.Account}).Find(&trackedWallets).Error
-		dbFetchError := roachDB.Where("(public_key = ? OR temp_public_key = ?) OR (public_key = ? OR temp_public_key = ?)", pmt.Funder, pmt.Funder, pmt.Account, pmt.Account).Find(&trackedWallets).Error
-		var fromAlias, fromName, toAlias, toName string
-		if dbFetchError == nil {
-			if len(trackedWallets) == 0 {
-				log.Println("[ProcessOperation]public key not found in trovo user ecosystem")
-				return
-			}
-			//Trovo user exists
-			log.Printf("[ProcessOperation] found trovo user wallet %+v\n", trackedWallets)
-
-			for _, t := range trackedWallets {
-
-				if t.PublicKey == pmt.Funder {
-					fromAlias = t.Alias
-					fromName = t.Name
-				}
-				if t.PublicKey == pmt.Account {
-					toAlias = t.Alias
-					toName = t.Name
-				}
-			}
-
-			e := paymentServices.SavePaymentHistory(pmt.Funder, fromAlias, fromName, pmt.Account, toAlias, toName, pmt.Transaction.Memo, "", os.Getenv("NATIVE_ASSET_CODE"), pmt.StartingBalance, pmt.TransactionHash, "PAYMENT", pmt.PT, pmt.ID, fmt.Sprintf("%v", pmt.Transaction.AccountSequence), pmt.LedgerCloseTime, db)
-			if e != nil {
-				log.Println("[ProcessOperation] unable to save SavePaymentHistory with create account operation:", e)
-				return
-			}
-		} else {
-			log.Println("[ProcessOperation] unable to find tracked wallets for create account due to:", dbFetchError)
-		}
-
-	} else if o.GetType() == "path_payment_strict_send" {
-		//payment transaction.
-		log.Println("found path payment strict send operation....beginning processing")
-		pmt := interface{}(o).(operations.PathPaymentStrictSend)
-
-		//send out to be saved to db
-		var trackedWallets []paymentModels.TrackedWallet
-		// dbFetchError := roachDB.Where(paymentModels.TrackedWallet{PublicKey: pmt.From}).Or(paymentModels.TrackedWallet{PublicKey: pmt.To}).Find(&trackedWallets).Error
-		dbFetchError := roachDB.Where("(public_key = ? OR temp_public_key = ?) OR (public_key = ? OR temp_public_key = ?)", pmt.From, pmt.From, pmt.To, pmt.To).Find(&trackedWallets).Error
-		var fromAlias, fromName, toAlias, toName string
-		if dbFetchError == nil {
-			if len(trackedWallets) == 0 {
-				log.Println("[ProcessOperation]public key not found in trovo user ecosystem")
-				return
-			}
-			//Trovo user exists
-			log.Printf("[ProcessOperation] found trovo user wallet %+v\n", trackedWallets)
-
-			for _, t := range trackedWallets {
-
-				if t.PublicKey == pmt.From {
-					fromAlias = t.Alias
-					fromName = t.Name
-				}
-				if t.PublicKey == pmt.To {
-					toAlias = t.Alias
-					toName = t.Name
-				}
-			}
-			var sourceAssetCode, destinationAssetCode string
-			if pmt.SourceAssetIssuer == "" {
-				sourceAssetCode = os.Getenv("NATIVE_ASSET_CODE")
-			} else {
-				sourceAssetCode = pmt.SourceAssetCode
-			}
-			if pmt.Issuer == "" {
-				destinationAssetCode = os.Getenv("NATIVE_ASSET_CODE")
-			} else {
-				destinationAssetCode = pmt.Code
-			}
-			transactionType := swapTransactionType(pmt.From, pmt.SourceAssetIssuer, sourceAssetCode, pmt.To, pmt.Issuer, destinationAssetCode)
-			e := paymentServices.SavePaymentHistory(pmt.From, fromAlias, fromName, pmt.To, toAlias, toName, pmt.Transaction.Memo, pmt.Issuer, destinationAssetCode, pmt.Amount, pmt.TransactionHash, transactionType, pmt.PT, pmt.ID, fmt.Sprintf("%v", pmt.Transaction.AccountSequence), pmt.LedgerCloseTime, db)
-			if e != nil {
-				log.Println("[ProcessOperation] unable to save SavePaymentHistory with strict payment send:", e)
-				return
-			}
-		} else {
-			log.Println("[ProcessOperation] unable to find tracked wallets for path payment strict send due to:", dbFetchError)
-		}
-
-	} else if o.GetType() == "path_payment" {
-		//payment transaction.
-		log.Println("found path payment operation....beginning processing")
-		pmt := interface{}(o).(operations.PathPayment)
-
-		//send out to be saved to db
-		trackedWallets := make([]paymentModels.TrackedWallet, 0)
-		// dbFetchError := roachDB.Where(paymentModels.TrackedWallet{PublicKey: pmt.From}).Or(paymentModels.TrackedWallet{PublicKey: pmt.To}).Find(&trackedWallets).Error
-		dbFetchError := roachDB.Where("(public_key = ? OR temp_public_key = ?) OR (public_key = ? OR temp_public_key = ?)", pmt.From, pmt.From, pmt.To, pmt.To).Find(&trackedWallets).Error
-		var fromAlias, fromName, toAlias, toName string
-		if dbFetchError == nil {
-			if len(trackedWallets) == 0 {
-				log.Println("[ProcessOperation]public key not found in trovo user ecosystem")
-				return
-			}
-			//Trovo user exists
-			log.Printf("[ProcessOperation] found trovo user wallet %+v\n", trackedWallets)
-
-			for _, t := range trackedWallets {
-
-				if t.PublicKey == pmt.From {
-					fromAlias = t.Alias
-					fromName = t.Name
-				}
-				if t.PublicKey == pmt.To {
-					toAlias = t.Alias
-					toName = t.Name
-				}
-			}
-			var sourceAssetCode, destinationAssetCode string
-			if pmt.SourceAssetIssuer == "" {
-				sourceAssetCode = os.Getenv("NATIVE_ASSET_CODE")
-			} else {
-				sourceAssetCode = pmt.SourceAssetCode
-			}
-			if pmt.Issuer == "" {
-				destinationAssetCode = os.Getenv("NATIVE_ASSET_CODE")
-			} else {
-				destinationAssetCode = pmt.Code
-			}
-			transactionType := swapTransactionType(pmt.From, pmt.SourceAssetIssuer, sourceAssetCode, pmt.To, pmt.Issuer, destinationAssetCode)
-			e := paymentServices.SavePaymentHistory(pmt.From, fromAlias, fromName, pmt.To, toAlias, toName, pmt.Transaction.Memo, pmt.Issuer, destinationAssetCode, pmt.Amount, pmt.TransactionHash, transactionType, pmt.PT, pmt.ID, fmt.Sprintf("%v", pmt.Transaction.AccountSequence), pmt.LedgerCloseTime, db)
-			if e != nil {
-				log.Println("[ProcessOperation] unable to save SavePaymentHistory with path payment:", e)
-				return
-			}
-		} else {
-			log.Println("[ProcessOperation] unable to find tracked wallets for path payment due to:", dbFetchError)
-		}
-
-	}
-	{
-		//ignore account merges
-
-	}
-	//save lastCursor
-	// log.Println("saving last cursor", o.PagingToken())
-
-}
-
-func ProcessTrade(tr horizon.Trade, db, roachDB *gorm.DB, redisCache *cache.RedisCache, cancelTradeStream context.CancelFunc) {
-	//when market maker sell counter = asset code, base is currency code, mm quantity is asset code (counter) quantity
-	//if baseIsSeller ==true, then baseOfferId is market maker ID
-	//if baseIsSeller ==false, then counterOfferId is market maker ID
-	//when a market maker buy the counter = currency code, base is asset code, mm quantity is currency code (counter) quantity
-	blockchainClient := network.GetBlockchainClient()
-	var err error
-	var mmBaseSignerKeyPair, mmCounterSignerKeyPair *keypair.Full
-	var baseAsset, counterAsset txnbuild.Asset
-	var baseMO, counterMO paymentModels.MarketOffer
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
-	mmFeeWallet := keypair.MustParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
-	var processBase, processCounter, signWithFeeWallet bool
-	//if baseIsSeller == true, then baseOfferId is market maker ID
-	if len(tr.BaseOfferID) > 0 {
-		e := db.Where("blockchain_offer_id = ?", tr.BaseOfferID).First(&baseMO).Error
-
-		if e != nil {
-			if !errors.Is(e, gorm.ErrRecordNotFound) {
-				log.Printf("[ProcessTrade] fatal error fetching offer with BC id %v from db: %v\nCancelling tradeStream now...\n", tr.BaseOfferID, e)
-				cancelTradeStream()
-				return
-			}
-			//could not locate the mm linked to trade stop process
-
-		} else {
-			//Enable processing the base offer
-			processBase = true
-			baseAsset = txnbuild.NativeAsset{}
-			if len(tr.BaseAssetCode) > 0 {
-				//custom asset
-				baseAsset = txnbuild.CreditAsset{Code: tr.BaseAssetCode, Issuer: tr.BaseAssetIssuer}
-			}
-		}
-
-	}
-	if len(tr.CounterOfferID) > 0 {
-		e := db.Where("blockchain_offer_id = ?", tr.CounterOfferID).First(&counterMO).Error
-
-		if e != nil {
-			if !errors.Is(e, gorm.ErrRecordNotFound) {
-				log.Printf("[ProcessTrade] fatal error fetching counter offer with BC id %v from db: %v\nCancelling tradeStream now...\n", tr.CounterOfferID, e)
-				cancelTradeStream()
-				return
-			}
-
-		} else {
-			//Enable processing the counter offer
-			processCounter = true
-			counterAsset = txnbuild.NativeAsset{}
-			if len(tr.CounterAssetCode) > 0 {
-				//custom asset
-				counterAsset = txnbuild.CreditAsset{Code: tr.CounterAssetCode, Issuer: tr.CounterAssetIssuer}
-			}
-		}
-
-	}
-	// set transaction of DB
-	dbTx := db.Begin()
-	defer dbTx.Rollback()
-	lastProcessedBaseCursor, lastProcessedCounterCursor := "0", "0"
-
-	if counterMO.LastProcessedCursor != nil {
-		lastProcessedCounterCursor = *counterMO.LastProcessedCursor
-	}
-	if baseMO.LastProcessedCursor != nil {
-		lastProcessedBaseCursor = *baseMO.LastProcessedCursor
-	}
-	if processBase && tr.PT > lastProcessedBaseCursor {
-
-		log.Println("[ProcessTrade]found base asset trade....beginning processing")
-
-		/**
-				when baseIsSeller==true {
-		        //when market maker sell
-				// base = asset code,
-				//counter == currency code,
-				//mm quantity is asset code (base amount) quantity
-				}
-				**/
-		tradedAmount := decimal.RequireFromString(tr.BaseAmount)
-		feeAmount := decimal.RequireFromString(baseMO.FeeValue)
-		netQuantity := decimal.RequireFromString(baseMO.NetQuantity)
-		//feeAmount/netQuantity gives hw much fee each netquantity gets
-		feeSharefactor := feeAmount.Div(netQuantity)
-		remainingQuantity := decimal.RequireFromString(baseMO.RemainingQuantity)
-		remainingQuantityAfterTrade := remainingQuantity.Sub(tradedAmount)
-		feeToTake := feeSharefactor.Mul(tradedAmount).Truncate(7)
-		if remainingQuantityAfterTrade.IsZero() || remainingQuantityAfterTrade.IsNegative() {
-			//order was filled.
-			feeToTake = decimal.RequireFromString(baseMO.RemainingFeeValue)
-			remainingQuantityAfterTrade = decimal.RequireFromString(baseMO.RemainingQuantity)
-		}
-
-		baseMO.RemainingQuantity = remainingQuantityAfterTrade.Truncate(7).String()
-		baseMO.RemainingFeeValue = (decimal.RequireFromString(baseMO.RemainingFeeValue).Sub(feeToTake)).Truncate(7).String()
-		baseMO.LastProcessedCursor = &tr.PT
-
-		e := dbTx.Save(&baseMO).Error
-		if e != nil {
-
-			log.Printf("[ProcessTrade] fatal error saving mm offer with BC id %v on db: %v\nCancelling tradeStream now...\n", tr.CounterOfferID, e)
-			cancelTradeStream()
-			return
-
-		}
-		trovoAccountUsername := baseMO.SourceWalletAlias
-		if strings.Contains(trovoAccountUsername, "_") {
-			//subwallet.
-			trovoAccountUsername = strings.Split(trovoAccountUsername, "_")[0]
-		}
-		mmBaseSignerKeyPair, err = bc.MarketMakingSignerKeypair(trovoAccountUsername, baseMO.MarketMakingWalletPublicKey)
-		if err != nil {
-			log.Printf("[ProcessTrade] fatal error generating signer key for mm offer with BC id %v on db: %v\nCancelling tradeStream now...\n", tr.CounterOfferID, err)
-			cancelTradeStream()
-			return
-		}
-		//prepare fee taking operation.
-
-		if !baseAsset.IsNative() {
-			//check if it has trustline to it and then create it.
-			// _, mmAccountTrustsAsset, mmNativeAccountBalance, baseAssetCustomBalance, mmSourceAcountObject, _ := network.BlockchainAccountProperties(blockchainClient, baseMO.MarketMakingWalletPublicKey, baseAsset)
-			_, mmAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(blockchainClient, mmFeeWallet.Address(), baseAsset)
-
-			if !mmAccountTrustsAsset {
-				//establish trustline automatically
-				ops = append(ops, &txnbuild.ChangeTrust{
-					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: baseAsset},
-					Limit:         "900000000000",
-					SourceAccount: mmFeeWallet.Address(),
-				})
-				signWithFeeWallet = true
-			}
-
-			ops = append(ops, &txnbuild.Payment{
-				Asset:         baseAsset,
-				Destination:   mmFeeWallet.Address(),
-				Amount:        feeToTake.String(),
-				SourceAccount: baseMO.MarketMakingWalletPublicKey,
-			})
-
-		} else {
-			ops = append(ops, &txnbuild.Payment{
-				Asset:         baseAsset,
-				Destination:   mmFeeWallet.Address(),
-				Amount:        feeToTake.String(),
-				SourceAccount: baseMO.MarketMakingWalletPublicKey,
-			})
-		}
-
-	}
-	//processCounter trade
-	if processCounter && tr.PT > lastProcessedCounterCursor {
-		log.Println("[ProcessTrade]found counter asset trade....beginning processing")
-
-		/**
-				when baseIsSeller==true {
-		        //when market maker sell
-				// base = asset code,
-				//counter == currency code,
-				//mm quantity is asset code (base amount) quantity
-				}
-				**/
-		tradedAmount := decimal.RequireFromString(tr.CounterAmount)
-		feeAmount := decimal.RequireFromString(counterMO.FeeValue)
-		netQuantity := decimal.RequireFromString(counterMO.NetQuantity)
-		//feeAmount/netQuantity gives hw much fee each netquantity gets
-		feeSharefactor := feeAmount.Div(netQuantity)
-		remainingQuantity := decimal.RequireFromString(counterMO.RemainingQuantity)
-		remainingQuantityAfterTrade := remainingQuantity.Sub(tradedAmount)
-		feeToTake := feeSharefactor.Mul(tradedAmount).Truncate(7)
-		if remainingQuantityAfterTrade.IsZero() || remainingQuantityAfterTrade.IsNegative() {
-			//order was filled.
-			feeToTake = decimal.RequireFromString(counterMO.RemainingFeeValue)
-			remainingQuantityAfterTrade = decimal.RequireFromString(counterMO.RemainingQuantity)
-		}
-
-		counterMO.RemainingQuantity = remainingQuantityAfterTrade.Truncate(7).String()
-		counterMO.RemainingFeeValue = (decimal.RequireFromString(counterMO.RemainingFeeValue).Sub(feeToTake)).Truncate(7).String()
-		counterMO.LastProcessedCursor = &tr.PT
-		e := dbTx.Save(&counterMO).Error
-		if e != nil {
-
-			log.Printf("[ProcessTrade] fatal error saving mm counter offer with BC id %v on db: %v\nCancelling tradeStream now...\n", tr.CounterOfferID, e)
-			cancelTradeStream()
-			return
-
-		}
-		trovoAccountUsername := counterMO.SourceWalletAlias
-		if strings.Contains(trovoAccountUsername, "_") {
-			//subwallet.
-			trovoAccountUsername = strings.Split(trovoAccountUsername, "_")[0]
-		}
-		mmCounterSignerKeyPair, err = bc.MarketMakingSignerKeypair(trovoAccountUsername, counterMO.MarketMakingWalletPublicKey)
-		if err != nil {
-			log.Printf("[ProcessTrade] fatal error generating signer key for mm counter offer with BC id %v on db: %v\nCancelling tradeStream now...\n", tr.CounterOfferID, err)
-			cancelTradeStream()
-			return
-		}
-
-		//prepare fee taking operation.
-
-		if !counterAsset.IsNative() {
-			//check if it has trustline to it and then create it.
-			// _, mmAccountTrustsAsset, mmNativeAccountBalance, baseAssetCustomBalance, mmSourceAcountObject, _ := network.BlockchainAccountProperties(blockchainClient, baseMO.MarketMakingWalletPublicKey, baseAsset)
-			_, mmAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(blockchainClient, mmFeeWallet.Address(), counterAsset)
-
-			if !mmAccountTrustsAsset {
-				//establish trustline automatically
-				ops = append(ops, &txnbuild.ChangeTrust{
-					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: counterAsset},
-					Limit:         "900000000000",
-					SourceAccount: mmFeeWallet.Address(),
-				})
-				signWithFeeWallet = true
-			}
-
-			ops = append(ops, &txnbuild.Payment{
-				Asset:         counterAsset,
-				Destination:   mmFeeWallet.Address(),
-				Amount:        feeToTake.String(),
-				SourceAccount: counterMO.MarketMakingWalletPublicKey,
-			})
-
-		} else {
-			ops = append(ops, &txnbuild.Payment{
-				Asset:         counterAsset,
-				Destination:   mmFeeWallet.Address(),
-				Amount:        feeToTake.String(),
-				SourceAccount: counterMO.MarketMakingWalletPublicKey,
-			})
-		}
-
-	}
-
-	if len(ops) > 0 {
-		//operations exist
-		chanKP := keypair.MustParseFull(os.Getenv("MM_FEE_COLLECTION_CHANNEL_ACCOUNT"))
-		chanAccountExists, _, _, _, chanSourceAcountObject, _ := network.BlockchainAccountProperties(blockchainClient, chanKP.Address(), txnbuild.NativeAsset{})
-		if !chanAccountExists {
-			log.Println("[ProcessTrade] fatal error, fee collection channel account is not activated")
-			cancelTradeStream()
-			return
-		}
-
-		tx, err := txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        chanSourceAcountObject,
-				IncrementSequenceNum: true,
-				Operations:           ops,
-				BaseFee:              4000,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText("MM Service Fee"),
-			},
-		)
-
-		if err != nil {
-			log.Println("[ProcessTrade]error constructing transaction", err)
-			cancelTradeStream()
-			return
-		}
-
-		if processBase {
-			tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), mmBaseSignerKeyPair)
-
-			if err != nil {
-				log.Println("[ProcessTrade] error signing transaction with base account signer key ", err)
-				cancelTradeStream()
-				return
-			}
-		}
-
-		if processCounter {
-			tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), mmCounterSignerKeyPair)
-
-			if err != nil {
-				log.Println("[ProcessTrade] error signing transaction with counter account signer key ", err)
-				cancelTradeStream()
-				return
-			}
-		}
-
-		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanKP)
-
-		if err != nil {
-			log.Println("[ProcessTrade] error signing transaction with channel account signer key ", err)
-			cancelTradeStream()
-			return
-		}
-
-		if signWithFeeWallet {
-			tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), mmFeeWallet)
-
-			if err != nil {
-				log.Println("[ProcessTrade] error signing transaction with mm fee wallet signer key ", err)
-				cancelTradeStream()
-				return
-			}
-		}
-
-		ht, err := blockchainClient.SubmitTransaction(tx)
-
-		if err != nil {
-			log.Println("[ProcessTrade] error signing transaction with mm fee wallet signer key ", err)
-			cancelTradeStream()
-			return
-		}
-
-		dbTx.Commit()
-		log.Println("[ProcessTrade] >>>>>>>>> >>>>>>>>>>> successfully  processed the MM fee.", ht.Hash)
-
-	}
-	enable := false
-	if processBase && enable {
-		//save to history
-		//send out to be saved to db
-		baseCode := os.Getenv("NATIVE_ASSET_CODE")
-		// counterCode := os.Getenv("NATIVE_ASSET_CODE")
-		if len(tr.BaseAssetCode) > 0 {
-			baseCode = tr.BaseAssetCode
-		}
-		// if len(tr.CounterAssetCode) > 0 {
-		// 	counterCode = tr.CounterAssetCode
-		// }
-		//check if public key exists within trovo user ecosystem
-		trackedWallets := make([]paymentModels.TrackedWallet, 0)
-
-		dbFetchError := roachDB.Where("(public_key = ? OR temp_public_key = ?) OR (public_key = ? OR temp_public_key = ?)", tr.BaseAccount, tr.BaseAccount, tr.CounterAccount, tr.CounterAccount).Find(&trackedWallets).Error
-		var fromAlias, fromName, toAlias, toName string
-		if dbFetchError == nil {
-			if len(trackedWallets) == 0 {
-				log.Println("[ProcessTrade] public key not found in trovo user ecosystem")
-				return
-			}
-			//Trovo user exists
-			log.Printf("[ProcessTrade] found trovo user wallet %+v\n", trackedWallets)
-			for _, t := range trackedWallets {
-
-				if t.PublicKey == tr.BaseAccount {
-					fromAlias = t.Alias
-					fromName = t.Name
-				}
-				if t.PublicKey == tr.CounterAccount {
-					toAlias = t.Alias
-					toName = t.Name
-				}
-			}
-
-			paymentType := "TRADE"
-
-			e := paymentServices.SavePaymentHistory(tr.BaseAccount, fromAlias, fromName, tr.CounterAccount, toAlias, toName, "", tr.BaseAssetIssuer, baseCode, tr.BaseAmount, tr.ID+tr.BaseOfferID, paymentType, tr.PT, tr.ID, fmt.Sprintf("%v", tr.PT), tr.LedgerCloseTime, db)
-			if e != nil {
-				log.Println("[ProcessTrade] unable to save trade history:", e)
-				return
-			}
-
-			processCounter = false
-
-		} else {
-			log.Println("[ProcessTrade] unable to find tracked wallets for payment due to:", dbFetchError)
-		}
-
-	}
-
-	if processCounter && enable {
-		//save to history
-		//send out to be saved to db
-		// baseCode := os.Getenv("NATIVE_ASSET_CODE")
-		counterCode := os.Getenv("NATIVE_ASSET_CODE")
-		// if len(tr.BaseAssetCode) > 0 {
-		// 	baseCode = tr.BaseAssetCode
-		// }
-		if len(tr.CounterAssetCode) > 0 {
-			counterCode = tr.CounterAssetCode
-		}
-		//check if public key exists within trovo user ecosystem
-		trackedWallets := make([]paymentModels.TrackedWallet, 0)
-
-		dbFetchError := roachDB.Where("(public_key = ? OR temp_public_key = ?) OR (public_key = ? OR temp_public_key = ?)", tr.CounterAccount, tr.CounterAccount, tr.BaseAccount, tr.BaseAccount).Find(&trackedWallets).Error
-		var fromAlias, fromName, toAlias, toName string
-		if dbFetchError == nil {
-			if len(trackedWallets) == 0 {
-				log.Println("[ProcessTrade] public key not found in trovo user ecosystem")
-				return
-			}
-			//Trovo user exists
-			log.Printf("[ProcessTrade] found trovo user wallet %+v\n", trackedWallets)
-			for _, t := range trackedWallets {
-
-				if t.PublicKey == tr.CounterAccount {
-					fromAlias = t.Alias
-					fromName = t.Name
-				}
-				if t.PublicKey == tr.BaseAccount {
-					toAlias = t.Alias
-					toName = t.Name
-				}
-			}
-
-			paymentType := "TRADE"
-
-			e := paymentServices.SavePaymentHistory(tr.CounterAccount, fromAlias, fromName, tr.BaseAccount, toAlias, toName, "", tr.CounterAssetIssuer, counterCode, tr.CounterAmount, tr.ID+tr.CounterOfferID, paymentType, tr.PT, tr.ID+tr.CounterOfferID, fmt.Sprintf("%v%v", tr.PT, tr.CounterOfferID), tr.LedgerCloseTime, db)
-			if e != nil {
-				log.Println("[ProcessTrade] unable to save trade history:", e)
-				return
-			}
-		} else {
-			log.Println("[ProcessTrade] unable to find tracked wallets for payment due to:", dbFetchError)
-		}
-	}
-
+	log.Println("[MonitorTradeStream] Base has no trade stream to watch yet (see doc comment) - idling.")
+	time.Sleep(5 * time.Minute)
 }

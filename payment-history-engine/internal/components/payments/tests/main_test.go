@@ -1,30 +1,40 @@
 package payments
 
 import (
+	"encoding/base64"
 	"testing"
 
-	"github.com/stellar/go/txnbuild"
+	"trovo-wallet-payment-history-engine/internal/evmkeypair"
 )
 
+// TestSignature exercises the EIP-191 personal_sign round trip
+// (evmkeypair.Full.SignBase64 / Verify) that replaced Stellar's XDR
+// transaction signature verification (txnbuild.TransactionFromXDR +
+// AddSignatureBase64) this test previously covered.
 func TestSignature(t *testing.T) {
-
-	gTxn, err := txnbuild.TransactionFromXDR("AAAAAgAAAADirXYFhkNNhc2nJgA9VoQISOQ6e5D0aIzhozUI9xQVrwAAAGQAHJgYAAAAAQAAAAEAAAAAAAAAAAAAAABgHIWaAAAAAAAAAAEAAAAAAAAAAAAAAAAmsDl7eJ11cYWt32hyZHrg64sd4lJqL6lpTCjRDUGcsgAAAAAL/piHAAAAAAAAAAA=")
-
+	kp, err := evmkeypair.Random()
 	if err != nil {
-		t.Fatalf("error decoding xdr %v", err)
+		t.Fatalf("error generating keypair %v", err)
 	}
 
-	txn, ok := gTxn.Transaction()
+	message := []byte("Bantu Testnet")
 
-	if !ok {
-		t.Fatalf("error extracting transaction")
-
+	sigBase64, err := kp.SignBase64(message)
+	if err != nil {
+		t.Fatalf("error signing message %v", err)
 	}
 
-	txn, err = txn.AddSignatureBase64("Bantu Testnet", "GDRK25QFQZBU3BONU4TAAPKWQQEERZB2POIPI2EM4GRTKCHXCQK27PY2", "4F5i38Sagc72DBYMqjZvrFNG3IrrASBYnt744xxyfC0kEKImuJqHMmxdeyQq1DtGOJGkFGw2GsXYsqAsJxsICQ==")
-
+	addr, err := evmkeypair.ParseAddress(kp.Address())
 	if err != nil {
+		t.Fatalf("error parsing address %v", err)
+	}
+
+	sig, err := base64.StdEncoding.DecodeString(sigBase64)
+	if err != nil {
+		t.Fatalf("error decoding signature %v", err)
+	}
+
+	if err := addr.Verify(message, sig); err != nil {
 		t.Fatalf("Failed to verify signature [%v]", err)
-
 	}
 }
