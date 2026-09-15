@@ -129,15 +129,15 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 	if len(dateBetween) == 21 && strings.Contains(dateBetween, "|") {
 		// 2020-01-01|2020-02-31 full range date
 		dateRange := strings.Split(dateBetween, "|")
-		query = query.Where("transaction_date::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
-		countQuery = countQuery.Where("transaction_date::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+		query = query.Where("DATE(transaction_date) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
+		countQuery = countQuery.Where("DATE(transaction_date) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
 
 	}
 	if len(amountBetween) > 2 && strings.Contains(amountBetween, "|") {
 		// 0|1
 		amountRange := strings.Split(amountBetween, "|")
-		query = query.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
-		countQuery = countQuery.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
+		query = query.Where("CAST(amount AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", amountRange[0], amountRange[1])
+		countQuery = countQuery.Where("CAST(amount AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", amountRange[0], amountRange[1])
 
 	}
 
@@ -246,15 +246,15 @@ func GetCryptoDepositHistory(targetPublicKey, currency string, gc *sharedconfig.
 	if len(dateBetween) == 21 && strings.Contains(dateBetween, "|") {
 		// 2020-01-01|2020-02-31 full range date
 		dateRange := strings.Split(dateBetween, "|")
-		query = query.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
-		countQuery = countQuery.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+		query = query.Where("DATE(created_at) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
+		countQuery = countQuery.Where("DATE(created_at) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
 
 	}
 	if len(amountBetween) > 2 && strings.Contains(amountBetween, "|") {
 		// 0|1
 		amountRange := strings.Split(amountBetween, "|")
-		query = query.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
-		countQuery = countQuery.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
+		query = query.Where("CAST(amount AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", amountRange[0], amountRange[1])
+		countQuery = countQuery.Where("CAST(amount AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", amountRange[0], amountRange[1])
 
 	}
 
@@ -375,15 +375,15 @@ func GetCryptoWithdrawalHistory(targetPublicKey, currency string, gc *sharedconf
 	if len(dateBetween) == 21 && strings.Contains(dateBetween, "|") {
 		// 2020-01-01|2020-02-31 full range date
 		dateRange := strings.Split(dateBetween, "|")
-		query = query.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
-		countQuery = countQuery.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+		query = query.Where("DATE(created_at) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
+		countQuery = countQuery.Where("DATE(created_at) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
 
 	}
 	if len(amountBetween) > 2 && strings.Contains(amountBetween, "|") {
 		// 0|1
 		amountRange := strings.Split(amountBetween, "|")
-		query = query.Where("amount_submitted::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
-		countQuery = countQuery.Where("amount_submitted::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
+		query = query.Where("CAST(amount_submitted AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", amountRange[0], amountRange[1])
+		countQuery = countQuery.Where("CAST(amount_submitted AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", amountRange[0], amountRange[1])
 
 	}
 

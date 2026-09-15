@@ -2419,7 +2419,7 @@ func postTrovoApiUsersUpdateKycHandler(gc *sharedconfig.GlobalConfig) gin.Handle
 		}
 
 		//get the user object
-		targetUser, err := userModels.Username(kycData.KycStatus).GetSimpleUser(gc.DB, gc)
+		targetUser, err := userModels.Username(kycData.TargetTrovoUsername).GetSimpleUser(gc.DB, gc)
 		if err != nil {
 			log.Println("[GET servicelink target user] error for getting user:", kycData.TargetTrovoUsername, "error: ", err)
 

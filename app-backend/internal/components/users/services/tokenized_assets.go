@@ -1577,9 +1577,9 @@ func ActivatePrimarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 	{
 		//start primnary sales
 
-		e := gc.DB.Where("Sales_Start::date <= now()::date AND Asset_Tokenization_Status = ?", 4).First(&userModels.TokenizedAsset{}).Error
+		e := gc.DB.Where("DATE(Sales_Start) <= DATE(?) AND Asset_Tokenization_Status = ?", time.Now(), 4).First(&userModels.TokenizedAsset{}).Error
 		if e == nil {
-			result := gc.DB.Where("Sales_Start::date <= now()::date AND Asset_Tokenization_Status = ?", 4).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
+			result := gc.DB.Where("DATE(Sales_Start) <= DATE(?) AND Asset_Tokenization_Status = ?", time.Now(), 4).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
 				for i, asset := range assets {
 
 					//check if it has been minted.
@@ -1631,9 +1631,9 @@ func ActivateSecondarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 	{
 		//start secondary sales
 
-		e := gc.DB.Where("Sales_End::date <= now()::date AND Asset_Tokenization_Status = ?", 5).First(&userModels.TokenizedAsset{}).Error
+		e := gc.DB.Where("DATE(Sales_End) <= DATE(?) AND Asset_Tokenization_Status = ?", time.Now(), 5).First(&userModels.TokenizedAsset{}).Error
 		if e == nil {
-			result := gc.DB.Where("Sales_End::date <= now()::date AND Asset_Tokenization_Status = ?", 5).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
+			result := gc.DB.Where("DATE(Sales_End) <= DATE(?) AND Asset_Tokenization_Status = ?", time.Now(), 5).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
 				for _, asset := range assets {
 
 					asset.AssetTokenizationStatus = 6
@@ -1911,7 +1911,7 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,7) as average_price_per_token
+CAST(avg(price_per_token) AS REAL) as average_price_per_token
 FROM tokenized_assets where asset_tokenization_status > ?)
 
 select total.count, total.total_current_value, 
@@ -1928,7 +1928,7 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,7) as average_price_per_token
+CAST(avg(price_per_token) AS REAL) as average_price_per_token
 FROM tokenized_assets where asset_tokenization_status < ? AND Due_Diligence_Fail=0)
 
 select unsubmitted.count, 
@@ -1946,7 +1946,7 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,7) as average_price_per_token
+CAST(avg(price_per_token) AS REAL) as average_price_per_token
 FROM tokenized_assets where asset_tokenization_status >0 AND asset_tokenization_status < ?)
 
 select submitted.count, 
@@ -1964,7 +1964,7 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,7) as average_price_per_token
+CAST(avg(price_per_token) AS REAL) as average_price_per_token
 FROM tokenized_assets where asset_tokenization_status = ?)
 
 select pending.count, 
@@ -1982,7 +1982,7 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,7) as average_price_per_token
+CAST(avg(price_per_token) AS REAL) as average_price_per_token
 FROM tokenized_assets where asset_tokenization_status = 0 AND Due_Diligence_Fail=?)
 
 select rejected.count, 
@@ -2000,7 +2000,7 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,7) as average_price_per_token
+CAST(avg(price_per_token) AS REAL) as average_price_per_token
 FROM tokenized_assets where asset_tokenization_status > ? AND asset_tokenization_status < 8)
 
 select approved.count, 
@@ -2018,7 +2018,7 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,7) as average_price_per_token
+CAST(avg(price_per_token) AS REAL) as average_price_per_token
 FROM tokenized_assets where asset_tokenization_status = ?)
 
 select liquidated.count, 
@@ -2036,7 +2036,7 @@ sum(value_of_tokenized_asset) as total_tokenized_value,
 sum(number_of_token_to_be_issued) as total_tokens_to_be_issued,
 sum(number_of_token_to_be_sold) as total_tokens_to_be_sold,
 sum(price_per_token) as total_price_per_token,
-avg(price_per_token)::numeric(13,7) as average_price_per_token
+CAST(avg(price_per_token) AS REAL) as average_price_per_token
 FROM tokenized_assets where asset_tokenization_status = ?)
 
 select refunded.count, 
@@ -2301,8 +2301,8 @@ func GetTokenizationList(user *userModels.User, adminList bool, gc *sharedconfig
 	if len(createdBetween) == 21 && strings.Contains(createdBetween, "|") {
 		// 2020-01-01|2020-02-31 full range date
 		dateRange := strings.Split(createdBetween, "|")
-		query = query.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
-		countQuery = countQuery.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+		query = query.Where("DATE(created_at) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
+		countQuery = countQuery.Where("DATE(created_at) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
 
 	}
 
@@ -2429,8 +2429,8 @@ func GetTokenizedAssetSubscriptionList(user *userModels.User, gc *sharedconfig.G
 	if len(createdBetween) == 21 && strings.Contains(createdBetween, "|") {
 		// 2020-01-01|2020-02-31 full range date
 		dateRange := strings.Split(createdBetween, "|")
-		query = query.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
-		countQuery = countQuery.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+		query = query.Where("DATE(created_at) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
+		countQuery = countQuery.Where("DATE(created_at) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
 
 	}
 	if len(amountBetween) > 0 && strings.Contains(amountBetween, "|") {
@@ -2444,8 +2444,8 @@ func GetTokenizedAssetSubscriptionList(user *userModels.User, gc *sharedconfig.G
 			hAmount = decimal.Zero
 		}
 		if lAmount.InexactFloat64() > 0 || hAmount.InexactFloat64() > 0 {
-			query = query.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", lAmount, hAmount)
-			countQuery = countQuery.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", lAmount, hAmount)
+			query = query.Where("CAST(amount AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", lAmount, hAmount)
+			countQuery = countQuery.Where("CAST(amount AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", lAmount, hAmount)
 
 		}
 
@@ -2559,8 +2559,8 @@ func GetExpressionOfInterestList(user *userModels.User, gc *sharedconfig.GlobalC
 	if len(createdBetween) == 21 && strings.Contains(createdBetween, "|") {
 		// 2020-01-01|2020-02-31 full range date
 		dateRange := strings.Split(createdBetween, "|")
-		query = query.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
-		countQuery = countQuery.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+		query = query.Where("DATE(created_at) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
+		countQuery = countQuery.Where("DATE(created_at) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
 
 	}
 	if len(amountBetween) > 0 && strings.Contains(amountBetween, "|") {
@@ -2574,8 +2574,8 @@ func GetExpressionOfInterestList(user *userModels.User, gc *sharedconfig.GlobalC
 			hAmount = decimal.Zero
 		}
 		if lAmount.InexactFloat64() > 0 || hAmount.InexactFloat64() > 0 {
-			query = query.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", lAmount, hAmount)
-			countQuery = countQuery.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", lAmount, hAmount)
+			query = query.Where("CAST(amount AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", lAmount, hAmount)
+			countQuery = countQuery.Where("CAST(amount AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", lAmount, hAmount)
 
 		}
 

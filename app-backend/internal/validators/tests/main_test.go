@@ -64,7 +64,7 @@ func TestInvalidPublicKeys(t *testing.T) {
 
 func TestValidPublicKey(t *testing.T) {
 
-	var publicKeys []string = []string{"GAIDLHMWMKFZNYS7DYY5FN62RM4EQO7P7674SXVBX47ZFSWCN3HOCRS3", "GDVS4FLAMAET2B7R52IZIW7BO65FXMPE5YJP7LCGLQQKTRYHN2ULAJ24"}
+	var publicKeys []string = []string{"0xc4FE8226634b79a06e49f5DFdB02475E2eA8AF28", "0xD59AC3c804E6A19d0418CDb2BA96F3F02A1166ab"}
 
 	for idx, publicKey := range publicKeys {
 

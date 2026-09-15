@@ -137,8 +137,8 @@ func GetApprovalList(approverUser *userModels.User, publicKeysSharedWithUser []s
 	if len(dateBetween) == 21 && strings.Contains(dateBetween, "|") {
 		// 2020-01-01|2020-02-31 full range date
 		dateRange := strings.Split(dateBetween, "|")
-		query = query.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
-		countQuery = countQuery.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+		query = query.Where("DATE(created_at) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
+		countQuery = countQuery.Where("DATE(created_at) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
 
 	}
 
