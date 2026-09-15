@@ -7,17 +7,17 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"trovo-wallet-api/internal/basetxn"
 	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 	"trovo-wallet-api/internal/validators"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm/clause"
 )
 
@@ -302,12 +302,12 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 
 	//asset to Claim
 
-	var asset txnbuild.Asset = nil
+	var asset basetxn.Asset = nil
 
-	// asset = txnbuild.NativeAsset{}
+	// asset = basetxn.NativeAsset{}
 
 	if len(pendingAssetToClaim.AssetIssuer) > 0 {
-		asset = txnbuild.CreditAsset{Code: pendingAssetToClaim.AssetCode, Issuer: pendingAssetToClaim.AssetIssuer}
+		asset = basetxn.CreditAsset{Code: pendingAssetToClaim.AssetCode, Issuer: pendingAssetToClaim.AssetIssuer}
 	}
 
 	tempAccountExist, tempAccountTrustsAsset, nativeAccountBalance, customAccountBalance, tempAccount, err := network.BlockchainAccountProperties(gc.BantuExpansionClient, tempKeyPair.Address(), asset)
@@ -324,62 +324,62 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 		return "", &tErrors.ErrorAssetNotClaimable{}
 	}
 	chanAccount := <-gc.ChannelAccounts
-	defer func(c *keypair.Full) {
+	defer func(c *evmkeypair.Full) {
 		gc.ChannelAccounts <- c
 	}(chanAccount)
 	// paymentInfo.Messages = messages
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), basetxn.NativeAsset{})
 
 	//source account details
 
 	sourceAccountExists, sourceAccountTrustsAsset, _, _, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 
 	if nativeAccountBalance.GreaterThan(decimal.Zero) {
 		if !sourceAccountExists {
 			//todo: check if nativeAccount balance > 1
-			ops = append(ops, &txnbuild.CreateAccount{
+			ops = append(ops, &basetxn.CreateAccount{
 				Destination:   wallet.ID,
 				Amount:        nativeAccountBalance.Truncate(7).String(),
-				SourceAccount: tempAccount.AccountID,
+				SourceAccount: tempAccount.Address,
 			})
 		} else {
-			ops = append(ops, &txnbuild.Payment{
+			ops = append(ops, &basetxn.Payment{
 				Destination:   wallet.ID,
 				Amount:        nativeAccountBalance.Truncate(7).String(),
-				Asset:         txnbuild.NativeAsset{},
-				SourceAccount: tempAccount.AccountID,
+				Asset:         basetxn.NativeAsset{},
+				SourceAccount: tempAccount.Address,
 			})
 		}
 	}
 
 	if !sourceAccountTrustsAsset {
-		ops = append(ops, &txnbuild.ChangeTrust{
-			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+		ops = append(ops, &basetxn.ChangeTrust{
+			Line:          asset,
 			Limit:         "900000000000",
-			SourceAccount: sourceAccount.AccountID,
+			SourceAccount: sourceAccount.Address,
 		})
 	}
 
 	if gc.IsValidTokenizedAsset(asset.GetCode()) {
 		//check if it is a tokenized asset
 		// allow trust from issuer to destination wallet
-		ops = append(ops, &txnbuild.SetTrustLineFlags{
+		ops = append(ops, &basetxn.SetTrustLineFlags{
 			Trustor:       wallet.ID,
-			Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
-			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+			Asset:         basetxn.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+			SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 			SourceAccount: asset.GetIssuer(),
 		})
 		tokenizedAssetIssuerMustSign = true
 	}
 
 	if customAccountBalance.GreaterThan(decimal.Zero) {
-		ops = append(ops, &txnbuild.Payment{
+		ops = append(ops, &basetxn.Payment{
 			Destination:   wallet.ID,
 			Amount:        customAccountBalance.Truncate(7).String(),
 			Asset:         asset,
-			SourceAccount: tempAccount.AccountID,
+			SourceAccount: tempAccount.Address,
 		})
 	}
 
@@ -388,33 +388,27 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 		return "", &tErrors.ErrorAssetNotClaimable{}
 	}
 
-	var tx *txnbuild.Transaction
+	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if pendingAssetToClaim.Multiparty == 1 {
-		pendingAssetToClaim.TransactionSource = chanSourceAccount.AccountID
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        chanSourceAccount,
+		pendingAssetToClaim.TransactionSource = chanSourceAccount.Address
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        chanSourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
 				BaseFee:              2000,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText("claim-asset"),
+				Memo:                 "claim-asset",
 			},
 		)
 	} else {
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        tempAccount,
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        tempAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
 				BaseFee:              2000,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText("claim-asset"),
+				Memo:                 "claim-asset",
 			},
 		)
 	}
@@ -442,7 +436,7 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
 		}
 
-		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+		tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
 
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
 		if err != nil {
@@ -488,12 +482,12 @@ func generateRejectPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetTo
 
 	//asset to Claim
 
-	var asset txnbuild.Asset = nil
+	var asset basetxn.Asset = nil
 
-	asset = txnbuild.NativeAsset{}
+	asset = basetxn.NativeAsset{}
 
 	if len(pendingAssetToClaim.AssetIssuer) > 0 {
-		asset = txnbuild.CreditAsset{Code: pendingAssetToClaim.AssetCode, Issuer: pendingAssetToClaim.AssetIssuer}
+		asset = basetxn.CreditAsset{Code: pendingAssetToClaim.AssetCode, Issuer: pendingAssetToClaim.AssetIssuer}
 	}
 
 	tempAccountExist, tempAccountTrustsAsset, _, customAccountBalance, tempAccount, err := network.BlockchainAccountProperties(gc.BantuExpansionClient, tempKeyPair.Address(), asset)
@@ -510,31 +504,31 @@ func generateRejectPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetTo
 		return "", &tErrors.ErrorAssetNotClaimable{}
 	}
 	chanAccount := <-gc.ChannelAccounts
-	defer func(c *keypair.Full) {
+	defer func(c *evmkeypair.Full) {
 		gc.ChannelAccounts <- c
 	}(chanAccount)
 	// paymentInfo.Messages = messages
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), basetxn.NativeAsset{})
 
 	//source account details
 
 	// sourceAccountExists, sourceAccountTrustsAsset, _, _, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 
 	if customAccountBalance.GreaterThan(decimal.Zero) {
 
-		ops = append(ops, &txnbuild.Payment{
+		ops = append(ops, &basetxn.Payment{
 			Destination:   originPublicKey,
 			Amount:        customAccountBalance.Truncate(7).String(),
 			Asset:         asset,
-			SourceAccount: tempAccount.AccountID,
+			SourceAccount: tempAccount.Address,
 		})
 		//remove trustline
-		ops = append(ops, &txnbuild.ChangeTrust{
-			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+		ops = append(ops, &basetxn.ChangeTrust{
+			Line:          asset,
 			Limit:         "0",
-			SourceAccount: tempAccount.AccountID,
+			SourceAccount: tempAccount.Address,
 		})
 	}
 
@@ -543,33 +537,27 @@ func generateRejectPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetTo
 		return "", &tErrors.ErrorAssetNotClaimable{}
 	}
 
-	var tx *txnbuild.Transaction
+	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if pendingAssetToClaim.Multiparty == 1 {
-		pendingAssetToClaim.TransactionSource = chanSourceAccount.AccountID
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        chanSourceAccount,
+		pendingAssetToClaim.TransactionSource = chanSourceAccount.Address
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        chanSourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
 				BaseFee:              2000,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText("reject-asset"),
+				Memo:                 "reject-asset",
 			},
 		)
 	} else {
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        tempAccount,
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        tempAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
 				BaseFee:              2000,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText("reject-asset"),
+				Memo:                 "reject-asset",
 			},
 		)
 	}
@@ -617,13 +605,13 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 		return "", &tErrors.CustomError{Param: "assetCode", Err: "error-invalid-asset", ErrMessage: "Asset Supplied is invalid.", Code: http.StatusBadRequest}
 	}
 
-	asset := txnbuild.CreditAsset{Code: assetCode, Issuer: assetIssuer}
+	asset := basetxn.CreditAsset{Code: assetCode, Issuer: assetIssuer}
 	chanAccount := <-gc.ChannelAccounts
-	defer func(c *keypair.Full) {
+	defer func(c *evmkeypair.Full) {
 		gc.ChannelAccounts <- c
 	}(chanAccount)
 
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), basetxn.NativeAsset{})
 
 	sourceAccountExists, sourceAccountTrustsAsset, nativeAccountBalance, _, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
@@ -642,9 +630,9 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 
 	}
 
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
-	ops = append(ops, &txnbuild.ChangeTrust{
-		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
+	ops = append(ops, &basetxn.ChangeTrust{
+		Line:          asset,
 		Limit:         "900000000000",
 		SourceAccount: wallet.ID,
 	})
@@ -656,60 +644,54 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 		// 		walletOwner, _:=wallet.GetWalletOwner(gc.DB,gc)
 		// 		if walletOwner.Username==strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE")){
 		// //request if from a tokenization profile give full rights
-		// 		ops = append(ops, &txnbuild.SetTrustLineFlags{
+		// 		ops = append(ops, &basetxn.SetTrustLineFlags{
 		// 			Trustor:       wallet.ID,
-		// 			Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
-		// 			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		// 			Asset:         basetxn.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+		// 			SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 		// 			SourceAccount: asset.GetIssuer(),
 		// 		})
 
 		// 		}else{
 		// 			//it is from third party. remove market maker right.
-		// 		ops = append(ops, &txnbuild.SetTrustLineFlags{
+		// 		ops = append(ops, &basetxn.SetTrustLineFlags{
 		// 			Trustor:       wallet.ID,
-		// 			Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
-		// 			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized, txnbuild.trustlin},
+		// 			Asset:         basetxn.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+		// 			SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized, txnbuild.trustlin},
 		// 			SourceAccount: asset.GetIssuer(),
 		// 		})
 		// 		}
 
-		ops = append(ops, &txnbuild.SetTrustLineFlags{
+		ops = append(ops, &basetxn.SetTrustLineFlags{
 			Trustor:       wallet.ID,
-			Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
-			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+			Asset:         basetxn.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+			SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 			SourceAccount: asset.GetIssuer(),
 		})
 		tokenizedAssetIssuerMustSign = true
 	}
 	// Construct the transaction that holds the operations to execute on the network
 
-	var tx *txnbuild.Transaction
+	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if trustLineInfo.Multiparty == 1 {
-		trustLineInfo.TransactionSource = chanSourceAccount.AccountID
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        chanSourceAccount,
+		trustLineInfo.TransactionSource = chanSourceAccount.Address
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        chanSourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
-				BaseFee:              txnbuild.MinBaseFee,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText("opt-in-" + assetCode),
+				BaseFee:              2000,
+				Memo:                 "opt-in-" + assetCode,
 			},
 		)
 	} else {
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        sourceAccount,
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        sourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
-				BaseFee:              txnbuild.MinBaseFee,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText("opt-in-" + assetCode),
+				BaseFee:              2000,
+				Memo:                 "opt-in-" + assetCode,
 			},
 		)
 	}
@@ -736,7 +718,7 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
 		}
 
-		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+		tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
 
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
 		if err != nil {
@@ -771,13 +753,13 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 		return "", &tErrors.CustomError{Param: "assetCode", Err: "error-invalid-asset", ErrMessage: "Asset Supplied is invalid.", Code: http.StatusBadRequest}
 	}
 
-	asset := txnbuild.CreditAsset{Code: assetCode, Issuer: assetIssuer}
+	asset := basetxn.CreditAsset{Code: assetCode, Issuer: assetIssuer}
 	chanAccount := <-gc.ChannelAccounts
-	defer func(c *keypair.Full) {
+	defer func(c *evmkeypair.Full) {
 		gc.ChannelAccounts <- c
 	}(chanAccount)
 
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), basetxn.NativeAsset{})
 
 	sourceAccountExists, sourceAccountTrustsAsset, nativeAccountBalance, assetBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
@@ -801,9 +783,9 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 
 	}
 
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
-	ops = append(ops, &txnbuild.ChangeTrust{
-		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
+	ops = append(ops, &basetxn.ChangeTrust{
+		Line:          asset,
 		Limit:         "0",
 		SourceAccount: wallet.ID,
 	})
@@ -817,20 +799,20 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 	// 	if trustLineInfo.Multiparty == 1 {
 	// 		//process service fee
 	// 		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
-	// 			ops = append(ops, &txnbuild.Payment{
+	// 			ops = append(ops, &basetxn.Payment{
 	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
 	// 				SourceAccount: wallet.ID,
-	// 				Asset:         txnbuild.NativeAsset{},
+	// 				Asset:         basetxn.NativeAsset{},
 	// 			})
 	// 			trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
 
 	// 		} else {
-	// 			ops = append(ops, &txnbuild.Payment{
+	// 			ops = append(ops, &basetxn.Payment{
 	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
 	// 				SourceAccount: wallet.ID,
-	// 				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+	// 				Asset:         basetxn.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
 	// 			})
 	// 			trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
 
@@ -839,33 +821,27 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 	// 	}
 	// }
 
-	var tx *txnbuild.Transaction
+	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if trustLineInfo.Multiparty == 1 {
-		trustLineInfo.TransactionSource = chanSourceAccount.AccountID
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        chanSourceAccount,
+		trustLineInfo.TransactionSource = chanSourceAccount.Address
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        chanSourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
-				BaseFee:              txnbuild.MinBaseFee,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText("opt-out-" + assetCode),
+				BaseFee:              2000,
+				Memo:                 "opt-out-" + assetCode,
 			},
 		)
 	} else {
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        sourceAccount,
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        sourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
-				BaseFee:              txnbuild.MinBaseFee,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText("opt-out-" + assetCode),
+				BaseFee:              2000,
+				Memo:                 "opt-out-" + assetCode,
 			},
 		)
 	}

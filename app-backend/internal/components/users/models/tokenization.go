@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 	"time"
 	"trovo-wallet-api/internal/dynamiclinks"
@@ -15,8 +14,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/clients/horizonclient"
-	"github.com/stellar/go/protocols/horizon"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"gorm.io/gorm/clause"
@@ -6724,39 +6721,43 @@ func NN(s *string) bool {
 // 	return destination == nil
 // }
 
-// GetMarketOffer fetches the offer information using public key
-func (t *TokenizedAsset) GetMarketOffers(gc *sharedconfig.GlobalConfig) (marketOffers horizon.OffersPage, err error) {
-	if t.MarketMakingWallet == nil {
+// MarketOfferRecord is the Base equivalent of one horizon.Offer record.
+type MarketOfferRecord struct {
+	Amount string
+	Price  string
+}
+
+// MarketOffersPage is the Base equivalent of Stellar's horizon.OffersPage
+// - Stellar's DEX order book is a native ledger feature with no Base/EVM
+// equivalent (see internal/sharedconfig/order_book_summary.go's doc).
+// Until real Base AMM-pool pricing is wired in, this reports the market
+// maker wallet's current B20 balance as a single synthetic "offer" at a
+// placeholder 1:1 price - which preserves the liquidity-gating behavior
+// callers rely on (don't let a purchase exceed available token supply)
+// even though real price discovery isn't implemented yet.
+type MarketOffersPage struct {
+	Embedded struct {
+		Records []MarketOfferRecord
+	}
+}
+
+// GetMarketOffers fetches the market maker's available liquidity for this
+// tokenized asset. See MarketOffersPage's doc for the Base simplification.
+func (t *TokenizedAsset) GetMarketOffers(gc *sharedconfig.GlobalConfig) (marketOffers MarketOffersPage, err error) {
+	if t.MarketMakingWallet == nil || t.AssetCode == nil || t.IssuingWalletPublicKey == nil {
 		return
 	}
 	seller := *t.MarketMakingWallet
+	tokenContract := *t.IssuingWalletPublicKey
 	client := network.GetBlockchainClient()
-	// var offerRequest horizonclient.OfferRequest
 
-	//real account
-	offerRequest := horizonclient.OfferRequest{Seller: seller}
-
-	marketOffers, err = client.Offers(offerRequest)
-	if err != nil {
-		// log.Printf("[GetBlockchainAccountDetail]: %v, error: [%v]", accountRequest.AccountID, err)
-		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
-			log.Printf("[GetMarketOffer Network Failure]: %s\n", "Error Connecting to Expansion Service")
-			return marketOffers, &tErrors.ErrorTemporaryServerError{}
-		} else {
-			horizonException, ok := err.(*horizonclient.Error)
-
-			if ok {
-
-				if horizonException.Problem.Status == http.StatusNotFound {
-					return marketOffers, &tErrors.ErrorBlockchainAccountNotActivated{}
-				}
-				log.Printf("[GetMarketOffer] error is known. Type: %v, Status: %v, Detail: %v, Title: %v, Extras: %v", horizonException.Problem.Type, horizonException.Problem.Status, horizonException.Problem.Detail, horizonException.Problem.Title, horizonException.Problem.Extras)
-			}
-
-		}
+	balance, e := network.B20BalanceOf(client, tokenContract, seller)
+	if e != nil {
+		log.Printf("[GetMarketOffers Network Failure]: %v\n", e)
 		return marketOffers, &tErrors.ErrorTemporaryServerError{}
 	}
 
+	marketOffers.Embedded.Records = []MarketOfferRecord{{Amount: balance.String(), Price: "1"}}
 	return marketOffers, nil
 }
 

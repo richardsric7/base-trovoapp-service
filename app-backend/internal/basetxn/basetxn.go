@@ -32,10 +32,11 @@ import (
 	"fmt"
 	"strings"
 
+	"trovo-wallet-api/internal/evmkeypair"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"trovo-wallet-api/internal/evmkeypair"
 )
 
 // Asset is a Base asset: either the chain's native token, or a B20 token
@@ -73,9 +74,9 @@ func (a CreditAsset) IsNative() bool    { return false }
 type TrustLineFlag uint32
 
 const (
-	TrustLineAuthorized                     TrustLineFlag = 1
+	TrustLineAuthorized                      TrustLineFlag = 1
 	TrustLineAuthorizedToMaintainLiabilities TrustLineFlag = 2
-	TrustLineClawbackEnabled                TrustLineFlag = 4
+	TrustLineClawbackEnabled                 TrustLineFlag = 4
 )
 
 // AccountFlag mirrors Stellar's txnbuild.AccountFlag constants (an
@@ -84,8 +85,8 @@ type AccountFlag uint32
 
 const (
 	AuthRequired        AccountFlag = 1
-	AuthRevocable        AccountFlag = 2
-	AuthImmutable        AccountFlag = 4
+	AuthRevocable       AccountFlag = 2
+	AuthImmutable       AccountFlag = 4
 	AuthClawbackEnabled AccountFlag = 8
 )
 
@@ -132,29 +133,116 @@ type SetTrustLineFlags struct {
 
 func (s SetTrustLineFlags) opSourceAccount() string { return s.SourceAccount }
 
-// SetOptions carries account/asset-level policy flags (e.g. an issuer
-// turning AuthRequired on for its B20 asset). Resolved against this
-// app's asset DB row (AuthRequired etc.), not sent on-chain - there is no
-// Base equivalent of a Stellar account's on-chain flag bits.
-type SetOptions struct {
-	SetFlags      []AccountFlag
-	ClearFlags    []AccountFlag
+
+// PathPaymentStrictSend/PathPaymentStrictReceive mirror Stellar's
+// same-named operations: swap SendAsset for DestAsset via the network's
+// best available price path, either fixing the send amount (StrictSend,
+// DestMin bounds the worst acceptable output) or the receive amount
+// (StrictReceive, SendMax bounds the worst acceptable input). Stellar
+// resolved the "path" against its native on-chain DEX order book; Base
+// has no such native DEX (see internal/sharedconfig/
+// order_book_summary.go's doc) - a real implementation needs a specific
+// DEX router (e.g. Uniswap v3) wired into internal/network, tracked as a
+// follow-up. The operation shape is kept so ported swap-building code
+// changes minimally once that integration lands; until then, submitting
+// either operation fails clearly rather than silently no-opping.
+type PathPaymentStrictSend struct {
+	SendAsset     Asset
+	SendAmount    string
+	Destination   string
+	DestAsset     Asset
+	DestMin       string
+	Path          []Asset
 	SourceAccount string
+}
+
+func (p PathPaymentStrictSend) opSourceAccount() string { return p.SourceAccount }
+
+type PathPaymentStrictReceive struct {
+	SendAsset     Asset
+	SendMax       string
+	Destination   string
+	DestAsset     Asset
+	DestAmount    string
+	Path          []Asset
+	SourceAccount string
+}
+
+func (p PathPaymentStrictReceive) opSourceAccount() string { return p.SourceAccount }
+
+// ManageSellOffer placed/updated/canceled a standing sell order on
+// Stellar's native on-chain DEX order book. Base has no native order
+// book to hold one (see internal/sharedconfig/order_book_summary.go's
+// doc) - market-making on Base needs a real design (an on-chain
+// limit-order contract, or an off-chain maker service), tracked as a
+// follow-up and resolved as a no-op here (see package doc's
+// Operation-resolution note), same as PathPaymentStrictSend/Receive.
+type ManageSellOffer struct {
+	Selling       Asset
+	Buying        Asset
+	Amount        string
+	Price         string
+	OfferID       int64
+	SourceAccount string
+}
+
+func (m ManageSellOffer) opSourceAccount() string { return m.SourceAccount }
+
+// CreateAccount has no Base equivalent (any address is valid without an
+// on-chain creation step) - kept, with Stellar's own field name (Amount),
+// only so ported code compiles unchanged; resolved as a no-op (see
+// package doc's Operation-resolution note).
+type CreateAccount struct {
+	Destination   string
+	Amount        string
+	SourceAccount string
+}
+
+func (c CreateAccount) opSourceAccount() string { return c.SourceAccount }
+
+// Signer mirrors Stellar's txnbuild.Signer (an address + a weight in
+// Stellar's weighted-multisig scheme).
+type Signer struct {
+	Address string
+	Weight  uint32
+}
+
+// SetOptions.Signer added/removed a co-signer on a Stellar account -
+// Stellar's native weighted multisig, which a plain Base EOA has no
+// equivalent for. As the user/PLAN notes: doing this properly on Base
+// needs every wallet to be a smart-contract account (e.g. a Safe), not a
+// plain EOA - out of scope for this alteration pass. Until then, this is
+// resolved as an app-layer signer registry (internal/network's
+// AccountSigner - the same DB-backed-authorization pattern used for B20
+// wallet authorization) rather than a real on-chain capability: it lets
+// account-recovery/subwallet flows that check "is this address a signer
+// for that account" keep working meaningfully, without granting any
+// actual on-chain signing power.
+type SetOptions struct {
+	Signer     *Signer
+	HomeDomain *string // vestigial (Stellar-only), kept for compatibility
+	SetFlags   []AccountFlag
+	ClearFlags []AccountFlag
+	// LowThreshold/MediumThreshold/HighThreshold/MasterWeight configured
+	// a Stellar account's weighted-multisig approval thresholds - the
+	// shared-access/subwallet approval-count mechanism the original app
+	// built on. Vestigial here for the same reason as Signer above: real
+	// N-of-M approval on Base needs every participating wallet to be a
+	// smart-contract account (e.g. a Safe), not a plain EOA. Kept, with
+	// Stellar's own field names/*uint32 shape, purely for call-site
+	// compatibility until that smart-account redesign happens.
+	LowThreshold    *uint32
+	MediumThreshold *uint32
+	HighThreshold   *uint32
+	MasterWeight    *uint32
+	SourceAccount   string
 }
 
 func (s SetOptions) opSourceAccount() string { return s.SourceAccount }
 
-// CreateAccount and ManageData have no Base equivalent (any address is
-// valid without on-chain creation; there is no native per-account
-// key-value store) - kept only so ported code that still builds them
-// compiles unchanged. Transaction.Submit skips them (logged, not sent).
-type CreateAccount struct {
-	Destination     string
-	StartingBalance string
-	SourceAccount   string
-}
-
-func (c CreateAccount) opSourceAccount() string { return c.SourceAccount }
+// NewThreshold mirrors Stellar's txnbuild.NewThreshold(txnbuild.Threshold(n))
+// - a *uint32 pointer helper for SetOptions' vestigial threshold fields.
+func NewThreshold(n uint32) *uint32 { return &n }
 
 type ManageData struct {
 	Name          string
@@ -171,8 +259,8 @@ type TransactionParams struct {
 	// BaseFee/Timebounds/Memo are accepted for source compatibility with
 	// ported call sites but have no effect - Base's EIP-1559 fee market
 	// and mempool expiry replace them.
-	BaseFee    int64
-	Memo       string
+	BaseFee              int64
+	Memo                 string
 	IncrementSequenceNum bool
 }
 
@@ -215,13 +303,33 @@ type Builder interface {
 	BuildPaymentTx(ctx context.Context, from common.Address, op Payment) (*types.Transaction, error)
 }
 
-// Sign builds (via builder) and signs every Payment operation whose
-// signer address matches one of the supplied keypairs - the Base
-// equivalent of Stellar's tx.Sign(passphrase, keypairs...), which
-// likewise only contributes the signatures it holds keys for for and
-// leaves the rest for a later Sign call (e.g. the client's own
-// signature, attached by internal/network.SubmitXdrWithSignature).
-func (t *Transaction) Sign(ctx context.Context, builder Builder, keypairs ...*evmkeypair.Full) error {
+// defaultBuilder is wired up once at startup by internal/network (see
+// SetDefaultBuilder) - keeping Sign's call-site shape
+// (tx, err = tx.Sign(passphrase, keypairs...)) identical to Stellar's
+// txnbuild.Transaction.Sign is what let the ~30 existing call sites
+// across this codebase's service layer port with an import change only,
+// rather than every one threading a context/builder through by hand.
+var defaultBuilder Builder
+
+// SetDefaultBuilder wires the Builder every Transaction.Sign call uses.
+// Called once at startup (see internal/network).
+func SetDefaultBuilder(b Builder) {
+	defaultBuilder = b
+}
+
+// Sign builds (via the default Builder) and signs every Payment
+// operation whose signer address matches one of the supplied keypairs,
+// returning t itself for chaining - the Base equivalent of Stellar's
+// tx.Sign(passphrase, keypairs...), which likewise only contributes the
+// signatures it holds keys for and leaves the rest for a later Sign call
+// (e.g. the client's own signature, attached by
+// internal/network.SubmitXdrWithSignature). passphrase is accepted only
+// for call-site compatibility - see the package doc.
+func (t *Transaction) Sign(passphrase string, keypairs ...*evmkeypair.Full) (*Transaction, error) {
+	if defaultBuilder == nil {
+		return t, errors.New("basetxn: no Builder configured - call SetDefaultBuilder at startup")
+	}
+	ctx := context.Background()
 	byAddr := map[common.Address]*evmkeypair.Full{}
 	for _, kp := range keypairs {
 		byAddr[common.HexToAddress(kp.Address())] = kp
@@ -244,22 +352,22 @@ func (t *Transaction) Sign(ctx context.Context, builder Builder, keypairs ...*ev
 		if !have {
 			continue
 		}
-		unsignedTx, err := builder.BuildPaymentTx(ctx, signerAddr, payment)
+		unsignedTx, err := defaultBuilder.BuildPaymentTx(ctx, signerAddr, payment)
 		if err != nil {
-			return fmt.Errorf("building payment tx for operation %d: %w", i, err)
+			return t, fmt.Errorf("building payment tx for operation %d: %w", i, err)
 		}
 		signer := types.LatestSignerForChainID(unsignedTx.ChainId())
 		signedTx, err := types.SignTx(unsignedTx, signer, kp.PrivateKey())
 		if err != nil {
-			return fmt.Errorf("signing operation %d: %w", i, err)
+			return t, fmt.Errorf("signing operation %d: %w", i, err)
 		}
 		raw, err := signedTx.MarshalBinary()
 		if err != nil {
-			return err
+			return t, err
 		}
 		t.signed[i] = raw
 	}
-	return nil
+	return t, nil
 }
 
 // AddSignedRawTx attaches an already-signed raw transaction (e.g. one

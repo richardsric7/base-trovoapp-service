@@ -54,6 +54,17 @@ func ParseFull(secretHex string) (*Full, error) {
 	return &Full{priv: priv, addr: crypto.PubkeyToAddress(priv.PublicKey)}, nil
 }
 
+// Random generates a fresh keypair from CSPRNG entropy - the Base
+// equivalent of Stellar's keypair.Random(), used to mint new issuer/
+// distributor-style accounts.
+func Random() (*Full, error) {
+	priv, err := crypto.GenerateKey()
+	if err != nil {
+		return nil, err
+	}
+	return &Full{priv: priv, addr: crypto.PubkeyToAddress(priv.PublicKey)}, nil
+}
+
 // MustParseFull is ParseFull, panicking on error - matches
 // keypair.MustParseFull's contract (used for boot-time env/config secrets).
 func MustParseFull(secretHex string) *Full {

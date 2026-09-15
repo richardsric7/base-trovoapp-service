@@ -8,9 +8,11 @@ import (
 	"strings"
 
 	// algofuncs "trovo-wallet-api/internal/blockchainalgofuncs"
+	"trovo-wallet-api/internal/basetxn"
 	swapErrors "trovo-wallet-api/internal/components/swaps/errors"
 	swapModels "trovo-wallet-api/internal/components/swaps/models"
 	userModels "trovo-wallet-api/internal/components/users/models"
+	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"log"
@@ -18,14 +20,10 @@ import (
 	"trovo-wallet-api/internal/network"
 
 	"github.com/ecnepsnai/discord"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm/clause"
-
-	"github.com/stellar/go/clients/horizonclient"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/protocols/horizon"
-	"github.com/stellar/go/txnbuild"
 )
 
 // SwapSend function swaps an asset to another asset
@@ -466,28 +464,28 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 
 	newAmountToSwap := amountToSwap.Truncate(7).String()
 
-	var sourceAsset txnbuild.Asset = txnbuild.NativeAsset{}
-	var destinationAsset txnbuild.Asset = txnbuild.NativeAsset{}
+	var sourceAsset basetxn.Asset = basetxn.NativeAsset{}
+	var destinationAsset basetxn.Asset = basetxn.NativeAsset{}
 
 	if len(swapInfo.DestinationAssetCode) != 0 && !strings.EqualFold(swapInfo.DestinationAssetCode, nativeAssetCode) {
 
-		destinationAsset = txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer}
+		destinationAsset = basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer}
 	}
 	if len(swapInfo.SourceAssetCode) != 0 && !strings.EqualFold(swapInfo.SourceAssetCode, nativeAssetCode) {
 
-		sourceAsset = txnbuild.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceAssetIssuer}
+		sourceAsset = basetxn.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceAssetIssuer}
 	}
 
 	// charge := baseReserve.Mul(decimal.NewFromInt(1)).Truncate(7).String()
 	appliedCharge := decimal.NewFromFloat(0)
 	swapInfo.Messages = messages
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 	chanAccount := <-gc.ChannelAccounts
-	defer func(c *keypair.Full) {
+	defer func(c *evmkeypair.Full) {
 		gc.ChannelAccounts <- c
 	}(chanAccount)
 
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 
 	sourceAccountExists, _, sourceAccountNativeBalance, sourceAccountCustomBalance, _, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, sourceAsset)
 	var sourceAccountTrustsDestinationAsset bool
@@ -543,8 +541,8 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 			totalFees = appliedCharge
 			log.Println("[generateSwapXdr] total fees:", totalFees)
 			//establish trustline
-			ops = append(ops, &txnbuild.ChangeTrust{
-				Line:          txnbuild.ChangeTrustAssetWrapper{Asset: destinationAsset},
+			ops = append(ops, &basetxn.ChangeTrust{
+				Line:          destinationAsset,
 				Limit:         "900000000000",
 				SourceAccount: wallet.ID,
 			})
@@ -553,10 +551,10 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 				tokenizedAssetIssuerMustSign = true
 
 				// allow trust from issuer to destination wallet
-				ops = append(ops, &txnbuild.SetTrustLineFlags{
+				ops = append(ops, &basetxn.SetTrustLineFlags{
 					Trustor:       wallet.ID,
-					Asset:         txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
-					SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+					Asset:         basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
+					SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 					SourceAccount: swapInfo.DestinationAssetIssuer,
 				})
 			}
@@ -626,7 +624,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 	}
 
 	//native asset
-	ops = append(ops, &txnbuild.PathPaymentStrictSend{
+	ops = append(ops, &basetxn.PathPaymentStrictSend{
 		SendAsset:     sourceAsset,
 		SendAmount:    swapInfo.SwapAmount,
 		Destination:   wallet.ID,
@@ -646,8 +644,8 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 
 		//ensure that the fee address is can accept the asset.
 		// but bcos  fee address needs to sign, it cannot be done here
-		// feeKeypair := keypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
-		feeKeypair, e := keypair.ParseFull(serviceFee.FeeWalletSecretKey)
+		// feeKeypair := evmkeypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
+		feeKeypair, e := evmkeypair.ParseFull(serviceFee.FeeWalletSecretKey)
 		if e != nil {
 			log.Println("[generateSwapXdr] error parsing fee wallet secret key", e)
 			gc.LogDiscordFailedRequest("[generateSwapXdr] error parsing fee wallet secret key")
@@ -666,8 +664,8 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 			if !feeAccountTrustsAsset {
 				signForFeeTrustLine = 1
 				//establish trustline automatically
-				ops = append(ops, &txnbuild.ChangeTrust{
-					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: sourceAsset},
+				ops = append(ops, &basetxn.ChangeTrust{
+					Line:          sourceAsset,
 					Limit:         "900000000000",
 					SourceAccount: feeAddress,
 				})
@@ -676,10 +674,10 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 					tokenizedAssetIssuerMustSign = true
 
 					// allow trust from issuer to destination wallet
-					ops = append(ops, &txnbuild.SetTrustLineFlags{
+					ops = append(ops, &basetxn.SetTrustLineFlags{
 						Trustor:       feeAddress,
-						Asset:         txnbuild.CreditAsset{Code: sourceAsset.GetCode(), Issuer: sourceAsset.GetIssuer()},
-						SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+						Asset:         basetxn.CreditAsset{Code: sourceAsset.GetCode(), Issuer: sourceAsset.GetIssuer()},
+						SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 						SourceAccount: swapInfo.DestinationAssetIssuer,
 					})
 				}
@@ -687,7 +685,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 			}
 		}
 
-		ops = append(ops, &txnbuild.Payment{
+		ops = append(ops, &basetxn.Payment{
 			Destination:   feeAddress,
 			Amount:        swapFee.String(),
 			SourceAccount: wallet.ID,
@@ -701,7 +699,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 	if vatFee.IsPositive() && serviceFee.Inactive == 0 {
 		//process vat
 
-		feeKeypair, e := keypair.ParseFull(gc.GetVATWallet())
+		feeKeypair, e := evmkeypair.ParseFull(gc.GetVATWallet())
 		if e != nil {
 			log.Println("[generateSwapXdr] error parsing vat wallet secret key", e)
 			gc.LogDiscordFailedRequest("[generateSwapXdr] error parsing vat wallet secret key")
@@ -720,8 +718,8 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 			if !feeAccountTrustsAsset {
 				signForFeeTrustLine = 1
 				//establish trustline automatically
-				ops = append(ops, &txnbuild.ChangeTrust{
-					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: sourceAsset},
+				ops = append(ops, &basetxn.ChangeTrust{
+					Line:          sourceAsset,
 					Limit:         "900000000000",
 					SourceAccount: feeAddress,
 				})
@@ -730,10 +728,10 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 					tokenizedAssetIssuerMustSign = true
 
 					// allow trust from issuer to destination wallet
-					ops = append(ops, &txnbuild.SetTrustLineFlags{
+					ops = append(ops, &basetxn.SetTrustLineFlags{
 						Trustor:       feeAddress,
-						Asset:         txnbuild.CreditAsset{Code: sourceAsset.GetCode(), Issuer: sourceAsset.GetIssuer()},
-						SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+						Asset:         basetxn.CreditAsset{Code: sourceAsset.GetCode(), Issuer: sourceAsset.GetIssuer()},
+						SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 						SourceAccount: swapInfo.DestinationAssetIssuer,
 					})
 				}
@@ -741,7 +739,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 			}
 		}
 
-		ops = append(ops, &txnbuild.Payment{
+		ops = append(ops, &basetxn.Payment{
 			Destination:   feeAddress,
 			Amount:        vatFee.String(),
 			SourceAccount: wallet.ID,
@@ -766,20 +764,17 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 	log.Println("[generateSwapXdr] Memo:", memo)
 	swapInfo.Memo = memo
 
-	var tx *txnbuild.Transaction
+	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	// if swapInfo.Multiparty == 1 {
-	swapInfo.TransactionSource = chanSourceAccount.AccountID
-	tx, err = txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        chanSourceAccount,
+	swapInfo.TransactionSource = chanSourceAccount.Address
+	tx, err = basetxn.NewTransaction(
+		basetxn.TransactionParams{
+			SourceAccount:        chanSourceAccount.Address,
 			IncrementSequenceNum: true,
 			Operations:           ops,
 			BaseFee:              2000,
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
-			},
-			Memo: txnbuild.MemoText(memo),
+			Memo:                 memo,
 		},
 	)
 
@@ -801,7 +796,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 	if signForFeeTrustLine == 1 && !sourceAsset.IsNative() {
 		log.Printf("[generateSwapXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with swap fee key>>>>>>>>>>>>>>>>>>>>>>>>:[%v]\n\n", sourceAsset)
 
-		feeKeypair := keypair.MustParseFull(serviceFee.FeeWalletSecretKey)
+		feeKeypair := evmkeypair.MustParseFull(serviceFee.FeeWalletSecretKey)
 
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
 		if err != nil {
@@ -819,7 +814,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
 		}
 
-		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+		tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
 
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
 		if err != nil {
@@ -842,7 +837,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 }
 
 // generateSwapReceiveXdr generates xdr for strict receive operation. Returns the base64 xdr transaction string, the operation object, and error
-func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.SwapReceiveInfo, gc *sharedconfig.GlobalConfig) (string, []txnbuild.Operation, error) {
+func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.SwapReceiveInfo, gc *sharedconfig.GlobalConfig) (string, []basetxn.Operation, error) {
 	// baseReserve := network.GetBlockchainBaseReserve()
 	// charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	client := gc.BantuExpansionClient
@@ -852,33 +847,33 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 	var amountToSwap decimal.Decimal
 
 	if amountToSwap, err = decimal.NewFromString(swapInfo.DestinationAmount); err != nil {
-		return "", []txnbuild.Operation{}, &swapErrors.ErrorInvalidSwapAmount{}
+		return "", []basetxn.Operation{}, &swapErrors.ErrorInvalidSwapAmount{}
 	}
 
 	newAmountToSwap := amountToSwap.Truncate(7).String()
 
-	var sourceAsset txnbuild.Asset = txnbuild.NativeAsset{}
-	var destinationAsset txnbuild.Asset = txnbuild.NativeAsset{}
+	var sourceAsset basetxn.Asset = basetxn.NativeAsset{}
+	var destinationAsset basetxn.Asset = basetxn.NativeAsset{}
 
 	if len(swapInfo.DestinationAssetCode) != 0 && !strings.EqualFold(swapInfo.DestinationAssetCode, nativeAssetCode) {
 
-		destinationAsset = txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer}
+		destinationAsset = basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer}
 	}
 	if len(swapInfo.SourceAssetCode) != 0 && !strings.EqualFold(swapInfo.SourceAssetCode, nativeAssetCode) {
 
-		sourceAsset = txnbuild.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceAssetIssuer}
+		sourceAsset = basetxn.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceAssetIssuer}
 	}
 
 	// charge := baseReserve.Mul(decimal.NewFromInt(1)).Truncate(7).String()
 	appliedCharge := decimal.NewFromFloat(0)
 	swapInfo.Messages = messages
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 	chanAccount := <-gc.ChannelAccounts
-	defer func(c *keypair.Full) {
+	defer func(c *evmkeypair.Full) {
 		gc.ChannelAccounts <- c
 	}(chanAccount)
 
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 
 	sourceAccountExists, _, sourceAccountNativeBalance, sourceAccountCustomBalance, _, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, sourceAsset)
 	var sourceAccountTrustsDestinationAsset bool
@@ -890,17 +885,17 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 	_, destAccountTrustsDestinationAsset, _, _, _, _ := network.BlockchainAccountProperties(client, swapInfo.DestinationAccount, destinationAsset)
 
 	if sourceAccountErr != nil {
-		return "", []txnbuild.Operation{}, sourceAccountErr
+		return "", []basetxn.Operation{}, sourceAccountErr
 	}
 
 	if !sourceAccountExists {
-		return "", []txnbuild.Operation{}, &tErrors.ErrorUnderfundedAccount{}
+		return "", []basetxn.Operation{}, &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	if !destinationAsset.IsNative() {
 
 		if !destAccountTrustsDestinationAsset {
-			return "", []txnbuild.Operation{}, &tErrors.CustomError{
+			return "", []basetxn.Operation{}, &tErrors.CustomError{
 				Param:      "destinationAccount",
 				Err:        "error-destination-cannot-accept-asset",
 				ErrMessage: "Destination address cannot accept the asset " + swapInfo.DestinationAssetCode,
@@ -914,11 +909,11 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 	if sourceAsset.IsNative() {
 		if !sourceAccountTrustsDestinationAsset {
 			if sourceAccountNativeBalance.LessThan(amountToSwapDec.Add(appliedCharge)) {
-				return "", []txnbuild.Operation{}, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to accommodate the amount needed to opt you into the destination asset or you reduce same from the amount you want to swap.", (amountToSwapDec.Add(appliedCharge)).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
+				return "", []basetxn.Operation{}, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to accommodate the amount needed to opt you into the destination asset or you reduce same from the amount you want to swap.", (amountToSwapDec.Add(appliedCharge)).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
 			}
 		} else {
 			if sourceAccountNativeBalance.LessThan(amountToSwapDec) {
-				return "", []txnbuild.Operation{}, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
+				return "", []basetxn.Operation{}, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
 			}
 		}
 
@@ -926,11 +921,11 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 
 		if !sourceAccountTrustsDestinationAsset {
 			if sourceAccountNativeBalance.LessThan(appliedCharge) {
-				return "", []txnbuild.Operation{}, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to complete this transaction", appliedCharge.Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
+				return "", []basetxn.Operation{}, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to complete this transaction", appliedCharge.Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
 			}
 		}
 		if sourceAccountCustomBalance.LessThan(amountToSwapDec) {
-			return "", []txnbuild.Operation{}, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec).Sub(sourceAccountCustomBalance), sourceAsset.GetCode())}
+			return "", []basetxn.Operation{}, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec).Sub(sourceAccountCustomBalance), sourceAsset.GetCode())}
 		}
 
 	}
@@ -952,7 +947,7 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 	path, requiredEstimate, err := GetStrictReceivePaths(pathInput, client)
 	if err != nil {
 		log.Println("[generateSwapReceiveXdr]error fetching valid swap Path ", err)
-		return "", []txnbuild.Operation{}, err
+		return "", []basetxn.Operation{}, err
 	}
 
 	//check is source account has minimum of that required estimate
@@ -961,13 +956,13 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 		if len(acode) == 0 {
 			acode = nativeAssetCode
 		}
-		return "", []txnbuild.Operation{}, &tErrors.ErrorUnderfundedAccount{
+		return "", []basetxn.Operation{}, &tErrors.ErrorUnderfundedAccount{
 			Detail: fmt.Sprintf("You need extra %v %v to complete the transaction at this time.", decimal.RequireFromString(requiredEstimate).Sub(sourceAccountNativeBalance), acode),
 		}
 	}
 
 	//native asset
-	ops = append(ops, &txnbuild.PathPaymentStrictReceive{
+	ops = append(ops, &basetxn.PathPaymentStrictReceive{
 		SendAsset: sourceAsset,
 		// SendMax:       requiredEstimate,
 		Destination:   swapInfo.DestinationAccount,
@@ -988,7 +983,7 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 
 	// 	//ensure that the fee address is can accept the asset.
 	// 	// but bcos  fee address needs to sign, it cannot be done here
-	// 	feeKeypair := keypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
+	// 	feeKeypair := evmkeypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
 	// 	feeAddress := feeKeypair.Address()
 
 	// 	if !sourceAsset.IsNative() {
@@ -997,8 +992,8 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 	// 		if !feeAccountTrustsAsset {
 	// 			signForFeeTrustLine = 1
 	// 			//establish trustline automatically
-	// 			ops = append(ops, &txnbuild.ChangeTrust{
-	// 				Line:          txnbuild.ChangeTrustAssetWrapper{Asset: sourceAsset},
+	// 			ops = append(ops, &basetxn.ChangeTrust{
+	// 				Line:          sourceAsset,
 	// 				Limit:         "900000000000",
 	// 				SourceAccount: feeAddress,
 	// 			})
@@ -1006,7 +1001,7 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 	// 		}
 	// 	}
 
-	// 	ops = append(ops, &txnbuild.Payment{
+	// 	ops = append(ops, &basetxn.Payment{
 	// 		Destination:   feeAddress,
 	// 		Amount:        serviceFee.String(),
 	// 		SourceAccount: wallet.ID,
@@ -1032,20 +1027,17 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 	log.Println("[generateSwapReceiveXdr] Memo:", memo)
 	swapInfo.Memo = memo
 
-	var tx *txnbuild.Transaction
+	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	// if swapInfo.Multiparty == 1 {
-	swapInfo.TransactionSource = chanSourceAccount.AccountID
-	tx, err = txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        chanSourceAccount,
+	swapInfo.TransactionSource = chanSourceAccount.Address
+	tx, err = basetxn.NewTransaction(
+		basetxn.TransactionParams{
+			SourceAccount:        chanSourceAccount.Address,
 			IncrementSequenceNum: true,
 			Operations:           ops,
 			BaseFee:              2000,
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
-			},
-			Memo: txnbuild.MemoText(memo),
+			Memo:                 memo,
 		},
 	)
 
@@ -1067,7 +1059,7 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 	if signForFeeTrustLine == 1 && !sourceAsset.IsNative() {
 		log.Printf("[generateSwapReceiveXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with swap fee key>>>>>>>>>>>>>>>>>>>>>>>>:[%v]\n\n", sourceAsset)
 
-		feeKeypair := keypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
+		feeKeypair := evmkeypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
 
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
 		if err != nil {
@@ -1094,311 +1086,28 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 	return xdrBase64, ops, nil
 }
 
-// GetStrictSendPaths gets Strict Send Paths for Strict Send Path Payment request
-func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, gc *sharedconfig.GlobalConfig) (paths []txnbuild.Asset, swappedEstimate string, err error) {
-	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/75RxS1LzWA800hWereJJumw"
-	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
-		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
+// GetStrictSendPaths/GetStrictReceivePaths found the best-price route
+// through Stellar's native on-chain DEX order book for a swap. Base has
+// no native DEX (see internal/sharedconfig/order_book_summary.go's doc);
+// a real Base swap needs a specific DEX router (e.g. Uniswap v3) wired
+// into internal/network, tracked as a follow-up. Both are stubbed here
+// with the same low-liquidity error their Stellar callers already know
+// how to surface to the user, so swap-building code degrades to "no
+// route available" rather than crashing.
+func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, gc *sharedconfig.GlobalConfig) (paths []basetxn.Asset, swappedEstimate string, err error) {
+	return paths, "", &tErrors.CustomError{
+		Param:      "destinationAssetCode",
+		Err:        "error-low-liquidity",
+		ErrMessage: "Swaps are not yet available on Base - no DEX route source is configured.",
 	}
-	var swapPaths horizon.PathsPage
-	paths = make([]txnbuild.Asset, 0)
-	var sourceAssetType horizonclient.AssetType
-	if len(pathInput.SourceAssetIssuer) == 0 {
-		sourceAssetType = horizonclient.AssetTypeNative
-		pathInput.SourceAssetCode = ""
-		pathInput.SourceAssetIssuer = ""
-	} else if len(pathInput.SourceAssetCode) < 5 && len(pathInput.SourceAssetIssuer) == 56 {
-		sourceAssetType = horizonclient.AssetType4
-	} else if len(pathInput.SourceAssetCode) > 4 && len(pathInput.SourceAssetCode) <= 12 && len(pathInput.SourceAssetIssuer) == 56 {
-		sourceAssetType = horizonclient.AssetType12
-	}
-	if pathInput.DestinationAccount != "" {
-		pathInput.DestinationAssets = ""
-	}
-
-	if pathInput.DestinationAssets == "" && pathInput.DestinationAccount == "" {
-		pathInput.DestinationAssets = "native"
-	}
-	if pathInput.DestinationAssets == "native" {
-		pathInput.DestinationAccount = ""
-	}
-
-	if pathInput.DestinationAssets != "" {
-		pathInput.DestinationAccount = ""
-	}
-	sspr := horizonclient.StrictSendPathsRequest{
-		DestinationAccount: pathInput.DestinationAccount,
-		DestinationAssets:  pathInput.DestinationAssets,
-		SourceAssetType:    sourceAssetType,
-		SourceAssetCode:    pathInput.SourceAssetCode,
-		SourceAssetIssuer:  pathInput.SourceAssetIssuer,
-		SourceAmount:       pathInput.SourceAmount,
-	}
-
-	swapPaths, err = gc.BantuExpansionClient.StrictSendPaths(sspr)
-
-	if err != nil {
-		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
-			log.Println("#######################@@@@@@@@@@@@@@@@[client.StrictSendPathsErr] expansion connection problem:", err)
-			discord.Say(fmt.Sprintf("[getStrictSendPaths] error connecting to expansion service: %v\nSwapPathRequest: %+v", err, sspr))
-
-			return paths, "", &tErrors.ErrorTemporaryServerError{}
-		}
-		if strings.Contains(err.Error(), "liquid") {
-
-			destAsset := os.Getenv("NATIVE_ASSET_CODE")
-			sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
-			if len(pathInput.SourceAssetCode) > 0 {
-				sourceAsset = pathInput.SourceAssetCode
-			}
-			if pathInput.DestinationAssets != "native" {
-				destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
-			}
-			return paths, "", &tErrors.CustomError{
-				Param:      "destinationAssetCode",
-				Err:        "error-low-liquidity",
-				ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
-			}
-		}
-		horizonException, ok := err.(*horizonclient.Error)
-
-		if ok {
-
-			extraErrors := horizonException.Problem.Extras
-
-			for key, val := range extraErrors {
-				log.Printf("Extras: %v is %v\n", key, val)
-			}
-
-			resultCodes, e := horizonException.ResultCodes()
-			if e != nil {
-				log.Println("[client.StrictSendPathsErr] Error getting result codes:", e)
-
-				destAsset := os.Getenv("NATIVE_ASSET_CODE")
-				sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
-				if len(pathInput.SourceAssetCode) > 0 {
-					sourceAsset = pathInput.SourceAssetCode
-				}
-				if pathInput.DestinationAssets != "native" {
-					destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
-				}
-				return paths, "", &tErrors.CustomError{
-					Param:      "destinationAssetCode",
-					Err:        "error-low-liquidity",
-					ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
-				}
-
-			}
-
-			for key, val := range resultCodes.OperationCodes {
-				log.Printf("Result code: %v is %v\n", key, val)
-			}
-			discord.Say(fmt.Sprintf("[getStrictSendPaths] error submitting: %v\nSwapPathRequest: %+v\nResultCodes: %+v", err, sspr, resultCodes))
-
-		}
-		log.Println("[client.StrictSendPathsErr] Error submitting:", err)
-		if strings.Contains(err.Error(), "liquid") {
-			destAsset := os.Getenv("NATIVE_ASSET_CODE")
-			sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
-			if len(pathInput.SourceAssetCode) > 0 {
-				sourceAsset = pathInput.SourceAssetCode
-			}
-			if pathInput.DestinationAssets != "native" {
-				destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
-			}
-			return paths, "", &tErrors.CustomError{
-				Param:      "destinationAssetCode",
-				Err:        "error-low-liquidity",
-				ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
-			}
-		}
-		return paths, "", &tErrors.ErrorTemporaryServerError{}
-
-	}
-	// discord.Say(fmt.Sprintf("[getStrictSendPaths] swapPaths: %+v\nRequestParams: %+v", swapPaths, sspr))
-	// log.Printf("[getStrictSendPaths] swapPaths: %+v\n", swapPaths)
-	if len(swapPaths.Embedded.Records) == 0 {
-		destAsset := os.Getenv("NATIVE_ASSET_CODE")
-		sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
-		if len(pathInput.SourceAssetCode) > 0 {
-			sourceAsset = pathInput.SourceAssetCode
-		}
-		if pathInput.DestinationAssets != "native" {
-			destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
-		}
-		return paths, "", &tErrors.CustomError{
-			Param:      "destinationAssetCode",
-			Err:        "error-low-liquidity",
-			ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
-		}
-	}
-	destAmountDec, _ := decimal.NewFromString(swapPaths.Embedded.Records[0].DestinationAmount)
-	if destAmountDec.LessThan(network.GetBlockchainSwapDestinationMin()) {
-		return paths, "", &swapErrors.ErrorSwapAmountTooSmall{}
-	}
-
-	bestPath := swapPaths.Embedded.Records[0]
-	//build assets
-	swappedEstimate = bestPath.DestinationAmount
-
-	for _, v := range bestPath.Path {
-		if len(v.Issuer) == 0 {
-			paths = append(paths, txnbuild.NativeAsset{})
-		} else {
-			paths = append(paths, txnbuild.CreditAsset{Code: v.Code, Issuer: v.Issuer})
-		}
-
-	}
-
-	return paths, swappedEstimate, nil
 }
 
-// getStrictReceivePaths gets Strict Receive Paths for Strict Receive Path Payment request
-func GetStrictReceivePaths(pathInput swapModels.SwapPathInput, client *horizonclient.Client) (paths []txnbuild.Asset, requiredEstimate string, err error) {
-	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/75RxS1LzWA800hWereJJumw"
-	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
-		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
+func GetStrictReceivePaths(pathInput swapModels.SwapPathInput, client *ethclient.Client) (paths []basetxn.Asset, requiredEstimate string, err error) {
+	return paths, "", &tErrors.CustomError{
+		Param:      "destinationAssetCode",
+		Err:        "error-low-liquidity",
+		ErrMessage: "Swaps are not yet available on Base - no DEX route source is configured.",
 	}
-	var swapPaths horizon.PathsPage
-	paths = make([]txnbuild.Asset, 0)
-	var destinationAssetType horizonclient.AssetType
-	if len(pathInput.DestinationAssetIssuer) == 0 {
-		destinationAssetType = horizonclient.AssetTypeNative
-		pathInput.DestinationAssetCode = ""
-		pathInput.DestinationAssetIssuer = ""
-	} else if len(pathInput.DestinationAssetCode) < 5 && len(pathInput.DestinationAssetIssuer) == 56 {
-		destinationAssetType = horizonclient.AssetType4
-	} else if len(pathInput.DestinationAssetCode) > 4 && len(pathInput.DestinationAssetCode) <= 12 && len(pathInput.DestinationAssetIssuer) == 56 {
-		destinationAssetType = horizonclient.AssetType12
-	}
-	// if pathInput.SourceAccount != "" {
-	// 	pathInput.SourceAssets = ""
-	// }
-
-	if pathInput.SourceAssets == "" {
-		pathInput.SourceAssets = "native"
-	}
-
-	sspr := horizonclient.PathsRequest{
-		DestinationAssetType:   destinationAssetType,
-		DestinationAssetCode:   pathInput.DestinationAssetCode,
-		DestinationAssetIssuer: pathInput.DestinationAssetIssuer,
-		DestinationAmount:      pathInput.DestinationAmount,
-		SourceAssets:           pathInput.SourceAssets,
-	}
-
-	swapPaths, err = client.StrictReceivePaths(sspr)
-
-	if err != nil {
-		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
-			log.Println("#######################@@@@@@@@@@@@@@@@[client.StrictSendPathsErr] expansion connection problem:", err)
-			discord.Say(fmt.Sprintf("[getStrictSendPaths] error connecting to expansion service: %v\nSwapPathRequest: %+v", err, sspr))
-
-			return paths, "", &tErrors.ErrorTemporaryServerError{}
-		}
-		if strings.Contains(err.Error(), "liquid") {
-			destAssetCode := os.Getenv("NATIVE_ASSET_CODE")
-			sourceAssetCode := os.Getenv("NATIVE_ASSET_CODE")
-			if len(pathInput.DestinationAssetCode) > 0 {
-				destAssetCode = pathInput.DestinationAssetCode
-			}
-			if pathInput.SourceAssets != "native" {
-				sourceAssetCode = strings.Split(pathInput.SourceAssets, ":")[0]
-			}
-			return paths, "", &tErrors.CustomError{
-				Param:      "destinationAssetCode",
-				Err:        "error-low-liquidity",
-				ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAssetCode, sourceAssetCode, destAssetCode),
-			}
-		}
-		horizonException, ok := err.(*horizonclient.Error)
-
-		if ok {
-
-			extraErrors := horizonException.Problem.Extras
-
-			for key, val := range extraErrors {
-				log.Printf("Extras: %v is %v\n", key, val)
-			}
-
-			resultCodes, e := horizonException.ResultCodes()
-			if e != nil {
-				log.Println("[client.StrictSendPathsErr] Error getting result codes:", e)
-
-				destAssetCode := os.Getenv("NATIVE_ASSET_CODE")
-				sourceAssetCode := os.Getenv("NATIVE_ASSET_CODE")
-				if len(pathInput.DestinationAssetCode) > 0 {
-					destAssetCode = pathInput.DestinationAssetCode
-				}
-				if pathInput.SourceAssets != "native" {
-					sourceAssetCode = strings.Split(pathInput.SourceAssets, ":")[0]
-				}
-				return paths, "", &tErrors.CustomError{
-					Param:      "destinationAssetCode",
-					Err:        "error-low-liquidity",
-					ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAssetCode, sourceAssetCode, destAssetCode),
-				}
-
-			}
-
-			for key, val := range resultCodes.OperationCodes {
-				log.Printf("Result code: %v is %v\n", key, val)
-			}
-			discord.Say(fmt.Sprintf("[getStrictSendPaths] error submitting: %v\nSwapPathRequest: %+v\nResultCodes: %+v", err, sspr, resultCodes))
-
-		}
-		log.Println("[client.StrictSendPathsErr] Error submitting:", err)
-		if strings.Contains(err.Error(), "liquid") {
-			destAssetCode := os.Getenv("NATIVE_ASSET_CODE")
-			sourceAssetCode := os.Getenv("NATIVE_ASSET_CODE")
-			if len(pathInput.DestinationAssetCode) > 0 {
-				destAssetCode = pathInput.DestinationAssetCode
-			}
-			if pathInput.SourceAssets != "native" {
-				sourceAssetCode = strings.Split(pathInput.SourceAssets, ":")[0]
-			}
-			return paths, "", &tErrors.CustomError{
-				Param:      "destinationAssetCode",
-				Err:        "error-low-liquidity",
-				ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAssetCode, sourceAssetCode, destAssetCode),
-			}
-		}
-		return paths, "", &tErrors.ErrorTemporaryServerError{}
-
-	}
-	// discord.Say(fmt.Sprintf("[getStrictSendPaths] swapPaths: %+v\nRequestParams: %+v", swapPaths, sspr))
-	// log.Printf("[getStrictSendPaths] swapPaths: %+v\n", swapPaths)
-	if len(swapPaths.Embedded.Records) == 0 {
-		destAssetCode := os.Getenv("NATIVE_ASSET_CODE")
-		sourceAssetCode := os.Getenv("NATIVE_ASSET_CODE")
-		if len(pathInput.DestinationAssetCode) > 0 {
-			destAssetCode = pathInput.DestinationAssetCode
-		}
-		if pathInput.SourceAssets != "native" {
-			sourceAssetCode = strings.Split(pathInput.SourceAssets, ":")[0]
-		}
-		return paths, "", &tErrors.CustomError{
-			Param:      "destinationAssetCode",
-			Err:        "error-low-liquidity",
-			ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAssetCode, sourceAssetCode, destAssetCode),
-		}
-	}
-	// sourceAmountDec, _ := decimal.NewFromString(swapPaths.Embedded.Records[0].SourceAmount)
-
-	bestPath := swapPaths.Embedded.Records[0]
-	//build assets
-	requiredEstimate = bestPath.SourceAmount
-
-	for _, v := range bestPath.Path {
-		if len(v.Issuer) == 0 {
-			paths = append(paths, txnbuild.NativeAsset{})
-		} else {
-			paths = append(paths, txnbuild.CreditAsset{Code: v.Code, Issuer: v.Issuer})
-		}
-
-	}
-
-	return paths, requiredEstimate, nil
 }
 
 func logDiscordFailedSwap(msg string) {

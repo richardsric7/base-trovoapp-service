@@ -2,20 +2,21 @@ package payments
 
 import (
 	"fmt"
-	bc "trovo-wallet-api/internal/components/users/blockchain"
+	"trovo-wallet-api/internal/basetxn"
+	"trovo-wallet-api/internal/evmkeypair"
+	"trovo-wallet-api/internal/network"
 
 	"os"
 
 	"github.com/ecnepsnai/discord"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/keypair"
 )
 
 // //DoFaucetBlockchainPayment makes payment from faucet on server
 // func DoFaucetBlockchainPayment(faucetSecret, receiver, assetCode, assetIssuer, amount, memo string, db *gorm.DB) (returnedPaymentInfo *paymentModels.PaymentInfo, err error) {
 // 	var paymentInfo paymentModels.PaymentInfo
-// 	var asset txnbuild.Asset
-// 	kp := keypair.MustParseFull(faucetSecret)
+// 	var asset basetxn.Asset
+// 	kp := evmkeypair.MustParseFull(faucetSecret)
 
 // 	// faucetPK := kp.Address()
 // 	paymentInfo = paymentModels.PaymentInfo{
@@ -23,9 +24,9 @@ import (
 // 		AssetCode: assetCode, Amount: amount,
 // 	}
 // 	if len(assetIssuer) == 56 {
-// 		asset = txnbuild.CreditAsset{Code: assetCode, Issuer: assetIssuer}
+// 		asset = basetxn.CreditAsset{Code: assetCode, Issuer: assetIssuer}
 // 	} else {
-// 		asset = txnbuild.NativeAsset{}
+// 		asset = basetxn.NativeAsset{}
 // 	}
 
 // 	receiverAccount, err := usersdb.GetUserInfo(receiver, db)
@@ -48,47 +49,47 @@ import (
 // 	}
 
 // 	if assetCode == "BNR" {
-// 		asset = txnbuild.NativeAsset{}
+// 		asset = basetxn.NativeAsset{}
 // 		amountFloat, _ := decimal.NewFromString(amount)
 // 		xbnEquivalent := amountFloat.Div(decimal.NewFromInt(4))
 // 		amount = xbnEquivalent.Truncate(7).String()
 // 	}
 
-// 	var txnParams txnbuild.TransactionParams
+// 	var txnParams basetxn.TransactionParams
 
-// 	// var txnParams txnbuild.TransactionParams
+// 	// var txnParams basetxn.TransactionParams
 // 	if receiverStatus {
-// 		creatAccountOpRequest := txnbuild.CreateAccount{
+// 		creatAccountOpRequest := basetxn.CreateAccount{
 // 			Destination: receiverAccount.PublicKey,
 // 			Amount:      amount,
 // 		}
 
-// 		txnParams = txnbuild.TransactionParams{
+// 		txnParams = basetxn.TransactionParams{
 // 			SourceAccount:        &sourceAccount,
 // 			IncrementSequenceNum: true,
-// 			Operations:           []txnbuild.Operation{&creatAccountOpRequest},
+// 			Operations:           []basetxn.Operation{&creatAccountOpRequest},
 // 			BaseFee:              1000,
 // 			Memo:                 txnbuild.MemoText(memo),
 // 			Timebounds:           txnbuild.NewTimeout(30),
 // 		}
 // 	} else {
 
-// 		paymentOpRequest := txnbuild.Payment{
+// 		paymentOpRequest := basetxn.Payment{
 // 			Destination: receiverAccount.PublicKey,
 // 			Amount:      amount,
 // 			Asset:       asset,
 // 		}
 
-// 		txnParams = txnbuild.TransactionParams{
+// 		txnParams = basetxn.TransactionParams{
 // 			SourceAccount:        &sourceAccount,
 // 			IncrementSequenceNum: true,
-// 			Operations:           []txnbuild.Operation{&paymentOpRequest},
+// 			Operations:           []basetxn.Operation{&paymentOpRequest},
 // 			BaseFee:              1000,
 // 			Memo:                 txnbuild.MemoText(memo),
 // 			Timebounds:           txnbuild.NewTimeout(30),
 // 		}
 // 	}
-// 	tx, err := txnbuild.NewTransaction(txnParams)
+// 	tx, err := basetxn.NewTransaction(txnParams)
 // 	if err != nil {
 // 		log.Println("[DoFaucetBlockchainPayment]error building transaction:", err)
 
@@ -132,62 +133,57 @@ import (
 
 // }
 
-func AlertFaucetLowBalance(faucetKP *keypair.Full) {
+func AlertFaucetLowBalance(faucetKP *evmkeypair.Full) {
 
 	//check faucet balance
 
 	faucetPK := faucetKP.Address()
 	faucetSecret := faucetKP.Seed()
-	faucetAccount, err := bc.GetBlockchainAccountDetail(faucetPK)
-	if err == nil {
-		for _, v := range faucetAccount.Balances {
-			if len(v.Issuer) == 0 {
-				if faucetSecret == os.Getenv("XBN_FAUCET") {
-					//balance  XBN faucet
-					xbnFaucetMin := "200000"
-					if os.Getenv("XBN_FAUCET_MIN_BALANCE") != "" && os.Getenv("XBN_FAUCET_MIN_BALANCE") != "0" {
-						xbnFaucetMin = os.Getenv("XBN_FAUCET_MIN_BALANCE")
-					}
-					if decimal.RequireFromString(v.Balance).LessThan(decimal.RequireFromString(xbnFaucetMin)) {
-						// only needs to check XBN balance
-						LogDiscordFaucetLowBalance(fmt.Sprintf("XBN FAUCET: %v has gone below minimum  warning amount %v. the balance is: %v", faucetPK, xbnFaucetMin, v.Balance))
+	client := network.GetBlockchainClient()
+	_, _, nativeBalance, _, _, err := network.BlockchainAccountProperties(client, faucetPK, basetxn.NativeAsset{})
+	if err != nil {
+		return
+	}
 
-					}
-				}
+	if faucetSecret == os.Getenv("XBN_FAUCET") {
+		xbnFaucetMin := "200000"
+		if os.Getenv("XBN_FAUCET_MIN_BALANCE") != "" && os.Getenv("XBN_FAUCET_MIN_BALANCE") != "0" {
+			xbnFaucetMin = os.Getenv("XBN_FAUCET_MIN_BALANCE")
+		}
+		if nativeBalance.LessThan(decimal.RequireFromString(xbnFaucetMin)) {
+			LogDiscordFaucetLowBalance(fmt.Sprintf("XBN FAUCET: %v has gone below minimum  warning amount %v. the balance is: %v", faucetPK, xbnFaucetMin, nativeBalance.String()))
+		}
+	}
 
-				if faucetSecret == os.Getenv("REWARD_FAUCET") {
-					//XBN balance for REWARD FAUCET
-					rewardFaucetXBNMin := "20000"
-					if os.Getenv("REWARD_FAUCET_XBN_MIN_BALANCE") != "" && os.Getenv("REWARD_FAUCET_XBN_MIN_BALANCE") != "0" {
-						rewardFaucetXBNMin = os.Getenv("REWARD_FAUCET_XBN_MIN_BALANCE")
-					}
-					if decimal.RequireFromString(v.Balance).LessThan(decimal.RequireFromString(rewardFaucetXBNMin)) {
-						LogDiscordFaucetLowBalance(fmt.Sprintf("REWARD FAUCET: %v has low XBN minimum balance %v. the balance is: %v", faucetPK, rewardFaucetXBNMin, v.Balance))
+	if faucetSecret == os.Getenv("REWARD_FAUCET") {
+		rewardFaucetXBNMin := "20000"
+		if os.Getenv("REWARD_FAUCET_XBN_MIN_BALANCE") != "" && os.Getenv("REWARD_FAUCET_XBN_MIN_BALANCE") != "0" {
+			rewardFaucetXBNMin = os.Getenv("REWARD_FAUCET_XBN_MIN_BALANCE")
+		}
+		if nativeBalance.LessThan(decimal.RequireFromString(rewardFaucetXBNMin)) {
+			LogDiscordFaucetLowBalance(fmt.Sprintf("REWARD FAUCET: %v has low XBN minimum balance %v. the balance is: %v", faucetPK, rewardFaucetXBNMin, nativeBalance.String()))
+		}
 
-					}
-				}
-
-			} else if faucetSecret == os.Getenv("REWARD_FAUCET") && v.Code == os.Getenv("REWARD_ASSET_CODE") {
-
-				//balance REWARD FAUCET, BNR
+		if os.Getenv("REWARD_ASSET_CODE") != "" && os.Getenv("REWARD_ASSET_ISSUER") != "" {
+			rewardAsset := basetxn.CreditAsset{Code: os.Getenv("REWARD_ASSET_CODE"), Issuer: os.Getenv("REWARD_ASSET_ISSUER")}
+			_, _, _, rewardBalance, _, e := network.BlockchainAccountProperties(client, faucetPK, rewardAsset)
+			if e == nil {
 				rewardFaucetMin := "200000"
 				if os.Getenv("REWARD_FAUCET_MIN_BALANCE") != "" && os.Getenv("REWARD_FAUCET_MIN_BALANCE") != "0" {
 					rewardFaucetMin = os.Getenv("REWARD_FAUCET_MIN_BALANCE")
 				}
-				if decimal.RequireFromString(v.Balance).LessThan(decimal.RequireFromString(rewardFaucetMin)) {
-					LogDiscordFaucetLowBalance(fmt.Sprintf("REWARD FAUCET: %v has gone below minimum warning amount %v %v. the balance is: %v %v", faucetPK, rewardFaucetMin, os.Getenv("REWARD_ASSET_CODE"), v.Balance, os.Getenv("REWARD_ASSET_CODE")))
-
+				if rewardBalance.LessThan(decimal.RequireFromString(rewardFaucetMin)) {
+					LogDiscordFaucetLowBalance(fmt.Sprintf("REWARD FAUCET: %v has gone below minimum warning amount %v %v. the balance is: %v %v", faucetPK, rewardFaucetMin, os.Getenv("REWARD_ASSET_CODE"), rewardBalance.String(), os.Getenv("REWARD_ASSET_CODE")))
 				}
 			}
 		}
 	}
-
 }
 
 // //DoFaucetPaymentWithChannelAccount makes payment from faucet with channel account on server
 // func DoFaucetPaymentWithChannelAccount(faucetSecret, receiver, assetCode, assetIssuer, amount, memo string, db *gorm.DB) (returnedPaymentInfo *paymentModels.PaymentInfo, err error) {
 // 	var paymentInfo paymentModels.PaymentInfo
-// 	kp := keypair.MustParseFull(faucetSecret)
+// 	kp := evmkeypair.MustParseFull(faucetSecret)
 
 // 	faucetPK := kp.Address()
 // 	paymentInfo = paymentModels.PaymentInfo{
@@ -224,7 +220,7 @@ func AlertFaucetLowBalance(faucetKP *keypair.Full) {
 // //DoFaucetPayment makes payment from faucet on server
 // func DoFaucetPayment(faucetSecret, receiver, assetCode, assetIssuer, amount, memo string, db *gorm.DB) (returnedPaymentInfo *paymentModels.PaymentInfo, err error) {
 // 	var paymentInfo paymentModels.PaymentInfo
-// 	kp := keypair.MustParseFull(faucetSecret)
+// 	kp := evmkeypair.MustParseFull(faucetSecret)
 
 // 	faucetPK := kp.Address()
 // 	paymentInfo = paymentModels.PaymentInfo{

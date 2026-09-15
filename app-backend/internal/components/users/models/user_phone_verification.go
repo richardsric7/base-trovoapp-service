@@ -2,7 +2,7 @@ package users
 
 import "time"
 
-//UserMobilePhoneVerification model for user phone verificationInfo
+// UserMobilePhoneVerification model for user phone verificationInfo
 type UserMobilePhoneVerification struct {
 	CreatedAt        time.Time `json:"createdAt"`
 	UpdatedAt        time.Time `json:"updatedAt"`

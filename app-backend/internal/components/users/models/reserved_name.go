@@ -2,7 +2,7 @@ package users
 
 import "time"
 
-//ReservedName holds model struct for ReservedName table
+// ReservedName holds model struct for ReservedName table
 type ReservedName struct {
 	ID           uint64 `gorm:"primaryKey"`
 	CreatedAt    time.Time

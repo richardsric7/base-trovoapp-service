@@ -45,8 +45,6 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 		return userInfo, false, errExists
 	}
 
-
-
 	if len(userInfo.Mobile) > 0 {
 		// geoData, _ := userModels.GetGeoInfo(userInfo.PublicIP)
 		num, err := phonenumbers.Parse(userInfo.Mobile, userInfo.MobileCountryCode)
@@ -72,7 +70,7 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 		return userInfo, false, dbErrors
 	}
 
-	if len(userInfo.CreatedByServiceLinkID)==0{
+	if len(userInfo.CreatedByServiceLinkID) == 0 {
 
 		//do mail validation
 		validationResult, blockEmail, _ := user.VerifyEmailOnMailgun()

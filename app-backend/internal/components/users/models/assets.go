@@ -1,7 +1,6 @@
 package users
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,13 +9,8 @@ import (
 	"strings"
 	assetsDB "trovo-wallet-api/internal/components/assets/db"
 	assetModels "trovo-wallet-api/internal/components/assets/models"
-	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
-
-	"github.com/stellar/go/clients/horizonclient"
-	"github.com/stellar/go/protocols/horizon"
-	"github.com/stellar/go/txnbuild"
 )
 
 // PendingAssetToClaim holds pensing assets to be claimed
@@ -86,29 +80,13 @@ type OrderBook struct {
 	Currency BantuAsset `json:"currency"`
 }
 
+// GetDataKey looked up a value in a Stellar account's on-chain
+// manage_data key/value store (used for asset metadata like image URLs).
+// Base/EVM accounts have no equivalent on-chain key/value store - asset
+// metadata lives in this app's own curated-asset DB rows instead (see
+// GetAssetImage), so this always returns the default.
 func (i BantuAsset) GetDataKey(key string, gc *sharedconfig.GlobalConfig) string {
-	client := network.GetBlockchainClient()
-
-	defaultAssetImageURL := os.Getenv("DEFAULT_ASSET_IMAGE_URL")
-	if len(strings.TrimSpace(i.AssetIssuer)) != 56 {
-		return defaultAssetImageURL
-	}
-	issuerExists, _, _, _, account, err := network.BlockchainAccountProperties(client, i.AssetIssuer, txnbuild.NativeAsset{})
-	if !issuerExists || err != nil {
-		return defaultAssetImageURL
-	}
-	d, ok := account.Data[key]
-	if !ok {
-		return defaultAssetImageURL
-	}
-	decData, err := base64.StdEncoding.DecodeString(d)
-
-	if err != nil {
-		return defaultAssetImageURL
-	}
-
-	return string(decData)
-
+	return os.Getenv("DEFAULT_ASSET_IMAGE_URL")
 }
 
 func (i BantuAsset) GetAssetImage(gc *sharedconfig.GlobalConfig) string {
@@ -248,87 +226,66 @@ func (i BantuAsset) IsTokenizedAsset(gc *sharedconfig.GlobalConfig) bool {
 	return e == nil
 }
 
+// GetAssetImageFromIssuer looked up an asset's image URL from the
+// issuer's on-chain manage_data store. See GetDataKey's doc - Base has no
+// such store, so this always falls through to the DB-backed
+// GetAssetImage/DEFAULT_ASSET_IMAGE_URL instead.
 func (i BantuAsset) GetAssetImageFromIssuer(gc *sharedconfig.GlobalConfig) string {
-	client := network.GetBlockchainClient()
-	cacheKey := fmt.Sprintf("url%v_%v", i.AssetCode, i.AssetIssuer)
-	ok, response := gc.RedisCache.GetCachedResult(cacheKey)
-	if ok {
-		return response.(string)
-	}
-	defaultAssetImageURL := os.Getenv("DEFAULT_ASSET_IMAGE_URL")
 	if len(i.AssetCode) == 0 && len(i.AssetIssuer) == 0 {
 		return os.Getenv("NATIVE_ASSET_IMAGE_URL")
 	}
-	if len(strings.TrimSpace(i.AssetIssuer)) != 56 {
-		return defaultAssetImageURL
-	}
-	issuerExists, _, _, _, account, err := network.BlockchainAccountProperties(client, i.AssetIssuer, txnbuild.NativeAsset{})
-	if !issuerExists || err != nil {
-		return defaultAssetImageURL
-	}
-	key := fmt.Sprintf("imageurl_%v", strings.ToLower(i.AssetCode))
-	d, ok := account.Data[key]
-	if !ok {
-		return defaultAssetImageURL
-	}
-	decData, err := base64.StdEncoding.DecodeString(d)
-
-	if err != nil {
-		return defaultAssetImageURL
-	}
-	url := string(decData)
-	gc.RedisCache.StoreResultToCache(cacheKey, url, 1000000)
-	return url
+	return os.Getenv("DEFAULT_ASSET_IMAGE_URL")
 }
 
-// GetBlockchainAssetProperty fetches the blockchain asset information using bantu asset
-func (i BantuAsset) GetBlockchainAssetProperty(gc *sharedconfig.GlobalConfig) (assetStat horizon.AssetStat, err error) {
+// BlockchainAssetFlags is the Base equivalent of Stellar's
+// horizon.AccountFlags on an asset's issuer.
+type BlockchainAssetFlags struct {
+	AuthRequired  bool
+	AuthRevocable bool
+	AuthImmutable bool
+}
 
-	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: i.AssetIssuer, ForAssetCode: i.AssetCode, Limit: 1}
-	assetsPage, err := gc.BantuExpansionClient.Assets(assetRequest)
-	if err != nil {
-		log.Println("[GetBlockchainAssetProperty]: ", err)
-		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
-			log.Printf("[GetBlockchainAssetProperty Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
-			return assetStat, &tErrors.ErrorTemporaryServerError{}
-		} else if strings.Contains(strings.ToLower(err.Error()), "missing") {
-			err = &tErrors.ErrorBlockchainAccountNotActivated{}
-		} else {
+// BlockchainAssetStat is the Base equivalent of Stellar's
+// horizon.AssetStat.
+type BlockchainAssetStat struct {
+	Code   string
+	Flags  BlockchainAssetFlags
+	Amount string
+}
 
-			err = &tErrors.ErrorTemporaryServerError{}
-		}
-
-		return
+// GetBlockchainAssetProperty reports whether this asset is registered in
+// this app's own catalog (Code is set iff it is - the Base equivalent of
+// Stellar's Horizon returning an empty AssetStat for an asset that
+// doesn't exist) and whether it requires per-wallet authorization to
+// hold/send (see internal/network's WalletAssetAuthorization doc).
+// Unlike Stellar, where AuthRequired was an on-chain flag read from
+// Horizon, a B20 asset has no such on-chain flag of its own - this app
+// treats every tokenized (regulated) asset as requiring authorization,
+// matching the same restriction the original enforced via Stellar
+// trustlines for its issuer-authorized assets, and every other curated
+// asset (e.g. stablecoins) as freely transferable.
+func (i BantuAsset) GetBlockchainAssetProperty(gc *sharedconfig.GlobalConfig) (assetStat BlockchainAssetStat, err error) {
+	var count int64
+	gc.DB.Table("curated_assets").Where("asset_code = ? AND asset_issuer = ?", strings.ToUpper(i.AssetCode), strings.ToLower(i.AssetIssuer)).Count(&count)
+	if count == 0 {
+		gc.DB.Table("tokenized_assets").Where("asset_code = ? AND issuing_wallet_public_key = ?", strings.ToUpper(i.AssetCode), strings.ToLower(i.AssetIssuer)).Count(&count)
 	}
-	if len(assetsPage.Embedded.Records) == 0 {
-		//asset does not exist.
-		err = &tErrors.CustomError{Err: "error asset does not exist", ErrMessage: "Asset does not exist."}
-		return
+	if count == 0 {
+		return assetStat, nil
 	}
-
-	assetStat = assetsPage.Embedded.Records[0]
+	assetStat.Code = i.AssetCode
+	assetStat.Flags.AuthRequired = gc.IsValidTokenizedAsset(i.AssetCode)
+	assetStat.Amount = "0"
 	return assetStat, nil
 }
 
-// GetBlockchainAccountDataKey fetches the bantu account information using public key
-func (i BantuAsset) GetBlockchainAccountDataKey(account *horizon.Account, keys ...string) (dataValues map[string]string) {
+// GetBlockchainAccountDataKey looked up values from a Stellar account's
+// on-chain manage_data store (e.g. a payment-callback URL an issuer
+// published there). Base/EVM accounts have no equivalent store, so this
+// always returns an empty map - see GetDataKey's doc for the same
+// simplification applied elsewhere in this file.
+func (i BantuAsset) GetBlockchainAccountDataKey(account *network.AccountInfo, keys ...string) (dataValues map[string]string) {
 	dataValues = make(map[string]string)
-
-	for _, key := range keys {
-		d, ok := account.Data[key]
-		if !ok {
-			continue
-		}
-		decData, err := base64.StdEncoding.DecodeString(d)
-
-		if err != nil {
-			continue
-		} else {
-			dataValues[key] = string(decData)
-		}
-
-	}
-
 	return dataValues
 }
 

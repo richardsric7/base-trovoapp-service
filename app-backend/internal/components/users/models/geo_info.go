@@ -1,6 +1,6 @@
 package users
 
-//AppendGeoInfo sets user geoInformation
+// AppendGeoInfo sets user geoInformation
 func (user *User) AppendGeoInfo() {
 	fetchedGeoInfo, err := GetGeoInfo(user.PublicIP)
 	if err != nil {
@@ -15,7 +15,7 @@ func (user *User) AppendGeoInfo() {
 	user.Longitude = &fetchedGeoInfo.Lon
 }
 
-//GetGeoInfo sets user geoInformation
+// GetGeoInfo sets user geoInformation
 func (user *User) GetGeoInfo() (fetchedGeoInfo IPAPI, err error) {
 	fetchedGeoInfo, err = GetGeoInfo(user.PublicIP)
 	if err != nil {

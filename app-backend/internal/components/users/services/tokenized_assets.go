@@ -13,10 +13,12 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"trovo-wallet-api/internal/basetxn"
 	swapErrors "trovo-wallet-api/internal/components/swaps/errors"
 	swapModels "trovo-wallet-api/internal/components/swaps/models"
 	swapServices "trovo-wallet-api/internal/components/swaps/services"
 	db "trovo-wallet-api/internal/db"
+	"trovo-wallet-api/internal/evmkeypair"
 
 	userModels "trovo-wallet-api/internal/components/users/models"
 	// db "trovo-wallet-api/internal/db"
@@ -26,14 +28,10 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/ecnepsnai/discord"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/clients/horizonclient"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/protocols/horizon"
-	"github.com/stellar/go/txnbuild"
-	"github.com/stellar/go/xdr"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -795,7 +793,7 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 	ato.AssetQuoteCurrency = countryConfig.InternalBalanceTokenCode
 
 	//check Trov balance
-	_, _, _, sourceAccountCustomBalance, _, errCheckBalance := network.BlockchainAccountProperties(gc.BantuExpansionClient, initiator.PublicKey, txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"})
+	_, _, _, sourceAccountCustomBalance, _, errCheckBalance := network.BlockchainAccountProperties(gc.BantuExpansionClient, initiator.PublicKey, basetxn.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"})
 	if errCheckBalance != nil {
 		log.Printf("[SubmitTokenizationAssetInfoByInitiator]error checking wallet balance for initiator. error: %v", errCheckBalance)
 
@@ -1051,9 +1049,9 @@ func AssignIssuingWallet(tokenizationID string, gc *sharedconfig.GlobalConfig) (
 			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-invallid-issuing-profile", ErrMessage: "Issuing profile not valid."}
 			return
 		}
-		issuer, _ := keypair.Random()
-		distributor, _ := keypair.Random()
-		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+		issuer, _ := evmkeypair.Random()
+		distributor, _ := evmkeypair.Random()
+		tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
 
 		walletTag := fmt.Sprintf("%v_issuer", *ato.AssetCode)
 		p := userModels.SubWalletInfo{
@@ -3139,7 +3137,7 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 	if countryConfig.InternalBalanceTokenCode == nil || countryConfig.InternalTokenIssuer == nil {
 		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-invalid-quote-currency", ErrMessage: "Tokenization does not have valid tokenization currency."}
 	}
-	internalBalanceAsset := txnbuild.CreditAsset{Code: *countryConfig.InternalBalanceTokenCode, Issuer: *countryConfig.InternalTokenIssuer}
+	internalBalanceAsset := basetxn.CreditAsset{Code: *countryConfig.InternalBalanceTokenCode, Issuer: *countryConfig.InternalTokenIssuer}
 
 	internalBalanceIssuingSigners, err := getInternalBalanceIssuingSigners()
 	if err != nil {
@@ -3147,26 +3145,26 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 		return "", &tErrors.ErrorTemporaryServerError{}
 	}
 
-	var sourceAsset txnbuild.Asset = txnbuild.NativeAsset{}
-	var destinationAsset txnbuild.Asset = txnbuild.NativeAsset{}
+	var sourceAsset basetxn.Asset = basetxn.NativeAsset{}
+	var destinationAsset basetxn.Asset = basetxn.NativeAsset{}
 
 	if len(swapInfo.DestinationAssetCode) != 0 && !strings.EqualFold(swapInfo.DestinationAssetCode, nativeAssetCode) {
 
-		destinationAsset = txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer}
+		destinationAsset = basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer}
 	}
 	if len(swapInfo.SourceAssetCode) != 0 && !strings.EqualFold(swapInfo.SourceAssetCode, nativeAssetCode) {
 
-		sourceAsset = txnbuild.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceAssetIssuer}
+		sourceAsset = basetxn.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceAssetIssuer}
 	}
 
 	swapInfo.Messages = messages
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 	chanAccount := <-gc.ChannelAccounts
-	defer func(c *keypair.Full) {
+	defer func(c *evmkeypair.Full) {
 		gc.ChannelAccounts <- c
 	}(chanAccount)
 
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 
 	sourceAccountExists, _, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, sourceAsset)
 	var sourceAccountTrustsDestinationAsset bool
@@ -3191,7 +3189,7 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 	}
 
 	// 1. send the stablecoin to the tokenized asset's funds holding wallet
-	ops = append(ops, &txnbuild.Payment{
+	ops = append(ops, &basetxn.Payment{
 		Destination:   *ta.FundsHoldingWalletPublicKey,
 		Amount:        swapInfo.SourceAmount,
 		Asset:         sourceAsset,
@@ -3200,22 +3198,22 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 
 	if !sourceAccountTrustsInternalBalanceAsset {
 		// 2. establish the buyer's trustline to the internal balance token
-		ops = append(ops, &txnbuild.ChangeTrust{
-			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: internalBalanceAsset},
+		ops = append(ops, &basetxn.ChangeTrust{
+			Line:          internalBalanceAsset,
 			Limit:         gc.TokenLimitAsString(),
 			SourceAccount: wallet.ID,
 		})
 		// 3. authorize that trustline
-		ops = append(ops, &txnbuild.SetTrustLineFlags{
+		ops = append(ops, &basetxn.SetTrustLineFlags{
 			Trustor:       wallet.ID,
 			Asset:         internalBalanceAsset,
-			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+			SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 			SourceAccount: *countryConfig.InternalTokenIssuer,
 		})
 	}
 
 	// 4. issue the internal balance token 1:1 to the buyer
-	ops = append(ops, &txnbuild.Payment{
+	ops = append(ops, &basetxn.Payment{
 		Destination:   wallet.ID,
 		Amount:        swapInfo.SwapAmount,
 		Asset:         internalBalanceAsset,
@@ -3227,16 +3225,16 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 		if !sourceAccountTrustsDestinationAsset {
 
 			// 5. establish trustline to the tokenized asset
-			ops = append(ops, &txnbuild.ChangeTrust{
-				Line:          txnbuild.ChangeTrustAssetWrapper{Asset: destinationAsset},
+			ops = append(ops, &basetxn.ChangeTrust{
+				Line:          destinationAsset,
 				Limit:         gc.TokenLimitAsString(),
 				SourceAccount: wallet.ID,
 			})
 			// allow trust from issuer to destination wallet
-			ops = append(ops, &txnbuild.SetTrustLineFlags{
+			ops = append(ops, &basetxn.SetTrustLineFlags{
 				Trustor:       wallet.ID,
-				Asset:         txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
-				SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+				Asset:         basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
+				SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 				SourceAccount: swapInfo.DestinationAssetIssuer,
 			})
 
@@ -3263,7 +3261,7 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 	}
 
 	// 6. swap the internal balance token for the tokenized asset
-	ops = append(ops, &txnbuild.PathPaymentStrictSend{
+	ops = append(ops, &basetxn.PathPaymentStrictSend{
 		SendAsset:     internalBalanceAsset,
 		SendAmount:    swapInfo.SwapAmount,
 		Destination:   wallet.ID,
@@ -3274,8 +3272,8 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 	})
 
 	// 7. remove the internal balance trustline so it never persists outside of this transaction
-	ops = append(ops, &txnbuild.ChangeTrust{
-		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: internalBalanceAsset},
+	ops = append(ops, &basetxn.ChangeTrust{
+		Line:          internalBalanceAsset,
 		Limit:         "0",
 		SourceAccount: wallet.ID,
 	})
@@ -3289,33 +3287,27 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 	log.Println("[generateAssetSubscriptionXdr] Memo:", memo)
 	swapInfo.Memo = memo
 
-	var tx *txnbuild.Transaction
+	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if swapInfo.Multiparty == 1 {
-		swapInfo.TransactionSource = chanSourceAccount.AccountID
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        chanSourceAccount,
+		swapInfo.TransactionSource = chanSourceAccount.Address
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        chanSourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
 				BaseFee:              2000,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText(memo),
+				Memo:                 memo,
 			},
 		)
 	} else {
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        sourceAccount,
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        sourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
 				BaseFee:              2000,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText(memo),
+				Memo:                 memo,
 			},
 		)
 	}
@@ -3351,7 +3343,7 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
 		}
 
-		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+		tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
 
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
 		if err != nil {
@@ -3397,7 +3389,7 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 	if countryConfig.InternalBalanceTokenCode == nil || countryConfig.InternalTokenIssuer == nil {
 		return "", "", &tErrors.CustomError{Param: "publicKey", Err: "error-invalid-quote-currency", ErrMessage: "Tokenization does not have valid tokenization currency."}
 	}
-	internalBalanceAsset := txnbuild.CreditAsset{Code: *countryConfig.InternalBalanceTokenCode, Issuer: *countryConfig.InternalTokenIssuer}
+	internalBalanceAsset := basetxn.CreditAsset{Code: *countryConfig.InternalBalanceTokenCode, Issuer: *countryConfig.InternalTokenIssuer}
 
 	internalBalanceIssuingSigners, e := getInternalBalanceIssuingSigners()
 	if e != nil {
@@ -3405,14 +3397,14 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 		return "", "", &tErrors.ErrorTemporaryServerError{}
 	}
 
-	var destinationAsset txnbuild.Asset = txnbuild.NativeAsset{}
+	var destinationAsset basetxn.Asset = basetxn.NativeAsset{}
 	if len(swapInfo.DestinationAssetCode) != 0 && !strings.EqualFold(swapInfo.DestinationAssetCode, nativeAssetCode) {
-		destinationAsset = txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer}
+		destinationAsset = basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer}
 	}
 
 	swapInfo.Messages = messages
 
-	sourceAccountExists, _, _, _, _, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, txnbuild.NativeAsset{})
+	sourceAccountExists, _, _, _, _, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, basetxn.NativeAsset{})
 	if sourceAccountErr != nil {
 		return "", "", sourceAccountErr
 	}
@@ -3426,27 +3418,27 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 	}
 	_, sourceAccountTrustsInternalBalanceAsset, _, _, _, _ := network.BlockchainAccountProperties(client, wallet.ID, internalBalanceAsset)
 
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 
 	if !sourceAccountTrustsInternalBalanceAsset {
 		// 1. establish the buyer's trustline to the internal balance token
-		ops = append(ops, &txnbuild.ChangeTrust{
-			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: internalBalanceAsset},
+		ops = append(ops, &basetxn.ChangeTrust{
+			Line:          internalBalanceAsset,
 			Limit:         gc.TokenLimitAsString(),
 			SourceAccount: wallet.ID,
 		})
 		// 2. authorize that trustline
-		ops = append(ops, &txnbuild.SetTrustLineFlags{
+		ops = append(ops, &basetxn.SetTrustLineFlags{
 			Trustor:       wallet.ID,
 			Asset:         internalBalanceAsset,
-			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+			SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 			SourceAccount: *countryConfig.InternalTokenIssuer,
 		})
 	}
 
 	// 3. issue the internal balance token 1:1 to the buyer, in place of the on-chain stablecoin
 	// payment leg - the fiat payment confirmed later by the webhook is what authorizes this mint
-	ops = append(ops, &txnbuild.Payment{
+	ops = append(ops, &basetxn.Payment{
 		Destination:   wallet.ID,
 		Amount:        swapInfo.SwapAmount,
 		Asset:         internalBalanceAsset,
@@ -3455,15 +3447,15 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 
 	if !destinationAsset.IsNative() && !sourceAccountTrustsDestinationAsset {
 		// 4. establish trustline to the tokenized asset
-		ops = append(ops, &txnbuild.ChangeTrust{
-			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: destinationAsset},
+		ops = append(ops, &basetxn.ChangeTrust{
+			Line:          destinationAsset,
 			Limit:         gc.TokenLimitAsString(),
 			SourceAccount: wallet.ID,
 		})
-		ops = append(ops, &txnbuild.SetTrustLineFlags{
+		ops = append(ops, &basetxn.SetTrustLineFlags{
 			Trustor:       wallet.ID,
-			Asset:         txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
-			SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+			Asset:         basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
+			SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 			SourceAccount: swapInfo.DestinationAssetIssuer,
 		})
 	}
@@ -3486,7 +3478,7 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 	}
 
 	// 5. swap the internal balance token for the tokenized asset
-	ops = append(ops, &txnbuild.PathPaymentStrictSend{
+	ops = append(ops, &basetxn.PathPaymentStrictSend{
 		SendAsset:     internalBalanceAsset,
 		SendAmount:    swapInfo.SwapAmount,
 		Destination:   wallet.ID,
@@ -3497,8 +3489,8 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 	})
 
 	// 6. remove the internal balance trustline so it never persists outside of this transaction
-	ops = append(ops, &txnbuild.ChangeTrust{
-		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: internalBalanceAsset},
+	ops = append(ops, &basetxn.ChangeTrust{
+		Line:          internalBalanceAsset,
 		Limit:         "0",
 		SourceAccount: wallet.ID,
 	})
@@ -3516,22 +3508,19 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 		}
 	}()
 
-	_, _, _, _, chanSourceAccount, chanErr := network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
+	_, _, _, _, chanSourceAccount, chanErr := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 	if chanErr != nil {
 		return "", "", chanErr
 	}
-	swapInfo.TransactionSource = chanSourceAccount.AccountID
+	swapInfo.TransactionSource = chanSourceAccount.Address
 
-	tx, txErr := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        chanSourceAccount,
+	tx, txErr := basetxn.NewTransaction(
+		basetxn.TransactionParams{
+			SourceAccount:        chanSourceAccount.Address,
 			IncrementSequenceNum: true,
 			Operations:           ops,
 			BaseFee:              2000,
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
-			},
-			Memo: txnbuild.MemoText(memo),
+			Memo:                 memo,
 		},
 	)
 	if txErr != nil {
@@ -3556,7 +3545,7 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
 			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
 		}
-		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+		tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
 		if err != nil {
 			log.Println("[generateAssetSubscriptionFiatXdr] error signing transaction with issuer key to authorize trustline", err)
@@ -3583,14 +3572,14 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 // INTERNAL_BALANCE_ISSUING_SIGNERS env var, a CSV of secret seeds. All parsed signers are returned so
 // the caller can sign with each of them - extra valid signatures beyond the account's multisig threshold
 // are harmless on Stellar.
-func getInternalBalanceIssuingSigners() ([]*keypair.Full, error) {
-	var signers []*keypair.Full
+func getInternalBalanceIssuingSigners() ([]*evmkeypair.Full, error) {
+	var signers []*evmkeypair.Full
 	for _, v := range strings.Split(os.Getenv("INTERNAL_BALANCE_ISSUING_SIGNERS"), ",") {
 		v = strings.TrimSpace(v)
 		if len(v) == 0 {
 			continue
 		}
-		kp, e := keypair.ParseFull(v)
+		kp, e := evmkeypair.ParseFull(v)
 		if e != nil {
 			return nil, e
 		}
@@ -3603,161 +3592,18 @@ func getInternalBalanceIssuingSigners() ([]*keypair.Full, error) {
 }
 
 // GetStrictSendPaths gets Strict Send Paths for Strict Send Path Payment request
-func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonclient.Client) (paths []txnbuild.Asset, swappedEstimate string, err error) {
-	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/75RxS1LzWA800hWereJJumw"
-	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
-		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
+func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *ethclient.Client) (paths []basetxn.Asset, swappedEstimate string, err error) {
+	// Stellar's native on-chain DEX path-finding has no Base equivalent
+	// (see internal/sharedconfig/order_book_summary.go's doc) - real
+	// swap routing on Base needs a specific DEX router (e.g. Uniswap v3)
+	// wired into internal/network, tracked as a follow-up. Stubbed with
+	// the same low-liquidity error this function's callers already know
+	// how to surface to the user.
+	return paths, "", &tErrors.CustomError{
+		Param:      "destinationAssetCode",
+		Err:        "error-low-liquidity",
+		ErrMessage: "Swaps are not yet available on Base - no DEX route source is configured.",
 	}
-	var swapPaths horizon.PathsPage
-	paths = make([]txnbuild.Asset, 0)
-	var sourceAssetType horizonclient.AssetType
-	if len(pathInput.SourceAssetIssuer) == 0 {
-		sourceAssetType = horizonclient.AssetTypeNative
-		pathInput.SourceAssetCode = ""
-		pathInput.SourceAssetIssuer = ""
-	} else if len(pathInput.SourceAssetCode) < 5 && len(pathInput.SourceAssetIssuer) == 56 {
-		sourceAssetType = horizonclient.AssetType4
-	} else if len(pathInput.SourceAssetCode) > 4 && len(pathInput.SourceAssetCode) <= 12 && len(pathInput.SourceAssetIssuer) == 56 {
-		sourceAssetType = horizonclient.AssetType12
-	}
-	if pathInput.DestinationAccount != "" {
-		pathInput.DestinationAssets = ""
-	}
-
-	if pathInput.DestinationAssets == "" && pathInput.DestinationAccount == "" {
-		pathInput.DestinationAssets = "native"
-	}
-	if pathInput.DestinationAssets == "native" {
-		pathInput.DestinationAccount = ""
-	}
-
-	if pathInput.DestinationAssets != "" {
-		pathInput.DestinationAccount = ""
-	}
-	sspr := horizonclient.StrictSendPathsRequest{
-		DestinationAccount: pathInput.DestinationAccount,
-		DestinationAssets:  pathInput.DestinationAssets,
-		SourceAssetType:    sourceAssetType,
-		SourceAssetCode:    pathInput.SourceAssetCode,
-		SourceAssetIssuer:  pathInput.SourceAssetIssuer,
-		SourceAmount:       pathInput.SourceAmount,
-	}
-
-	swapPaths, err = client.StrictSendPaths(sspr)
-
-	if err != nil {
-		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
-			log.Println("#######################@@@@@@@@@@@@@@@@[client.StrictSendPathsErr] expansion connection problem:", err)
-			discord.Say(fmt.Sprintf("[getStrictSendPaths] error connecting to expansion service: %v\nSwapPathRequest: %+v", err, sspr))
-
-			return paths, "", &tErrors.ErrorTemporaryServerError{}
-		}
-		if strings.Contains(err.Error(), "liquid") {
-			destAsset := os.Getenv("NATIVE_ASSET_CODE")
-			sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
-			if len(pathInput.SourceAssetCode) > 0 {
-				sourceAsset = pathInput.SourceAssetCode
-			}
-			if pathInput.DestinationAssets != "native" {
-				destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
-			}
-			return paths, "", &tErrors.CustomError{
-				Param:      "destinationAssetCode",
-				Err:        "error-low-liquidity",
-				ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
-			}
-		}
-		horizonException, ok := err.(*horizonclient.Error)
-
-		if ok {
-
-			extraErrors := horizonException.Problem.Extras
-
-			for key, val := range extraErrors {
-				log.Printf("Extras: %v is %v\n", key, val)
-			}
-
-			resultCodes, e := horizonException.ResultCodes()
-			if e != nil {
-				log.Println("[client.StrictSendPathsErr] Error getting result codes:", e)
-
-				destAsset := os.Getenv("NATIVE_ASSET_CODE")
-				sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
-				if len(pathInput.SourceAssetCode) > 0 {
-					sourceAsset = pathInput.SourceAssetCode
-				}
-				if pathInput.DestinationAssets != "native" {
-					destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
-				}
-				return paths, "", &tErrors.CustomError{
-					Param:      "destinationAssetCode",
-					Err:        "error-low-liquidity",
-					ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
-				}
-
-			}
-
-			for key, val := range resultCodes.OperationCodes {
-				log.Printf("Result code: %v is %v\n", key, val)
-			}
-			discord.Say(fmt.Sprintf("[getStrictSendPaths] error submitting: %v\nSwapPathRequest: %+v\nResultCodes: %+v", err, sspr, resultCodes))
-
-		}
-		log.Println("[client.StrictSendPathsErr] Error submitting:", err)
-		if strings.Contains(err.Error(), "liquid") {
-			destAsset := os.Getenv("NATIVE_ASSET_CODE")
-			sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
-			if len(pathInput.SourceAssetCode) > 0 {
-				sourceAsset = pathInput.SourceAssetCode
-			}
-			if pathInput.DestinationAssets != "native" {
-				destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
-			}
-			return paths, "", &tErrors.CustomError{
-				Param:      "destinationAssetCode",
-				Err:        "error-low-liquidity",
-				ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
-			}
-		}
-		return paths, "", &tErrors.ErrorTemporaryServerError{}
-
-	}
-	// discord.Say(fmt.Sprintf("[getStrictSendPaths] swapPaths: %+v\nRequestParams: %+v", swapPaths, sspr))
-	// log.Printf("[getStrictSendPaths] swapPaths: %+v\n", swapPaths)
-	if len(swapPaths.Embedded.Records) == 0 {
-		destAsset := os.Getenv("NATIVE_ASSET_CODE")
-		sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
-		if len(pathInput.SourceAssetCode) > 0 {
-			sourceAsset = pathInput.SourceAssetCode
-		}
-		if pathInput.DestinationAssets != "native" {
-			destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
-		}
-		return paths, "", &tErrors.CustomError{
-			Param:      "destinationAssetCode",
-			Err:        "error-low-liquidity",
-			ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
-		}
-	}
-	destAmountDec, _ := decimal.NewFromString(swapPaths.Embedded.Records[0].DestinationAmount)
-	if destAmountDec.LessThan(network.GetBlockchainSwapDestinationMin()) {
-		return paths, "", &swapErrors.ErrorSwapAmountTooSmall{}
-	}
-
-	bestPath := swapPaths.Embedded.Records[0]
-	//build assets
-	swappedEstimate = bestPath.DestinationAmount
-
-	for _, v := range bestPath.Path {
-		if len(v.Issuer) == 0 {
-			paths = append(paths, txnbuild.NativeAsset{})
-		} else {
-			paths = append(paths, txnbuild.CreditAsset{Code: v.Code, Issuer: v.Issuer})
-		}
-
-	}
-
-	return paths, swappedEstimate, nil
 }
 
 func ExpressInterest(subscriber *userModels.User, ta *userModels.TokenizedAsset, input *userModels.ExpressionOfInterestInput, gc *sharedconfig.GlobalConfig) (expressedInterest userModels.ExpressionOfInterest, err error) {
@@ -3795,8 +3641,8 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	client := gc.BantuExpansionClient
 
 	TOKENIZATION_FEE := t.GetTokenizationFeeWallet(gc)
-	feeWallet := keypair.MustParseFull(TOKENIZATION_FEE.FeeWalletSecretKey)
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	feeWallet := evmkeypair.MustParseFull(TOKENIZATION_FEE.FeeWalletSecretKey)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 	messages = make([]string, 0)
 	var permInfo []userModels.WalletPermissionInfo
 
@@ -3903,9 +3749,9 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		err = &tErrors.CustomError{Param: "publicKey", Err: "error-internal-balance-authorizer-not-set", ErrMessage: "Internal balance token authorizer wallet not set."}
 		return
 	}
-	authorizerKP := keypair.MustParseFull(strings.TrimSpace(os.Getenv("INTERNAL_BALANCE_AUTHORIZER_WALLET")))
+	authorizerKP := evmkeypair.MustParseFull(strings.TrimSpace(os.Getenv("INTERNAL_BALANCE_AUTHORIZER_WALLET")))
 
-	tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+	tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
 
 	for _, v := range aps {
 		permInfo = append(permInfo, userModels.WalletPermissionInfo{
@@ -3985,8 +3831,8 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 
 	}
 	// create distributionWallet trustline to tokenized asset
-	ops = append(ops, &txnbuild.ChangeTrust{
-		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey}},
+	ops = append(ops, &basetxn.ChangeTrust{
+		Line:          basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
 		Limit:         gc.TokenLimitAsString(),
 		SourceAccount: distributionWallet.ID,
 	})
@@ -3994,54 +3840,54 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	//create trusline on fee wallet
 
 	//get fee wallet
-	ops = append(ops, &txnbuild.ChangeTrust{
-		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey}},
+	ops = append(ops, &basetxn.ChangeTrust{
+		Line:          basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
 		Limit:         gc.TokenLimitAsString(),
 		SourceAccount: feeWallet.Address(),
 	})
 
 	// allow trust from issuer to fee wallet
-	ops = append(ops, &txnbuild.SetTrustLineFlags{
+	ops = append(ops, &basetxn.SetTrustLineFlags{
 		Trustor:       feeWallet.Address(),
-		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
-		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		Asset:         basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
+		SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 		SourceAccount: *t.IssuingWalletPublicKey,
 	})
 
 	// allow trust from issuer to distribution wallet
-	ops = append(ops, &txnbuild.SetTrustLineFlags{
+	ops = append(ops, &basetxn.SetTrustLineFlags{
 		Trustor:       distributionWallet.ID,
-		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
-		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		Asset:         basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
+		SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 		SourceAccount: *t.IssuingWalletPublicKey,
 	})
 
 	// create + authorize distributionWallet trustline to the quote currency (internal balance token)
-	ops = append(ops, &txnbuild.ChangeTrust{
-		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: txnbuild.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer}},
+	ops = append(ops, &basetxn.ChangeTrust{
+		Line:          basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
 		Limit:         gc.TokenLimitAsString(),
 		SourceAccount: distributionWallet.ID,
 	})
-	ops = append(ops, &txnbuild.SetTrustLineFlags{
+	ops = append(ops, &basetxn.SetTrustLineFlags{
 		Trustor:       distributionWallet.ID,
-		Asset:         txnbuild.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
-		SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		Asset:         basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
+		SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 		SourceAccount: quoteCurrency.AssetIssuer,
 	})
 
 	//mint the token to distribution wallet
-	ops = append(ops, &txnbuild.Payment{
+	ops = append(ops, &basetxn.Payment{
 		Destination:   distributionWallet.ID,
 		Amount:        decimal.NewFromFloat(t.NumberOfTokenToBeIssued).StringFixed(7),
-		Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
+		Asset:         basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
 		SourceAccount: *t.IssuingWalletPublicKey,
 	})
 	if t.FeeInAsset > 0 {
 		//deduct fee to fee wallet, from distribution wallet
-		feeInAssetPayment := &txnbuild.Payment{
+		feeInAssetPayment := &basetxn.Payment{
 			Destination:   feeWallet.Address(),
 			Amount:        decimal.NewFromFloat(t.FeeInAsset).StringFixed(7),
-			Asset:         txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
+			Asset:         basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
 			SourceAccount: distributionWallet.ID,
 		}
 		// if e := feeInAssetPayment.Validate(); e != nil {
@@ -4078,33 +3924,20 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		return "", "", messages, issuingWallet, err
 	}
 
-	xdrInt32N := xdr.Int32(n)
-	xdrInt32D := xdr.Int32(d)
-	xdrPrice := xdr.Price{N: xdrInt32N, D: xdrInt32D}
-	marketOffer := &txnbuild.ManageSellOffer{
-		Buying:        txnbuild.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
+	priceStr := fmt.Sprintf("%v/%v", n, d)
+	marketOffer := &basetxn.ManageSellOffer{
+		Buying:        basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
 		Amount:        decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7),
-		Selling:       txnbuild.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
-		Price:         xdrPrice,
+		Selling:       basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletPublicKey},
+		Price:         priceStr,
 		SourceAccount: distributionWallet.ID,
-	}
-	if e := marketOffer.Validate(); e != nil {
-		msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] marketOffer Operation Failed validation: %v. Offer figure: %v. Fields: %+v", e, t.MaxNumberOfTokenAvailableForSale, *marketOffer)
-		gc.LogDiscordFailedRequest(msg)
-		err = &tErrors.CustomError{
-			Param:      "IssuingWalletPublicKey",
-			Err:        "error-could-not-approve-tokenization",
-			ErrMessage: "Could not approve tokenization. Market offer operation could not pass validation.",
-			Code:       404,
-		}
-		return "", "", messages, issuingWallet, err
 	}
 
 	ops = append(ops, marketOffer)
-	msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] Transaction to mint %v units (selling %v units) of %v @ %v %v generated. N: %v, D: %v. xdrN: %v, xdrD: %v. XDR Price: %+v", decimal.NewFromFloat(t.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7), *t.AssetCode, decimal.NewFromFloat(t.PricePerToken).StringFixed(7), *t.AssetQuoteCurrency, decimal.NewFromInt32(n).String(), decimal.NewFromInt32(d).String(), xdrInt32N, xdrInt32D, xdrPrice)
+	msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] Transaction to mint %v units (selling %v units) of %v @ %v %v generated. N: %v, D: %v. Price: %v", decimal.NewFromFloat(t.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7), *t.AssetCode, decimal.NewFromFloat(t.PricePerToken).StringFixed(7), *t.AssetQuoteCurrency, n, d, priceStr)
 	gc.LogDiscordFailedRequest(msg)
 	//check if issuing account has native enough native balance
-	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
+	var nativeAsset basetxn.Asset = basetxn.NativeAsset{}
 	_, _, walletAccountNativeBalance, _, _, errWalletAct := network.BlockchainAccountProperties(client, issuingWallet.ID, nativeAsset)
 	if errWalletAct != nil {
 		log.Printf("[generateMintRegulatedTokenizedAssetXdr] by [%v] for shared Account Properties error:[%v] \n", issuingWallet.Alias, errWalletAct)
@@ -4125,23 +3958,20 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 
 	// minting is free. No fee.
 	chanAccount := <-gc.ChannelAccounts
-	defer func(c *keypair.Full) {
+	defer func(c *evmkeypair.Full) {
 		gc.ChannelAccounts <- c
 	}(chanAccount)
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 
-	transactionSource = chanSourceAccount.AccountID
+	transactionSource = chanSourceAccount.Address
 
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        chanSourceAccount,
+	tx, err := basetxn.NewTransaction(
+		basetxn.TransactionParams{
+			SourceAccount:        chanSourceAccount.Address,
 			IncrementSequenceNum: true,
 			Operations:           ops,
-			BaseFee:              txnbuild.MinBaseFee,
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
-			},
-			Memo: txnbuild.MemoText("Mint " + *t.AssetCode),
+			BaseFee:              2000,
+			Memo:                 "Mint " + *t.AssetCode,
 		},
 	)
 	if err != nil {
@@ -4515,11 +4345,11 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 	}
 	feeAmount := decimal.NewFromFloat(TOKENIZATION_APPLICATION_FEE.FeeFixed)
 
-	feeWalletPK := keypair.MustParseFull(TOKENIZATION_APPLICATION_FEE.FeeWalletSecretKey)
+	feeWalletPK := evmkeypair.MustParseFull(TOKENIZATION_APPLICATION_FEE.FeeWalletSecretKey)
 	assetIssuer := TOKENIZATION_APPLICATION_FEE.FeeAssetIssuer
 	assetCode := TOKENIZATION_APPLICATION_FEE.FeeAssetCode
 
-	asset := txnbuild.CreditAsset{Code: assetCode, Issuer: assetIssuer}
+	asset := basetxn.CreditAsset{Code: assetCode, Issuer: assetIssuer}
 
 	sourceAccountExists, _, _, assetAccountFeeBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
@@ -4532,8 +4362,8 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 
 	}
 
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
-	ops = append(ops, &txnbuild.Payment{
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
+	ops = append(ops, &basetxn.Payment{
 		Destination:   feeWalletPK.Address(),
 		Amount:        feeAmount.String(),
 		Asset:         asset,
@@ -4541,19 +4371,16 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 	})
 
 	taInput.Messages = append(taInput.Messages, fmt.Sprintf("Application fee of %v %v will be charged to your wallet with alias [%v].", feeAmount.String(), assetCode, wallet.Alias))
-	var tx *txnbuild.Transaction
+	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 
-	tx, err = txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        sourceAccount,
+	tx, err = basetxn.NewTransaction(
+		basetxn.TransactionParams{
+			SourceAccount:        sourceAccount.Address,
 			IncrementSequenceNum: true,
 			Operations:           ops,
-			BaseFee:              txnbuild.MinBaseFee,
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
-			},
-			Memo: txnbuild.MemoText("TApplicationFee"),
+			BaseFee:              2000,
+			Memo:                 "TApplicationFee",
 		},
 	)
 
@@ -4584,74 +4411,23 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 func checkDistributionWalletHasQuoteCurrencyAuthorization(assetQuoteCurrencyCode, assetQuoteCurrencyIssuer string, distributionWallet *userModels.UserWallet, gc *sharedconfig.GlobalConfig) (err error) {
 	//check if the distribution wallet has the quote currency trustline and, if the quote currency requires authorization, that it is authorized
 
-	quoteAsset := txnbuild.CreditAsset{Code: assetQuoteCurrencyCode, Issuer: assetQuoteCurrencyIssuer}
-	_, trusted, _, _, dwalletSource, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, distributionWallet.ID, quoteAsset)
+	// network.BlockchainAccountProperties' "authorized" return already IS
+	// this check (internal/network.IsWalletAuthorizedForAsset) - the
+	// original's extra pass over account.Balances re-deriving the same
+	// answer from a Stellar trustline's IsAuthorized flag has no Base
+	// equivalent to re-derive from (see WalletAssetAuthorization's doc).
+	quoteAsset := basetxn.CreditAsset{Code: assetQuoteCurrencyCode, Issuer: assetQuoteCurrencyIssuer}
+	_, authorized, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, distributionWallet.ID, quoteAsset)
 
-	if !trusted {
-		//distributor wallet does not trust the quote currency yet.
+	if !authorized {
 		log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Distribution wallet [%v] does not yet accept %v\n", distributionWallet.Alias, assetQuoteCurrencyCode)
 
-		err = &tErrors.CustomError{
+		return &tErrors.CustomError{
 			Param:      "IssuingWalletPublicKey",
 			Err:        "error-asset-trustline-not-authorized",
 			ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, assetQuoteCurrencyCode),
 			Code:       404,
 		}
-		return err
-	}
-
-	//get the quote currency balance entry
-	for _, bal := range dwalletSource.Balances {
-		if strings.EqualFold(assetQuoteCurrencyCode, bal.Code) {
-			//perform the critical check
-
-			bantuAsset := userModels.BantuAsset{
-				AssetCode:   assetQuoteCurrencyCode,
-				AssetIssuer: assetQuoteCurrencyIssuer,
-			}
-			bcAsset, e := bantuAsset.GetBlockchainAssetProperty(gc)
-			if e != nil {
-				err = &tErrors.ErrorTemporaryServerError{}
-				return err
-
-			}
-			if len(bcAsset.Code) == 0 {
-				err = &tErrors.ErrorTemporaryServerError{}
-				return err
-
-			}
-
-			if bcAsset.Flags.AuthRequired {
-				if bal.IsAuthorized != nil {
-					if !*bal.IsAuthorized {
-						//authorization has not been given. abort process.
-						log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Error: %v not authorized on distribution wallet [%v]\n", assetQuoteCurrencyCode, distributionWallet.Alias)
-
-						err = &tErrors.CustomError{
-							Param:      "IssuingWalletPublicKey",
-							Err:        "error-asset-trustline-not-authorized",
-							ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, assetQuoteCurrencyCode),
-							Code:       404,
-						}
-						return err
-					}
-				} else {
-					//authorization has not been given. abort process.
-					log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Error: %v not authorized on distribution wallet [%v]\n", assetQuoteCurrencyCode, distributionWallet.Alias)
-
-					err = &tErrors.CustomError{
-						Param:      "IssuingWalletPublicKey",
-						Err:        "error-asset-trustline-not-authorized",
-						ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, assetQuoteCurrencyCode),
-						Code:       404,
-					}
-					return err
-				}
-
-			}
-
-		}
-
 	}
 	return nil
 }
@@ -4740,16 +4516,16 @@ func buildTokenizedAssetEarlyExit(walletOwnerUsername, walletPublicKey string, i
 // and the holder is settled to their bank account off-chain from the persisted TokenizedAssetEarlyExit record.
 func generateEarlyExitPaymentXdr(wallet *userModels.UserWallet, distributionWallet *userModels.UserWallet, ta *userModels.TokenizedAsset, amount string, multiparty int, gc *sharedconfig.GlobalConfig) (xdrBase64, transactionSource string, err error) {
 	client := gc.BantuExpansionClient
-	asset := txnbuild.CreditAsset{Code: strings.ToUpper(*ta.AssetCode), Issuer: strings.ToUpper(*ta.IssuingWalletPublicKey)}
+	asset := basetxn.CreditAsset{Code: strings.ToUpper(*ta.AssetCode), Issuer: strings.ToUpper(*ta.IssuingWalletPublicKey)}
 
-	var chanAccount *keypair.Full
-	var chanSourceAccount *horizon.Account
+	var chanAccount *evmkeypair.Full
+	var chanSourceAccount *network.AccountInfo
 	if multiparty == 1 {
 		chanAccount = <-gc.ChannelAccounts
-		defer func(c *keypair.Full) {
+		defer func(c *evmkeypair.Full) {
 			gc.ChannelAccounts <- c
 		}(chanAccount)
-		_, _, _, _, chanSourceAccount, _ = network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
+		_, _, _, _, chanSourceAccount, _ = network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 	}
 
 	sourceAccountExists, sourceAccountTrustsAsset, _, sourceAccountBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, asset)
@@ -4771,8 +4547,8 @@ func generateEarlyExitPaymentXdr(wallet *userModels.UserWallet, distributionWall
 		return "", "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("You only have %v %v available; cannot exit %v %v.", sourceAccountBalance.String(), *ta.AssetCode, amountDec.String(), *ta.AssetCode)}
 	}
 
-	ops := []txnbuild.Operation{
-		&txnbuild.Payment{
+	ops := []basetxn.Operation{
+		&basetxn.Payment{
 			Destination:   distributionWallet.ID,
 			Amount:        amountDec.String(),
 			Asset:         asset,
@@ -4780,32 +4556,26 @@ func generateEarlyExitPaymentXdr(wallet *userModels.UserWallet, distributionWall
 		},
 	}
 
-	var tx *txnbuild.Transaction
+	var tx *basetxn.Transaction
 	if multiparty == 1 {
-		transactionSource = chanSourceAccount.AccountID
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        chanSourceAccount,
+		transactionSource = chanSourceAccount.Address
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        chanSourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
 				BaseFee:              2000,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText("EARLYEXIT"),
+				Memo:                 "EARLYEXIT",
 			},
 		)
 	} else {
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        sourceAccount,
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        sourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
 				BaseFee:              2000,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText("EARLYEXIT"),
+				Memo:                 "EARLYEXIT",
 			},
 		)
 	}

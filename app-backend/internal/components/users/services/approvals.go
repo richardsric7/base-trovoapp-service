@@ -23,8 +23,6 @@ import (
 	"github.com/golang-module/carbon/v2"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/protocols/horizon"
-	"github.com/stellar/go/xdr"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -525,7 +523,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	p.TransactionStatus = "COMPLETED"
 
 	//if transaction fails on blockchain, then reverse all changes.
-	var txnResult horizon.Transaction
+	var txnResult network.SubmittedTransaction
 	{
 		e = dbTX.Omit(clause.Associations).Save(p).Error
 		if e != nil {
@@ -891,27 +889,13 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		} else if p.TransactionType == "MAKE MARKET OFFER" {
 
 			marketOffer.TransactionID = &txnResult.Hash
-			//get and set the offerID
-			{
-				var re xdr.TransactionResult
-				e := xdr.SafeUnmarshalBase64(txnResult.ResultXdr, &re)
-				if e != nil {
-					fmt.Println(e)
-				}
-				log.Println(re)
-				or, _ := re.OperationResults()
-
-				for _, r := range or {
-
-					ms, ok := r.Tr.GetManageSellOfferResult()
-					if !ok {
-						continue
-					}
-					offerID := fmt.Sprintf("%v", ms.Success.Offer.Offer.OfferId)
-
-					marketOffer.BlockchainOfferID = &offerID
-				}
-			}
+			// Market-making DEX offers have no Base equivalent (Base has
+			// no native on-chain order book to hold one - see
+			// internal/sharedconfig/order_book_summary.go's doc), so
+			// there is no on-chain offer ID to extract from the
+			// submitted transaction's result the way Stellar's
+			// ManageSellOfferResult provided one. marketOffer.BlockchainOfferID
+			// stays unset pending a real Base market-making design.
 			e = dbTX.Omit(clause.Associations).Create(&marketOffer).Error
 			if e != nil {
 				log.Printf("[ApproveTransaction]Error saving market offer: %+v\nError: %v\n", marketOffer, e)

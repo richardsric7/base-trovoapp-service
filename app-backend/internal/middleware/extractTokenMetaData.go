@@ -6,7 +6,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-//ExtractTokenMetadata extracts metaData from the request
+// ExtractTokenMetadata extracts metaData from the request
 func ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
 	token, err := VerifyToken(r)
 	if err != nil {
@@ -27,7 +27,7 @@ func ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
 	return nil, err
 }
 
-//ExtractTokenMetadata extracts metaData from the request
+// ExtractTokenMetadata extracts metaData from the request
 func WebSocetExtractTokenMetadata(r string) (*AccessDetails, error) {
 	token, err := WebsocketVerifyToken(r)
 	if err != nil {

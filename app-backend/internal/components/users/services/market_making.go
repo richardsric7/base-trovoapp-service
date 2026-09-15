@@ -7,20 +7,19 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	// bc "trovo-wallet-api/internal/blockchainalgofuncs"
+	"trovo-wallet-api/internal/basetxn"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/protocols/horizon"
-	"github.com/stellar/go/txnbuild"
-	"github.com/stellar/go/xdr"
 	"gorm.io/gorm/clause"
 )
 
@@ -197,29 +196,10 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 
 		offerRequest.TransactionID = txnResult.Hash
 		marketOffer.TransactionID = &txnResult.Hash
-		//get and set the offerID
-		{
-			var re xdr.TransactionResult
-			e := xdr.SafeUnmarshalBase64(txnResult.ResultXdr, &re)
-			if e != nil {
-				log.Println(e)
-			}
-			log.Println(re)
-			or, _ := re.OperationResults()
-
-			// log.Printf("OK: %v\nOperationResult: %#v", ok, or)
-			for _, r := range or {
-
-				ms, ok := r.Tr.GetManageSellOfferResult()
-				if !ok {
-					continue
-				}
-				// log.Printf("Index: %v\nManageSellOffer Offer ID: %#v", i, ms.Success.Offer.Offer.OfferId)
-				offerID := fmt.Sprintf("%v", ms.Success.Offer.Offer.OfferId)
-
-				marketOffer.BlockchainOfferID = &offerID
-			}
-		}
+		// Market-making DEX offers have no Base equivalent (see basetxn.ManageSellOffer's
+		// doc) - there is no on-chain offer ID to extract from the submitted
+		// transaction's result, so marketOffer.BlockchainOfferID stays unset
+		// pending a real Base market-making design.
 		e = dbTX.Omit(clause.Associations).Save(&marketOffer).Error
 		if e != nil {
 			log.Printf("[MakeOffer]Error saving transactionID on market offer: %+v\nError: %v\n", marketOffer, e)
@@ -366,29 +346,9 @@ func CancelOffer(signerUser, walletOwner *userModels.User, sourceWallet *userMod
 
 		deleteOfferRequest.TransactionID = txnResult.Hash
 		marketOffer.TransactionID = &txnResult.Hash
-		//get and set the offerID
-		{
-			var re xdr.TransactionResult
-			e := xdr.SafeUnmarshalBase64(txnResult.ResultXdr, &re)
-			if e != nil {
-				fmt.Println(e)
-			}
-			log.Println(re)
-			or, _ := re.OperationResults()
-
-			// log.Printf("OK: %v\nOperationResult: %#v", ok, or)
-			for _, r := range or {
-
-				ms, ok := r.Tr.GetManageSellOfferResult()
-				if !ok {
-					continue
-				}
-				// log.Printf("Index: %v\nManageSellOffer Offer ID: %#v", i, ms.Success.Offer.Offer.OfferId)
-				offerID := fmt.Sprintf("%v", ms.Success.Offer.Offer.OfferId)
-
-				marketOffer.BlockchainOfferID = &offerID
-			}
-		}
+		// Market-making DEX offers have no Base equivalent (see
+		// basetxn.ManageSellOffer's doc) - marketOffer.BlockchainOfferID
+		// stays unset pending a real Base market-making design.
 		e = dbTX.Omit(clause.Associations).Save(&marketOffer).Error
 		if e != nil {
 			log.Printf("[MakeOffer]Error saving transactionID on market offer: %+v\nError: %v\n", marketOffer, err)
@@ -440,7 +400,7 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 	minBalance := decimal.RequireFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE"))
 	offerRequest.Messages = make([]string, 0)
 	var memo string
-	var currencyAsset, mainAsset txnbuild.Asset
+	var currencyAsset, mainAsset basetxn.Asset
 	if offerRequest.AssetCode+offerRequest.AssetIssuer == offerRequest.CurrencyCode+offerRequest.CurrencyIssuer {
 		return "", &tErrors.CustomError{
 			Param:      "AssetCode",
@@ -452,24 +412,24 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 	n, d := ToFractionInt32(decimal.RequireFromString(offerRequest.PricePerUnit).InexactFloat64())
 
 	if offerRequest.AssetIssuer == "" {
-		mainAsset = txnbuild.NativeAsset{}
+		mainAsset = basetxn.NativeAsset{}
 	} else {
-		mainAsset = txnbuild.CreditAsset{Code: offerRequest.AssetCode, Issuer: offerRequest.AssetIssuer}
+		mainAsset = basetxn.CreditAsset{Code: offerRequest.AssetCode, Issuer: offerRequest.AssetIssuer}
 	}
 
 	if offerRequest.CurrencyIssuer == "" {
-		currencyAsset = txnbuild.NativeAsset{}
+		currencyAsset = basetxn.NativeAsset{}
 	} else {
-		currencyAsset = txnbuild.CreditAsset{Code: offerRequest.CurrencyCode, Issuer: offerRequest.CurrencyIssuer}
+		currencyAsset = basetxn.CreditAsset{Code: offerRequest.CurrencyCode, Issuer: offerRequest.CurrencyIssuer}
 	}
 
 	chanAccount := <-gc.ChannelAccounts
-	defer func(c *keypair.Full) {
+	defer func(c *evmkeypair.Full) {
 		gc.ChannelAccounts <- c
 	}(chanAccount)
 
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
-	var sourceAccount *horizon.Account
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), basetxn.NativeAsset{})
+	var sourceAccount *network.AccountInfo
 	var sourceMAccountExists, sourceMAccountTrustsAsset bool
 	var nativeMAccountBalance decimal.Decimal
 	if strings.EqualFold(offerRequest.OfferType, "BUY") {
@@ -509,7 +469,7 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 		}
 	}
 
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 
 	if strings.EqualFold(offerRequest.OfferType, "BUY") {
 		// if !currencyAsset.IsNative() {
@@ -517,8 +477,8 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 		// 	_, _, _, _, _, _ = network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, currencyAsset)
 		// 	_, mmAccountTrustsAsset, mmnativeAccountBalance, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceAccount.ID, currencyAsset)
 		// 	if mmnativeAccountBalance.LessThan(minBalance) {
-		// 		ops = append(ops, &txnbuild.Payment{
-		// 			Asset:         txnbuild.NativeAsset{},
+		// 		ops = append(ops, &basetxn.Payment{
+		// 			Asset:         basetxn.NativeAsset{},
 		// 			Destination:   mmWallet.ID,
 		// 			Amount:        minBalance.Mul(decimal.NewFromInt(3)).String(),
 		// 			SourceAccount: sourceWallet.ID,
@@ -527,7 +487,7 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 
 		// 	if !mmAccountTrustsAsset {
 		// 		//establish trustline automatically
-		// 		ops = append(ops, &txnbuild.ChangeTrust{
+		// 		ops = append(ops, &basetxn.ChangeTrust{
 		// 			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: currencyAsset},
 		// 			Limit:         "900000000000",
 		// 			SourceAccount: mmWallet.ID,
@@ -539,7 +499,7 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 		// 	_, _, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceAccount.ID, mainAsset)
 		// 	if !mmAccountTrustsAsset {
 		// 		//establish trustline automatically
-		// 		ops = append(ops, &txnbuild.ChangeTrust{
+		// 		ops = append(ops, &basetxn.ChangeTrust{
 		// 			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: mainAsset},
 		// 			Limit:         "900000000000",
 		// 			SourceAccount: mmWallet.ID,
@@ -547,7 +507,7 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 		// 	}
 		// }
 		// // move sellinng funds to the MM wallet
-		// ops = append(ops, &txnbuild.Payment{
+		// ops = append(ops, &basetxn.Payment{
 		// 	Asset:         currencyAsset,
 		// 	Destination:   sourceWallet.ID,
 		// 	Amount:        offerRequest.Quantity,
@@ -555,11 +515,11 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 		// })
 
 		//invert the price fraction
-		ops = append(ops, &txnbuild.ManageSellOffer{
+		ops = append(ops, &basetxn.ManageSellOffer{
 			Selling:       currencyAsset,
 			Buying:        mainAsset,
 			Amount:        offerRequest.NetQuantity,
-			Price:         xdr.Price{D: xdr.Int32(n), N: xdr.Int32(d)},
+			Price:         fmt.Sprintf("%v/%v", n, d),
 			SourceAccount: sourceWallet.ID,
 		})
 		bcode, scode := mainAsset.GetCode(), currencyAsset.GetCode()
@@ -577,8 +537,8 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 		// 	//check if it has trustline to it and then create it.
 		// 	_, mmAccountTrustsAsset, mmnativeAccountBalance, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, mmWallet.ID, mainAsset)
 		// 	if mmnativeAccountBalance.LessThan(minBalance) {
-		// 		ops = append(ops, &txnbuild.Payment{
-		// 			Asset:         txnbuild.NativeAsset{},
+		// 		ops = append(ops, &basetxn.Payment{
+		// 			Asset:         basetxn.NativeAsset{},
 		// 			Destination:   mmWallet.ID,
 		// 			Amount:        minBalance.Mul(decimal.NewFromInt(3)).String(),
 		// 			SourceAccount: sourceWallet.ID,
@@ -587,7 +547,7 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 
 		// 	if !mmAccountTrustsAsset {
 		// 		//establish trustline automatically
-		// 		ops = append(ops, &txnbuild.ChangeTrust{
+		// 		ops = append(ops, &basetxn.ChangeTrust{
 		// 			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: mainAsset},
 		// 			Limit:         "900000000000",
 		// 			SourceAccount: mmWallet.ID,
@@ -599,7 +559,7 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 		// 	_, mmAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, mmWallet.ID, currencyAsset)
 		// 	if !mmAccountTrustsAsset {
 		// 		//establish trustline automatically
-		// 		ops = append(ops, &txnbuild.ChangeTrust{
+		// 		ops = append(ops, &basetxn.ChangeTrust{
 		// 			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: currencyAsset},
 		// 			Limit:         "900000000000",
 		// 			SourceAccount: mmWallet.ID,
@@ -607,7 +567,7 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 		// 	}
 		// }
 		// // move sellinng funds to the MM wallet
-		// ops = append(ops, &txnbuild.Payment{
+		// ops = append(ops, &basetxn.Payment{
 		// 	Asset:         mainAsset,
 		// 	Destination:   mmWallet.ID,
 		// 	Amount:        offerRequest.Quantity,
@@ -615,11 +575,11 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 		// })
 
 		// make offer with net quantity so that fee can be returned.
-		ops = append(ops, &txnbuild.ManageSellOffer{
+		ops = append(ops, &basetxn.ManageSellOffer{
 			Selling:       mainAsset,
 			Buying:        currencyAsset,
 			Amount:        offerRequest.NetQuantity,
-			Price:         xdr.Price{N: xdr.Int32(n), D: xdr.Int32(d)},
+			Price:         fmt.Sprintf("%v/%v", n, d),
 			SourceAccount: sourceWallet.ID,
 		})
 		scode, bcode := mainAsset.GetCode(), currencyAsset.GetCode()
@@ -647,7 +607,7 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 	// 	if !mainAsset.IsNative() {
 	// 		//ensure that the fee address is can accept the asset.
 	// 		// but bcos  fee address needs to sign, it cannot be done here
-	// 		mmfeeKeypair := keypair.MustParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
+	// 		mmfeeKeypair := evmkeypair.MustParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
 	// 		mmFeeAddress := mmfeeKeypair.Address()
 
 	// 		{
@@ -655,7 +615,7 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 	// 			if !feeAccountTrustsAsset {
 	// 				signForFeeTrustLine = 1
 	// 				//establish trustline automatically
-	// 				ops = append(ops, &txnbuild.ChangeTrust{
+	// 				ops = append(ops, &basetxn.ChangeTrust{
 	// 					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: mainAsset},
 	// 					Limit:         "900000000000",
 	// 					SourceAccount: mmFeeAddress,
@@ -674,35 +634,29 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 
 	// Construct the transaction that holds the operations to execute on the network
 
-	var tx *txnbuild.Transaction
+	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if offerRequest.Multiparty == 1 {
 
-		offerRequest.TransactionSource = chanSourceAccount.AccountID
+		offerRequest.TransactionSource = chanSourceAccount.Address
 
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        chanSourceAccount,
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        chanSourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
-				BaseFee:              txnbuild.MinBaseFee,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText(memo),
+				BaseFee:              2000,
+				Memo:                 memo,
 			},
 		)
 	} else {
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        sourceAccount,
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        sourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
-				BaseFee:              txnbuild.MinBaseFee,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText(memo),
+				BaseFee:              2000,
+				Memo:                 memo,
 			},
 		)
 	}
@@ -729,7 +683,7 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 	}
 
 	// if signForFeeTrustLine == 1 {
-	// 	mmfeeKeypair := keypair.MustParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
+	// 	mmfeeKeypair := evmkeypair.MustParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
 	// 	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), mmfeeKeypair)
 
 	// 	if err != nil {
@@ -747,36 +701,37 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 	return xdrBase64, nil
 
 }
-func generateDeleteMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *userModels.MarketOffer, bOffer horizon.Offer, gc *sharedconfig.GlobalConfig) (txnBase64, transactionSource string, err error) {
+func generateDeleteMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *userModels.MarketOffer, bOffer userModels.MarketOfferDetail, gc *sharedconfig.GlobalConfig) (txnBase64, transactionSource string, err error) {
 	// offerFeePercentage := offerRequest.FeeChargedOnAsset + "%"
 	minBalance := decimal.RequireFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE"))
 	// offerRequest.Messages = make([]string, 0)
 	var memo string
-	var currencyAsset, mainAsset txnbuild.Asset
+	var currencyAsset, mainAsset basetxn.Asset
 
 	offerRequest.OfferType = strings.ToUpper(offerRequest.OfferType)
 	fraction := decimal.RequireFromString(offerRequest.PricePerUnit).Rat()
 	d := int32(fraction.Denom().Int64())
 	n := int32(fraction.Num().Int64())
+	offerIDInt, _ := strconv.ParseInt(bOffer.ID, 10, 64)
 	if offerRequest.AssetIssuer == nil {
-		mainAsset = txnbuild.NativeAsset{}
+		mainAsset = basetxn.NativeAsset{}
 	} else {
-		mainAsset = txnbuild.CreditAsset{Code: offerRequest.AssetCode, Issuer: *offerRequest.AssetIssuer}
+		mainAsset = basetxn.CreditAsset{Code: offerRequest.AssetCode, Issuer: *offerRequest.AssetIssuer}
 	}
 
 	if offerRequest.CurrencyIssuer == nil {
-		currencyAsset = txnbuild.NativeAsset{}
+		currencyAsset = basetxn.NativeAsset{}
 	} else {
-		currencyAsset = txnbuild.CreditAsset{Code: offerRequest.CurrencyCode, Issuer: *offerRequest.CurrencyIssuer}
+		currencyAsset = basetxn.CreditAsset{Code: offerRequest.CurrencyCode, Issuer: *offerRequest.CurrencyIssuer}
 	}
 
 	chanAccount := <-gc.ChannelAccounts
-	defer func(c *keypair.Full) {
+	defer func(c *evmkeypair.Full) {
 		gc.ChannelAccounts <- c
 	}(chanAccount)
 
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
-	var sourceAccount *horizon.Account
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), basetxn.NativeAsset{})
+	var sourceAccount *network.AccountInfo
 	var sourceMAccountExists, sourceMAccountTrustsAsset bool
 	var nativeMAccountBalance decimal.Decimal
 	if strings.EqualFold(offerRequest.OfferType, "BUY") {
@@ -816,22 +771,22 @@ func generateDeleteMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *
 		}
 	}
 
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 
 	if strings.EqualFold(offerRequest.OfferType, "BUY") {
 
 		//invert the price fraction
-		ops = append(ops, &txnbuild.ManageSellOffer{
-			OfferID:       bOffer.ID,
+		ops = append(ops, &basetxn.ManageSellOffer{
+			OfferID:       offerIDInt,
 			Selling:       currencyAsset,
 			Buying:        mainAsset,
 			Amount:        "0",
-			Price:         xdr.Price{D: xdr.Int32(n), N: xdr.Int32(d)},
+			Price:         fmt.Sprintf("%v/%v", n, d),
 			SourceAccount: sourceWallet.ID,
 		})
 
 		// // move selling funds from the MM wallet to the wallet it was made from
-		// ops = append(ops, &txnbuild.Payment{
+		// ops = append(ops, &basetxn.Payment{
 		// 	Asset:         currencyAsset,
 		// 	Destination:   sourceWallet.ID,
 		// 	Amount:        bOffer.Amount,
@@ -843,17 +798,17 @@ func generateDeleteMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *
 	if strings.EqualFold(offerRequest.OfferType, "SELL") {
 
 		// cancel offer with net 0 so that fee can be returned.
-		ops = append(ops, &txnbuild.ManageSellOffer{
-			OfferID:       bOffer.ID,
+		ops = append(ops, &basetxn.ManageSellOffer{
+			OfferID:       offerIDInt,
 			Selling:       mainAsset,
 			Buying:        currencyAsset,
 			Amount:        "0",
-			Price:         xdr.Price{N: xdr.Int32(n), D: xdr.Int32(d)},
+			Price:         fmt.Sprintf("%v/%v", n, d),
 			SourceAccount: sourceWallet.ID,
 		})
 
 		// // move sellinng funds from the MM wallet to the offer source wallet
-		// ops = append(ops, &txnbuild.Payment{
+		// ops = append(ops, &basetxn.Payment{
 		// 	Asset:         mainAsset,
 		// 	Destination:   sourceWallet.ID,
 		// 	Amount:        bOffer.Amount,
@@ -878,33 +833,27 @@ func generateDeleteMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *
 
 	// Construct the transaction that holds the operations to execute on the network
 
-	var tx *txnbuild.Transaction
+	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if sourceWallet.NumberOfApprovalsNeeded > 0 {
-		transactionSource = chanSourceAccount.AccountID
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        chanSourceAccount,
+		transactionSource = chanSourceAccount.Address
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        chanSourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
-				BaseFee:              txnbuild.MinBaseFee,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText(memo),
+				BaseFee:              2000,
+				Memo:                 memo,
 			},
 		)
 	} else {
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        sourceAccount,
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        sourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
-				BaseFee:              txnbuild.MinBaseFee,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText(memo),
+				BaseFee:              2000,
+				Memo:                 memo,
 			},
 		)
 	}

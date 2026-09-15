@@ -6,20 +6,19 @@ import (
 	"os"
 	"strings"
 	"time"
+	"trovo-wallet-api/internal/basetxn"
 	bc "trovo-wallet-api/internal/blockchainalgofuncs"
 	blockchain "trovo-wallet-api/internal/components/assets/blockchain"
 	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/ecnepsnai/discord"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/protocols/horizon"
-	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm/clause"
 )
 
@@ -27,7 +26,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	var e error
 	client := gc.BantuExpansionClient
 	multiAccessWallets := make([]userModels.UserWallet, 0)
-	ops := make([]txnbuild.Operation, 0)
+	ops := make([]basetxn.Operation, 0)
 	messages := make([]string, 0)
 	payload.Messages = make([]string, 0)
 	ACCOUNT_RECOVERY_FEE := user.UserWallets[0].GetAccountRecoveryFee(gc)
@@ -59,8 +58,8 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 
-	var userAccount horizon.Account
-	if userAccount, e = userBc.GetBlockchainAccountDetail(user.PublicKey); e != nil {
+	nativeBalance, e := userBc.GetNativeBalance(user.PublicKey)
+	if e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
 			return &tErrors.CustomError{Param: "username", Err: "error primary account not yet activated", ErrMessage: fmt.Sprintf("Primary account is not yet activated. Please send upto 50 %v to the primary wallet to continue.", os.Getenv("NATIVE_ASSET_CODE"))}
 		}
@@ -68,11 +67,8 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 		return &tErrors.ErrorTemporaryServerError{}
 
 	}
-	for _, v := range userAccount.Balances {
-		if v.Code == "" && decimal.RequireFromString(v.Balance).LessThan(decimal.RequireFromString(os.Getenv("ACCOUNT_RECOVERY_MINIMUM_BALANCE"))) {
-			return &tErrors.CustomError{Param: "username", Err: "error primary wallet needs funding", ErrMessage: fmt.Sprintf("Primary wallet needs minimum of 50 %v to proceed.", os.Getenv("NATIVE_ASSET_CODE"))}
-
-		}
+	if nativeBalance.LessThan(decimal.RequireFromString(os.Getenv("ACCOUNT_RECOVERY_MINIMUM_BALANCE"))) {
+		return &tErrors.CustomError{Param: "username", Err: "error primary wallet needs funding", ErrMessage: fmt.Sprintf("Primary wallet needs minimum of 50 %v to proceed.", os.Getenv("NATIVE_ASSET_CODE"))}
 	}
 
 	//get the recovery keypair
@@ -86,7 +82,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	if e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
 			//activate account
-			ops = append(ops, &txnbuild.CreateAccount{
+			ops = append(ops, &basetxn.CreateAccount{
 				Destination:   recoveryAddress,
 				Amount:        fmt.Sprintf("%v", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount),
 				SourceAccount: user.PublicKey,
@@ -97,17 +93,17 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	}
 	//  else {
 	// 	//account already active
-	// 	ops = append(ops, &txnbuild.Payment{
+	// 	ops = append(ops, &basetxn.Payment{
 	// 		Destination:   recoveryAddress,
 	// 		Amount:        "6",
-	// 		Asset:         txnbuild.NativeAsset{},
+	// 		Asset:         basetxn.NativeAsset{},
 	// 		SourceAccount: user.PublicKey,
 	// 	})
 	// }
 	if !userBc.SignerIsValid(user.PublicKey, recoveryAddress) {
 		//recovery not a signer to the primary wallet.
-		ops = append(ops, &txnbuild.SetOptions{
-			Signer: &txnbuild.Signer{
+		ops = append(ops, &basetxn.SetOptions{
+			Signer: &basetxn.Signer{
 				Address: recoveryAddress,
 				Weight:  1,
 			},
@@ -116,7 +112,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	}
 	//check for subwallets
 	wallets := user.GetAllWallets(gc)
-	bulkPaymentSignerKeyPairs, marketMakingSignerKeyPairs := make([]*keypair.Full, 0), make([]*keypair.Full, 0)
+	bulkPaymentSignerKeyPairs, marketMakingSignerKeyPairs := make([]*evmkeypair.Full, 0), make([]*evmkeypair.Full, 0)
 
 	if len(wallets) > 1 {
 		//has subwallets other than the primary wallet, which has already be added to the ops
@@ -139,7 +135,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 				if e != nil {
 					if e.Error() == "error-blockchain-account-not-activated" {
 						//activate account
-						ops = append(ops, &txnbuild.CreateAccount{
+						ops = append(ops, &basetxn.CreateAccount{
 							Destination:   w.ID,
 							Amount:        fmt.Sprintf("%v", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount),
 							SourceAccount: user.PublicKey,
@@ -151,8 +147,8 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 				if w.WalletType == 0 || w.WalletType == 1 {
 					if !userBc.SignerIsValid(w.ID, recoveryAddress) {
 						//recovery not a signer to the sub wallet. add it
-						ops = append(ops, &txnbuild.SetOptions{
-							Signer: &txnbuild.Signer{
+						ops = append(ops, &basetxn.SetOptions{
+							Signer: &basetxn.Signer{
 								Address: recoveryAddress,
 								Weight:  1,
 							},
@@ -162,7 +158,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 					// {
 					// 	//adjust account threshold
 
-					// 	ops = append(ops, &txnbuild.SetOptions{
+					// 	ops = append(ops, &basetxn.SetOptions{
 					// 		LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(1)),
 					// 		MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(1)),
 					// 		HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(1)),
@@ -176,8 +172,8 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 					marketMakingSignerKeyPairs = append(marketMakingSignerKeyPairs, mm)
 					if !userBc.SignerIsValid(w.ID, recoveryAddress) {
 						//recovery not a signer to the sub wallet. add it
-						ops = append(ops, &txnbuild.SetOptions{
-							Signer: &txnbuild.Signer{
+						ops = append(ops, &basetxn.SetOptions{
+							Signer: &basetxn.Signer{
 								Address: recoveryAddress,
 								Weight:  3,
 							},
@@ -191,8 +187,8 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 					bulkPaymentSignerKeyPairs = append(bulkPaymentSignerKeyPairs, bp)
 					if !userBc.SignerIsValid(w.ID, recoveryAddress) {
 						//recovery not a signer to the sub wallet. add it
-						ops = append(ops, &txnbuild.SetOptions{
-							Signer: &txnbuild.Signer{
+						ops = append(ops, &basetxn.SetOptions{
+							Signer: &basetxn.Signer{
 								Address: recoveryAddress,
 								Weight:  3,
 							},
@@ -226,14 +222,14 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 			//process service fee
 			// feeLabel := os.Getenv("ACCOUNT_RECOVERY_FEE_AMOUNT_USD") + " USDT worth of " + os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE")
 
-			feeKeypair, e := keypair.ParseFull(ACCOUNT_RECOVERY_FEE.FeeWalletSecretKey)
+			feeKeypair, e := evmkeypair.ParseFull(ACCOUNT_RECOVERY_FEE.FeeWalletSecretKey)
 			if e != nil {
 				logDiscordFailedRecovery("ACCOUNT RECOVERY FEE WALLET NOT VALID")
 				return &tErrors.ErrorTemporaryServerError{}
 			}
 			feeAddress := feeKeypair.Address()
 
-			feeAsset := txnbuild.CreditAsset{Code: ACCOUNT_RECOVERY_FEE.FeeAssetCode, Issuer: ACCOUNT_RECOVERY_FEE.FeeAssetIssuer}
+			feeAsset := basetxn.CreditAsset{Code: ACCOUNT_RECOVERY_FEE.FeeAssetCode, Issuer: ACCOUNT_RECOVERY_FEE.FeeAssetIssuer}
 			_, _, _, assetBalance, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, user.PublicKey, feeAsset)
 			if assetBalance.LessThan(serviceFee) {
 				return &tErrors.CustomError{Param: "username", Err: "error-primary-wallet-underfunded", ErrMessage: fmt.Sprintf("%v %v is required on wallet %v to pay for fees for this service. Please first fund the wallet with at least %v %v.", serviceFee.String(), ACCOUNT_RECOVERY_FEE.FeeAssetCode, user.Username, serviceFee.Sub(assetBalance), ACCOUNT_RECOVERY_FEE.FeeAssetCode)}
@@ -244,15 +240,15 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 			if !feeAccountTrustsAsset {
 				signForFeeTrustLine = 1
 				//establish trustline automatically
-				ops = append(ops, &txnbuild.ChangeTrust{
-					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: feeAsset},
+				ops = append(ops, &basetxn.ChangeTrust{
+					Line:          feeAsset,
 					Limit:         "900000000000",
 					SourceAccount: feeAddress,
 				})
 
 			}
 
-			ops = append(ops, &txnbuild.Payment{
+			ops = append(ops, &basetxn.Payment{
 				Destination:   feeAddress,
 				Amount:        serviceFee.String(),
 				SourceAccount: user.PublicKey,
@@ -279,14 +275,13 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 		return &tErrors.CustomError{Param: "username", Err: "error no operations to perform", ErrMessage: "Could not find any operations to perform for this action."}
 
 	}
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        &userAccount,
+	tx, err := basetxn.NewTransaction(
+		basetxn.TransactionParams{
+			SourceAccount:        user.PublicKey,
 			IncrementSequenceNum: true,
 			Operations:           ops,
 			BaseFee:              2000,
-			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
-			Memo:                 txnbuild.MemoText(memo),
+			Memo:                 memo,
 		},
 	)
 
@@ -311,7 +306,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 
 	if signForFeeTrustLine == 1 {
 
-		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), keypair.MustParseFull(ACCOUNT_RECOVERY_FEE.FeeWalletSecretKey))
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), evmkeypair.MustParseFull(ACCOUNT_RECOVERY_FEE.FeeWalletSecretKey))
 
 		if err != nil {
 			log.Println("[EnableAccountRecovery] error signing transaction with fee wallet key ", err)
@@ -362,7 +357,7 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 	var e error
 	client := gc.BantuExpansionClient
 	multiAccessWallets := make([]userModels.UserWallet, 0)
-	ops := make([]txnbuild.Operation, 0)
+	ops := make([]basetxn.Operation, 0)
 	messages := make([]string, 0)
 	payload.Messages = make([]string, 0)
 	if user.HasSecurityQuestions == 0 {
@@ -385,8 +380,8 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 	if !ValidateSecurityAnswers(user, payload.SecurityAnswers, gc) {
 		return &tErrors.CustomError{Param: "username", Err: "error invalid security answers", ErrMessage: "Answers to the security questions are invalid."}
 	}
-	var userAccount horizon.Account
-	if userAccount, e = userBc.GetBlockchainAccountDetail(user.PublicKey); e != nil {
+	nativeBalance, e := userBc.GetNativeBalance(user.PublicKey)
+	if e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
 			return &tErrors.CustomError{Param: "username", Err: "error primary account not yet activated", ErrMessage: fmt.Sprintf("Primary account is not yet activated. Please send upto 50 %v to the primary wallet to continue.", os.Getenv("NATIVE_ASSET_CODE"))}
 		}
@@ -394,8 +389,8 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 		return &tErrors.ErrorTemporaryServerError{}
 
 	}
-	for _, v := range userAccount.Balances {
-		if v.Code == "" && decimal.RequireFromString(v.Balance).LessThan(decimal.RequireFromString(os.Getenv("ACCOUNT_RECOVERY_MINIMUM_BALANCE"))) {
+	{
+		if nativeBalance.LessThan(decimal.RequireFromString(os.Getenv("ACCOUNT_RECOVERY_MINIMUM_BALANCE"))) {
 			return &tErrors.CustomError{Param: "username", Err: "error primary wallet needs funding", ErrMessage: fmt.Sprintf("Primary wallet needs minimum of 50 %v to proceed.", os.Getenv("NATIVE_ASSET_CODE"))}
 
 		}
@@ -412,7 +407,7 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 	if e != nil {
 		// if e.Error() == "error-blockchain-account-not-activated" {
 		// 	//activate account
-		// 	ops = append(ops, &txnbuild.CreateAccount{
+		// 	ops = append(ops, &basetxn.CreateAccount{
 		// 		Destination:   recoveryAddress,
 		// 		Amount:        os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"),
 		// 		SourceAccount: user.PublicKey,
@@ -425,17 +420,17 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 	}
 	//  else {
 	// 	//account already active
-	// 	ops = append(ops, &txnbuild.Payment{
+	// 	ops = append(ops, &basetxn.Payment{
 	// 		Destination:   recoveryAddress,
 	// 		Amount:        "6",
-	// 		Asset:         txnbuild.NativeAsset{},
+	// 		Asset:         basetxn.NativeAsset{},
 	// 		SourceAccount: user.PublicKey,
 	// 	})
 	// }
 
 	//check for all wallets
 	wallets := user.GetAllWallets(gc)
-	bulkPaymentSignerKeyPairs, marketMakingSignerKeyPairs := make([]*keypair.Full, 0), make([]*keypair.Full, 0)
+	bulkPaymentSignerKeyPairs, marketMakingSignerKeyPairs := make([]*evmkeypair.Full, 0), make([]*evmkeypair.Full, 0)
 
 	if len(wallets) > 0 {
 		//has subwallets other than the primary wallet, which has already be added to the ops
@@ -458,8 +453,8 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 
 			// if userBc.SignerIsValid(w.ID, recoveryAddress) {
 			// 	//recovery a signer to the wallet. remove it
-			// 	ops = append(ops, &txnbuild.SetOptions{
-			// 		Signer: &txnbuild.Signer{
+			// 	ops = append(ops, &basetxn.SetOptions{
+			// 		Signer: &basetxn.Signer{
 			// 			Address: recoveryAddress,
 			// 			Weight:  0,
 			// 		},
@@ -469,8 +464,8 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 			if w.WalletType == 0 || w.WalletType == 1 {
 				if userBc.SignerIsValid(w.ID, recoveryAddress) {
 					//recovery a signer to the wallet. remove it
-					ops = append(ops, &txnbuild.SetOptions{
-						Signer: &txnbuild.Signer{
+					ops = append(ops, &basetxn.SetOptions{
+						Signer: &basetxn.Signer{
 							Address: recoveryAddress,
 							Weight:  0,
 						},
@@ -483,8 +478,8 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 				marketMakingSignerKeyPairs = append(marketMakingSignerKeyPairs, mm)
 				if userBc.SignerIsValid(w.ID, recoveryAddress) {
 					//recovery a signer to the wallet. remove it
-					ops = append(ops, &txnbuild.SetOptions{
-						Signer: &txnbuild.Signer{
+					ops = append(ops, &basetxn.SetOptions{
+						Signer: &basetxn.Signer{
 							Address: recoveryAddress,
 							Weight:  0,
 						},
@@ -497,8 +492,8 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 				bulkPaymentSignerKeyPairs = append(bulkPaymentSignerKeyPairs, bp)
 				if userBc.SignerIsValid(w.ID, recoveryAddress) {
 					//recovery a signer to the wallet. remove it
-					ops = append(ops, &txnbuild.SetOptions{
-						Signer: &txnbuild.Signer{
+					ops = append(ops, &basetxn.SetOptions{
+						Signer: &basetxn.Signer{
 							Address: recoveryAddress,
 							Weight:  0,
 						},
@@ -526,14 +521,13 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 
 	}
 
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        &userAccount,
+	tx, err := basetxn.NewTransaction(
+		basetxn.TransactionParams{
+			SourceAccount:        user.PublicKey,
 			IncrementSequenceNum: true,
 			Operations:           ops,
 			BaseFee:              2000,
-			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
-			Memo:                 txnbuild.MemoText(memo),
+			Memo:                 memo,
 		},
 	)
 
@@ -595,7 +589,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 	var e error
 	client := gc.BantuExpansionClient
 	multiAccessWallets = make([]userModels.UserWallet, 0)
-	ops := make([]txnbuild.Operation, 0)
+	ops := make([]basetxn.Operation, 0)
 	messages := make([]string, 0)
 	payload.Messages = make([]string, 0)
 	RECOVERY_SIGNER_ACTIVATION_AMOUNT := user.UserWallets[0].GetActivationFee("RECOVERY_SIGNER_ACTIVATION_AMOUNT", gc)
@@ -604,7 +598,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 	}
 	{
 		// PARSE SIGNER KEY
-		_, e := keypair.ParseAddress(payload.NewSignerPublicKey)
+		_, e := evmkeypair.ParseAddress(payload.NewSignerPublicKey)
 		if e != nil {
 			return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
 		}
@@ -641,8 +635,8 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error invalid email otp", ErrMessage: "Email OTP is invalid."}
 	}
 
-	var userAccount horizon.Account
-	if userAccount, e = userBc.GetBlockchainAccountDetail(user.PublicKey); e != nil {
+	nativeBalance, e := userBc.GetNativeBalance(user.PublicKey)
+	if e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
 			return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error primary account not yet activated", ErrMessage: fmt.Sprintf("Primary account is not yet activated. Please send upto 50 %v to the primary wallet to continue.", os.Getenv("NATIVE_ASSET_CODE"))}
 		}
@@ -650,11 +644,8 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
 
 	}
-	for _, v := range userAccount.Balances {
-		if v.Code == "" && decimal.RequireFromString(v.Balance).LessThan(decimal.RequireFromString(os.Getenv("ACCOUNT_RECOVERY_MINIMUM_BALANCE"))) {
-			return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error primary wallet needs funding", ErrMessage: fmt.Sprintf("Primary wallet needs minimum of %v %v to proceed.", os.Getenv("ACCOUNT_RECOVERY_MINIMUM_BALANCE"), os.Getenv("NATIVE_ASSET_CODE"))}
-
-		}
+	if nativeBalance.LessThan(decimal.RequireFromString(os.Getenv("ACCOUNT_RECOVERY_MINIMUM_BALANCE"))) {
+		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error primary wallet needs funding", ErrMessage: fmt.Sprintf("Primary wallet needs minimum of %v %v to proceed.", os.Getenv("ACCOUNT_RECOVERY_MINIMUM_BALANCE"), os.Getenv("NATIVE_ASSET_CODE"))}
 	}
 
 	//get the recovery keypair
@@ -669,7 +660,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 	if e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
 			//activate account
-			ops = append(ops, &txnbuild.CreateAccount{
+			ops = append(ops, &basetxn.CreateAccount{
 				Destination:   payload.NewSignerPublicKey,
 				Amount:        fmt.Sprintf("%v", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount),
 				SourceAccount: user.PublicKey,
@@ -684,8 +675,8 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 
 	if !userBc.SignerIsValid(user.PublicKey, payload.NewSignerPublicKey) {
 		//newsigner not a signer to the primary wallet.
-		ops = append(ops, &txnbuild.SetOptions{
-			Signer: &txnbuild.Signer{
+		ops = append(ops, &basetxn.SetOptions{
+			Signer: &basetxn.Signer{
 				Address: payload.NewSignerPublicKey,
 				Weight:  1,
 			},
@@ -717,7 +708,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 				if e != nil {
 					if e.Error() == "error-blockchain-account-not-activated" {
 						//activate account
-						ops = append(ops, &txnbuild.CreateAccount{
+						ops = append(ops, &basetxn.CreateAccount{
 							Destination:   w.ID,
 							Amount:        fmt.Sprintf("%v", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount),
 							SourceAccount: user.PublicKey,
@@ -729,8 +720,8 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 				if w.WalletType == 0 || w.WalletType == 1 {
 					if !userBc.SignerIsValid(w.ID, payload.NewSignerPublicKey) {
 						//recovery not a signer to the sub wallet. add it
-						ops = append(ops, &txnbuild.SetOptions{
-							Signer: &txnbuild.Signer{
+						ops = append(ops, &basetxn.SetOptions{
+							Signer: &basetxn.Signer{
 								Address: payload.NewSignerPublicKey,
 								Weight:  1,
 							},
@@ -742,8 +733,8 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 				if w.WalletType == 2 || w.WalletType == 3 {
 					if !userBc.SignerIsValid(w.ID, payload.NewSignerPublicKey) {
 						//recovery not a signer to the sub wallet. add it
-						ops = append(ops, &txnbuild.SetOptions{
-							Signer: &txnbuild.Signer{
+						ops = append(ops, &basetxn.SetOptions{
+							Signer: &basetxn.Signer{
 								Address: payload.NewSignerPublicKey,
 								Weight:  1,
 							},
@@ -754,8 +745,8 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 
 				if userBc.SignerIsValid(w.ID, user.PrimarySigner) {
 					//former signer exists. remove it
-					ops = append(ops, &txnbuild.SetOptions{
-						Signer: &txnbuild.Signer{
+					ops = append(ops, &basetxn.SetOptions{
+						Signer: &basetxn.Signer{
 							Address: user.PrimarySigner,
 							Weight:  0,
 						},
@@ -777,15 +768,19 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		if userBc.SignerIsValid(user.PublicKey, user.PrimarySigner) {
 			//remove old signer directive is enabled. remove old signer
 			if user.PublicKey == user.PrimarySigner {
-				//it is the master key you need to disable
-				masterWeight := txnbuild.Threshold(0)
-				ops = append(ops, &txnbuild.SetOptions{
-					MasterWeight:  &masterWeight,
+				//it is the master key you need to disable - deauthorizing
+				//self via a weight-0 Signer entry (see basetxn.SetOptions'
+				//doc) is this app's equivalent of Stellar's MasterWeight=0
+				ops = append(ops, &basetxn.SetOptions{
+					Signer: &basetxn.Signer{
+						Address: user.PublicKey,
+						Weight:  0,
+					},
 					SourceAccount: user.PublicKey,
 				})
 			} else {
-				ops = append(ops, &txnbuild.SetOptions{
-					Signer: &txnbuild.Signer{
+				ops = append(ops, &basetxn.SetOptions{
+					Signer: &basetxn.Signer{
 						Address: user.PrimarySigner,
 						Weight:  0,
 					},
@@ -852,14 +847,13 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 			return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error no operations to perform", ErrMessage: "Could not find any operations to perform for this action."}
 
 		}
-		tx, err := txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        &userAccount,
+		tx, err := basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        user.PublicKey,
 				IncrementSequenceNum: true,
 				Operations:           ops,
 				BaseFee:              2000,
-				Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
-				Memo:                 txnbuild.MemoText(memo),
+				Memo:                 memo,
 			},
 		)
 
@@ -873,15 +867,20 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 			log.Println("[DoAccountRecovery]error signing transaction ", err)
 			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
 		}
-		resp, err := client.SubmitTransaction(tx)
+		xdrBase64, err := tx.Base64()
+		if err != nil {
+			log.Println("[DoAccountRecovery]error encoding transaction ", err)
+			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
+		}
+		txnHash, err := network.SubmitXdrWithSignature(client, "", xdrBase64, "")
 		if err != nil {
 			log.Println("[DoAccountRecovery]error submitting transaction ", err)
 			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
 		}
-		log.Println("[DoAccountRecovery]successfully submitted transaction", resp)
+		log.Println("[DoAccountRecovery]successfully submitted transaction", txnHash)
 
 		dbtx.Commit()
-		payload.TransactionID = resp.Hash
+		payload.TransactionID = txnHash
 		user.InvalidateUserCache(gc)
 		owner, _ := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
 		// user = &owner
@@ -902,7 +901,7 @@ func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.
 	}
 	{
 		// PARSE SIGNER KEY
-		_, e := keypair.ParseAddress(payload.NewSignerPublicKey)
+		_, e := evmkeypair.ParseAddress(payload.NewSignerPublicKey)
 		if e != nil {
 			return userInfo, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
 		}

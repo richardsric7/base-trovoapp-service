@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-//PaymentItem holds blockchain payment item
+// PaymentItem holds blockchain payment item
 type PaymentItem struct {
 	DestinationUsername       string    `json:"destinationUsername"`
 	DestinationFirstName      string    `json:"destinationFirstName"`
@@ -31,20 +31,20 @@ type PaymentItem struct {
 	Cursor                    string    `json:"cursor"` //paging token returned as cursor to resume streaming from this state
 }
 
-//PaymentEntities holds entities in the payment history batch
+// PaymentEntities holds entities in the payment history batch
 type PaymentEntities struct {
 	Username       string `json:"username"`
 	ImageThumbnail string `json:"thumbnail"`
 }
 
-//PaymentHistory holds blockchain payment history
+// PaymentHistory holds blockchain payment history
 type PaymentHistory struct {
 	PageCursor string                     `json:"pageCursor"`
 	Payments   []PaymentItem              `json:"payments"`
 	Entities   map[string]PaymentEntities `json:"entities"`
 }
 
-//IndexedBantuOperation for holding the index of the operation for sorting later
+// IndexedBantuOperation for holding the index of the operation for sorting later
 type IndexedBantuOperation struct {
 	Index     int
 	Operation PaymentItem

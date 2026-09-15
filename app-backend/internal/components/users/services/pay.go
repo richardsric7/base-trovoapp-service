@@ -1,7 +1,6 @@
 package users
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"trovo-wallet-api/internal/basetxn"
 	algofuncs "trovo-wallet-api/internal/blockchainalgofuncs"
 	tPayErrors "trovo-wallet-api/internal/components/payments/errors"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
@@ -16,18 +16,15 @@ import (
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-
-	"github.com/stellar/go/clients/horizonclient"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/protocols/horizon"
-	"github.com/stellar/go/txnbuild"
 )
 
 // Pay function sends a payment from user to another user
@@ -367,7 +364,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 
 }
 
-func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, sourceWallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, db *gorm.DB, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
+func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, sourceWallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, db *gorm.DB, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
 	// paymentInfo.FeeAmount = "0"
 	var tokenizedAssetIssuerMustSign bool
@@ -397,10 +394,10 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 	newAmountToSend := decimal.NewFromFloat(amountToSend).Truncate(7).String()
 
-	var asset txnbuild.Asset = txnbuild.NativeAsset{}
+	var asset basetxn.Asset = basetxn.NativeAsset{}
 
 	if len(paymentInfo.AssetIssuer) > 0 {
-		asset = txnbuild.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.AssetIssuer}
+		asset = basetxn.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.AssetIssuer}
 	}
 
 	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, db, gc)
@@ -450,7 +447,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	} else {
 		//parse public key
 		paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
-		_, err := keypair.ParseAddress(paymentInfo.Destination)
+		_, err := evmkeypair.ParseAddress(paymentInfo.Destination)
 		if err != nil {
 			log.Printf("[generatePaymentXdr] error validating payment address [%v], %v\n", paymentInfo.Destination, err)
 
@@ -561,11 +558,11 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		}
 	}
 	chanAccount := <-gc.ChannelAccounts
-	defer func(c *keypair.Full) {
+	defer func(c *evmkeypair.Full) {
 		gc.ChannelAccounts <- c
 	}(chanAccount)
 	// paymentInfo.Messages = messages
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 	sourceAccountExists, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, sourceWallet.ID, asset)
 
 	if sourceAccountErr != nil {
@@ -614,9 +611,9 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		log.Println("[generatePaymentXdr]destination Account error:", destinationAccountErr)
 		return "", nil, destinationAccountErr
 	}
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 
-	var extraAccountKeyPair *keypair.Full = nil
+	var extraAccountKeyPair *evmkeypair.Full = nil
 
 	if asset.IsNative() {
 		//native asset
@@ -626,13 +623,13 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 				log.Printf("[generatePaymentXdr] trying to create account with %v, meanwhile you need %v\n", amountToSendDec, baseReserve.Mul(decimal.NewFromInt(3)))
 				return "", nil, &tPayErrors.ErrorInsufficientAmountToFundAccount{}
 			}
-			ops = append(ops, &txnbuild.CreateAccount{
+			ops = append(ops, &basetxn.CreateAccount{
 				Destination:   destinationPublicKey,
 				Amount:        newAmountToSend,
 				SourceAccount: sourceWallet.ID,
 			})
 		} else {
-			ops = append(ops, &txnbuild.Payment{
+			ops = append(ops, &basetxn.Payment{
 				Destination:   destinationPublicKey,
 				Amount:        newAmountToSend,
 				Asset:         asset,
@@ -645,7 +642,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		// claimable assets are for TrovoApp users only. it would return error above when destination does not trust asset
 
 		if !destinationAccountExists {
-			ops = append(ops, &txnbuild.CreateAccount{
+			ops = append(ops, &basetxn.CreateAccount{
 				Destination:   destinationPublicKey,
 				Amount:        charge,
 				SourceAccount: sourceWallet.ID,
@@ -703,7 +700,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			}
 
 		} else {
-			ops = append(ops, &txnbuild.Payment{
+			ops = append(ops, &basetxn.Payment{
 				Destination:   destinationPublicKey,
 				Amount:        newAmountToSend,
 				Asset:         asset,
@@ -728,7 +725,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			// if !asset.IsNative() {
 			// 	assetCode = asset.GetCode()
 			// }
-			feeKeypair, e := keypair.ParseFull(serviceFee.FeeWalletSecretKey)
+			feeKeypair, e := evmkeypair.ParseFull(serviceFee.FeeWalletSecretKey)
 			if e != nil {
 				log.Println("[generatePaymentXdr] error parsing fee wallet secret key", e)
 				gc.LogDiscordFailedRequest("[generatePaymentXdr] error parsing fee wallet secret key")
@@ -746,8 +743,8 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 				if !feeAccountTrustsAsset {
 					signForFeeTrustLine = 1
 					//establish trustline automatically
-					ops = append(ops, &txnbuild.ChangeTrust{
-						Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+					ops = append(ops, &basetxn.ChangeTrust{
+						Line:          asset,
 						Limit:         "900000000000",
 						SourceAccount: feeAddress,
 					})
@@ -755,10 +752,10 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 					if gc.IsValidTokenizedAsset(asset.GetCode()) {
 						//check if it is a tokenized asset
 						// allow trust from issuer to destination wallet
-						ops = append(ops, &txnbuild.SetTrustLineFlags{
+						ops = append(ops, &basetxn.SetTrustLineFlags{
 							Trustor:       feeAddress,
-							Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
-							SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+							Asset:         basetxn.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+							SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 							SourceAccount: asset.GetIssuer(),
 						})
 						tokenizedAssetIssuerMustSign = true
@@ -766,7 +763,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 				}
 			}
-			ops = append(ops, &txnbuild.Payment{
+			ops = append(ops, &basetxn.Payment{
 				Destination:   feeAddress,
 				Amount:        paymentInfo.FeeAmount,
 				SourceAccount: sourceWallet.ID,
@@ -783,7 +780,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			// if !asset.IsNative() {
 			// 	assetCode = asset.GetCode()
 			// }
-			feeKeypair, e := keypair.ParseFull(sourceWallet.GetPaymentFeeWallet(gc))
+			feeKeypair, e := evmkeypair.ParseFull(sourceWallet.GetPaymentFeeWallet(gc))
 			if e != nil {
 				log.Println("[generatePaymentXdr] error parsing payment fee wallet secret key", e)
 				gc.LogDiscordFailedRequest("[generatePaymentXdr] error parsing payment fee wallet secret key")
@@ -801,8 +798,8 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 				if !feeAccountTrustsAsset {
 					signForFeeTrustLine = 1
 					//establish trustline automatically
-					ops = append(ops, &txnbuild.ChangeTrust{
-						Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+					ops = append(ops, &basetxn.ChangeTrust{
+						Line:          asset,
 						Limit:         "900000000000",
 						SourceAccount: feeAddress,
 					})
@@ -810,10 +807,10 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 					if gc.IsValidTokenizedAsset(asset.GetCode()) {
 						//check if it is a tokenized asset
 						// allow trust from issuer to destination wallet
-						ops = append(ops, &txnbuild.SetTrustLineFlags{
+						ops = append(ops, &basetxn.SetTrustLineFlags{
 							Trustor:       feeAddress,
-							Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
-							SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+							Asset:         basetxn.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+							SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 							SourceAccount: asset.GetIssuer(),
 						})
 						tokenizedAssetIssuerMustSign = true
@@ -821,7 +818,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 				}
 			}
-			ops = append(ops, &txnbuild.Payment{
+			ops = append(ops, &basetxn.Payment{
 				Destination:   feeAddress,
 				Amount:        paymentInfo.FeeAmount,
 				SourceAccount: sourceWallet.ID,
@@ -836,7 +833,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		//process service fee
 		vatLabel := paymentInfo.Vat + "%"
 
-		feeKeypair, e := keypair.ParseFull(gc.GetVATWallet())
+		feeKeypair, e := evmkeypair.ParseFull(gc.GetVATWallet())
 		if e != nil {
 			log.Println("[generatePaymentXdr] error parsing vat wallet secret key", e)
 			gc.LogDiscordFailedRequest("[generatePaymentXdr] error parsing vat wallet secret key")
@@ -854,8 +851,8 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			if !vatAccountTrustsAsset {
 				signForFeeTrustLine = 1
 				//establish trustline automatically
-				ops = append(ops, &txnbuild.ChangeTrust{
-					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+				ops = append(ops, &basetxn.ChangeTrust{
+					Line:          asset,
 					Limit:         "900000000000",
 					SourceAccount: vatAddress,
 				})
@@ -863,10 +860,10 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 				if gc.IsValidTokenizedAsset(asset.GetCode()) {
 					//check if it is a tokenized asset
 					// allow trust from issuer to destination wallet
-					ops = append(ops, &txnbuild.SetTrustLineFlags{
+					ops = append(ops, &basetxn.SetTrustLineFlags{
 						Trustor:       vatAddress,
-						Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
-						SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+						Asset:         basetxn.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+						SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 						SourceAccount: asset.GetIssuer(),
 					})
 					tokenizedAssetIssuerMustSign = true
@@ -874,7 +871,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 			}
 		}
-		ops = append(ops, &txnbuild.Payment{
+		ops = append(ops, &basetxn.Payment{
 			Destination:   vatAddress,
 			Amount:        paymentInfo.VatAmount,
 			SourceAccount: sourceWallet.ID,
@@ -890,33 +887,27 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 	}
 
-	var tx *txnbuild.Transaction
+	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if paymentInfo.Multiparty == 1 {
-		paymentInfo.TransactionSource = chanSourceAccount.AccountID
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        chanSourceAccount,
+		paymentInfo.TransactionSource = chanSourceAccount.Address
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        chanSourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
-				BaseFee:              txnbuild.MinBaseFee,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText(paymentInfo.Memo),
+				BaseFee:              2000,
+				Memo:                 paymentInfo.Memo,
 			},
 		)
 	} else {
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        sourceAccount,
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        sourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
-				BaseFee:              txnbuild.MinBaseFee,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText(paymentInfo.Memo),
+				BaseFee:              2000,
+				Memo:                 paymentInfo.Memo,
 			},
 		)
 	}
@@ -939,7 +930,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	// if signForFeeTrustLine == 1 && !asset.IsNative() && paymentInfo.Multiparty == 1 {
 	if signForFeeTrustLine == 1 && !asset.IsNative() {
 		serviceFee := sourceWallet.GetSharedAccessPaymentFee(gc)
-		feeKeypair := keypair.MustParseFull(serviceFee.FeeWalletSecretKey)
+		feeKeypair := evmkeypair.MustParseFull(serviceFee.FeeWalletSecretKey)
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
 
 		if err != nil {
@@ -967,7 +958,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
 		}
 
-		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+		tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
 
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
 		if err != nil {
@@ -984,7 +975,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	}
 
 	if destinationBlockchainAccount != nil {
-		paymentInfo.CallbackURLS = GetBlockchainAccountDataKey(*destinationBlockchainAccount, "orderPaymentCallbackUrl")
+		paymentInfo.CallbackURLS = GetBlockchainAccountDataKey(destinationBlockchainAccount, "orderPaymentCallbackUrl")
 
 	}
 	if publicKeyPayment {
@@ -994,7 +985,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 }
 
-func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, sourceWallet *userModels.UserWallet, mintingInfo *userModels.MintingInfo, db *gorm.DB, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
+func generateMintingXdr(client *ethclient.Client, owner *userModels.User, sourceWallet *userModels.UserWallet, mintingInfo *userModels.MintingInfo, db *gorm.DB, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
 	var tokenizedAssetIssuerMustSign bool
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
@@ -1008,7 +999,7 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 	// amountToSend := decimal.RequireFromString(mintingInfo.Amount).InexactFloat64()
 	// amountToSendDec := decimal.RequireFromString(mintingInfo.Amount)
 	newAmountToSend := decimal.RequireFromString(mintingInfo.Amount).Truncate(7).String()
-	asset := txnbuild.CreditAsset{Code: mintingInfo.AssetCode, Issuer: mintingInfo.AssetIssuer}
+	asset := basetxn.CreditAsset{Code: mintingInfo.AssetCode, Issuer: mintingInfo.AssetIssuer}
 	if sourceWallet.ID != asset.GetIssuer() {
 
 		return "", nil, &tErrors.CustomError{
@@ -1069,11 +1060,11 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 	// }
 
 	chanAccount := <-gc.ChannelAccounts
-	defer func(c *keypair.Full) {
+	defer func(c *evmkeypair.Full) {
 		gc.ChannelAccounts <- c
 	}(chanAccount)
 	// paymentInfo.Messages = messages
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 	sourceAccountExists, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, sourceWallet.ID, asset)
 
 	if sourceAccountErr != nil {
@@ -1096,16 +1087,16 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 		log.Println("[generateMintingXdr]destination Account error:", destinationAccountErr)
 		return "", nil, destinationAccountErr
 	}
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 
-	var extraAccountKeyPair *keypair.Full = nil
+	var extraAccountKeyPair *evmkeypair.Full = nil
 
 	//custom asset
 
 	// claimable assets are for TrovoApp users only. it would return error above when destination does not trust asset
 
 	if !destinationAccountExists {
-		ops = append(ops, &txnbuild.CreateAccount{
+		ops = append(ops, &basetxn.CreateAccount{
 			Destination:   destinationPublicKey,
 			Amount:        charge,
 			SourceAccount: sourceWallet.ID,
@@ -1131,8 +1122,8 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 			//set the trusline.
 			//set trusline for the enterprise subwallet
 
-			ops = append(ops, &txnbuild.ChangeTrust{
-				Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+			ops = append(ops, &basetxn.ChangeTrust{
+				Line:          asset,
 				Limit:         "900000000000",
 				SourceAccount: destinationWallet.ID,
 			})
@@ -1166,7 +1157,7 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 		}
 
 	} else {
-		ops = append(ops, &txnbuild.Payment{
+		ops = append(ops, &basetxn.Payment{
 			Destination:   destinationPublicKey,
 			Amount:        newAmountToSend,
 			Asset:         asset,
@@ -1174,33 +1165,27 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 		})
 	}
 
-	var tx *txnbuild.Transaction
+	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if mintingInfo.Multiparty == 1 {
-		mintingInfo.TransactionSource = chanSourceAccount.AccountID
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        chanSourceAccount,
+		mintingInfo.TransactionSource = chanSourceAccount.Address
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        chanSourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
-				BaseFee:              txnbuild.MinBaseFee,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText(mintingInfo.Memo),
+				BaseFee:              2000,
+				Memo:                 mintingInfo.Memo,
 			},
 		)
 	} else {
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        sourceAccount,
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        sourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
-				BaseFee:              txnbuild.MinBaseFee,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText(mintingInfo.Memo),
+				BaseFee:              2000,
+				Memo:                 mintingInfo.Memo,
 			},
 		)
 	}
@@ -1239,7 +1224,7 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
 		}
 
-		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+		tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
 
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
 		if err != nil {
@@ -1257,7 +1242,7 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 	}
 
 	if destinationBlockchainAccount != nil {
-		mintingInfo.CallbackURLS = GetBlockchainAccountDataKey(*destinationBlockchainAccount, "orderPaymentCallbackUrl")
+		mintingInfo.CallbackURLS = GetBlockchainAccountDataKey(destinationBlockchainAccount, "orderPaymentCallbackUrl")
 
 	}
 
@@ -1290,10 +1275,10 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 
 	newAmountToSend := decimal.NewFromFloat(amountToSend).Truncate(7).String()
 
-	var asset txnbuild.Asset = txnbuild.NativeAsset{}
+	var asset basetxn.Asset = basetxn.NativeAsset{}
 
 	if len(paymentInfo.AssetCode) != 0 {
-		asset = txnbuild.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.AssetIssuer}
+		asset = basetxn.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.AssetIssuer}
 	}
 	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
 	destinationWallet, _, _ := usersDB.GetWallet(paymentInfo.Destination, gc.DB)
@@ -1320,7 +1305,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 		}
 	} else {
 		//parse public key
-		_, err := keypair.ParseAddress(paymentInfo.Destination)
+		_, err := evmkeypair.ParseAddress(paymentInfo.Destination)
 		if err != nil {
 			log.Printf("[generatePaymentXdr] error validating payment address [%v], %v", paymentInfo.Destination, err)
 
@@ -1393,7 +1378,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 	}
 
 	sourceAccountExists, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, asset)
-	channelSourceAccountExists, _, channelSourceAccountNativeBalance, _, channelSourceAccount, channelSourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, paymentInfo.ChannelAccount, txnbuild.NativeAsset{})
+	channelSourceAccountExists, _, channelSourceAccountNativeBalance, _, channelSourceAccount, channelSourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, paymentInfo.ChannelAccount, basetxn.NativeAsset{})
 
 	if channelSourceAccountErr != nil {
 		return "", nil, channelSourceAccountErr
@@ -1443,9 +1428,9 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 		log.Println("[generatePaymentXdrWithChannelAccountPK]destination Account error:", destinationAccountErr)
 		return "", nil, destinationAccountErr
 	}
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 
-	var extraAccountKeyPair *keypair.Full = nil
+	var extraAccountKeyPair *evmkeypair.Full = nil
 
 	if asset.IsNative() {
 		//native asset
@@ -1455,13 +1440,13 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 				log.Printf("[generatePaymentXdrWithChannelAccountPK] trying to create account with %v, meanwhile you need %v\n", amountToSendDec, baseReserve.Mul(decimal.NewFromInt(3)))
 				return "", nil, &tPayErrors.ErrorInsufficientAmountToFundAccount{}
 			}
-			ops = append(ops, &txnbuild.CreateAccount{
+			ops = append(ops, &basetxn.CreateAccount{
 				Destination:   destinationPublicKey,
 				Amount:        newAmountToSend,
 				SourceAccount: sourceWallet.ID,
 			})
 		} else {
-			ops = append(ops, &txnbuild.Payment{
+			ops = append(ops, &basetxn.Payment{
 				Destination:   destinationPublicKey,
 				Amount:        newAmountToSend,
 				Asset:         asset,
@@ -1474,7 +1459,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 		// claimable assets are for trovotech customers only. it would return error above when destination does not trust asset
 
 		if !destinationAccountExists {
-			ops = append(ops, &txnbuild.CreateAccount{
+			ops = append(ops, &basetxn.CreateAccount{
 				Destination:   destinationPublicKey,
 				Amount:        charge,
 				SourceAccount: sourceWallet.ID,
@@ -1522,7 +1507,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 			}
 
 		} else {
-			ops = append(ops, &txnbuild.Payment{
+			ops = append(ops, &basetxn.Payment{
 				Destination:   destinationPublicKey,
 				Amount:        newAmountToSend,
 				Asset:         asset,
@@ -1538,20 +1523,20 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 		if paymentInfo.Multiparty == 1 {
 			//process service fee
 			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
-				ops = append(ops, &txnbuild.Payment{
+				ops = append(ops, &basetxn.Payment{
 					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
 					SourceAccount: sourceWallet.ID,
-					Asset:         txnbuild.NativeAsset{},
+					Asset:         basetxn.NativeAsset{},
 				})
 				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), nativeAssetCode, sourceWallet.Alias))
 
 			} else {
-				ops = append(ops, &txnbuild.Payment{
+				ops = append(ops, &basetxn.Payment{
 					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
 					SourceAccount: sourceWallet.ID,
-					Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+					Asset:         basetxn.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
 				})
 				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), sourceWallet.Alias))
 
@@ -1561,16 +1546,13 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 	}
 
 	// Construct the transaction that holds the operations to execute on the network
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        channelSourceAccount,
+	tx, err := basetxn.NewTransaction(
+		basetxn.TransactionParams{
+			SourceAccount:        channelSourceAccount.Address,
 			IncrementSequenceNum: true,
 			Operations:           ops,
-			BaseFee:              txnbuild.MinBaseFee,
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
-			},
-			Memo: txnbuild.MemoText(paymentInfo.Memo),
+			BaseFee:              2000,
+			Memo:                 paymentInfo.Memo,
 		},
 	)
 	if err != nil {
@@ -1596,7 +1578,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
 		}
 
-		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+		tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
 
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
 		if err != nil {
@@ -1614,7 +1596,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 	}
 
 	if destinationBlockchainAccount != nil {
-		paymentInfo.CallbackURLS = GetBlockchainAccountDataKey(*destinationBlockchainAccount, "orderPaymentCallbackUrl")
+		paymentInfo.CallbackURLS = GetBlockchainAccountDataKey(destinationBlockchainAccount, "orderPaymentCallbackUrl")
 
 	}
 	if publicKeyPayment {
@@ -1626,11 +1608,11 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 	return xdrBase64, &destinationInfo, nil
 }
 
-func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User, destinationWallet *userModels.UserWallet, sourceAccount *horizon.Account, asset txnbuild.Asset, amountToSend string, gc *sharedconfig.GlobalConfig) ([]txnbuild.Operation, *keypair.Full, bool, error) {
+func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User, destinationWallet *userModels.UserWallet, sourceAccount *network.AccountInfo, asset basetxn.Asset, amountToSend string, gc *sharedconfig.GlobalConfig) ([]basetxn.Operation, *evmkeypair.Full, bool, error) {
 
-	ops := make([]txnbuild.Operation, 0)
+	ops := make([]basetxn.Operation, 0)
 
-	var signerKeyPairToReturn *keypair.Full = nil
+	var signerKeyPairToReturn *evmkeypair.Full = nil
 	var tokenizedAssetIssuerMustSign bool
 	tempAccountKeypair, tempAccountError := network.TempAccountKeypair(destinationWallet.ID)
 
@@ -1642,7 +1624,7 @@ func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User,
 	// var tempAccount txnbuild.Account = &txnbuild.SimpleAccount{AccountID: tempAccountKeypair.Address(), Sequence: 0}
 
 	tempAccountExists, tempAccountTrustsAsset, _, _, tempAccountSource, tempAccountError :=
-		network.BlockchainAccountProperties(gc.BantuExpansionClient, tempAccountKeypair.FromAddress().Address(), asset)
+		network.BlockchainAccountProperties(gc.BantuExpansionClient, tempAccountKeypair.Address(), asset)
 
 	if tempAccountError != nil {
 		log.Printf("[processDestinationAssetDoesNotTrustAsset] error looking up temporary account %v\n", tempAccountError)
@@ -1699,14 +1681,14 @@ func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User,
 
 		//create temp account and add destination public key as signer.
 
-		ops = append(ops, &txnbuild.CreateAccount{
+		ops = append(ops, &basetxn.CreateAccount{
 			Destination:   tempAccountKeypair.Address(),
 			Amount:        baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String(),
-			SourceAccount: sourceAccount.AccountID,
+			SourceAccount: sourceAccount.Address,
 		})
 
-		ops = append(ops, &txnbuild.SetOptions{
-			Signer: &txnbuild.Signer{
+		ops = append(ops, &basetxn.SetOptions{
+			Signer: &basetxn.Signer{
 				Address: destinationWallet.Signer,
 				Weight:  1,
 			},
@@ -1725,8 +1707,8 @@ func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User,
 
 					//just make the recovery key a signer
 
-					ops = append(ops, &txnbuild.SetOptions{
-						Signer: &txnbuild.Signer{
+					ops = append(ops, &basetxn.SetOptions{
+						Signer: &basetxn.Signer{
 							Address: recoveryKeyAddress,
 							Weight:  1,
 						},
@@ -1740,13 +1722,12 @@ func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User,
 		}
 	}
 
-	// destinationWallet.SignerIsValidWA(destinationWallet.Signer, tempAccountSource)
-	if tempAccountExists && !destinationWallet.SignerIsValidWA(destinationWallet.Signer, tempAccountSource) {
+	if tempAccountExists && !network.IsAccountSigner(tempAccountSource.Address, destinationWallet.Signer) {
 
 		//just make the temporary key a signer
 
-		ops = append(ops, &txnbuild.SetOptions{
-			Signer: &txnbuild.Signer{
+		ops = append(ops, &basetxn.SetOptions{
+			Signer: &basetxn.Signer{
 				Address: destinationWallet.Signer,
 				Weight:  1,
 			},
@@ -1758,15 +1739,15 @@ func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User,
 
 	if !tempAccountTrustsAsset {
 
-		ops = append(ops, &txnbuild.Payment{
-			Destination:   tempAccountKeypair.FromAddress().Address(),
+		ops = append(ops, &basetxn.Payment{
+			Destination:   tempAccountKeypair.Address(),
 			Amount:        baseReserve.Mul(decimal.NewFromInt(2)).Truncate(7).String(),
-			Asset:         txnbuild.NativeAsset{},
-			SourceAccount: sourceAccount.AccountID,
+			Asset:         basetxn.NativeAsset{},
+			SourceAccount: sourceAccount.Address,
 		})
 
-		ops = append(ops, &txnbuild.ChangeTrust{
-			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+		ops = append(ops, &basetxn.ChangeTrust{
+			Line:          asset,
 			Limit:         "900000000000",
 			SourceAccount: tempAccountKeypair.Address(),
 		})
@@ -1776,10 +1757,10 @@ func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User,
 		if gc.IsValidTokenizedAsset(asset.GetCode()) {
 			//check if it is a tokenized asset
 			// allow trust from issuer to destination wallet
-			ops = append(ops, &txnbuild.SetTrustLineFlags{
-				Trustor:       tempAccountKeypair.FromAddress().Address(),
-				Asset:         txnbuild.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
-				SetFlags:      []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+			ops = append(ops, &basetxn.SetTrustLineFlags{
+				Trustor:       tempAccountKeypair.Address(),
+				Asset:         basetxn.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
+				SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 				SourceAccount: asset.GetIssuer(),
 			})
 			tokenizedAssetIssuerMustSign = true
@@ -1787,21 +1768,21 @@ func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User,
 
 	}
 
-	ops = append(ops, &txnbuild.Payment{
+	ops = append(ops, &basetxn.Payment{
 		Destination:   tempAccountKeypair.Address(),
 		Amount:        amountToSend,
 		Asset:         asset,
-		SourceAccount: sourceAccount.AccountID,
+		SourceAccount: sourceAccount.Address,
 	})
 
 	return ops, signerKeyPairToReturn, tokenizedAssetIssuerMustSign, nil
 
 }
 
-// func processCustodialDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User, destinationWallet *userModels.UserWallet, sourceAccount, destinationAccount *horizon.Account, asset txnbuild.Asset, amountToSend string) (ops []txnbuild.Operation, signerKeyPairToReturn *keypair.Full, err error) {
-func processCustodialDestinationWalletDoesNotTrustAsset(destinationWallet *userModels.UserWallet, sourceAccount *horizon.Account, asset txnbuild.Asset, amountToSend string) (ops []txnbuild.Operation, signerKeyPairToReturn *keypair.Full, err error) {
+// func processCustodialDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User, destinationWallet *userModels.UserWallet, sourceAccount, destinationAccount *network.AccountInfo, asset basetxn.Asset, amountToSend string) (ops []basetxn.Operation, signerKeyPairToReturn *evmkeypair.Full, err error) {
+func processCustodialDestinationWalletDoesNotTrustAsset(destinationWallet *userModels.UserWallet, sourceAccount *network.AccountInfo, asset basetxn.Asset, amountToSend string) (ops []basetxn.Operation, signerKeyPairToReturn *evmkeypair.Full, err error) {
 
-	ops = make([]txnbuild.Operation, 0)
+	ops = make([]basetxn.Operation, 0)
 
 	if destinationWallet.WalletType == 1 && !asset.IsNative() {
 		err = &tErrors.CustomError{
@@ -1812,52 +1793,29 @@ func processCustodialDestinationWalletDoesNotTrustAsset(destinationWallet *userM
 		return
 	}
 
-	ops = append(ops, &txnbuild.ChangeTrust{
-		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+	ops = append(ops, &basetxn.ChangeTrust{
+		Line:          asset,
 		Limit:         "900000000000",
 		SourceAccount: destinationWallet.ID,
 	})
 
-	ops = append(ops, &txnbuild.Payment{
+	ops = append(ops, &basetxn.Payment{
 		Destination:   destinationWallet.ID,
 		Amount:        amountToSend,
 		Asset:         asset,
-		SourceAccount: sourceAccount.AccountID,
+		SourceAccount: sourceAccount.Address,
 	})
 
 	return ops, signerKeyPairToReturn, nil
 
 }
 
-// GetBlockchainAccountDataKey fetches the bantu account information using public key
-func GetBlockchainAccountDataKey(account horizon.Account, keys ...string) (dataValues map[string]string) {
-	dataValues = make(map[string]string)
-
-	data, err := GetBlockchainAccountData(account)
-	if err != nil {
-		return
-	}
-	for _, key := range keys {
-		d, ok := data[key]
-		if !ok {
-			continue
-		}
-		decData, err := base64.StdEncoding.DecodeString(d)
-
-		if err != nil {
-			continue
-		} else {
-			dataValues[key] = string(decData)
-		}
-
-	}
-
-	return dataValues
-}
-
-func GetBlockchainAccountData(clientAccount horizon.Account) (accountData map[string]string, err error) {
-
-	return clientAccount.Data, nil
+// GetBlockchainAccountDataKey looked up values from a Stellar account's
+// on-chain manage_data store (e.g. a payment-callback URL). Base/EVM
+// accounts have no equivalent store - see assets.go's GetDataKey doc for
+// the same simplification applied elsewhere.
+func GetBlockchainAccountDataKey(account *network.AccountInfo, keys ...string) (dataValues map[string]string) {
+	return make(map[string]string)
 }
 
 func MintAsset(signerUser *userModels.User, sourceWallet *userModels.UserWallet, mintingInfo *userModels.MintingInfo, gc *sharedconfig.GlobalConfig) (*userModels.MintingInfo, *userModels.User, error) {

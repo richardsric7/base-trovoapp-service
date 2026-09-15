@@ -19,10 +19,8 @@ import (
 	SMS "trovo-wallet-api/internal/sms"
 
 	"github.com/ecnepsnai/discord"
-	sqliteEncrypt "github.com/jackfr0st13/gorm-sqlite-cipher"
 	"gorm.io/driver/postgres"
-
-	// "gorm.io/driver/sqlite"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
@@ -52,11 +50,23 @@ func OpenDb() (*gorm.DB, error) {
 
 	var err error
 
-	// if dbType == "sqlite" {
-	// 	gormDB, err = gorm.Open(sqlite.Open(dbConnectionString), &gorm.Config{
-	// 		QueryFields: true,
-	// 	})
-	// }
+	// SQLite (plain gorm.io/driver/sqlite, mattn/go-sqlite3) - added so
+	// this app's raw SQL and models can be exercised locally/in CI
+	// without a Postgres instance. dbConnectionString is a file path
+	// (or ":memory:") in this mode, not a Postgres DSN.
+	if dbType == "sqlite" {
+		once.Do(func() {
+			gormDB, err = gorm.Open(sqlite.Open(dbConnectionString), &gorm.Config{
+				Logger:      logger.Default.LogMode(logger.Silent),
+				QueryFields: true,
+			})
+		})
+		if err != nil {
+			log.Printf("[OpenDb]failed to connect sqlite database, %s\n", err)
+			return nil, err
+		}
+		return gormDB, nil
+	}
 
 	if dbType == "postgres" {
 		var maxoconn, idleCon string
@@ -110,17 +120,21 @@ func OpenRoachDB() (*gorm.DB, error) {
 	return roachDB, nil
 }
 
-// OpenSqliteDB opens ecnrypted SQlite connection
+// OpenSqliteDB opens a local SQLite connection for development/testing.
+// Previously used a third-party encrypted-SQLite driver
+// (github.com/jackfr0st13/gorm-sqlite-cipher) that no longer builds
+// against current gorm - switched to the standard gorm.io/driver/sqlite.
+// This drops at-rest encryption (SQLITE_CYPER_PASSPHRASE is unused); if
+// that's needed again later, mattn/go-sqlite3 can be built with the
+// SQLCipher tag, or golang.org/x/crypto's own filesystem-level
+// encryption can wrap the file - neither is needed just to run the app's
+// SQL against SQLite locally, which is this function's purpose.
 func OpenSqliteDB() (*gorm.DB, error) {
-
-	var errDB error
-	key := "746373408hhgdf#^hf*bhe)8"
-	if os.Getenv("SQLITE_CYPER_PASSPHRASE") != "" {
-		key = os.Getenv("SQLITE_CYPER_PASSPHRASE")
+	dbname := os.Getenv("SQLITE_DB_PATH")
+	if dbname == "" {
+		dbname = "dbs/bantupay.sqlite"
 	}
-	dbname := "dbs/bantupay.sqlite"
-	dbnameWithDSN := dbname + fmt.Sprintf("?_pragma_key=%s&_pragma_cipher_page_size=4096", key)
-	sqliteDB, errDB := gorm.Open(sqliteEncrypt.Open(dbnameWithDSN), &gorm.Config{
+	sqliteDB, errDB := gorm.Open(sqlite.Open(dbname), &gorm.Config{
 		Logger:      logger.Default.LogMode(logger.Silent),
 		QueryFields: true,
 	})

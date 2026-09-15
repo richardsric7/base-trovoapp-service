@@ -6,16 +6,16 @@ import (
 	"mime/multipart"
 	"os"
 	"strings"
+	"trovo-wallet-api/internal/basetxn"
 	swapModel "trovo-wallet-api/internal/components/swaps/models"
 	swaps "trovo-wallet-api/internal/components/swaps/services"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -145,16 +145,16 @@ func generateClosedGroupXdr(owner *userModels.User, closedGroupInput *userModels
 		cgFeeAssetCode = "TROV"
 		cgFeeAssetIssuer = "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"
 	}
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
-	cgFeeKP := keypair.MustParseFull(CLOSED_GROUP_FEE.FeeWalletSecretKey)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
+	cgFeeKP := evmkeypair.MustParseFull(CLOSED_GROUP_FEE.FeeWalletSecretKey)
 	sourceAssets := strings.ToUpper(fmt.Sprintf("%v:%v", cgFeeAssetCode, cgFeeAssetIssuer))
 
 	var errGetEstimate error
 	var requiredUsdWorth string
-	// var path []txnbuild.Asset
+	// var path []basetxn.Asset
 
-	// var asset txnbuild.Asset
-	asset := txnbuild.CreditAsset{Code: cgFeeAssetCode, Issuer: cgFeeAssetIssuer}
+	// var asset basetxn.Asset
+	asset := basetxn.CreditAsset{Code: cgFeeAssetCode, Issuer: cgFeeAssetIssuer}
 
 	sourceAccountExists, _, nativeBalance, customBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.PublicKey, asset)
 
@@ -205,24 +205,21 @@ func generateClosedGroupXdr(owner *userModels.User, closedGroupInput *userModels
 		}
 	}
 
-	ops = append(ops, &txnbuild.Payment{
+	ops = append(ops, &basetxn.Payment{
 		Destination:   cgFeeKP.Address(),
 		Amount:        requiredUsdWorth,
-		Asset:         txnbuild.CreditAsset{Code: cgFeeAssetCode, Issuer: cgFeeAssetIssuer},
+		Asset:         basetxn.CreditAsset{Code: cgFeeAssetCode, Issuer: cgFeeAssetIssuer},
 		SourceAccount: owner.PublicKey, //primary wallet
 	})
 	closedGroupInput.Messages = append(closedGroupInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the creation of the closed group.", requiredUsdWorth, cgFeeAssetCode, owner.Username))
 
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        sourceAccount,
+	tx, err := basetxn.NewTransaction(
+		basetxn.TransactionParams{
+			SourceAccount:        sourceAccount.Address,
 			IncrementSequenceNum: true,
 			Operations:           ops,
 			BaseFee:              3000,
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
-			},
-			Memo: txnbuild.MemoText("New ClosedGroup"),
+			Memo:                 "New ClosedGroup",
 		},
 	)
 	if err != nil {

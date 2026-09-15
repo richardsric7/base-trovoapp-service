@@ -1,19 +1,16 @@
 package users
 
 import (
-	"log"
 	"sort"
-	"strings"
 	"time"
+	"trovo-wallet-api/internal/basetxn"
 	userDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
-	"github.com/stellar/go/clients/horizonclient"
-
-	"github.com/stellar/go/protocols/horizon"
+	"github.com/shopspring/decimal"
 )
 
 // GetSortedUserBalance gets user blockchain balance
@@ -56,27 +53,35 @@ func GetUserSigners(publicKey string) (signers map[string]userModels.Signer) {
 	}
 	signers = make(map[string]userModels.Signer)
 	for _, v := range account.Signers {
-		signers[v.Key] = userModels.Signer{
-			Weight:  int(v.Weight),
-			Key:     v.Key,
-			Type:    v.Type,
-			Sponsor: v.Sponsor,
-		}
+		signers[v.Key] = v
 	}
 	return
 }
 
+// SignerIsValid checks if signerKey is the account publicKey's own key.
+// Base wallets are plain EOAs with exactly one key (see
+// userModels.AccountDetail's doc) - there is no on-chain weighted-signer
+// concept to check against as there was on Stellar, so "is this key
+// valid to act for this account" is just equality (or, for a subwallet/
+// recovery-key check, whatever the caller passed as signerKey - callers
+// in subwallets.go/account_recovery.go/shared_access.go pass a
+// deterministically-derived recovery/market-making/bulk-payment address
+// as signerKey precisely to check "does this wallet's own key match one
+// of those derived addresses").
 func SignerIsValid(publicKey, signerKey string) bool {
-	signer, ok := GetUserSigners(publicKey)[signerKey]
-	if !ok || signer.Weight < 1 {
+	if network.IsAccountSigner(publicKey, signerKey) {
+		return true
+	}
+	account, err := GetBlockchainAccountDetail(publicKey)
+	if err != nil {
 		return false
 	}
-
-	return true
+	_, ok := account.Signers[signerKey]
+	return ok
 }
 
 // GetUserAccountThresholds returns user signers
-func GetUserAccountThresholds(publicKey string) (thresholds horizon.AccountThresholds) {
+func GetUserAccountThresholds(publicKey string) (thresholds userModels.Thresholds) {
 	account, err := GetBlockchainAccountDetail(publicKey)
 	if err != nil {
 		return thresholds
@@ -85,75 +90,56 @@ func GetUserAccountThresholds(publicKey string) (thresholds horizon.AccountThres
 	return account.Thresholds
 }
 
+type AccountDetailResult struct {
+	Signers    map[string]userModels.Signer
+	Thresholds userModels.Thresholds
+}
+
 // GetBlockchainAccountDetail fetches the bantu account information using public key
-func GetBlockchainAccountDetail(publicKey string) (clientAccount horizon.Account, err error) {
+func GetBlockchainAccountDetail(publicKey string) (result AccountDetailResult, err error) {
 	client := network.GetBlockchainClient()
-	accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
-	clientAccount, err = client.AccountDetail(accountRequest)
+	exists, _, _, _, _, err := network.BlockchainAccountProperties(client, publicKey, basetxn.NativeAsset{})
 	if err != nil {
-		log.Println("[GetBlockchainAccountDetail]: ", err)
-		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
-			log.Printf("[GetBlockchainAccountDetail Network Failure]: %s\n", "Error Connecting to Expansion Service")
-			return clientAccount, &tErrors.ErrorTemporaryServerError{}
-		} else if strings.Contains(strings.ToLower(err.Error()), "missing") {
-
-			err = &tErrors.ErrorBlockchainAccountNotActivated{}
-		} else {
-
-			err = &tErrors.ErrorTemporaryServerError{}
-		}
-		return horizon.Account{}, err
+		return result, &tErrors.ErrorTemporaryServerError{}
 	}
-	return clientAccount, nil
-} //GetBlockchainAccountDetail fetches the bantu account information using public key
+	if !exists {
+		return result, &tErrors.ErrorBlockchainAccountNotActivated{}
+	}
+	result.Signers = map[string]userModels.Signer{
+		publicKey: {Key: publicKey, Weight: 1, Type: "secp256k1_public_key"},
+	}
+	return result, nil
+}
 
-// GetBlockchainAssets fetches the blockchain asset information using public key
-func GetBlockchainAssets(issuerPublicKey string) (assetsPage horizon.AssetsPage, err error) {
+// GetNativeBalance fetches publicKey's native Base balance - a
+// convenience wrapper for the common "check funding before continuing"
+// pattern, replacing the original's iteration over
+// horizon.Account.Balances looking for the code=="" entry.
+func GetNativeBalance(publicKey string) (decimal.Decimal, error) {
 	client := network.GetBlockchainClient()
-	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: issuerPublicKey, Limit: 200}
-	assetsPage, err = client.Assets(assetRequest)
+	exists, _, nativeBalance, _, _, err := network.BlockchainAccountProperties(client, publicKey, basetxn.NativeAsset{})
 	if err != nil {
-		log.Println("[GetBlockchainAssets]: ", err)
-		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
-			log.Printf("[GetBlockchainAssets Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
-			return assetsPage, &tErrors.ErrorTemporaryServerError{}
-		} else if strings.Contains(strings.ToLower(err.Error()), "missing") {
-			err = &tErrors.ErrorBlockchainAccountNotActivated{}
-		} else {
-
-			err = &tErrors.ErrorTemporaryServerError{}
-		}
-
-		return
+		return decimal.Zero, &tErrors.ErrorTemporaryServerError{}
 	}
-	return assetsPage, nil
+	if !exists {
+		return decimal.Zero, &tErrors.ErrorBlockchainAccountNotActivated{}
+	}
+	return nativeBalance, nil
 }
 
 // BlockchainAssetIssuedByIssuer fetches the blockchain asset information using public key
 func BlockchainAssetIssuedByIssuer(issuerPublicKey, assetCode string) bool {
-	client := network.GetBlockchainClient()
-	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: issuerPublicKey, ForAssetCode: assetCode}
-	assetsPage, err := client.Assets(assetRequest)
-	if err != nil {
+	db := network.DB()
+	if db == nil {
 		return false
 	}
-	return len(assetsPage.Embedded.Records) > 0
-
-}
-
-// GetBlockchainAssetsIssuedByIssuer returns blockchain assets issued by the issuer
-func GetBlockchainAssetsIssuedByIssuer(issuerPublicKey string) (issuedAssets map[string]horizon.AssetStat) {
-	issuedAssets = make(map[string]horizon.AssetStat, 0)
-	var err error
-	assetPage, err := GetBlockchainAssets(issuerPublicKey)
-	if err != nil {
-		return
+	var count int64
+	db.Table("curated_assets").Where("asset_issuer = ? AND asset_code = ?", issuerPublicKey, assetCode).Count(&count)
+	if count > 0 {
+		return true
 	}
-	//iterate through assetPage
-	for _, a := range assetPage.Embedded.Records {
-		issuedAssets[a.Code] = a
-	}
-	return
+	db.Table("tokenized_assets").Where("issuing_wallet_public_key = ? AND asset_code = ?", issuerPublicKey, assetCode).Count(&count)
+	return count > 0
 }
 
 // BlockchainAssetIssuedByIssuer fetches the blockchain asset information using public key

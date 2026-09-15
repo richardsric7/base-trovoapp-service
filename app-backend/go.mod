@@ -19,7 +19,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/infobip/infobip-api-go-client/v2 v2.0.0
-	github.com/jackfr0st13/gorm-sqlite-cipher v0.1.0
 	github.com/joho/godotenv v1.4.0
 	github.com/mailgun/mailgun-go/v4 v4.8.1
 	github.com/nyaruka/phonenumbers v1.0.75
@@ -35,6 +34,7 @@ require (
 	golang.org/x/text v0.23.0
 	google.golang.org/api v0.50.0
 	gorm.io/driver/postgres v1.3.7
+	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.30.0
 )
 
@@ -100,10 +100,10 @@ require (
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/manucorporat/sse v0.0.0-20160126180136-ee05b128a739 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/mutecomm/go-sqlcipher/v4 v4.4.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/segmentio/go-loggly v0.5.1-0.20171222203950-eb91657e62b2 // indirect

@@ -10,7 +10,7 @@ import (
 // GetService gets user information
 func GetService(ID, apikey string, db *gorm.DB) (mInfo servicelinkModels.ServiceLink, err error) {
 
-	mInfo, err = GetServiceInfo(ID,apikey, db)
+	mInfo, err = GetServiceInfo(ID, apikey, db)
 
 	if err != nil {
 		return mInfo, err

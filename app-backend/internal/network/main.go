@@ -209,6 +209,71 @@ func weiToDecimal(wei *big.Int) decimal.Decimal {
 	return decimal.NewFromBigInt(wei, -18)
 }
 
+func decimalToWei(amount decimal.Decimal) *big.Int {
+	return amount.Shift(18).BigInt()
+}
+
+// TxBuilder implements basetxn.Builder, turning a basetxn.Payment into an
+// unsigned Base EIP-1559 transaction: a native transfer, or an ERC-20
+// `transfer` call for a B20 asset.
+type TxBuilder struct {
+	Client *ethclient.Client
+}
+
+func NewTxBuilder(client *ethclient.Client) *TxBuilder {
+	return &TxBuilder{Client: client}
+}
+
+func (b *TxBuilder) BuildPaymentTx(ctx context.Context, from common.Address, op basetxn.Payment) (*types.Transaction, error) {
+	to := common.HexToAddress(op.Destination)
+	nonce, err := b.Client.PendingNonceAt(ctx, from)
+	if err != nil {
+		return nil, err
+	}
+	header, err := b.Client.HeaderByNumber(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	gasTipCap, err := b.Client.SuggestGasTipCap(ctx)
+	if err != nil {
+		return nil, err
+	}
+	gasFeeCap := new(big.Int).Add(gasTipCap, new(big.Int).Mul(header.BaseFee, big.NewInt(2)))
+	chainID := GetBlockchainChainID()
+	amount, err := decimal.NewFromString(op.Amount)
+	if err != nil {
+		return nil, fmt.Errorf("invalid payment amount %q: %w", op.Amount, err)
+	}
+
+	if op.Asset.IsNative() {
+		return types.NewTx(&types.DynamicFeeTx{
+			ChainID:   chainID,
+			Nonce:     nonce,
+			To:        &to,
+			Value:     decimalToWei(amount),
+			Gas:       21000,
+			GasFeeCap: gasFeeCap,
+			GasTipCap: gasTipCap,
+		}), nil
+	}
+
+	data, err := erc20ABI.Pack("transfer", to, decimalToWei(amount))
+	if err != nil {
+		return nil, err
+	}
+	tokenAddr := common.HexToAddress(op.Asset.GetIssuer())
+	return types.NewTx(&types.DynamicFeeTx{
+		ChainID:   chainID,
+		Nonce:     nonce,
+		To:        &tokenAddr,
+		Value:     big.NewInt(0),
+		Gas:       120000,
+		GasFeeCap: gasFeeCap,
+		GasTipCap: gasTipCap,
+		Data:      data,
+	}), nil
+}
+
 // --- Wallet/asset authorization (the Base equivalent of a Stellar
 // trustline's authorization flag) ---
 //
@@ -230,14 +295,24 @@ func SetDB(db *gorm.DB) {
 	authDB = db
 	if authDB != nil {
 		authDB.AutoMigrate(&WalletAssetAuthorization{})
+		authDB.AutoMigrate(&AccountSigner{})
 	}
+	basetxn.SetDefaultBuilder(NewTxBuilder(GetBlockchainClient()))
+}
+
+// DB returns the DB handle SetDB wired up - a shared handle for the
+// several "does this asset/issuer already exist" style lookups that,
+// under Stellar, queried Horizon's global asset registry instead (see
+// e.g. internal/components/users/models' GetBlockchainAssets).
+func DB() *gorm.DB {
+	return authDB
 }
 
 // WalletAssetAuthorization is one wallet's authorization to hold/send one
 // B20 asset - the Base equivalent of a Stellar trustline's authorization
 // flag.
 type WalletAssetAuthorization struct {
-	ID            uint64    `gorm:"primaryKey"`
+	ID            uint64 `gorm:"primaryKey"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 	WalletAddress string `gorm:"size:64;not null;uniqueIndex:idx_wallet_asset_auth"`
@@ -280,6 +355,56 @@ func SetWalletAssetAuthorization(wallet string, asset basetxn.Asset, authorized 
 		row.WalletAddress, row.AssetCode, row.AssetIssuer).
 		Assign(WalletAssetAuthorization{Authorized: authorized}).
 		FirstOrCreate(&row).Error
+}
+
+// --- Account signer registry (app-layer stand-in for Stellar's
+// on-chain weighted multisig; see basetxn.SetOptions' doc) ---
+
+// AccountSigner records that signerAddress is authorized to act for
+// account - the Base equivalent of a Stellar SetOptions.Signer entry.
+// This is bookkeeping only: unlike Stellar's on-chain multisig, it grants
+// no actual on-chain signing power over account (a plain EOA has none to
+// grant). Real Base-native multisig needs account to be a smart-contract
+// account (e.g. a Safe) with signerAddress as one of its owners - out of
+// scope for this alteration pass, per the user's own note that every
+// Base wallet needing multisig (subwallets, shared access, recovery)
+// will eventually need to be a smart account.
+type AccountSigner struct {
+	ID            uint64 `gorm:"primaryKey"`
+	CreatedAt     time.Time
+	Account       string `gorm:"size:64;not null;uniqueIndex:idx_account_signer"`
+	SignerAddress string `gorm:"size:64;not null;uniqueIndex:idx_account_signer"`
+	Weight        uint32 `gorm:"not null;default:1"`
+}
+
+// AddAccountSigner registers signerAddress as a signer for account.
+func AddAccountSigner(account, signerAddress string, weight uint32) error {
+	if authDB == nil {
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	row := AccountSigner{
+		Account:       strings.ToLower(account),
+		SignerAddress: strings.ToLower(signerAddress),
+		Weight:        weight,
+	}
+	return authDB.Where("account = ? AND signer_address = ?", row.Account, row.SignerAddress).
+		Assign(AccountSigner{Weight: weight}).
+		FirstOrCreate(&row).Error
+}
+
+// IsAccountSigner reports whether signerAddress is registered as a
+// signer for account (account's own address always counts as its own
+// signer - a plain EOA is always valid to act for itself).
+func IsAccountSigner(account, signerAddress string) bool {
+	if strings.EqualFold(account, signerAddress) {
+		return true
+	}
+	if authDB == nil {
+		return false
+	}
+	var count int64
+	authDB.Model(&AccountSigner{}).Where("account = ? AND signer_address = ?", strings.ToLower(account), strings.ToLower(signerAddress)).Count(&count)
+	return count > 0
 }
 
 // --- Transaction submission ---
@@ -395,8 +520,8 @@ func SubmitApprovalsXdrWithSignatures(client *ethclient.Client, approvalID strin
 		TransactionWithSignature string
 	}
 	type pendingAuth struct {
-		ID              string `gorm:"size:56"`
-		TransactionXdr  string
+		ID             string `gorm:"size:56"`
+		TransactionXdr string
 	}
 	var auth pendingAuth
 	if e := db.Table("pending_auths").Where("id = ?", approvalID).First(&auth).Error; e != nil {

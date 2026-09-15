@@ -3,7 +3,6 @@ package users
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +14,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"trovo-wallet-api/internal/basetxn"
 	blockchain "trovo-wallet-api/internal/components/assets/blockchain"
 	assetsDB "trovo-wallet-api/internal/components/assets/db"
 	assets "trovo-wallet-api/internal/components/assets/models"
@@ -26,14 +26,49 @@ import (
 
 	"github.com/mailgun/mailgun-go/v4"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/clients/horizonclient"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-
-	"github.com/stellar/go/protocols/horizon"
 )
 
 /////User Model convenience Methods
+
+// AccountBalance is the Base equivalent of one horizon.Balance entry.
+// Code == "" means the native asset, matching the original's convention.
+type AccountBalance struct {
+	Code    string
+	Issuer  string
+	Balance string
+	// SellingLiabilities/BuyingLiabilities tracked a Stellar account's
+	// open DEX orders against this balance; always "0" on Base, which
+	// has no native order book (see internal/sharedconfig/
+	// order_book_summary.go's doc) to hold such an order.
+	SellingLiabilities string
+	BuyingLiabilities  string
+}
+
+// AccountDetail is the Base equivalent of Stellar's *horizon.Account.
+// Signers/Thresholds are vestigial: this app's Base accounts are plain
+// EOAs with exactly one signer (themselves) rather than Stellar's
+// on-chain weighted multisig, so Signers always reports just the
+// account's own address at weight 1 - real multi-party approval
+// (subwallets/shared access) is tracked in this app's own DB instead
+// (see internal/components/users/services), not via account-level
+// signer weights.
+type AccountDetail struct {
+	ID         string
+	Signers    []Signer
+	Thresholds Thresholds
+	Balances   []AccountBalance
+}
+
+func selfSignerAccountDetail(address string) AccountDetail {
+	return AccountDetail{
+		ID: address,
+		Signers: []Signer{
+			{Key: address, Weight: 1, Type: "secp256k1_public_key"},
+		},
+	}
+}
 
 // GetSigners returns user signers
 func (u *UserWallet) GetSigners(temp bool, gc *sharedconfig.GlobalConfig) (signers map[string]Signer) {
@@ -43,48 +78,31 @@ func (u *UserWallet) GetSigners(temp bool, gc *sharedconfig.GlobalConfig) (signe
 	}
 	signers = make(map[string]Signer)
 	for _, v := range account.Signers {
-		signers[v.Key] = Signer{
-			Weight:  int(v.Weight),
-			Key:     v.Key,
-			Type:    v.Type,
-			Sponsor: v.Sponsor,
-		}
+		signers[v.Key] = v
 	}
 	return
 }
 
 // GetSignersWA returns user signers
-func (u *User) GetSignersWA(account *horizon.Account) (signers map[string]Signer) {
-
+func (u *User) GetSignersWA(account *AccountDetail) (signers map[string]Signer) {
 	signers = make(map[string]Signer)
 	for _, v := range account.Signers {
-		signers[v.Key] = Signer{
-			Weight:  int(v.Weight),
-			Key:     v.Key,
-			Type:    v.Type,
-			Sponsor: v.Sponsor,
-		}
+		signers[v.Key] = v
 	}
 	return
 }
 
 // GetSignersWA returns user signers
-func (u *UserWallet) GetSignersWA(account *horizon.Account) (signers map[string]Signer) {
-
+func (u *UserWallet) GetSignersWA(account *AccountDetail) (signers map[string]Signer) {
 	signers = make(map[string]Signer)
 	for _, v := range account.Signers {
-		signers[v.Key] = Signer{
-			Weight:  int(v.Weight),
-			Key:     v.Key,
-			Type:    v.Type,
-			Sponsor: v.Sponsor,
-		}
+		signers[v.Key] = v
 	}
 	return
 }
 
 // SignerIsValidWA checks if the signerKey is valid for this user public key
-func (u *User) SignerIsValidWA(signerKey string, account *horizon.Account) bool {
+func (u *User) SignerIsValidWA(signerKey string, account *AccountDetail) bool {
 	signer, ok := u.GetSignersWA(account)[signerKey]
 	if !ok || signer.Weight < 1 {
 		return false
@@ -94,7 +112,7 @@ func (u *User) SignerIsValidWA(signerKey string, account *horizon.Account) bool 
 }
 
 // SignerIsValidWA checks if the signerKey is valid for this user public key
-func (u *UserWallet) SignerIsValidWA(signerKey string, account *horizon.Account) bool {
+func (u *UserWallet) SignerIsValidWA(signerKey string, account *AccountDetail) bool {
 	signer, ok := u.GetSignersWA(account)[signerKey]
 	if !ok || signer.Weight < 1 {
 		return false
@@ -228,7 +246,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 	// var keys []string
 	for _, v := range account.Balances {
 		wg.Add(1)
-		go func(bal horizon.Balance) {
+		go func(bal AccountBalance) {
 			bantuAsset := BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}
 			// log.Printf("[BALANCE]%+v\n", v)
 			defer wg.Done()
@@ -452,7 +470,7 @@ func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []N
 	// var keys []string
 	for _, v := range account.Balances {
 		wg.Add(1)
-		go func(v horizon.Balance) {
+		go func(v AccountBalance) {
 			defer wg.Done()
 			amount, _ := decimal.NewFromString(v.Balance)
 			if amount.IsZero() {
@@ -724,7 +742,7 @@ func (id UserWalletID) GetWalletAssetBalances(gc *sharedconfig.GlobalConfig) (as
 }
 
 // GetAccountThresholds returns user signers
-func (u *UserWallet) GetAccountThresholds(temp bool, gc *sharedconfig.GlobalConfig) (thresholds horizon.AccountThresholds) {
+func (u *UserWallet) GetAccountThresholds(temp bool, gc *sharedconfig.GlobalConfig) (thresholds Thresholds) {
 	account, _, err := u.GetBlockchainAccountDetail(temp, gc)
 	if err != nil {
 		return thresholds
@@ -733,192 +751,109 @@ func (u *UserWallet) GetAccountThresholds(temp bool, gc *sharedconfig.GlobalConf
 	return account.Thresholds
 }
 
-// GetBlockchainAccountDetail fetches the bantu account information using public key
-func (u *UserWallet) GetBlockchainAccountDetail(temp bool, gc *sharedconfig.GlobalConfig) (clientAccount horizon.Account, destinationAccountExists bool, err error) {
-	cacheKey := fmt.Sprintf("bca_%v", u.ID)
+// fetchAccountDetail builds a Base AccountDetail for address: native
+// balance plus every curated B20 asset's balance (there is no "list all
+// balances an account holds" call on Base the way a Stellar account's own
+// ledger entry provided - see AccountDetail's doc), cached the same way
+// the original cached its Horizon account fetch.
+func fetchAccountDetail(address string, gc *sharedconfig.GlobalConfig, cacheKey string) (clientAccount AccountDetail, destinationAccountExists bool, err error) {
+	{
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKey)
+		if ok {
+			json.Unmarshal(rawdata, &clientAccount)
+			return clientAccount, true, nil
+		}
+	}
 
 	client := network.GetBlockchainClient()
-	var accountRequest horizonclient.AccountRequest
-	if temp {
-		//temp account
-		if u.TempPublicKey != nil {
-			//temp account has been generated
-			accountRequest = horizonclient.AccountRequest{AccountID: *u.TempPublicKey}
-			cacheKey = fmt.Sprintf("bca_%v", *u.TempPublicKey)
-
-		} else {
-			//temp account not yet generated
-			err = &tErrors.ErrorBlockchainAccountNotActivated{}
-			return
-		}
-
-	} else {
-		//real account
-		accountRequest = horizonclient.AccountRequest{AccountID: u.ID}
-	}
-	{
-
-		// search cache
-		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKey)
-
-		if ok {
-
-			json.Unmarshal(rawdata, &clientAccount)
-			return
-		}
-
-	}
-
-	clientAccount, err = client.AccountDetail(accountRequest)
+	exists, _, nativeBalance, _, _, err := network.BlockchainAccountProperties(client, address, basetxn.NativeAsset{})
 	if err != nil {
-		// log.Printf("[GetBlockchainAccountDetail]: %v, error: [%v]", accountRequest.AccountID, err)
-		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
-			log.Printf("[GetBlockchainAccountDetail Network Failure]: %s\n", "Error Connecting to Expansion Service")
-			return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
-		} else {
-			horizonException, ok := err.(*horizonclient.Error)
+		log.Printf("[fetchAccountDetail Network Failure]: %v\n", err)
+		return clientAccount, false, &tErrors.ErrorTemporaryServerError{}
+	}
 
-			if ok {
+	clientAccount = selfSignerAccountDetail(address)
+	clientAccount.Balances = append(clientAccount.Balances, AccountBalance{Code: "", Issuer: "", Balance: nativeBalance.String(), SellingLiabilities: "0", BuyingLiabilities: "0"})
 
-				if horizonException.Problem.Status == http.StatusNotFound {
-					return clientAccount, false, &tErrors.ErrorBlockchainAccountNotActivated{}
-				}
-				log.Printf("[BlockchainAccountProperties] error is known. Type: %v, Status: %v, Detail: %v, Title: %v, Extras: %v", horizonException.Problem.Type, horizonException.Problem.Status, horizonException.Problem.Detail, horizonException.Problem.Title, horizonException.Problem.Extras)
-			}
-
+	curatedAssets := assetsDB.GetCuratedAssets(false, gc)
+	for _, asset := range curatedAssets {
+		bal, e := network.B20BalanceOf(client, asset.AssetIssuer, address)
+		if e != nil {
+			continue
 		}
-		return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
+		clientAccount.Balances = append(clientAccount.Balances, AccountBalance{Code: asset.AssetCode, Issuer: asset.AssetIssuer, Balance: bal.String(), SellingLiabilities: "0", BuyingLiabilities: "0"})
 	}
 
 	cacheTimeStr := strings.TrimSpace(os.Getenv("BLOCKCHAIN_DATA_CACHE_LIFETIME"))
 	if cacheTimeStr == "" {
-		cacheTimeStr = "94608000" //3yrs
+		cacheTimeStr = "60" // balances change often, unlike Stellar's account-existence cache
 	}
 	cacheTime, _ := strconv.Atoi(cacheTimeStr)
 	gc.RedisCache.StoreResultToCacheRaw(cacheKey, clientAccount, cacheTime)
-	return clientAccount, true, nil
+	return clientAccount, exists, nil
+}
+
+// GetBlockchainAccountDetail fetches the bantu account information using public key
+func (u *UserWallet) GetBlockchainAccountDetail(temp bool, gc *sharedconfig.GlobalConfig) (clientAccount AccountDetail, destinationAccountExists bool, err error) {
+	address := u.ID
+	cacheKey := fmt.Sprintf("bca_%v", u.ID)
+	if temp {
+		if u.TempPublicKey == nil {
+			err = &tErrors.ErrorBlockchainAccountNotActivated{}
+			return
+		}
+		address = *u.TempPublicKey
+		cacheKey = fmt.Sprintf("bca_%v", *u.TempPublicKey)
+	}
+	return fetchAccountDetail(address, gc, cacheKey)
 }
 
 type MarketOfferWallet string
 
-// GetMarketOffer fetches the offer information using public key
-func (u MarketOfferWallet) GetMarketOffers(gc *sharedconfig.GlobalConfig) (marketOffers horizon.OffersPage, err error) {
-	seller := string(u)
-	client := network.GetBlockchainClient()
-	// var offerRequest horizonclient.OfferRequest
-
-	//real account
-	offerRequest := horizonclient.OfferRequest{Seller: seller}
-
-	marketOffers, err = client.Offers(offerRequest)
-	if err != nil {
-		// log.Printf("[GetBlockchainAccountDetail]: %v, error: [%v]", accountRequest.AccountID, err)
-		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
-			log.Printf("[GetMarketOffer Network Failure]: %s\n", "Error Connecting to Expansion Service")
-			return marketOffers, &tErrors.ErrorTemporaryServerError{}
-		} else {
-			horizonException, ok := err.(*horizonclient.Error)
-
-			if ok {
-
-				if horizonException.Problem.Status == http.StatusNotFound {
-					return marketOffers, &tErrors.ErrorBlockchainAccountNotActivated{}
-				}
-				log.Printf("[GetMarketOffer] error is known. Type: %v, Status: %v, Detail: %v, Title: %v, Extras: %v", horizonException.Problem.Type, horizonException.Problem.Status, horizonException.Problem.Detail, horizonException.Problem.Title, horizonException.Problem.Extras)
-			}
-
-		}
-		return marketOffers, &tErrors.ErrorTemporaryServerError{}
+// OffersPage is the Base equivalent of Stellar's horizon.OffersPage - see
+// GetMarketOffers' doc.
+type OffersPage struct {
+	Embedded struct {
+		Records []MarketOfferRecord
 	}
+}
 
-	return marketOffers, nil
+// GetMarketOffers fetches the market maker's available liquidity. See
+// TokenizedAsset.GetMarketOffers' doc for the Base simplification this
+// mirrors (Stellar's DEX order book has no Base equivalent).
+func (u MarketOfferWallet) GetMarketOffers(gc *sharedconfig.GlobalConfig) (marketOffers OffersPage, err error) {
+	return marketOffers, &tErrors.ErrorTemporaryServerError{}
 }
 
 // GetBlockchainAccountDetail fetches the bantu account information using public key
-func (id UserWalletID) GetBlockchainAccountDetail(gc *sharedconfig.GlobalConfig) (clientAccount horizon.Account, destinationAccountExists bool, err error) {
-	cacheKey := fmt.Sprintf("bca_%v", string(id))
-
-	client := network.GetBlockchainClient()
-	// var accountRequest horizonclient.AccountRequest
-
-	// account
-	accountRequest := horizonclient.AccountRequest{AccountID: string(id)}
-
-	{
-
-		// search cache
-		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKey)
-
-		if ok {
-
-			json.Unmarshal(rawdata, &clientAccount)
-			return
-		}
-
-	}
-
-	clientAccount, err = client.AccountDetail(accountRequest)
-	if err != nil {
-		// log.Printf("[GetBlockchainAccountDetail]: %v, error: [%v]", accountRequest.AccountID, err)
-		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
-			log.Printf("[GetBlockchainAccountDetail Network Failure]: %s\n", "Error Connecting to Expansion Service")
-			return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
-		} else {
-			horizonException, ok := err.(*horizonclient.Error)
-
-			if ok {
-
-				if horizonException.Problem.Status == http.StatusNotFound {
-					return clientAccount, false, &tErrors.ErrorBlockchainAccountNotActivated{}
-				}
-				log.Printf("[BlockchainAccountProperties] error is known. Type: %v, Status: %v, Detail: %v, Title: %v, Extras: %v", horizonException.Problem.Type, horizonException.Problem.Status, horizonException.Problem.Detail, horizonException.Problem.Title, horizonException.Problem.Extras)
-			}
-
-		}
-		return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
-	}
-
-	cacheTimeStr := strings.TrimSpace(os.Getenv("BLOCKCHAIN_DATA_CACHE_LIFETIME"))
-	if cacheTimeStr == "" {
-		cacheTimeStr = "94608000" //3yrs
-	}
-	cacheTime, _ := strconv.Atoi(cacheTimeStr)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, clientAccount, cacheTime)
-	return clientAccount, true, nil
+func (id UserWalletID) GetBlockchainAccountDetail(gc *sharedconfig.GlobalConfig) (clientAccount AccountDetail, destinationAccountExists bool, err error) {
+	return fetchAccountDetail(string(id), gc, fmt.Sprintf("bca_%v", string(id)))
 }
 
-// GetBlockchainAssets fetches the blockchain asset information using public key
-func (u *UserWallet) GetBlockchainAssets() (assetsPage horizon.AssetsPage, err error) {
-	client := network.GetBlockchainClient()
-	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: u.ID, Limit: 200}
-	assetsPage, err = client.Assets(assetRequest)
-	if err != nil {
-		log.Println("[GetBlockchainAssets]: ", err)
-		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
-			log.Printf("[GetBlockchainAssets Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
-			return assetsPage, &tErrors.ErrorTemporaryServerError{}
-		} else if strings.Contains(strings.ToLower(err.Error()), "missing") {
-			err = &tErrors.ErrorBlockchainAccountNotActivated{}
-		} else {
-
-			err = &tErrors.ErrorTemporaryServerError{}
-		}
-
-		return
+// isIssuerOfAssetCode reports whether issuer has an asset with assetCode
+// registered in this app's own catalog. Stellar's version queried
+// Horizon's global asset registry (client.Assets(ForAssetIssuer,
+// ForAssetCode)); Base has no such registry, so "is this wallet the
+// issuer of this asset" is answered from this backend's own curated/
+// tokenized asset tables instead - the same tables that are already this
+// app's actual source of truth for which B20 assets it recognizes.
+func isIssuerOfAssetCode(issuer, assetCode string) bool {
+	db := network.DB()
+	if db == nil {
+		return false
 	}
-	return assetsPage, nil
+	var count int64
+	db.Table("curated_assets").Where("asset_issuer = ? AND asset_code = ?", strings.ToLower(issuer), strings.ToUpper(assetCode)).Count(&count)
+	if count > 0 {
+		return true
+	}
+	db.Table("tokenized_assets").Where("issuing_wallet_public_key = ? AND asset_code = ?", strings.ToLower(issuer), strings.ToUpper(assetCode)).Count(&count)
+	return count > 0
 }
 
 // OwnerOfBlockchainAssetIssued fetches the blockchain asset information using public key
 func (u *UserWallet) OwnerOfBlockchainAsset(assetCode string) bool {
-	client := network.GetBlockchainClient()
-	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: u.ID, ForAssetCode: assetCode}
-	assetsPage, err := client.Assets(assetRequest)
-	if err != nil {
-		return false
-	}
-	return len(assetsPage.Embedded.Records) > 0
-
+	return isIssuerOfAssetCode(u.ID, assetCode)
 }
 
 // // CanIssueMoreAssets check if walet can issue more assets or has reached max limit
@@ -929,94 +864,9 @@ func (u *UserWallet) OwnerOfBlockchainAsset(assetCode string) bool {
 // 	}
 // 	maxCountAssets := 200
 
-// 	d, err := decimal.NewFromString(os.Getenv("MAX_ISSUED_ASSETS_PER_WALLET"))
-// 	if err != nil {
-// 		return len(assetPage.Embedded.Records) < maxCountAssets
-// 	}
-
-// 	return decimal.NewFromInt(int64(len(assetPage.Embedded.Records))).LessThan(d)
-
-// }
-
-// GetBlockchainAssetsIssuedByIssuer returns blockchain assets issued by the issuer
-func (u *UserWallet) GetIssuedBlockchainAssets() (issuedAssets map[string]horizon.AssetStat) {
-	issuedAssets = make(map[string]horizon.AssetStat, 0)
-	var err error
-	assetPage, err := u.GetBlockchainAssets()
-	if err != nil {
-		return
-	}
-	//iterate through assetPage
-	for _, a := range assetPage.Embedded.Records {
-		issuedAssets[a.Code] = a
-	}
-	return
-}
-
-// GetBlockchainAssets fetches the blockchain asset information using public key
-func (u Issuer) GetBlockchainAssets() (assetsPage horizon.AssetsPage, err error) {
-	client := network.GetBlockchainClient()
-	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: string(u), Limit: 200}
-	assetsPage, err = client.Assets(assetRequest)
-	if err != nil {
-		log.Println("[GetBlockchainAssets]: ", err)
-		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
-			log.Printf("[GetBlockchainAssets Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
-			return assetsPage, &tErrors.ErrorTemporaryServerError{}
-		} else if strings.Contains(strings.ToLower(err.Error()), "missing") {
-			err = &tErrors.ErrorBlockchainAccountNotActivated{}
-		} else {
-
-			err = &tErrors.ErrorTemporaryServerError{}
-		}
-
-		return
-	}
-	return assetsPage, nil
-}
-
 // OwnerOfBlockchainAssetIssued fetches the blockchain asset information using public key
 func (u Issuer) OwnerOfBlockchainAsset(assetCode string) bool {
-	client := network.GetBlockchainClient()
-	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: string(u), ForAssetCode: assetCode}
-	assetsPage, err := client.Assets(assetRequest)
-	if err != nil {
-		return false
-	}
-	return len(assetsPage.Embedded.Records) > 0
-
-}
-
-// // CanIssueMoreAssets check if walet can issue more assets or has reached max limit
-// func (u Issuer) CanIssueMoreAssets() bool {
-// 	assetPage, err := u.GetBlockchainAssets()
-// 	if err != nil {
-// 		return false
-// 	}
-// 	maxCountAssets := 200
-
-// 	d, err := decimal.NewFromString(os.Getenv("MAX_ISSUED_ASSETS_PER_WALLET"))
-// 	if err != nil {
-// 		return len(assetPage.Embedded.Records) < maxCountAssets
-// 	}
-
-// 	return decimal.NewFromInt(int64(len(assetPage.Embedded.Records))).LessThan(d)
-
-// }
-
-// GetBlockchainAssetsIssuedByIssuer returns blockchain assets issued by the issuer
-func (u Issuer) GetIssuedBlockchainAssets() (issuedAssets map[string]horizon.AssetStat) {
-	issuedAssets = make(map[string]horizon.AssetStat, 0)
-	var err error
-	assetPage, err := u.GetBlockchainAssets()
-	if err != nil {
-		return
-	}
-	//iterate through assetPage
-	for _, a := range assetPage.Embedded.Records {
-		issuedAssets[a.Code] = a
-	}
-	return
+	return isIssuerOfAssetCode(string(u), assetCode)
 }
 
 func (u *User) VerifyEmailOnMailgun() (validationResult mailgun.EmailVerification, blockEmail bool, err error) {
@@ -1062,38 +912,12 @@ func (u *User) VerifyEmailOnMailgun() (validationResult mailgun.EmailVerificatio
 	return
 }
 
-// GetBlockchainAccountDataKey fetches the bantu account information using public key
+// GetBlockchainAccountDataKey looked up values from a Stellar account's
+// on-chain manage_data store. Base/EVM accounts have no equivalent store
+// - see GetDataKey's doc in assets.go for the same simplification applied
+// there.
 func (u *UserWallet) GetBlockchainAccountDataKey(temp bool, gc *sharedconfig.GlobalConfig, keys ...string) (dataValues map[string]string) {
-	dataValues = make(map[string]string)
-	account, _, err := u.GetBlockchainAccountDetail(temp, gc)
-	if err != nil {
-		return
-	}
-	data, err := u.GetBlockchainAccountData(account)
-	if err != nil {
-		return
-	}
-	for _, key := range keys {
-		d, ok := data[key]
-		if !ok {
-			continue
-		}
-		decData, err := base64.StdEncoding.DecodeString(d)
-
-		if err != nil {
-			continue
-		} else {
-			dataValues[key] = string(decData)
-		}
-
-	}
-
-	return dataValues
-}
-
-func (u *UserWallet) GetBlockchainAccountData(clientAccount horizon.Account) (accountData map[string]string, err error) {
-
-	return clientAccount.Data, nil
+	return make(map[string]string)
 }
 
 func (u *User) BuildPrimaryWallet() {
@@ -2990,46 +2814,34 @@ func (s MarketOfferID) GetMarketOffer(db *gorm.DB, gc *sharedconfig.GlobalConfig
 	return
 }
 
-func (mo *MarketOffer) GetBlockchainOfferDetail(gc *sharedconfig.GlobalConfig) (offer horizon.Offer, err error) {
-	if mo.BlockchainOfferID == nil {
-		err = &tErrors.ErrorMissingParameter{Parameter: "blockchainOfferId"}
-		return
-	}
-
-	offer, e := gc.BantuExpansionClient.OfferDetails(*mo.BlockchainOfferID)
-
-	if e != nil {
-		log.Println("[GetBlockchainOffer]: ", e)
-		if strings.Contains(e.Error(), "timeout") || strings.Contains(e.Error(), "handshake") || strings.Contains(e.Error(), "no such host") || strings.Contains(e.Error(), "timeout") || strings.Contains(e.Error(), "dial") {
-			log.Printf("[GetBlockchainOffer Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
-			return offer, &tErrors.ErrorTemporaryServerError{}
-		}
-
-		return offer, &tErrors.ErrorTemporaryServerError{}
-
-	}
-	return offer, nil
+// MarketOfferDetail is the Base equivalent of Stellar's horizon.Offer.
+type MarketOfferDetail struct {
+	ID     string
+	Amount string
+	Price  string
 }
 
-func (mo *MarketOffer) CancelBlockchainOffer(gc *sharedconfig.GlobalConfig) (offer horizon.Offer, err error) {
+// GetBlockchainOfferDetail/CancelBlockchainOffer covered Stellar's native
+// DEX offers (create/cancel a standing sell order on-ledger); Base has no
+// native order book to hold such an offer (see
+// internal/sharedconfig/order_book_summary.go's doc) - market-making on
+// Base needs a real design (an on-chain limit-order contract, or an
+// off-chain maker service) tracked as a follow-up, not attempted here.
+// Both are long-tail (market_making.go only) and stubbed accordingly.
+func (mo *MarketOffer) GetBlockchainOfferDetail(gc *sharedconfig.GlobalConfig) (offer MarketOfferDetail, err error) {
 	if mo.BlockchainOfferID == nil {
 		err = &tErrors.ErrorMissingParameter{Parameter: "blockchainOfferId"}
 		return
 	}
+	return offer, &tErrors.ErrorTemporaryServerError{}
+}
 
-	offer, e := gc.BantuExpansionClient.OfferDetails(*mo.BlockchainOfferID)
-
-	if e != nil {
-		log.Println("[GetBlockchainOffer]: ", e)
-		if strings.Contains(e.Error(), "timeout") || strings.Contains(e.Error(), "handshake") || strings.Contains(e.Error(), "no such host") || strings.Contains(e.Error(), "timeout") || strings.Contains(e.Error(), "dial") {
-			log.Printf("[GetBlockchainOffer Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
-			return offer, &tErrors.ErrorTemporaryServerError{}
-		}
-
-		return offer, &tErrors.ErrorTemporaryServerError{}
-
+func (mo *MarketOffer) CancelBlockchainOffer(gc *sharedconfig.GlobalConfig) (offer MarketOfferDetail, err error) {
+	if mo.BlockchainOfferID == nil {
+		err = &tErrors.ErrorMissingParameter{Parameter: "blockchainOfferId"}
+		return
 	}
-	return offer, nil
+	return offer, &tErrors.ErrorTemporaryServerError{}
 }
 
 func (w UserWallet) GetCryptoDepositAddresses(currency string, gc *sharedconfig.GlobalConfig) (cryptoAddresses []CryptoWalletDepositAddress) {

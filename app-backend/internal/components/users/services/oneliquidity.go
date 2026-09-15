@@ -11,16 +11,16 @@ import (
 	pUrl "net/url"
 	"os"
 	"strings"
+	"trovo-wallet-api/internal/basetxn"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm/clause"
 )
 
@@ -1294,11 +1294,11 @@ func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.W
 		return "", err
 	}
 
-	var asset txnbuild.Asset = nil
+	var asset basetxn.Asset = nil
 
-	// asset = txnbuild.NativeAsset{}
+	// asset = basetxn.NativeAsset{}
 
-	asset = txnbuild.CreditAsset{Code: ca.AssetCode, Issuer: ca.AssetIssuer}
+	asset = basetxn.CreditAsset{Code: ca.AssetCode, Issuer: ca.AssetIssuer}
 
 	sourceAccountExists, sourceAccountTrustsAsset, nativeAccountBalance, currencyBalance, sourceAccount, errorSource := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
@@ -1330,50 +1330,44 @@ func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.W
 		}
 	}
 	chanAccount := <-gc.ChannelAccounts
-	defer func(c *keypair.Full) {
+	defer func(c *evmkeypair.Full) {
 		gc.ChannelAccounts <- c
 	}(chanAccount)
 
-	_, _, _, _, chanSourceAccount, errorChannel := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
+	_, _, _, _, chanSourceAccount, errorChannel := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), basetxn.NativeAsset{})
 	if errorChannel != nil {
 		log.Printf("[generateWithdrawalXdr] error withdrawing %v , channel account error: %v\n", wdlInput.Currency, errorChannel)
 		return "", errorChannel
 	}
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 
-	ops = append(ops, &txnbuild.Payment{
+	ops = append(ops, &basetxn.Payment{
 		Destination:   ca.AssetIssuer,
 		Amount:        fmt.Sprintf("%v", wdlInput.AmountSubmitted),
 		Asset:         asset,
 		SourceAccount: wallet.ID,
 	})
 
-	var tx *txnbuild.Transaction
+	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if wdlInput.Multiparty == 1 {
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        chanSourceAccount,
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        chanSourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
 				BaseFee:              2000,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText("withdraw-" + wdlInput.Currency),
+				Memo:                 "withdraw-" + wdlInput.Currency,
 			},
 		)
 	} else {
-		tx, err = txnbuild.NewTransaction(
-			txnbuild.TransactionParams{
-				SourceAccount:        sourceAccount,
+		tx, err = basetxn.NewTransaction(
+			basetxn.TransactionParams{
+				SourceAccount:        sourceAccount.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
 				BaseFee:              2000,
-				Preconditions: txnbuild.Preconditions{
-					TimeBounds: txnbuild.NewInfiniteTimeout(),
-				},
-				Memo: txnbuild.MemoText("withdraw-" + wdlInput.Currency),
+				Memo:                 "withdraw-" + wdlInput.Currency,
 			},
 		)
 	}

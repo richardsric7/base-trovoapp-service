@@ -9,7 +9,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-//TokenDetails Token details struct
+// TokenDetails Token details struct
 type TokenDetails struct {
 	AccessToken  string
 	RefreshToken string
@@ -19,7 +19,7 @@ type TokenDetails struct {
 	RtExpires    int64
 }
 
-//CreateToken creates token for logged in users
+// CreateToken creates token for logged in users
 func CreateToken(userid string) (*TokenDetails, error) {
 	td := &TokenDetails{}
 	var err error

@@ -1,6 +1,6 @@
 package users
 
-//IPAPI holds ip-api struct
+// IPAPI holds ip-api struct
 type IPAPI struct {
 	As          string  `json:"as"`
 	City        string  `json:"city"`

@@ -1,6 +1,7 @@
 package servicelinks
 
 import (
+	"encoding/base64"
 	"errors"
 	"log"
 	"net/http"
@@ -10,13 +11,12 @@ import (
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
+	"trovo-wallet-api/internal/evmkeypair"
 
 	conDB "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
 
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -251,34 +251,26 @@ func GetTransactionSignature(input *servicelinkModels.ServiceLinkTokenizedAssetA
 			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
 		}
 
-		tokenizationIssuerProfileWalletKP := keypair.MustParseFull(tokenizationIssuerProfileWallet)
+		tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
 
-		gTxn, e := txnbuild.TransactionFromXDR(input.UnsignedTransaction)
-
+		// input.UnsignedTransaction is a base64-encoded digest to sign
+		// (see internal/middleware/security_checks.go's SignBase64Txn
+		// doc for why - there is no Base equivalent of parsing/re-hashing
+		// a Stellar XDR envelope; the digest is computed once upstream
+		// when the transaction is built).
+		digest, e := base64.StdEncoding.DecodeString(input.UnsignedTransaction)
 		if e != nil {
 			return output, &tErrors.ErrorInvalidTransaction{}
 		}
 
-		tx, ok := gTxn.Transaction()
-
-		if !ok {
-			return output, &tErrors.ErrorInvalidTransaction{}
-		}
-
-		tx, err = tx.Sign(gc.BantuNetworkPassphrase, tokenizationIssuerProfileWalletKP)
-		if err != nil {
-			log.Println("[GetTransactionSignature] error signing transaction with issuer key to authorize trustline", err)
+		signature, e := tokenizationIssuerProfileWalletKP.SignBase64(digest)
+		if e != nil {
+			log.Println("[GetTransactionSignature] error signing transaction with issuer key to authorize trustline", e)
 			return output, &tErrors.ErrorTemporaryServerError{}
 		}
 
-		xdrBase64, err := tx.Base64()
-
-		if err != nil {
-			return output, err
-		}
-
 		//assign signature
-		input.SignedTransaction = xdrBase64
+		input.SignedTransaction = signature
 		return *input, nil
 
 	}

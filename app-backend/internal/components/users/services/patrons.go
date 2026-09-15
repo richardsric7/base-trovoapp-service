@@ -6,10 +6,12 @@ import (
 	"os"
 	"strings"
 	"time"
+	"trovo-wallet-api/internal/basetxn"
 	swapModel "trovo-wallet-api/internal/components/swaps/models"
 	swaps "trovo-wallet-api/internal/components/swaps/services"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/network"
 
 	"trovo-wallet-api/internal/sharedconfig"
@@ -17,8 +19,6 @@ import (
 	"github.com/ecnepsnai/discord"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm/clause"
 )
 
@@ -360,7 +360,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 
 		var dbAssetIssuer *string
 		serviceFee := owner.UserWallets[0].GetPatronFee(gc)
-		patronFeeKP, e := keypair.ParseFull(serviceFee.FeeWalletSecretKey)
+		patronFeeKP, e := evmkeypair.ParseFull(serviceFee.FeeWalletSecretKey)
 		if e != nil {
 			log.Println("[SubscribeToPatronPackage] error fetching account fee wallet for patron fee ", e)
 			logDiscordFailedSubscription("[SubscribeToPatronPackage] error fetching account fee wallet for patron fee")
@@ -430,12 +430,12 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 }
 
 func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userModels.PatronSubscriptionInput, priceConfig *userModels.PatronMembershipGrade, gc *sharedconfig.GlobalConfig) (string, error) {
-	// var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
+	// var nativeAsset basetxn.Asset = basetxn.NativeAsset{}
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
 	nairaAssetSlice := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
-	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 	serviceFee := owner.UserWallets[0].GetPatronFee(gc)
-	patronFeeKP, e := keypair.ParseFull(serviceFee.FeeWalletSecretKey)
+	patronFeeKP, e := evmkeypair.ParseFull(serviceFee.FeeWalletSecretKey)
 	if e != nil {
 		log.Println("[generatePatronSubscriptionXdr] error fetching account fee wallet for patron fee ", e)
 		logDiscordFailedSubscription("[generatePatronSubscriptionXdr] error fetching account fee wallet for patron fee ")
@@ -444,19 +444,19 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 	sourceAssets := ""
 	var errGetEstimate error
 	var requiredSourceQuantity, estimatedTrov string
-	var path []txnbuild.Asset
+	var path []basetxn.Asset
 	if len(patronSubInput.PaymentAssetIssuer) == 56 {
 		sourceAssets = strings.ToUpper(fmt.Sprintf("%v:%v", patronSubInput.PaymentAssetCode, patronSubInput.PaymentAssetIssuer))
 	}
 
-	var asset txnbuild.Asset
+	var asset basetxn.Asset
 	if len(patronSubInput.PaymentAssetIssuer) == 0 {
-		asset = txnbuild.NativeAsset{}
+		asset = basetxn.NativeAsset{}
 	} else {
-		asset = txnbuild.CreditAsset{Code: patronSubInput.PaymentAssetCode, Issuer: patronSubInput.PaymentAssetIssuer}
+		asset = basetxn.CreditAsset{Code: patronSubInput.PaymentAssetCode, Issuer: patronSubInput.PaymentAssetIssuer}
 	}
 	// chanAccount := <-gc.ChannelAccounts
-	// defer func(c *keypair.Full) {
+	// defer func(c *evmkeypair.Full) {
 	// 	gc.ChannelAccounts <- c
 	// }(chanAccount)
 
@@ -526,12 +526,12 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 		}
 	}
 	// //assume the primary wallet does not have trustline to the trov asset. Build the trustline.
-	// _, destAccountTrustsDestinationAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.PublicKey, txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"})
+	// _, destAccountTrustsDestinationAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.PublicKey, basetxn.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"})
 
 	// if !destAccountTrustsDestinationAsset {
 
-	// 	ops = append(ops, &txnbuild.ChangeTrust{
-	// 		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"}},
+	// 	ops = append(ops, &basetxn.ChangeTrust{
+	// 		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: basetxn.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"}},
 	// 		Limit:         "900000000000",
 	// 		SourceAccount: owner.PublicKey,
 	// 	})
@@ -555,18 +555,18 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 
 		{
 			//build a swap operation to swap the non-trov asset to trov so that trov can be debited.
-			var sendAsset txnbuild.Asset
+			var sendAsset basetxn.Asset
 			if len(patronSubInput.PaymentAssetIssuer) == 0 {
-				sendAsset = txnbuild.NativeAsset{}
+				sendAsset = basetxn.NativeAsset{}
 			} else {
-				sendAsset = txnbuild.CreditAsset{Code: patronSubInput.PaymentAssetCode, Issuer: patronSubInput.PaymentAssetIssuer}
+				sendAsset = basetxn.CreditAsset{Code: patronSubInput.PaymentAssetCode, Issuer: patronSubInput.PaymentAssetIssuer}
 			}
 
-			ops = append(ops, &txnbuild.PathPaymentStrictSend{
+			ops = append(ops, &basetxn.PathPaymentStrictSend{
 				SendAsset:     sendAsset,
 				SendAmount:    estimatedTrov,
 				Destination:   patronFeeKP.Address(),
-				DestAsset:     txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
+				DestAsset:     basetxn.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
 				DestMin:       "0.0000001",
 				Path:          path,
 				SourceAccount: owner.PublicKey, //primary wallet
@@ -574,10 +574,10 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 		}
 	} else {
 
-		ops = append(ops, &txnbuild.Payment{
+		ops = append(ops, &basetxn.Payment{
 			Destination:   patronFeeKP.Address(),
 			Amount:        requiredSourceQuantity,
-			Asset:         txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
+			Asset:         basetxn.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
 			SourceAccount: owner.PublicKey, //primary wallet
 		})
 	}
@@ -607,16 +607,13 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 	// 	patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription.", requiredUsdWorth, patronSubInput.PaymentAssetCode, owner.Username))
 	// }
 
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        sourceAccount,
+	tx, err := basetxn.NewTransaction(
+		basetxn.TransactionParams{
+			SourceAccount:        sourceAccount.Address,
 			IncrementSequenceNum: true,
 			Operations:           ops,
 			BaseFee:              3000,
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
-			},
-			Memo: txnbuild.MemoText(fmt.Sprintf("Patron %v sub", priceConfig.PatronPackage)),
+			Memo:                 fmt.Sprintf("Patron %v sub", priceConfig.PatronPackage),
 		},
 	)
 	if err != nil {

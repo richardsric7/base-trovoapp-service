@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-//ExtractToken extracts the JWT token from the header
+// ExtractToken extracts the JWT token from the header
 func ExtractToken(r *http.Request) string {
 	bearToken := r.Header.Get("Authorization")
 	//normally Authorization the_token_xxx

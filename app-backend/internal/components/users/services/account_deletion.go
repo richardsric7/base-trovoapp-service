@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"trovo-wallet-api/internal/basetxn"
 	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -15,15 +16,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mailgun/mailgun-go/v4"
-	"github.com/stellar/go/protocols/horizon"
-	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm/clause"
 )
 
 func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDeletionPayload, gc *sharedconfig.GlobalConfig) (err error) {
 	var e error
 	client := gc.BantuExpansionClient
-	ops := make([]txnbuild.Operation, 0)
+	ops := make([]basetxn.Operation, 0)
 	messages := make([]string, 0)
 	payload.Messages = make([]string, 0)
 
@@ -65,9 +64,8 @@ func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDelet
 		return &tErrors.CustomError{Param: "username", Err: "error requesting account deletion", ErrMessage: "Account deletion request failed. Please try again later."}
 	}
 
-	var userAccount horizon.Account
 	var accountNotActiveOnBlockchain bool
-	userAccount, e = userBc.GetBlockchainAccountDetail(user.PublicKey)
+	_, e = userBc.GetBlockchainAccountDetail(user.PublicKey)
 	if e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
 
@@ -83,7 +81,7 @@ func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDelet
 	accountNotActiveOnBlockchain = true
 	if accountNotActiveOnBlockchain {
 		homeDomain := "trovotech.io"
-		ops = append(ops, &txnbuild.SetOptions{
+		ops = append(ops, &basetxn.SetOptions{
 			HomeDomain:    &homeDomain,
 			SourceAccount: wallet.ID,
 		})
@@ -103,14 +101,13 @@ func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDelet
 		return &tErrors.CustomError{Param: "username", Err: "error no operations to perform", ErrMessage: "Could not find any operations to perform for this action."}
 
 	}
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        &userAccount,
+	tx, err := basetxn.NewTransaction(
+		basetxn.TransactionParams{
+			SourceAccount:        wallet.ID,
 			IncrementSequenceNum: true,
 			Operations:           ops,
 			BaseFee:              2000,
-			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
-			Memo:                 txnbuild.MemoText(memo),
+			Memo:                 memo,
 		},
 	)
 
