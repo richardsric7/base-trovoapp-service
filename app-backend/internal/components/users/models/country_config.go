@@ -36,7 +36,7 @@ type CountryConfig struct {
 	MinTokenizationFee                       float64   `gorm:"default:0" json:"minTokenizationFee"`
 	MinTROVBalanceForTokenizationApplication float64   `gorm:"default:600" json:"minTROVBalanceForTokenizationApplication"`
 	TokenizationApplicationFee               float64   `gorm:"default:0" json:"tokenizationApplicationFee"`
-	TokenizationApplicationFeeAsset          string    `gorm:"default:'TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ'" json:"tokenizationApplicationFeeAsset"`
+	TokenizationApplicationFeeAsset          string    `gorm:"default:''" json:"tokenizationApplicationFeeAsset"`
 	VATPercent                               float64   `gorm:"default:0" json:"vatPercent"`
 	FiatActivationAmount                     float64   `gorm:"default:1000" json:"fiatActivationAmount"`
 	TrovTokenActivationPercent               float64   `gorm:"default:50" json:"trovTokenActivationPercent"` //the rest is for gas/nativetoken

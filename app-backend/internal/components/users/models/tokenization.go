@@ -228,7 +228,7 @@ type TokenizedAsset struct {
 	AccountNumber                                *string                         `gorm:"null" json:"accountNumber"`
 	BeneficiaryName                              *string                         `gorm:"null" json:"beneficiaryName"`
 	TokenizationApplicationFee                   float64                         `gorm:"default:0" json:"tokenizationApplicationFee"`
-	TokenizationApplicationFeeAsset              string                          `gorm:"not null;default:'TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ'" json:"tokenizationApplicationFeeAsset"`
+	TokenizationApplicationFeeAsset              string                          `gorm:"not null;default:''" json:"tokenizationApplicationFeeAsset"`
 	ProjectStrategicObjectives                   *string                         `json:"projectStrategicObjectives"`
 	ProjectDevelopmentTimeline                   *string                         `json:"projectDevelopmentTimeline"`
 	ProjectKeyMilestoneAndDates                  *string                         `json:"projectKeyMilestoneAndDates"`

@@ -793,7 +793,7 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 	ato.AssetQuoteCurrency = countryConfig.InternalBalanceTokenCode
 
 	//check Trov balance
-	_, _, _, sourceAccountCustomBalance, _, errCheckBalance := network.BlockchainAccountProperties(gc.BantuExpansionClient, initiator.Address, basetxn.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"})
+	_, _, _, sourceAccountCustomBalance, _, errCheckBalance := network.BlockchainAccountProperties(gc.BantuExpansionClient, initiator.Address, basetxn.CreditAsset{Code: "TROV", Issuer: os.Getenv("TROV_ASSET_ISSUER")})
 	if errCheckBalance != nil {
 		log.Printf("[SubmitTokenizationAssetInfoByInitiator]error checking wallet balance for initiator. error: %v", errCheckBalance)
 

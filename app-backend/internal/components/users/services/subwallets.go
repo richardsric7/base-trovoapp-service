@@ -336,15 +336,17 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 			}
 			if os.Getenv("ENABLE_TROV_ASSET_BY_DEFAULT") != "0" {
 
-				issuer := "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"
-				trovAsset := basetxn.CreditAsset{Code: "TROV", Issuer: issuer}
-				_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.Address, trovAsset)
-				if !ntrusted {
-					ops = append(ops, &basetxn.ChangeTrust{
-						Line:          trovAsset,
-						Limit:         "900000000000",
-						SourceAccount: subWalletInfo.Address,
-					})
+				issuer := os.Getenv("TROV_ASSET_ISSUER")
+				if issuer != "" {
+					trovAsset := basetxn.CreditAsset{Code: "TROV", Issuer: issuer}
+					_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.Address, trovAsset)
+					if !ntrusted {
+						ops = append(ops, &basetxn.ChangeTrust{
+							Line:          trovAsset,
+							Limit:         "900000000000",
+							SourceAccount: subWalletInfo.Address,
+						})
+					}
 				}
 			}
 		}
@@ -456,15 +458,17 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 			}
 			if os.Getenv("ENABLE_TROV_ASSET_BY_DEFAULT") != "0" {
 
-				issuer := "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"
-				trovAsset := basetxn.CreditAsset{Code: "TROV", Issuer: issuer}
-				_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.Address, trovAsset)
-				if !ntrusted {
-					ops = append(ops, &basetxn.ChangeTrust{
-						Line:          trovAsset,
-						Limit:         "900000000000",
-						SourceAccount: subWalletInfo.Address,
-					})
+				issuer := os.Getenv("TROV_ASSET_ISSUER")
+				if issuer != "" {
+					trovAsset := basetxn.CreditAsset{Code: "TROV", Issuer: issuer}
+					_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.Address, trovAsset)
+					if !ntrusted {
+						ops = append(ops, &basetxn.ChangeTrust{
+							Line:          trovAsset,
+							Limit:         "900000000000",
+							SourceAccount: subWalletInfo.Address,
+						})
+					}
 				}
 			}
 
@@ -626,15 +630,17 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 
 				if os.Getenv("ENABLE_TROV_ASSET_BY_DEFAULT") != "0" {
 
-					issuer := "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"
-					trovAsset := basetxn.CreditAsset{Code: "TROV", Issuer: issuer}
-					_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, trovAsset)
-					if !ntrusted {
-						ops = append(ops, &basetxn.ChangeTrust{
-							Line:          trovAsset,
-							Limit:         "900000000000",
-							SourceAccount: linkedWallet.ID,
-						})
+					issuer := os.Getenv("TROV_ASSET_ISSUER")
+					if issuer != "" {
+						trovAsset := basetxn.CreditAsset{Code: "TROV", Issuer: issuer}
+						_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, trovAsset)
+						if !ntrusted {
+							ops = append(ops, &basetxn.ChangeTrust{
+								Line:          trovAsset,
+								Limit:         "900000000000",
+								SourceAccount: linkedWallet.ID,
+							})
+						}
 					}
 				}
 
@@ -687,15 +693,17 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 
 				if os.Getenv("ENABLE_TROV_ASSET_BY_DEFAULT") != "0" {
 
-					issuer := "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"
-					trovAsset := basetxn.CreditAsset{Code: "TROV", Issuer: issuer}
-					_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, trovAsset)
-					if !ntrusted {
-						ops = append(ops, &basetxn.ChangeTrust{
-							Line:          trovAsset,
-							Limit:         "900000000000",
-							SourceAccount: linkedWallet.ID,
-						})
+					issuer := os.Getenv("TROV_ASSET_ISSUER")
+					if issuer != "" {
+						trovAsset := basetxn.CreditAsset{Code: "TROV", Issuer: issuer}
+						_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, trovAsset)
+						if !ntrusted {
+							ops = append(ops, &basetxn.ChangeTrust{
+								Line:          trovAsset,
+								Limit:         "900000000000",
+								SourceAccount: linkedWallet.ID,
+							})
+						}
 					}
 				}
 
