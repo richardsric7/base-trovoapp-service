@@ -6564,7 +6564,7 @@ showQuickBuyPopup(context) async {
                       SizedBox(height: 5),
                       buyOption(
                         iconUrl: 'assets/images/xbn-logo.png',
-                        text: 'Buy XBN',
+                        text: 'Buy ETH',
                         onTap: () {
                           var asset = appState
                               .userInfo

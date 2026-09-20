@@ -123,7 +123,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                         children: [
                           SizedBox(height: height / 50),
                           Text(
-                            '${sourceAmount} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']}',
+                            '${sourceAmount} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'ETH' : transactionData['sourceAssetCode']}',
                             style: TextStyle(
                               fontSize: 19,
                               fontWeight: FontWeight.w700,
@@ -197,7 +197,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                         ),
                         myKeyValueRow(
                           "${"amountcalculated".tr()}: ",
-                          "${transactionData['feeAmount']} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']}",
+                          "${transactionData['feeAmount']} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'ETH' : transactionData['sourceAssetCode']}",
                         ),
                         if (transactionData['vatAmount']
                             .toString()
@@ -208,7 +208,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                           ),
                           myKeyValueRow(
                             "${"vatamount".tr()}: ",
-                            "${transactionData['vatAmount']} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']}",
+                            "${transactionData['vatAmount']} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'ETH' : transactionData['sourceAssetCode']}",
                           ),
                         ],
                         SizedBox(height: height / 50),
@@ -360,7 +360,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                 Column(
                   children: [
                     Text(
-                      '${swappedEstimate} ${transactionData['destinationAssetCode'].toString().isEmpty ? 'XBN' : transactionData['destinationAssetCode']}',
+                      '${swappedEstimate} ${transactionData['destinationAssetCode'].toString().isEmpty ? 'ETH' : transactionData['destinationAssetCode']}',
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         color: notifier.getbluewhitecolor,
@@ -469,7 +469,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
           appState.viewData![SuccessViewPageConfig.key] = {
             'title': 'Swap request submitted',
             'message':
-                'You have successfully requested swap of [${sourceAmount} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']}] to [${swappedEstimate} ${transactionData['destinationAssetCode'].toString().isEmpty ? 'XBN' : transactionData['destinationAssetCode']}] on wallet [${wallet.alias}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
+                'You have successfully requested swap of [${sourceAmount} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'ETH' : transactionData['sourceAssetCode']}] to [${swappedEstimate} ${transactionData['destinationAssetCode'].toString().isEmpty ? 'ETH' : transactionData['destinationAssetCode']}] on wallet [${wallet.alias}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
             'useOnDone': true,
             'onDone': () {
               appState.currentAction = PageAction(

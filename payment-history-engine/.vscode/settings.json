@@ -1,12 +1,11 @@
 {
     "cSpell.words": [
+        "evmkeypair",
         "FBDL",
         "Funder",
         "godotenv",
-        "horizonclient",
         "IPAPI",
         "joho",
-        "Keypair",
         "loginsession",
         "Mailgun",
         "Preload",
@@ -15,7 +14,6 @@
         "shopspring",
         "Trovotech",
         "trovowallet",
-        "txnbuild",
         "uerr",
         "vals"
     ]

@@ -136,7 +136,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                asset.assetCode!.isEmpty ? 'XBN' : asset.assetCode!,
+                asset.assetCode!.isEmpty ? 'ETH' : asset.assetCode!,
                 overflow: TextOverflow.ellipsis,
               ),
             ],

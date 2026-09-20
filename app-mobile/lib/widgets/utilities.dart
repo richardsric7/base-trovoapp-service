@@ -80,7 +80,7 @@ void showSnackBarForInfo(String message, BuildContext context) {
 }
 
 getAssetCode(assetCode) {
-  // assign XBN to the asset which has an
+  // assign ETH to the asset which has an
   // empty assetCode value.
   // native token of the bantu blockchain
   // has empty values as assetCode and

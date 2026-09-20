@@ -73,7 +73,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
               ),
               SizedBox(height: height / 30),
               Text(
-                '- ${viewData['amount']} ${viewData['assetCode'].toString().isEmpty ? 'XBN' : viewData['assetCode']}',
+                '- ${viewData['amount']} ${viewData['assetCode'].toString().isEmpty ? 'ETH' : viewData['assetCode']}',
                 style: TextStyle(
                     color: Colors.red,
                     fontFamily: fontsemibold,

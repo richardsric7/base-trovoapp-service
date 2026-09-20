@@ -15,7 +15,6 @@ func Init(router *gin.Engine) {
 	// Serve Android App Links file
 
 	router.GET("/", middleware.AuthenticationMiddlewareUsingTimestamp(), getHandler())
-	router.GET("/.well-known/stellar.toml", middleware.AuthenticationMiddlewareUsingTimestamp(), getDotwellKnownStellarDottomlHandler())
 	router.GET("/.well-known/apple-app-site-association", getDotwellKnownAppleAppSiteAssociationHandler())
 	router.GET("/.well-known/assetlinks.json", getDotwellKnownAssetlinksDotjsonHandler())
 }

@@ -401,7 +401,7 @@ class _RequestEarlyExitView extends State<RequestEarlyExitView>
       return "youdonthavesufficientbalance".tr();
     }
 
-    if ((getAssetCode(asset!.assetCode) == 'XBN') &&
+    if ((getAssetCode(asset!.assetCode) == 'ETH') &&
         double.tryParse(value)! > (asset!.amount! - 7)) {
       setState(() {
         amountError = true;
@@ -435,7 +435,7 @@ class _RequestEarlyExitView extends State<RequestEarlyExitView>
         "destination": to,
         "memo": memo,
         "amount": amount.toString(),
-        "assetCode": asset!.assetCode == 'XBN' ? '' : asset!.assetCode,
+        "assetCode": asset!.assetCode == 'ETH' ? '' : asset!.assetCode,
         "assetIssuer": asset!.assetIssuer,
       };
       String requestBody = jsonEncode(map);

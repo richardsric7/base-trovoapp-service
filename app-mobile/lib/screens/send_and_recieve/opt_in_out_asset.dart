@@ -95,7 +95,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
       wallet = appState.userInfo!
           .transactionableWallets()[selectedWalletIndex!];
 
-      // get all assets on the curated swap list minus XBN
+      // get all assets on the curated swap list minus ETH
       var filteredList = appState.curatedSwapList
           .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
           .toList();

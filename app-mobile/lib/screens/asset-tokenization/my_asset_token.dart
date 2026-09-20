@@ -117,7 +117,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                         onAssetChanged: (newValue) {
                           setState(() {
                             selectedAsset = newValue;
-                            newValue = newValue.toString().contains('XBN')
+                            newValue = newValue.toString().contains('ETH')
                                 ? '|'
                                 : newValue;
                             for (var asset in wallet.claimedAssets!) {

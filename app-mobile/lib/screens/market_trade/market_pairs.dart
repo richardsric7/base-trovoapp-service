@@ -26,7 +26,7 @@ class _MarketPairsState extends State<MarketPairs>
     'TROV',
     'USDC',
     'USDT',
-    'XBN',
+    'ETH',
   ];
 
   List<Map> marketPairs = <Map>[
@@ -46,22 +46,22 @@ class _MarketPairsState extends State<MarketPairs>
       'isChecked': true,
     },
     {
-      'pair': 'TROV/XBN',
-      'price': '1000 XBN',
+      'pair': 'TROV/ETH',
+      'price': '1000 ETH',
       'isChecked': false,
     },
     {
-      'pair': 'XBN/CNGN',
+      'pair': 'ETH/CNGN',
       'price': '0.5 CNGN',
       'isChecked': false,
     },
     {
-      'pair': 'XBN/USDC',
+      'pair': 'ETH/USDC',
       'price': '0.0003 USDC',
       'isChecked': true,
     },
     {
-      'pair': 'XBN/USDT',
+      'pair': 'ETH/USDT',
       'price': '0.0003 USDT',
       'isChecked': false,
     },
@@ -81,22 +81,22 @@ class _MarketPairsState extends State<MarketPairs>
       'isChecked': false,
     },
     {
-      'pair': 'TROV/XBN',
-      'price': '1000 XBN',
+      'pair': 'TROV/ETH',
+      'price': '1000 ETH',
       'isChecked': true,
     },
     {
-      'pair': 'XBN/CNGN',
+      'pair': 'ETH/CNGN',
       'price': '0.5 CNGN',
       'isChecked': false,
     },
     {
-      'pair': 'XBN/USDC',
+      'pair': 'ETH/USDC',
       'price': '0.49 USDC',
       'isChecked': false,
     },
     {
-      'pair': 'XBN/USDT',
+      'pair': 'ETH/USDT',
       'price': '0.5 USDT',
       'isChecked': true,
     },
@@ -116,8 +116,8 @@ class _MarketPairsState extends State<MarketPairs>
       'isChecked': true,
     },
     {
-      'pair': 'TROV/XBN',
-      'price': '1.4 XBN',
+      'pair': 'TROV/ETH',
+      'price': '1.4 ETH',
       'isChecked': false,
     },
   ];

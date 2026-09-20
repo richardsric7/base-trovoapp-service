@@ -138,7 +138,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                               height: 20,
                             ),
                             Text(
-                              '${transactionData['feeAmount']} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']} (${transactionData['fee']}%)',
+                              '${transactionData['feeAmount']} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'ETH' : transactionData['sourceAssetCode']} (${transactionData['fee']}%)',
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 color: notifier.getbluewhitecolor,
@@ -249,7 +249,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${sourceAmount} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']}',
+              '${sourceAmount} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'ETH' : transactionData['sourceAssetCode']}',
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 color: notifier.getbluewhitecolor,
@@ -288,7 +288,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
               height: 20,
             ),
             Text(
-              '${swappedEstimate} ${transactionData['destinationAssetCode'].toString().isEmpty ? 'XBN' : transactionData['destinationAssetCode']}',
+              '${swappedEstimate} ${transactionData['destinationAssetCode'].toString().isEmpty ? 'ETH' : transactionData['destinationAssetCode']}',
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 color: notifier.getbluewhitecolor,

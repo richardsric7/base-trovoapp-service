@@ -144,7 +144,7 @@ class _ConfirmBuyXBNWithFiat extends State<ConfirmBuyXBNWithFiat>
                           children: [
                             SizedBox(height: height / 50),
                             Text(
-                              '250 XBN & 0.5 TROV',
+                              '250 ETH & 0.5 TROV',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,

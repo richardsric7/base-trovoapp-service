@@ -471,7 +471,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
       Map map = {
         'patronMembershipGradeId': patronTier.id,
         'paymentAssetCode': selectedAsset?.split('|')[0],
-        'paymentAssetIssuer': selectedAsset?.split('|')[0] == 'XBN'
+        'paymentAssetIssuer': selectedAsset?.split('|')[0] == 'ETH'
             ? ''
             : selectedAsset?.split('|')[1],
       };

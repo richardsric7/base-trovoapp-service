@@ -265,7 +265,7 @@ class _EarlyExitSummaryView extends State<EarlyExitSummaryView>
       SuccessViewPageConfig.key: {
         'title': 'Payment request submitted',
         'message':
-            'You have successfully requested early exit of [1000 ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}] from [${wallet.alias}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
+            'You have successfully requested early exit of [1000 ${asset!.assetCode.toString().isEmpty ? 'ETH' : asset!.assetCode}] from [${wallet.alias}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
         'useOnDone': true,
         'onDone': () {
           appState.currentAction = PageAction(

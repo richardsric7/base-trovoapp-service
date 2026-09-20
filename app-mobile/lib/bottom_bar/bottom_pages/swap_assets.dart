@@ -653,7 +653,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
               Padding(
                 padding: const EdgeInsets.fromLTRB(8.0, 0, 0, 0),
                 child: Text(
-                  splitValue[0].toString().isEmpty ? 'XBN' : splitValue[0],
+                  splitValue[0].toString().isEmpty ? 'ETH' : splitValue[0],
                   style: TextStyle(
                     fontSize: 15,
                     // fontWeight: FontWeight.bold,
@@ -701,7 +701,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
       return "youdonthavesufficientbalance".tr();
     }
 
-    if (getAssetCode(sourceAsset!.assetCode) == 'XBN' &&
+    if (getAssetCode(sourceAsset!.assetCode) == 'ETH' &&
         double.tryParse(value)! > (sourceAsset!.amount! - 6)) {
       return "youdonthavesufficientbalance".tr();
     }

@@ -127,7 +127,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                         children: [
                           SizedBox(height: height / 50),
                           Text(
-                            '${formatNumber(double.parse(transactionData['amount']))} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}',
+                            '${formatNumber(double.parse(transactionData['amount']))} ${asset!.assetCode.toString().isEmpty ? 'ETH' : asset!.assetCode}',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
@@ -208,7 +208,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                           ),
                           myKeyValueRow(
                             "${"amountcalculated".tr()}: ",
-                            "${transactionData['feeAmount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}",
+                            "${transactionData['feeAmount']} ${asset!.assetCode.toString().isEmpty ? 'ETH' : asset!.assetCode}",
                           ),
                           if (transactionData['vatAmount']
                               .toString()
@@ -219,7 +219,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                             ),
                             myKeyValueRow(
                               "${"vatamount".tr()}: ",
-                              "${transactionData['vatAmount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}",
+                              "${transactionData['vatAmount']} ${asset!.assetCode.toString().isEmpty ? 'ETH' : asset!.assetCode}",
                             ),
                           ],
                           SizedBox(height: height / 50),
@@ -549,7 +549,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
             SuccessViewPageConfig.key: {
               'title': 'Payment request submitted',
               'message':
-                  'You have successfully requested payment of [${transactionData['amount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}] from [${wallet.alias}] to [${transactionData['destination']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
+                  'You have successfully requested payment of [${transactionData['amount']} ${asset!.assetCode.toString().isEmpty ? 'ETH' : asset!.assetCode}] from [${wallet.alias}] to [${transactionData['destination']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
               'useOnDone': true,
               'onDone': () {
                 appState.currentAction = PageAction(

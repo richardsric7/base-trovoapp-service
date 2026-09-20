@@ -656,7 +656,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
               ),
               keyValuePair(
                 '${"servicefee".tr()}:',
-                '${withdrawalInfo.withdrawalServiceFee} XBN',
+                '${withdrawalInfo.withdrawalServiceFee} ETH',
               ),
             ],
           ),

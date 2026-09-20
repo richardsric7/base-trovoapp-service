@@ -773,7 +773,7 @@ class _WalletDetailsState extends State<WalletDetails>
                 children: [
                   Text(
                     asset.assetCode.toString().isEmpty
-                        ? 'XBN'
+                        ? 'ETH'
                         : asset.assetCode!,
                     style: TextStyle(
                       fontSize: 12,

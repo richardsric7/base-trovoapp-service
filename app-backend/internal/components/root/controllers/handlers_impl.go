@@ -19,16 +19,6 @@ func getHandler() gin.HandlerFunc {
 }
 
 
-func getDotwellKnownStellarDottomlHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-
-		rootInfo := root.GetRootInfo()
-		rootInfo.PublicKey = middleware.ExtractPublicKey(c)
-		c.JSON(200, rootInfo)
-	}
-}
-
-
 func getDotwellKnownAppleAppSiteAssociationHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Content-Type", "application/json")

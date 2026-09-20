@@ -41,22 +41,22 @@ class _MarketTradeState extends State<MarketTrade>
       'isGreen': true,
     },
     {
-      'pair': 'TROV/XBN',
+      'pair': 'TROV/ETH',
       'price': formatNumberShort(Random().nextInt(10000).toDouble()),
       'isGreen': false,
     },
     {
-      'pair': 'XBN/CNGN',
+      'pair': 'ETH/CNGN',
       'price': formatNumberShort(Random().nextInt(10000).toDouble()),
       'isGreen': false,
     },
     {
-      'pair': 'XBN/USDC',
+      'pair': 'ETH/USDC',
       'price': formatNumberShort(Random().nextInt(10000).toDouble()),
       'isGreen': true,
     },
     {
-      'pair': 'XBN/USDT',
+      'pair': 'ETH/USDT',
       'price': formatNumberShort(Random().nextInt(10000).toDouble()),
       'isGreen': false,
     },
@@ -76,22 +76,22 @@ class _MarketTradeState extends State<MarketTrade>
       'isGreen': false,
     },
     {
-      'pair': 'TROV/XBN',
+      'pair': 'TROV/ETH',
       'price': formatNumberShort(Random().nextInt(10000).toDouble()),
       'isGreen': true,
     },
     {
-      'pair': 'XBN/CNGN',
+      'pair': 'ETH/CNGN',
       'price': formatNumberShort(Random().nextInt(10000).toDouble()),
       'isGreen': false,
     },
     {
-      'pair': 'XBN/USDC',
+      'pair': 'ETH/USDC',
       'price': formatNumberShort(Random().nextInt(10000).toDouble()),
       'isGreen': false,
     },
     {
-      'pair': 'XBN/USDT',
+      'pair': 'ETH/USDT',
       'price': formatNumberShort(Random().nextInt(10000).toDouble()),
       'isGreen': true,
     },
@@ -111,7 +111,7 @@ class _MarketTradeState extends State<MarketTrade>
       'isGreen': true,
     },
     {
-      'pair': 'TROV/XBN',
+      'pair': 'TROV/ETH',
       'price': formatNumberShort(Random().nextInt(10000).toDouble()),
       'isGreen': false,
     },

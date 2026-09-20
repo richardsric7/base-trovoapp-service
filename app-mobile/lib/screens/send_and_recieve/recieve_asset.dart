@@ -108,7 +108,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                   setState(() {
                     selectedAsset = newValue;
                     newValue =
-                        newValue.toString().contains('XBN') ? '|' : newValue;
+                        newValue.toString().contains('ETH') ? '|' : newValue;
                     for (var asset in wallet.claimedAssets!) {
                       var splitNewValue = newValue.toString().split('|');
                       if (asset.assetCode == splitNewValue[0] &&
