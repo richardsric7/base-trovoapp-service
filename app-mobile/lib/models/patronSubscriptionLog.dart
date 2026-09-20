@@ -24,16 +24,16 @@ class PatronSubscriptionLog {
   });
 
   PatronSubscriptionLog.deserializeJson(m)
-    : this(
-        id: m['id'],
-        createdAt: DateTime.parse(m['createdAt']),
-        updatedAt: DateTime.parse(m['updatedAt']),
-        username: m['username'],
-        patronPackageId: m['patronPackageId'],
-        patronTierId: m['patronTierId'],
-        activePatronPackageId: m['activePatronPackageId'],
-        activePatronTierId: m['activePatronTierId'],
-        effectiveDate: DateTime.parse(m['effectiveDate']),
-        validTill: DateTime.parse(m['validTill']),
-      );
+      : this(
+          id: m['id'],
+          createdAt: DateTime.parse(m['createdAt']),
+          updatedAt: DateTime.parse(m['updatedAt']),
+          username: m['username'],
+          patronPackageId: m['patronPackageId'],
+          patronTierId: m['patronTierId'],
+          activePatronPackageId: m['activePatronPackageId'],
+          activePatronTierId: m['activePatronTierId'],
+          effectiveDate: DateTime.parse(m['effectiveDate']),
+          validTill: DateTime.parse(m['validTill']),
+        );
 }

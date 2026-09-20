@@ -20,13 +20,13 @@ class PatronInfo {
   });
 
   PatronInfo.deserializeJson(m, int canExpire, int isInactive)
-    : this(
-        id: m['id'],
-        patronPackage: m['patronPackage'],
-        patronTiers: m['patronTier'],
-        packageListTitle: m['packageListTitle'],
-        packageList: m['packageList'].toString().split('|'),
-        description: '',
-        logo: '',
-      );
+      : this(
+          id: m['id'],
+          patronPackage: m['patronPackage'],
+          patronTiers: m['patronTier'],
+          packageListTitle: m['packageListTitle'],
+          packageList: m['packageList'].toString().split('|'),
+          description: '',
+          logo: '',
+        );
 }
