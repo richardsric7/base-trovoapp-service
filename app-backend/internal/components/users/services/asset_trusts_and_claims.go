@@ -332,26 +332,17 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 
 	//source account details
 
-	sourceAccountExists, sourceAccountTrustsAsset, _, _, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
+	_, sourceAccountTrustsAsset, _, _, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
 	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 
 	if nativeAccountBalance.GreaterThan(decimal.Zero) {
-		if !sourceAccountExists {
-			//todo: check if nativeAccount balance > 1
-			ops = append(ops, &basetxn.CreateAccount{
-				Destination:   wallet.ID,
-				Amount:        nativeAccountBalance.Truncate(7).String(),
-				SourceAccount: tempAccount.Address,
-			})
-		} else {
-			ops = append(ops, &basetxn.Payment{
-				Destination:   wallet.ID,
-				Amount:        nativeAccountBalance.Truncate(7).String(),
-				Asset:         basetxn.NativeAsset{},
-				SourceAccount: tempAccount.Address,
-			})
-		}
+		ops = append(ops, &basetxn.Payment{
+			Destination:   wallet.ID,
+			Amount:        nativeAccountBalance.Truncate(7).String(),
+			Asset:         basetxn.NativeAsset{},
+			SourceAccount: tempAccount.Address,
+		})
 	}
 
 	if !sourceAccountTrustsAsset {
@@ -613,12 +604,8 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 
 	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), basetxn.NativeAsset{})
 
-	sourceAccountExists, sourceAccountTrustsAsset, nativeAccountBalance, _, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
+	_, sourceAccountTrustsAsset, nativeAccountBalance, _, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
-	if !sourceAccountExists {
-		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3GAS to it to activate it before you can perform this task", Code: http.StatusBadRequest}
-
-	}
 	if nativeAccountBalance.LessThan(minBalance) {
 		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", minBalance.String(), os.Getenv("NATIVE_ASSET_CODE")), Code: http.StatusBadRequest}
 
@@ -761,12 +748,8 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 
 	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), basetxn.NativeAsset{})
 
-	sourceAccountExists, sourceAccountTrustsAsset, nativeAccountBalance, assetBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
+	_, sourceAccountTrustsAsset, nativeAccountBalance, assetBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
-	if !sourceAccountExists {
-		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3GAS to it to activate it before you can perform this task", Code: http.StatusBadRequest}
-
-	}
 	if nativeAccountBalance.LessThan(minBalance) {
 		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", minBalance.String(), os.Getenv("NATIVE_ASSET_CODE")), Code: http.StatusBadRequest}
 

@@ -466,7 +466,7 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 		destinationAddress = destinationWallet.ID
 	}
 	//perform ths checks of determining messages to be appended. if destination account property is not checked here, information would be returned without messages set.
-	destinationAccountExists, destinationAccountTrustsAsset, _, _, destinationBlockchainAccount, destinationAccountErr := network.BlockchainAccountProperties(client, destinationAddress, asset)
+	_, destinationAccountTrustsAsset, _, _, destinationBlockchainAccount, destinationAccountErr := network.BlockchainAccountProperties(client, destinationAddress, asset)
 	//set base charge to be used in all places it is needed
 	if publicKeyPayment {
 		if !asset.IsNative() && !destinationAccountTrustsAsset {
@@ -476,14 +476,6 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 		//check if to set charges messages
 		if !asset.IsNative() {
 			//custom asset
-			if !destinationAccountExists {
-
-				message := fmt.Sprintf("The wallet %v is underfunded. %v %v will be deducted from your account to fund %v’s account. You only need to do this once for %v.", destinationWallet.Alias, charge, nativeAssetCode, destinationWallet.Alias, destinationWallet.Alias)
-
-				paymentInfo.Messages = append(paymentInfo.Messages, message)
-				// log.Printf("[generatePaymentXdr]message[0]: %v\n", message)
-
-			}
 			if gc.IsValidTokenizedAsset(asset.GetCode()) && asset.GetIssuer() != destinationInfo.Address {
 				//check if destination has done KYC
 				if destinationInfo.KYCVerified == 0 {
@@ -563,14 +555,10 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 	}(chanAccount)
 	// paymentInfo.Messages = messages
 	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
-	sourceAccountExists, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, sourceWallet.ID, asset)
+	_, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, sourceWallet.ID, asset)
 
 	if sourceAccountErr != nil {
 		return "", nil, sourceAccountErr
-	}
-
-	if !sourceAccountExists {
-		return "", nil, &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	if !sourceAccountTrustsAsset {
@@ -617,37 +605,16 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 
 	if asset.IsNative() {
 		//native asset
-		if !destinationAccountExists {
-
-			if amountToSendDec.LessThan(baseReserve.Mul(decimal.NewFromInt(3))) {
-				log.Printf("[generatePaymentXdr] trying to create account with %v, meanwhile you need %v\n", amountToSendDec, baseReserve.Mul(decimal.NewFromInt(3)))
-				return "", nil, &tPayErrors.ErrorInsufficientAmountToFundAccount{}
-			}
-			ops = append(ops, &basetxn.CreateAccount{
-				Destination:   destinationAddress,
-				Amount:        newAmountToSend,
-				SourceAccount: sourceWallet.ID,
-			})
-		} else {
-			ops = append(ops, &basetxn.Payment{
-				Destination:   destinationAddress,
-				Amount:        newAmountToSend,
-				Asset:         asset,
-				SourceAccount: sourceWallet.ID,
-			})
-		}
+		ops = append(ops, &basetxn.Payment{
+			Destination:   destinationAddress,
+			Amount:        newAmountToSend,
+			Asset:         asset,
+			SourceAccount: sourceWallet.ID,
+		})
 	} else {
 		//custom asset
 
 		// claimable assets are for TrovoApp users only. it would return error above when destination does not trust asset
-
-		if !destinationAccountExists {
-			ops = append(ops, &basetxn.CreateAccount{
-				Destination:   destinationAddress,
-				Amount:        charge,
-				SourceAccount: sourceWallet.ID,
-			})
-		}
 
 		if !destinationAccountTrustsAsset {
 			if !publicKeyPayment {
@@ -986,9 +953,7 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 }
 
 func generateMintingXdr(client *ethclient.Client, owner *userModels.User, sourceWallet *userModels.UserWallet, mintingInfo *userModels.MintingInfo, db *gorm.DB, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
-	baseReserve := network.GetBlockchainBaseReserve()
 	var tokenizedAssetIssuerMustSign bool
-	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 
 	var err error
 	mintingInfo, err = ValidateMintingInfo(mintingInfo)
@@ -1035,21 +1000,11 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 	destinationAddress := destinationWallet.ID
 
 	//perform ths checks of determining messages to be appended. if destination account property is not checked here, information would be returned without messages set.
-	destinationAccountExists, destinationAccountTrustsAsset, _, _, destinationBlockchainAccount, destinationAccountErr :=
+	_, destinationAccountTrustsAsset, _, _, destinationBlockchainAccount, destinationAccountErr :=
 		network.BlockchainAccountProperties(client, destinationAddress, asset)
 		//set base charge to be used in all places it is needed
 
 		//check if to set charges messages
-
-	//custom asset
-	if !destinationAccountExists {
-
-		message := fmt.Sprintf("The wallet %v is unfunded. %v %v will be deducted from your account to fund %v’s account. You only need to do this once for %v.", destinationWallet.Alias, charge, nativeAssetCode, destinationWallet.Alias, destinationWallet.Alias)
-
-		mintingInfo.Messages = append(mintingInfo.Messages, message)
-		// log.Printf("[generatePaymentXdr]message[0]: %v\n", message)
-
-	}
 
 	// if !destinationAccountTrustsAsset && !owner.IsEnterpriseProfile(gc) {
 	// 	message := fmt.Sprintf("%v has not yet opted in to receive the asset (%v) you are trying to send. %v %v will be deducted from your account to ensure that this transaction goes through. After this, %v will be able to receive %v anytime, without any further charges to you.", destinationWallet.Alias, mintingInfo.AssetCode, charge, nativeAssetCode, destinationWallet.Alias, mintingInfo.AssetCode)
@@ -1065,14 +1020,10 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 	}(chanAccount)
 	// paymentInfo.Messages = messages
 	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
-	sourceAccountExists, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, sourceWallet.ID, asset)
+	_, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, sourceWallet.ID, asset)
 
 	if sourceAccountErr != nil {
 		return "", nil, sourceAccountErr
-	}
-
-	if !sourceAccountExists {
-		return "", nil, &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	if !sourceAccountTrustsAsset {
@@ -1094,14 +1045,6 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 	//custom asset
 
 	// claimable assets are for TrovoApp users only. it would return error above when destination does not trust asset
-
-	if !destinationAccountExists {
-		ops = append(ops, &basetxn.CreateAccount{
-			Destination:   destinationAddress,
-			Amount:        charge,
-			SourceAccount: sourceWallet.ID,
-		})
-	}
 
 	if !destinationAccountTrustsAsset {
 
@@ -1319,7 +1262,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 	}
 
 	//perform ths checks to determine messages to be appended. if destination account property is not checked here, information would be returned without messages set.
-	destinationAccountExists, destinationAccountTrustsAsset, _, _, destinationBlockchainAccount, destinationAccountErr :=
+	_, destinationAccountTrustsAsset, _, _, destinationBlockchainAccount, destinationAccountErr :=
 		network.BlockchainAccountProperties(gc.BantuExpansionClient, destinationAddress, asset)
 	//set base charge to be used in all places it is needed
 
@@ -1331,15 +1274,6 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 		//check if to set charges messages
 		if !asset.IsNative() {
 			//custom asset
-			if !destinationAccountExists {
-
-				message := fmt.Sprintf("The wallet %v is unfunded. %v %v will be deducted from your account to fund %v’s account. You only need to do this once for %v.", destinationWallet.Alias, charge, nativeAssetCode, destinationWallet.Alias, destinationWallet.Alias)
-
-				paymentInfo.Messages = append(paymentInfo.Messages, message)
-				// log.Printf("[generatePaymentXdr]message[0]: %v\n", message)
-
-			}
-
 			if !destinationAccountTrustsAsset {
 				message := fmt.Sprintf("%v has not yet opted in to receive (%v), that you are trying to send. %v %v will be deducted from your account to ensure that this transaction goes through. After this, %v will be able to receive %v anytime, without any further charges to you.", destinationWallet.Alias, paymentInfo.AssetCode, charge, os.Getenv("NATIVE_ASSET_CODE"), destinationWallet.Alias, paymentInfo.AssetCode)
 
@@ -1377,15 +1311,11 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 		}
 	}
 
-	sourceAccountExists, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, asset)
-	channelSourceAccountExists, _, channelSourceAccountNativeBalance, _, channelSourceAccount, channelSourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, paymentInfo.ChannelAccount, basetxn.NativeAsset{})
+	_, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, asset)
+	_, _, channelSourceAccountNativeBalance, _, channelSourceAccount, channelSourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, paymentInfo.ChannelAccount, basetxn.NativeAsset{})
 
 	if channelSourceAccountErr != nil {
 		return "", nil, channelSourceAccountErr
-	}
-
-	if !channelSourceAccountExists {
-		return "", nil, &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	if channelSourceAccountNativeBalance.LessThan(decimal.NewFromFloat(6.1)) {
@@ -1395,10 +1325,6 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 
 	if sourceAccountErr != nil {
 		return "", nil, sourceAccountErr
-	}
-
-	if !sourceAccountExists {
-		return "", nil, &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	if !sourceAccountTrustsAsset {
@@ -1434,37 +1360,16 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 
 	if asset.IsNative() {
 		//native asset
-		if !destinationAccountExists {
-
-			if amountToSendDec.LessThan(baseReserve.Mul(decimal.NewFromInt(3))) {
-				log.Printf("[generatePaymentXdrWithChannelAccountPK] trying to create account with %v, meanwhile you need %v\n", amountToSendDec, baseReserve.Mul(decimal.NewFromInt(3)))
-				return "", nil, &tPayErrors.ErrorInsufficientAmountToFundAccount{}
-			}
-			ops = append(ops, &basetxn.CreateAccount{
-				Destination:   destinationAddress,
-				Amount:        newAmountToSend,
-				SourceAccount: sourceWallet.ID,
-			})
-		} else {
-			ops = append(ops, &basetxn.Payment{
-				Destination:   destinationAddress,
-				Amount:        newAmountToSend,
-				Asset:         asset,
-				SourceAccount: sourceWallet.ID,
-			})
-		}
+		ops = append(ops, &basetxn.Payment{
+			Destination:   destinationAddress,
+			Amount:        newAmountToSend,
+			Asset:         asset,
+			SourceAccount: sourceWallet.ID,
+		})
 	} else {
 		//custom asset
 
 		// claimable assets are for trovotech customers only. it would return error above when destination does not trust asset
-
-		if !destinationAccountExists {
-			ops = append(ops, &basetxn.CreateAccount{
-				Destination:   destinationAddress,
-				Amount:        charge,
-				SourceAccount: sourceWallet.ID,
-			})
-		}
 
 		if !destinationAccountTrustsAsset {
 			if !publicKeyPayment {

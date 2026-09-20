@@ -2645,10 +2645,19 @@ func (u *User) BelongsToAnEnterpriseProfile() bool {
 
 func (u *User) GetFiatActiationAmount(gc *sharedconfig.GlobalConfig) (activationAmount, trovPercent float64) {
 	cc := CountryCode(*u.CountryCode).GetConfig(gc)
-	_, exists, _ := UserWalletID(u.Address).GetBlockchainAccountDetail(gc)
 
-	if exists {
-		return 0, cc.TrovTokenActivationPercent
+	// On Base every address "exists" the moment it's derived, unlike
+	// Stellar where an account only existed once funded - so "already
+	// activated" is judged by native GAS balance against the same
+	// STANDARD_WALLET_MINIMUM_BALANCE threshold used elsewhere (e.g.
+	// market_making.go, asset_trusts_and_claims.go), not account
+	// existence.
+	client := network.GetBlockchainClient()
+	_, _, nativeBalance, _, _, err := network.BlockchainAccountProperties(client, u.Address, basetxn.NativeAsset{})
+	if minBalance, mErr := decimal.NewFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE")); err == nil && mErr == nil {
+		if nativeBalance.GreaterThanOrEqual(minBalance) {
+			return 0, cc.TrovTokenActivationPercent
+		}
 	}
 	// get the country fiat
 

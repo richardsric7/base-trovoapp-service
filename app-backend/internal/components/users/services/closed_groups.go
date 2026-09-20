@@ -156,20 +156,12 @@ func generateClosedGroupXdr(owner *userModels.User, closedGroupInput *userModels
 	// var asset basetxn.Asset
 	asset := basetxn.CreditAsset{Code: cgFeeAssetCode, Issuer: cgFeeAssetIssuer}
 
-	sourceAccountExists, _, nativeBalance, customBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.Address, asset)
+	_, _, nativeBalance, customBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.Address, asset)
 
 	if sourceAccountErr != nil {
 		log.Println("[generateClosedGroupXdr] error checking account properties on blockchain. Error ", sourceAccountErr)
 
 		return "", sourceAccountErr
-	}
-
-	if !sourceAccountExists {
-		log.Println("[generateClosedGroupXdr] error account does not exist on ledger. Error ")
-
-		return "", &tErrors.ErrorUnderfundedAccount{
-			Detail: "You need to activate your wallet first and fund it with TROV token to proceed.",
-		}
 	}
 
 	//get the trov quantity/equivalent needed for the USD from the market.

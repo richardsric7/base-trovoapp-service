@@ -487,7 +487,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 
 	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 
-	sourceAccountExists, _, sourceAccountNativeBalance, sourceAccountCustomBalance, _, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, sourceAsset)
+	_, _, sourceAccountNativeBalance, sourceAccountCustomBalance, _, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, sourceAsset)
 	var sourceAccountTrustsDestinationAsset bool
 	if !destinationAsset.IsNative() {
 		_, sourceAccountTrustsDestinationAsset, _, _, _, _ = network.BlockchainAccountProperties(client, wallet.ID, destinationAsset)
@@ -496,10 +496,6 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 
 	if sourceAccountErr != nil {
 		return "", sourceAccountErr
-	}
-
-	if !sourceAccountExists {
-		return "", &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	if !destinationAsset.IsNative() {
@@ -875,7 +871,7 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 
 	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 
-	sourceAccountExists, _, sourceAccountNativeBalance, sourceAccountCustomBalance, _, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, sourceAsset)
+	_, _, sourceAccountNativeBalance, sourceAccountCustomBalance, _, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, sourceAsset)
 	var sourceAccountTrustsDestinationAsset bool
 	if !destinationAsset.IsNative() {
 		_, sourceAccountTrustsDestinationAsset, _, _, _, _ = network.BlockchainAccountProperties(client, wallet.ID, destinationAsset)
@@ -886,10 +882,6 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 
 	if sourceAccountErr != nil {
 		return "", []basetxn.Operation{}, sourceAccountErr
-	}
-
-	if !sourceAccountExists {
-		return "", []basetxn.Operation{}, &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	if !destinationAsset.IsNative() {

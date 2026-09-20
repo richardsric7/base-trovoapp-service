@@ -3166,7 +3166,7 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 
 	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 
-	sourceAccountExists, _, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, sourceAsset)
+	_, _, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, sourceAsset)
 	var sourceAccountTrustsDestinationAsset bool
 	if !destinationAsset.IsNative() {
 		_, sourceAccountTrustsDestinationAsset, _, _, _, _ = network.BlockchainAccountProperties(client, wallet.ID, destinationAsset)
@@ -3176,10 +3176,6 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 
 	if sourceAccountErr != nil {
 		return "", sourceAccountErr
-	}
-
-	if !sourceAccountExists {
-		return "", &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	log.Printf("[generateAssetSubscriptionXdr]obtained source account balance:\n%v balance is %v\n%v balance is %v\n", nativeAssetCode, sourceAccountNativeBalance, sourceAsset.GetCode(), sourceAccountCustomBalance)
@@ -3404,12 +3400,9 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 
 	swapInfo.Messages = messages
 
-	sourceAccountExists, _, _, _, _, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, basetxn.NativeAsset{})
+	_, _, _, _, _, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, basetxn.NativeAsset{})
 	if sourceAccountErr != nil {
 		return "", "", sourceAccountErr
-	}
-	if !sourceAccountExists {
-		return "", "", &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	var sourceAccountTrustsDestinationAsset bool
@@ -4351,12 +4344,8 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 
 	asset := basetxn.CreditAsset{Code: assetCode, Issuer: assetIssuer}
 
-	sourceAccountExists, _, _, assetAccountFeeBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
+	_, _, _, assetAccountFeeBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
-	if !sourceAccountExists {
-		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3GAS to it to activate it before you can perform this task", Code: http.StatusBadRequest}
-
-	}
 	if assetAccountFeeBalance.LessThan(feeAmount) {
 		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", feeAmount.String(), assetCode), Code: http.StatusBadRequest}
 
@@ -4528,12 +4517,9 @@ func generateEarlyExitPaymentXdr(wallet *userModels.UserWallet, distributionWall
 		_, _, _, _, chanSourceAccount, _ = network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 	}
 
-	sourceAccountExists, sourceAccountTrustsAsset, _, sourceAccountBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, asset)
+	_, sourceAccountTrustsAsset, _, sourceAccountBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, asset)
 	if sourceAccountErr != nil {
 		return "", "", sourceAccountErr
-	}
-	if !sourceAccountExists {
-		return "", "", &tErrors.ErrorUnderfundedAccount{}
 	}
 	if !sourceAccountTrustsAsset {
 		return "", "", &tErrors.CustomError{Param: "walletAddress", Err: "error-no-trustline", ErrMessage: fmt.Sprintf("Your wallet does not hold %v.", *ta.AssetCode)}

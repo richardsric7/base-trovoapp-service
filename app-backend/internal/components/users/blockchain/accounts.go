@@ -98,12 +98,9 @@ type AccountDetailResult struct {
 // GetBlockchainAccountDetail fetches the bantu account information using public key
 func GetBlockchainAccountDetail(publicKey string) (result AccountDetailResult, err error) {
 	client := network.GetBlockchainClient()
-	exists, _, _, _, _, err := network.BlockchainAccountProperties(client, publicKey, basetxn.NativeAsset{})
+	_, _, _, _, _, err = network.BlockchainAccountProperties(client, publicKey, basetxn.NativeAsset{})
 	if err != nil {
 		return result, &tErrors.ErrorTemporaryServerError{}
-	}
-	if !exists {
-		return result, &tErrors.ErrorBlockchainAccountNotActivated{}
 	}
 	result.Signers = map[string]userModels.Signer{
 		publicKey: {Key: publicKey, Weight: 1, Type: "secp256k1_address"},
@@ -117,12 +114,9 @@ func GetBlockchainAccountDetail(publicKey string) (result AccountDetailResult, e
 // horizon.Account.Balances looking for the code=="" entry.
 func GetNativeBalance(publicKey string) (decimal.Decimal, error) {
 	client := network.GetBlockchainClient()
-	exists, _, nativeBalance, _, _, err := network.BlockchainAccountProperties(client, publicKey, basetxn.NativeAsset{})
+	_, _, nativeBalance, _, _, err := network.BlockchainAccountProperties(client, publicKey, basetxn.NativeAsset{})
 	if err != nil {
 		return decimal.Zero, &tErrors.ErrorTemporaryServerError{}
-	}
-	if !exists {
-		return decimal.Zero, &tErrors.ErrorBlockchainAccountNotActivated{}
 	}
 	return nativeBalance, nil
 }

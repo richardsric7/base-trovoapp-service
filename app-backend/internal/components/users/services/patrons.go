@@ -462,20 +462,12 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 
 	// _, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), nativeAsset)
 
-	sourceAccountExists, _, nativeBalance, customBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.Address, asset)
+	_, _, nativeBalance, customBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.Address, asset)
 
 	if sourceAccountErr != nil {
 		log.Println("[generatePatronSubscriptionXdr] error checking account properties on blockchain. Error ", sourceAccountErr)
 
 		return "", sourceAccountErr
-	}
-
-	if !sourceAccountExists {
-		log.Println("[generatePatronSubscriptionXdr] error account does not exist on ledger. Error ")
-
-		return "", &tErrors.ErrorUnderfundedAccount{
-			Detail: "You need to activate your wallet first and fund it with TROV token to proceed.",
-		}
 	}
 
 	// //get the trov quantity/equivalent needed for the USD from the market.

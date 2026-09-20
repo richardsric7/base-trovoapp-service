@@ -260,14 +260,14 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 
 	//check if primary account has native enough native balance
 	var nativeAsset basetxn.Asset = basetxn.NativeAsset{}
-	primaryAccountExists, _, primaryAccountNativeBalance, _, primarySourceAccount, errAct := network.BlockchainAccountProperties(client, accountOwner.Address, nativeAsset)
+	_, _, primaryAccountNativeBalance, _, primarySourceAccount, errAct := network.BlockchainAccountProperties(client, accountOwner.Address, nativeAsset)
 	if errAct != nil {
 		log.Printf("[generateSubWalletXdr] by [%v] for [%v] Primary Account Properties error:[%v] \n", accountOwner.Username, subWalletInfo.Address, errAct)
 
 		return "", subWalletObj, linkedWallet, errAct
 	}
 	if subWalletInfo.LinkedWalletAddress == "" {
-		if !primaryAccountExists || (primaryAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
+		if (primaryAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
 			log.Printf("[generateSubWalletXdr] by [%v] for [%v] PrimaryAccount underfunded \n", accountOwner.Username, subWalletInfo.Address)
 
 			err = &tErrors.CustomError{
@@ -280,7 +280,7 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 		}
 	} else {
 		//since linked wallet is present, two wallets would be activated. check that balance is double at least
-		if !primaryAccountExists || (primaryAccountNativeBalance.Sub(activationAmount.Mul(decimal.NewFromInt(2)))).LessThan(minBalance) {
+		if (primaryAccountNativeBalance.Sub(activationAmount.Mul(decimal.NewFromInt(2)))).LessThan(minBalance) {
 			log.Printf("[generateSubWalletXdr] by [%v] for [%v] PrimaryAccount underfunded \n", accountOwner.Username, subWalletInfo.Address)
 
 			err = &tErrors.CustomError{
@@ -304,123 +304,6 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 	}
 
 	subWalletAccountExists, _, subWalletAccountNativeBalance, _, subWalletAccountObject, _ := network.BlockchainAccountProperties(client, subWalletInfo.Address, nativeAsset)
-	if !subWalletAccountExists {
-		//if subwallet is not activated
-		ops = append(ops, &basetxn.CreateAccount{
-			Destination:   subWalletInfo.Address,
-			Amount:        activationAmount.String(),
-			SourceAccount: accountOwner.Address,
-		})
-		//if a minting wallet do not create trustline
-		if subWalletInfo.WalletType != 1 {
-			//enable dollar asset if not minting wallet
-			if os.Getenv("ENABLE_DOLLAR_ASSET_BY_DEFAULT") != "0" {
-				ops = append(ops, &basetxn.ChangeTrust{
-					Line:          dollarAsset,
-					Limit:         "900000000000",
-					SourceAccount: subWalletInfo.Address,
-				})
-			}
-			if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") != "0" {
-				//enable NAIRA asset if not minting wallet
-				ndab := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
-				nairaAsset := basetxn.CreditAsset{Code: ndab[0], Issuer: ndab[1]}
-				_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.Address, nairaAsset)
-				if !ntrusted {
-					ops = append(ops, &basetxn.ChangeTrust{
-						Line:          nairaAsset,
-						Limit:         "900000000000",
-						SourceAccount: subWalletInfo.Address,
-					})
-				}
-			}
-			if os.Getenv("ENABLE_TROV_ASSET_BY_DEFAULT") != "0" {
-
-				issuer := os.Getenv("TROV_ASSET_ISSUER")
-				if issuer != "" {
-					trovAsset := basetxn.CreditAsset{Code: "TROV", Issuer: issuer}
-					_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.Address, trovAsset)
-					if !ntrusted {
-						ops = append(ops, &basetxn.ChangeTrust{
-							Line:          trovAsset,
-							Limit:         "900000000000",
-							SourceAccount: subWalletInfo.Address,
-						})
-					}
-				}
-			}
-		}
-
-		//build transaction that will activate the subwallet from the primary wallet
-		if subWalletInfo.WalletType == 0 {
-
-			//after creation, it now exists with enough balance to add primary wallet as signer
-			ops = append(ops, &basetxn.SetOptions{
-				Signer: &basetxn.Signer{
-					Address: accountOwner.PrimarySigner,
-					Weight:  1,
-				},
-				SourceAccount: subWalletInfo.Address,
-			})
-		}
-		if subWalletInfo.WalletType == 1 {
-
-			//if it is minting wallet add options to set auth
-			ops = append(ops, &basetxn.SetOptions{
-				Signer: &basetxn.Signer{
-					Address: accountOwner.PrimarySigner,
-					Weight:  1,
-				},
-				SetFlags:      []basetxn.AccountFlag{basetxn.AuthRequired, basetxn.AuthClawbackEnabled, basetxn.AuthRevocable},
-				SourceAccount: subWalletInfo.Address,
-			})
-			// //prevent any future changes to the auth flag of the wallet.
-			// ops = append(ops, &basetxn.SetOptions{
-			// 	SetFlags:      []basetxn.AccountFlag{basetxn.AuthImmutable},
-			// 	SourceAccount: subWalletInfo.Address,
-			// })
-		}
-		//make it custodial
-		if subWalletInfo.WalletType == 2 || subWalletInfo.WalletType == 3 {
-
-			signerExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, walletSigner.Address(), nativeAsset)
-			if !signerExists {
-				//activate signer
-				ops = append(ops, &basetxn.CreateAccount{
-					Destination:   walletSigner.Address(),
-					Amount:        fmt.Sprintf("%v", WALLET_SIGNER_ACTIVATION_AMOUNT.Amount),
-					SourceAccount: accountOwner.Address,
-				})
-
-			} else {
-				//topup signer
-				ops = append(ops, &basetxn.Payment{
-					Destination:   walletSigner.Address(),
-					Amount:        fmt.Sprintf("%v", WALLET_SIGNER_ACTIVATION_AMOUNT.Amount),
-					Asset:         nativeAsset,
-					SourceAccount: accountOwner.Address,
-				})
-
-			}
-
-			//after creation, it now exists with enough balance to add primary wallet as signer
-			ops = append(ops, &basetxn.SetOptions{
-				Signer: &basetxn.Signer{
-					Address: accountOwner.PrimarySigner,
-					Weight:  1,
-				},
-				SourceAccount: subWalletInfo.Address,
-			})
-			ops = append(ops, &basetxn.SetOptions{
-				Signer: &basetxn.Signer{
-					Address: walletSigner.Address(),
-					Weight:  3,
-				},
-				SourceAccount: subWalletInfo.Address,
-			})
-		}
-
-	}
 
 	if subWalletAccountExists {
 		if subWalletAccountNativeBalance.LessThan(minBalance) {
@@ -598,64 +481,6 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 		if len(linkedWallet.ID) == 42 {
 
 			linkedSubWalletAccountExists, _, linkedSubWalletAccountNativeBalance, _, linkedSubWalletAccountObject, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, nativeAsset)
-			if !linkedSubWalletAccountExists {
-				//if linkedsubwallet is not activated
-				ops = append(ops, &basetxn.CreateAccount{
-					Destination:   linkedWallet.ID,
-					Amount:        activationAmount.String(),
-					SourceAccount: accountOwner.Address,
-				})
-
-				//enable default assets
-				if os.Getenv("ENABLE_DOLLAR_ASSET_BY_DEFAULT") != "0" {
-					ops = append(ops, &basetxn.ChangeTrust{
-						Line:          dollarAsset,
-						Limit:         "900000000000",
-						SourceAccount: linkedWallet.ID,
-					})
-				}
-				if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") != "0" {
-					//enable NAIRA asset if not minting wallet
-					ndab := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
-					nairaAsset := basetxn.CreditAsset{Code: ndab[0], Issuer: ndab[1]}
-					_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, nairaAsset)
-					if !ntrusted {
-						ops = append(ops, &basetxn.ChangeTrust{
-							Line:          nairaAsset,
-							Limit:         "900000000000",
-							SourceAccount: linkedWallet.ID,
-						})
-					}
-				}
-
-				if os.Getenv("ENABLE_TROV_ASSET_BY_DEFAULT") != "0" {
-
-					issuer := os.Getenv("TROV_ASSET_ISSUER")
-					if issuer != "" {
-						trovAsset := basetxn.CreditAsset{Code: "TROV", Issuer: issuer}
-						_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, trovAsset)
-						if !ntrusted {
-							ops = append(ops, &basetxn.ChangeTrust{
-								Line:          trovAsset,
-								Limit:         "900000000000",
-								SourceAccount: linkedWallet.ID,
-							})
-						}
-					}
-				}
-
-				//build transaction that will own the subwallet from the primary wallet
-
-				//after creation, it now exists with enough balance to add primary wallet as signer
-				ops = append(ops, &basetxn.SetOptions{
-					Signer: &basetxn.Signer{
-						Address: accountOwner.PrimarySigner,
-						Weight:  1,
-					},
-					SourceAccount: linkedWallet.ID,
-				})
-
-			}
 
 			if linkedSubWalletAccountExists {
 				if linkedSubWalletAccountNativeBalance.LessThan(minBalance) {
@@ -916,7 +741,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 
 	//check if primary account has native enough native balance
 	var nativeAsset basetxn.Asset = basetxn.NativeAsset{}
-	primaryAccountExists, _, primaryAccountNativeBalance, _, _, errAct := network.BlockchainAccountProperties(client, user.Address, nativeAsset)
+	_, _, primaryAccountNativeBalance, _, _, errAct := network.BlockchainAccountProperties(client, user.Address, nativeAsset)
 	if errAct != nil {
 		log.Printf("[generateSubWalletXdrWithChannelAccount] by [%v] for [%v] Primary Account Error error:[%v] \n", user.Username, subWalletInfo.Address, errAct)
 
@@ -924,7 +749,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 	}
 
 	if subWalletInfo.LinkedWalletAddress == "" {
-		if !primaryAccountExists || (primaryAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
+		if (primaryAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
 			log.Printf("[generateSubWalletXdrWithChannelAccount] by [%v] for [%v] Primary Account Underfunded\n", user.Username, subWalletInfo.Address)
 
 			err = &tErrors.CustomError{
@@ -938,7 +763,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 	} else {
 		//since linked wallet is present, two wallets would be activated. check that balance is double at least
 
-		if !primaryAccountExists || (primaryAccountNativeBalance.Sub(activationAmount.Mul(decimal.NewFromInt(2)))).LessThan(minBalance) {
+		if (primaryAccountNativeBalance.Sub(activationAmount.Mul(decimal.NewFromInt(2)))).LessThan(minBalance) {
 			log.Printf("[generateSubWalletXdrWithChannelAccount] by [%v] for [%v] Primary Account Underfunded\n", user.Username, subWalletInfo.Address)
 
 			err = &tErrors.CustomError{
@@ -962,65 +787,6 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 	}
 
 	subWalletAccountExists, _, subWalletAccountNativeBalance, _, subWalletAccountObject, _ := network.BlockchainAccountProperties(client, subWalletInfo.Address, nativeAsset)
-	if !subWalletAccountExists {
-		//if subwallet is not activated
-		//build transaction that will activate the subwallet from the primary wallet
-		if subWalletInfo.WalletType == 0 || subWalletInfo.WalletType == 1 {
-
-			ops = append(ops, &basetxn.CreateAccount{
-				Destination:   subWalletInfo.Address,
-				Amount:        activationAmount.String(),
-				SourceAccount: user.Address,
-			})
-
-			//after creation, it now exists with enough balance to add primary wallet as signer
-			ops = append(ops, &basetxn.SetOptions{
-				Signer: &basetxn.Signer{
-					Address: user.PrimarySigner,
-					Weight:  1,
-				},
-				SourceAccount: subWalletInfo.Address,
-			})
-		}
-		//make it custodial
-		if subWalletInfo.WalletType == 2 || subWalletInfo.WalletType == 3 {
-
-			signerExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, walletSigner.Address(), nativeAsset)
-			if !signerExists {
-				ops = append(ops, &basetxn.CreateAccount{
-					Destination:   walletSigner.Address(),
-					Amount:        os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT"),
-					SourceAccount: user.Address,
-				})
-
-			} else {
-				ops = append(ops, &basetxn.Payment{
-					Destination:   walletSigner.Address(),
-					Amount:        os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT"),
-					Asset:         nativeAsset,
-					SourceAccount: user.Address,
-				})
-
-			}
-
-			//after creation, it now exists with enough balance to add primary wallet as signer
-			ops = append(ops, &basetxn.SetOptions{
-				Signer: &basetxn.Signer{
-					Address: user.PrimarySigner,
-					Weight:  1,
-				},
-				SourceAccount: subWalletInfo.Address,
-			})
-			ops = append(ops, &basetxn.SetOptions{
-				Signer: &basetxn.Signer{
-					Address: walletSigner.Address(),
-					Weight:  3,
-				},
-				SourceAccount: subWalletInfo.Address,
-			})
-		}
-
-	}
 
 	if subWalletAccountExists {
 		if subWalletAccountNativeBalance.LessThan(minBalance) {
@@ -1118,48 +884,6 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 		if len(linkedWallet.ID) == 42 {
 
 			linkedSubWalletAccountExists, _, linkedSubWalletAccountNativeBalance, _, linkedSubWalletAccountObject, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, nativeAsset)
-			if !linkedSubWalletAccountExists {
-				//if linkedsubwallet is not activated
-				ops = append(ops, &basetxn.CreateAccount{
-					Destination:   linkedWallet.ID,
-					Amount:        activationAmount.String(),
-					SourceAccount: user.Address,
-				})
-
-				//enable default assets
-
-				ops = append(ops, &basetxn.ChangeTrust{
-					Line:          dollarAsset,
-					Limit:         "900000000000",
-					SourceAccount: linkedWallet.ID,
-				})
-
-				if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") == "1" {
-					//enable NAIRA asset if not minting wallet
-					ndab := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
-					nairaAsset := basetxn.CreditAsset{Code: ndab[0], Issuer: ndab[1]}
-					_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, nairaAsset)
-					if !ntrusted {
-						ops = append(ops, &basetxn.ChangeTrust{
-							Line:          nairaAsset,
-							Limit:         "900000000000",
-							SourceAccount: linkedWallet.ID,
-						})
-					}
-				}
-
-				//build transaction that will own the subwallet from the primary wallet
-
-				//after creation, it now exists with enough balance to add primary wallet as signer
-				ops = append(ops, &basetxn.SetOptions{
-					Signer: &basetxn.Signer{
-						Address: user.PrimarySigner,
-						Weight:  1,
-					},
-					SourceAccount: linkedWallet.ID,
-				})
-
-			}
 
 			if linkedSubWalletAccountExists {
 				if linkedSubWalletAccountNativeBalance.LessThan(minBalance) {
@@ -1261,8 +985,8 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 		})
 	}
 
-	channelSourceAccountExists, _, channelSourceAccountNativeBalance, _, channelSourceAccount, channelSourceAccountErr := network.BlockchainAccountProperties(client, subWalletInfo.ChannelAccount, basetxn.NativeAsset{})
-	if !channelSourceAccountExists || channelSourceAccountErr != nil || (channelSourceAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
+	_, _, channelSourceAccountNativeBalance, _, channelSourceAccount, channelSourceAccountErr := network.BlockchainAccountProperties(client, subWalletInfo.ChannelAccount, basetxn.NativeAsset{})
+	if channelSourceAccountErr != nil || (channelSourceAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
 		log.Printf("[generateSubWalletXdrWithChannelAccount] by [%v] for [%v] Channel Account underfunded.\n", user.Username, subWalletInfo.Address)
 
 		err = &tErrors.CustomError{

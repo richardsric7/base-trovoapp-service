@@ -1614,12 +1614,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			return "", messages, walletMustSign, err
 		}
 	}
-	// totalNativeBalanceNeeded := decimal.Zero
-	var activationAmount = decimal.NewFromFloat(6)
 	var minBalance = decimal.NewFromFloat(3.0)
-	if len(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT")) > 0 {
-		activationAmount = decimal.RequireFromString(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT"))
-	}
 	if len(os.Getenv("WALLET_MINIMUM_BALANCE")) > 0 {
 		minBalance = decimal.RequireFromString(os.Getenv("WALLET_MINIMUM_BALANCE"))
 	}
@@ -1636,13 +1631,13 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 	//check if primary account has native enough native balance
 	var nativeAsset basetxn.Asset = basetxn.NativeAsset{}
-	walletAccountExists, _, walletAccountNativeBalance, _, walletSourceAccount, errWalletAct := network.BlockchainAccountProperties(client, wallet.ID, nativeAsset)
+	_, _, walletAccountNativeBalance, _, walletSourceAccount, errWalletAct := network.BlockchainAccountProperties(client, wallet.ID, nativeAsset)
 	if errWalletAct != nil {
 		log.Printf("[generateCreateSharedAccessXdr] by [%v] for shared Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
 
 		return "", messages, walletMustSign, errWalletAct
 	}
-	if !walletAccountExists || (walletAccountNativeBalance).LessThan(minBalance) {
+	if (walletAccountNativeBalance).LessThan(minBalance) {
 		log.Printf("[generateCreateSharedAccessXdr] by [%v] shared WalletAccount underfunded \n", wallet.Alias)
 
 		err = &tErrors.CustomError{
@@ -1689,20 +1684,12 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 	//check access list to know if you would activate the user wallets before proceeding.
 	for _, user3p := range approvers {
-		var totalUsersToFund int64
 		//ensure u r using the account signer, since the account may have been recovered, or may be recovered in the future, changing the signer, but retaining the primary key
-		approverAccountExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, user3p.PrimarySigner, nativeAsset)
-		if !approverAccountExists {
-			//if subwallet is not activated
-			//build transaction that will activate the primary signer from the assigning wallet
+		//account exists, check if it already it a signer in the wallet
 
-			ops = append(ops, &basetxn.CreateAccount{
-				Destination:   user3p.PrimarySigner,
-				Amount:        activationAmount.String(),
-				SourceAccount: wallet.ID,
-			})
+		//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
+		if !network.IsAccountSigner(walletSourceAccount.Address, user3p.PrimarySigner) {
 
-			//after creation, it now exists with enough balance to add signer wallet as signer
 			ops = append(ops, &basetxn.SetOptions{
 				Signer: &basetxn.Signer{
 					Address: user3p.PrimarySigner,
@@ -1722,57 +1709,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				}
 			}
 
-			totalUsersToFund++
-
-			//since an operation now exists, wallet must sign
 			walletMustSign = true
-			// messages = append(messages, fmt.Sprintf("Important: %v GAS will be deducted from wallet %v to used to activate the sub-wallet.", activationAmount.String()))
-
-		}
-
-		if approverAccountExists {
-			//account exists, check if it already it a signer in the wallet
-
-			//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
-			if !network.IsAccountSigner(walletSourceAccount.Address, user3p.PrimarySigner) {
-
-				ops = append(ops, &basetxn.SetOptions{
-					Signer: &basetxn.Signer{
-						Address: user3p.PrimarySigner,
-						Weight:  1,
-					},
-					SourceAccount: wallet.ID,
-				})
-				{
-					if hasLinkedWallet {
-						ops = append(ops, &basetxn.SetOptions{
-							Signer: &basetxn.Signer{
-								Address: user3p.PrimarySigner,
-								Weight:  1,
-							},
-							SourceAccount: linkedWallet.ID,
-						})
-					}
-				}
-
-				walletMustSign = true
-			}
-
-		}
-		if totalUsersToFund > 0 {
-			totalNativeBalanceNeeded := activationAmount.Mul(decimal.NewFromInt(totalUsersToFund))
-			if walletAccountNativeBalance.LessThan(totalNativeBalanceNeeded) {
-				//not enough balance to perform this.
-				log.Printf("[generateCreateSharedAccessXdr] by [%v] Shared Access WalletAccount underfunded \n", wallet.Alias)
-
-				err = &tErrors.CustomError{
-					Param:      "walletAddress",
-					Err:        "error-wallet-underfunded",
-					ErrMessage: fmt.Sprintf("Wallet %v needs more than %v %v balance to perform this operation", wallet.Alias, totalNativeBalanceNeeded.String(), os.Getenv("NATIVE_ASSET_CODE")),
-					Code:       404,
-				}
-				return "", messages, walletMustSign, err
-			}
 		}
 	}
 
@@ -1897,13 +1834,13 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 	//check if primary account has native enough native balance
 	var nativeAsset basetxn.Asset = basetxn.NativeAsset{}
-	walletAccountExists, _, walletAccountNativeBalance, _, walletSourceAccount, errWalletAct := network.BlockchainAccountProperties(client, wallet.ID, nativeAsset)
+	_, _, walletAccountNativeBalance, _, walletSourceAccount, errWalletAct := network.BlockchainAccountProperties(client, wallet.ID, nativeAsset)
 	if errWalletAct != nil {
 		log.Printf("[generateModifySharedAccessXdr] by [%v] for shared Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
 
 		return "", "", messages, errWalletAct
 	}
-	if !walletAccountExists || (walletAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance.Mul(decimal.NewFromInt(int64(numberOfSubmittedApprovers)))) {
+	if (walletAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance.Mul(decimal.NewFromInt(int64(numberOfSubmittedApprovers)))) {
 		log.Printf("[generateModifySharedAccessXdr] by [%v] shared WalletAccount underfunded. Needs at least %v %v\n", wallet.Alias, (minBalance.Mul(decimal.NewFromInt(int64(numberOfSubmittedApprovers)))).Truncate(7).String(), os.Getenv("NATIVE_ASSET_CODE"))
 
 		err = &tErrors.CustomError{
@@ -2034,11 +1971,6 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 }
 func generateAddSharedAccessOps(wallet *userModels.UserWallet, walletOwner *userModels.User, approver *userModels.User, gc *sharedconfig.GlobalConfig) (ops []basetxn.Operation, messages []string, err error) {
 	client := gc.BantuExpansionClient
-	var activationAmount = decimal.NewFromFloat(6)
-	// var minBalance = decimal.NewFromFloat(3.0)
-	if len(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT")) > 0 {
-		activationAmount = decimal.RequireFromString(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT"))
-	}
 	ops = make([]basetxn.Operation, 0)
 	messages = make([]string, 0)
 
@@ -2054,31 +1986,7 @@ func generateAddSharedAccessOps(wallet *userModels.UserWallet, walletOwner *user
 	//check access list to know if you would activate the user wallets before proceeding.
 
 	//ensure u r using the account signer, since the account may have been recovered, or may be recovered in the future, changing the signer, but retaining the primary key
-	approverAccountExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, approver.PrimarySigner, nativeAsset)
-	if !approverAccountExists {
-		//if subwallet is not activated
-		//build transaction that will activate the primary signer from the assigning wallet
-		ops = append(ops, &basetxn.CreateAccount{
-			Destination:   approver.PrimarySigner,
-			Amount:        activationAmount.String(),
-			SourceAccount: wallet.ID,
-		})
-
-		messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v and be used to activate the approver account %v.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias, approver.Username))
-
-		//after creation, it now exists with enough balance to add signer wallet as signer
-		//ENSURE IT IS NOT the
-		ops = append(ops, &basetxn.SetOptions{
-			Signer: &basetxn.Signer{
-				Address: approver.PrimarySigner,
-				Weight:  1,
-			},
-			SourceAccount: wallet.ID,
-		})
-
-	}
-
-	if approverAccountExists {
+	{
 		//account exists, check if it already it a signer in the wallet
 
 		//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
@@ -2141,13 +2049,13 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 	//check if primary account has native enough native balance
 	var nativeAsset basetxn.Asset = basetxn.NativeAsset{}
-	walletAccountExists, _, walletAccountNativeBalance, _, walletSourceAccount, errWalletAct := network.BlockchainAccountProperties(client, wallet.ID, nativeAsset)
+	_, _, walletAccountNativeBalance, _, walletSourceAccount, errWalletAct := network.BlockchainAccountProperties(client, wallet.ID, nativeAsset)
 	if errWalletAct != nil {
 		log.Printf("[generateRemoveSharedAccessXdr] by [%v] for shared Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
 
 		return "", "", messages, walletMustSign, multipartySign, errWalletAct
 	}
-	if !walletAccountExists || (walletAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
+	if (walletAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
 		log.Printf("[generateRemoveSharedAccessXdr] by [%v] shared WalletAccount underfunded \n", wallet.Alias)
 
 		err = &tErrors.CustomError{

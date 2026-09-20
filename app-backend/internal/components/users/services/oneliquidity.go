@@ -1300,15 +1300,11 @@ func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.W
 
 	asset = basetxn.CreditAsset{Code: ca.AssetCode, Issuer: ca.AssetIssuer}
 
-	sourceAccountExists, sourceAccountTrustsAsset, nativeAccountBalance, currencyBalance, sourceAccount, errorSource := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
+	_, sourceAccountTrustsAsset, nativeAccountBalance, currencyBalance, sourceAccount, errorSource := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
 	if errorSource != nil {
 		log.Printf("[generateWithdrawalXdr] error withdrawing %v , error: %v\n", wdlInput.Currency, errorSource)
 		return "", errorSource
-	}
-
-	if !sourceAccountExists {
-		return "", &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	if nativeAccountBalance.Equal(decimal.Zero) {
