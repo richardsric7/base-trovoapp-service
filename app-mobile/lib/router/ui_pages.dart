@@ -107,8 +107,8 @@ const String TokenizationFeePaymentViewPath = '/TokenizationFeePayment';
 const String DeleteAccountPrerequisitesViewPath =
     '/DeleteAccountPrerequisitesView';
 const String DeleteAccountViewPath = '/DeleteAccountView';
-const String BuyXBNWithFiatViewPath = '/BuyXBNWithFiatView';
-const String ConfirmBuyXBNWithFiatViewPath = '/ConfirmBuyXBNWithFiatView';
+const String BuyETHWithFiatViewPath = '/BuyETHWithFiatView';
+const String ConfirmBuyETHWithFiatViewPath = '/ConfirmBuyETHWithFiatView';
 const String SeeAllTokenizedAssetsViewPath = '/SeeAllTokenizedAssetsView';
 const String BuyTokensSuccessViewPath = '/BuyTokensSuccessView';
 const String BuyTokensReceiptViewPath = '/BuyTokensReceiptView';
@@ -252,8 +252,8 @@ enum Pages {
   TokenizationFeePaymentView,
   DeleteAccountPrerequisitesView,
   DeleteAccountView,
-  BuyXBNWithFiatView,
-  ConfirmBuyXBNWithFiatView,
+  BuyETHWithFiatView,
+  ConfirmBuyETHWithFiatView,
   SeeAllTokenizedAssetsView,
   BuyTokensSuccessView,
   BuyTokensReceiptView,
@@ -892,16 +892,16 @@ PageConfiguration DeleteAccountViewPageConfig = PageConfiguration(
   uiPage: Pages.DeleteAccountView,
   currentPageAction: null,
 );
-PageConfiguration BuyXBNWithFiatViewPageConfig = PageConfiguration(
-  key: 'BuyXBNWithFiatView',
-  path: BuyXBNWithFiatViewPath,
-  uiPage: Pages.BuyXBNWithFiatView,
+PageConfiguration BuyETHWithFiatViewPageConfig = PageConfiguration(
+  key: 'BuyETHWithFiatView',
+  path: BuyETHWithFiatViewPath,
+  uiPage: Pages.BuyETHWithFiatView,
   currentPageAction: null,
 );
-PageConfiguration ConfirmBuyXBNWithFiatViewPageConfig = PageConfiguration(
-  key: 'ConfirmBuyXBNWithFiatView',
-  path: ConfirmBuyXBNWithFiatViewPath,
-  uiPage: Pages.ConfirmBuyXBNWithFiatView,
+PageConfiguration ConfirmBuyETHWithFiatViewPageConfig = PageConfiguration(
+  key: 'ConfirmBuyETHWithFiatView',
+  path: ConfirmBuyETHWithFiatViewPath,
+  uiPage: Pages.ConfirmBuyETHWithFiatView,
   currentPageAction: null,
 );
 PageConfiguration SeeAllTokenizedAssetsViewPageConfig = PageConfiguration(

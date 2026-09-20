@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/about_trovo.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/all_wallets.dart';
-import 'package:trovo_app/bottom_bar/bottom_pages/buy_xbn_with_fiat.dart';
-import 'package:trovo_app/bottom_bar/bottom_pages/confirm_buy_xbn_with_fiat.dart';
+import 'package:trovo_app/bottom_bar/bottom_pages/buy_eth_with_fiat.dart';
+import 'package:trovo_app/bottom_bar/bottom_pages/confirm_buy_eth_with_fiat.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/confirm_quick_buy.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/quick_buy.dart';
 import 'package:trovo_app/bottom_bar/bottom_pages/see_all_tokenized_assets.dart';
@@ -121,6 +121,7 @@ import 'package:trovo_app/screens/subscriptions/subscription_benefits.dart';
 import 'package:trovo_app/screens/subscriptions/subscription_plans.dart';
 import 'package:trovo_app/screens/subscriptions/welcome.dart';
 import 'package:trovo_app/storage/state.dart';
+
 import '../screens/auth/fingerprint.dart';
 import '../screens/auth/login.dart';
 import '../screens/backup/backup.dart';
@@ -553,13 +554,13 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.DeleteAccountView:
           _addPageData(DeleteAccount(), DeleteAccountViewPageConfig);
           break;
-        case Pages.BuyXBNWithFiatView:
-          _addPageData(BuyXBNWithFiat(), BuyXBNWithFiatViewPageConfig);
+        case Pages.BuyETHWithFiatView:
+          _addPageData(BuyETHWithFiat(), BuyETHWithFiatViewPageConfig);
           break;
-        case Pages.ConfirmBuyXBNWithFiatView:
+        case Pages.ConfirmBuyETHWithFiatView:
           _addPageData(
-            ConfirmBuyXBNWithFiat(),
-            ConfirmBuyXBNWithFiatViewPageConfig,
+            ConfirmBuyETHWithFiat(),
+            ConfirmBuyETHWithFiatViewPageConfig,
           );
           break;
         case Pages.SeeAllTokenizedAssetsView:
@@ -985,11 +986,11 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
       case Pages.DeleteAccountView:
         DeleteAccountViewPageConfig.currentPageAction = action;
         break;
-      case Pages.BuyXBNWithFiatView:
-        BuyXBNWithFiatViewPageConfig.currentPageAction = action;
+      case Pages.BuyETHWithFiatView:
+        BuyETHWithFiatViewPageConfig.currentPageAction = action;
         break;
-      case Pages.ConfirmBuyXBNWithFiatView:
-        ConfirmBuyXBNWithFiatViewPageConfig.currentPageAction = action;
+      case Pages.ConfirmBuyETHWithFiatView:
+        ConfirmBuyETHWithFiatViewPageConfig.currentPageAction = action;
         break;
       case Pages.BuyTokensSuccessView:
         BuyTokensSuccessViewPageConfig.currentPageAction = action;

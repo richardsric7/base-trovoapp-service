@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -9,28 +9,22 @@ import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_app/network/requests.dart';
-import 'package:trovo_app/router/page_actions.dart';
-import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
-import 'package:trovo_app/widgets/loader.dart';
-import 'package:trovo_app/widgets/utilities.dart';
-import '../../utils/medeiaqury/medeiaqury.dart';
-import 'package:uuid/uuid.dart';
 
-class BuyXBNWithFiat extends StatefulWidget {
-  const BuyXBNWithFiat({Key? key}) : super(key: key);
+import '../../utils/medeiaqury/medeiaqury.dart';
+
+class ConfirmBuyETHWithFiat extends StatefulWidget {
+  const ConfirmBuyETHWithFiat({Key? key}) : super(key: key);
 
   @override
-  State<BuyXBNWithFiat> createState() => _BuyXBNWithFiat();
+  State<ConfirmBuyETHWithFiat> createState() => _ConfirmBuyETHWithFiat();
 }
 
-class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
+class _ConfirmBuyETHWithFiat extends State<ConfirmBuyETHWithFiat>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  final formKey = GlobalKey<FormState>();
-  late Map viewData;
+  var viewData;
 
   @override
   void initState() {
@@ -44,9 +38,8 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    var activationAmount = double.parse(
-      viewData['activationAmount'].toString(),
-    );
+    appState = Provider.of<DataProvider>(context, listen: true);
+    inspect(appState.viewData);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -64,57 +57,21 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
-                SizedBox(height: height / 40),
-                Container(
-                  width: width,
-                  child: Text(
-                    'Activate Account',
-                    textAlign: TextAlign.start,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 20.sp,
-                      fontFamily: fontsemibold,
-                    ),
-                  ),
-                ),
                 SizedBox(height: height / 50),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                    color: notifier.isDark
-                        ? darktilewhitecolor
-                        : notifier.getaddsubwalletgrey,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0,
-                      vertical: 15.0,
+                Row(
+                  children: [
+                    Text(
+                      "confirmyourtransaction".tr(),
+                      style: TextStyle(
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.bold,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
-                    child: Column(
-                      children: [
-                        SizedBox(height: height / 50),
-                        Image.asset(
-                          'assets/images/rafiki-buy-xbn.png',
-                          // height: 50,
-                          width: 180,
-                        ),
-                        SizedBox(height: height / 60),
-                        Text(
-                          "aneasyoptiontoactivateaccount".tr(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: fontbody,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                        SizedBox(height: height / 50),
-                      ],
-                    ),
-                  ),
+                  ],
                 ),
-                SizedBox(height: height / 50),
+                SizedBox(height: height / 20),
                 Text(
                   "youpay".tr(),
                   textAlign: TextAlign.center,
@@ -144,7 +101,7 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                           children: [
                             SizedBox(height: height / 50),
                             Text(
-                              'NGN ${getFiatValue(activationAmount == 0 ? 1000 : activationAmount)}',
+                              'N2,500',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -188,17 +145,13 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                         Column(
                           children: [
                             SizedBox(height: height / 50),
-                            SizedBox(
-                              width: 300,
-                              child: Text(
-                                'NGN ${getFiatValue(getPercentageValue(double.parse(viewData['gasPercent'].toString()), double.parse(viewData['activationAmount'].toString())))} worth of Gas and NGN ${getFiatValue(getPercentageValue(double.parse(viewData['trovTokenPercent'].toString()), double.parse(viewData['activationAmount'].toString())))} worth of TROV',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontsemibold,
-                                ),
+                            Text(
+                              '250 ETH & 0.5 TROV',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontsemibold,
                               ),
                             ),
                             SizedBox(height: height / 50.0),
@@ -215,7 +168,12 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
                   wihitecolor,
                   width: width - 40,
                   onTap: () {
-                    savePaymentInvoiceAndContinue();
+                    // appState.currentAction = PageAction(
+                    //   state: PageState.addPage,
+                    //   page: ConfirmBuyETHWithFiatViewPageConfig,
+                    // );
+
+                    // appState.viewData![ShareReceiptViewPageConfig.key] = viewData;
                   },
                 ),
                 SizedBox(height: height / 20),
@@ -230,41 +188,5 @@ class _BuyXBNWithFiat extends State<BuyXBNWithFiat>
         ),
       ),
     );
-  }
-
-  Future<void> savePaymentInvoiceAndContinue() async {
-    try {
-      var uuid = Uuid();
-      String uniqueId = uuid.v4();
-      showLoader(context);
-      String requestBody = jsonEncode({
-        'id': uniqueId,
-        'amount': viewData['activationAmount'],
-        'paymentType': 'ACTIVATION',
-      });
-
-      var uri = '/v1/users/fiat/flutterwave';
-      Map responseData = await makePostRequest(
-        body: requestBody,
-        uri: Uri.encodeFull(uri),
-        signer: appState.primaryWallet.signer!,
-        secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
-      );
-      hideLoader(context);
-      if (responseData['statusCode'] == 200) {
-        appState.viewData!['id'] = uniqueId;
-        appState.currentAction = PageAction(
-          state: PageState.addPage,
-          page: FlutterwaveWebViewPageConfig,
-        );
-      }
-    } catch (e) {
-      hideLoader(context);
-    }
-  }
-
-  double getPercentageValue(double percentage, double amount) {
-    return percentage * amount / 100;
   }
 }

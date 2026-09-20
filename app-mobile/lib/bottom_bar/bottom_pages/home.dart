@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,9 @@ import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
+
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 class Home extends StatefulWidget {
@@ -1120,7 +1123,7 @@ class _HomeState extends State<Home>
                 await fetchFiatAmountForActivation();
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
-                  page: BuyXBNWithFiatViewPageConfig,
+                  page: BuyETHWithFiatViewPageConfig,
                 );
               },
             ),
