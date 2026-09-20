@@ -335,7 +335,7 @@
     "entersecretkeyempty": "Please enter your secret key",
     "usernameoremailempty": "Please enter your email or username",
     "usernameoremailinvalid": "Please enter a valid email or username",
-    "secretkeyinvalid": "Secret key must be 56 characters long",
+    "secretkeyinvalid": "Secret key must be 64 characters long",
     "invalidcredentials": "Your credential is invalid",
     "letsgetyoustarted1": "Let's get you",
     "letsgetyoustarted2": "started",
