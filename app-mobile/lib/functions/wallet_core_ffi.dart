@@ -35,17 +35,30 @@ typedef _WcOneArgDart = Pointer<Utf8> Function(Pointer<Utf8>);
 typedef _WcTwoArgNative = Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>);
 typedef _WcTwoArgDart = Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Utf8>);
 
-typedef _WcVerifyNative =
-    Int32 Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
-typedef _WcVerifyDart = int Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
+typedef _WcVerifyNative = Int32 Function(
+  Pointer<Utf8>,
+  Pointer<Utf8>,
+  Pointer<Utf8>,
+);
+typedef _WcVerifyDart = int Function(
+  Pointer<Utf8>,
+  Pointer<Utf8>,
+  Pointer<Utf8>,
+);
 
 typedef _WcMnemonicDeriveNative = Pointer<Utf8> Function(Pointer<Utf8>, Uint32);
 typedef _WcMnemonicDeriveDart = Pointer<Utf8> Function(Pointer<Utf8>, int);
 
-typedef _WcSignBytesNative =
-    Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Uint8>, Size);
-typedef _WcSignBytesDart =
-    Pointer<Utf8> Function(Pointer<Utf8>, Pointer<Uint8>, int);
+typedef _WcSignBytesNative = Pointer<Utf8> Function(
+  Pointer<Utf8>,
+  Pointer<Uint8>,
+  Size,
+);
+typedef _WcSignBytesDart = Pointer<Utf8> Function(
+  Pointer<Utf8>,
+  Pointer<Uint8>,
+  int,
+);
 
 DynamicLibrary _openWalletCoreLibrary() {
   if (Platform.isAndroid) {
