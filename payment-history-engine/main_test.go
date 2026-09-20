@@ -8,12 +8,19 @@ import (
 	"testing"
 	"time"
 
+	"trovo-wallet-payment-history-engine/internal/evmkeypair"
 	"trovo-wallet-payment-history-engine/internal/middleware"
 
 	"github.com/dghubble/sling"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/keypair"
 )
+
+// TODO(base-migration): the secret keys hardcoded in this file are still
+// Stellar "S..." seeds from specific pre-existing staging/prod accounts.
+// evmkeypair.MustParseFull expects a hex secp256k1 private key, so these
+// tests will panic at run time until replaced with real Base private keys
+// for equivalent accounts - that data isn't available from this migration
+// pass, so only the package import was swapped here.
 
 const devURL = "http://localhost:8080"
 const prodURL = "https://api.trovotechnologies.com"
@@ -188,7 +195,7 @@ type DefaultAsset struct {
 // 	}
 // 	pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
 // 	secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
-// 	kp := keypair.MustParseFull(secretKey)
+// 	kp := evmkeypair.MustParseFull(secretKey)
 // 	// log.Println(kp.Address())
 // 	baseURL := prodURL
 // 	fullPath := "/v1/users"
@@ -234,7 +241,7 @@ type DefaultAsset struct {
 
 // 	pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
 // 	secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
-// 	kp := keypair.MustParseFull(secretKey)
+// 	kp := evmkeypair.MustParseFull(secretKey)
 // 	// log.Println(kp.Address())
 // 	// baseURL := "http://localhost:8080"
 // 	baseURL := prodURL
@@ -328,7 +335,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	// secretKey := os.Getenv("RICSC")
 	channelAccountSK := ""
 	ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	var sEnc string
@@ -384,8 +391,8 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 		//run the payment signing and submission
 		p := *payResponse
 		//sign transaction
-		if len(p.ChannelAccount) == 56 {
-			ckp := keypair.MustParseFull(channelAccountSK)
+		if len(p.ChannelAccount) == 42 {
+			ckp := evmkeypair.MustParseFull(channelAccountSK)
 
 			dsigned, err := middleware.SignBase64Txn(ckp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {

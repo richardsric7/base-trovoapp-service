@@ -7,13 +7,21 @@ import (
 	"os"
 	"testing"
 	"time"
+	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/middleware"
 	pns "trovo-wallet-api/internal/pns"
 
 	"github.com/dghubble/sling"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/keypair"
 )
+
+// TODO(base-migration): the secret keys hardcoded throughout this file
+// (and the RICSC env var) are still Stellar "S..." seeds from specific
+// pre-existing staging/prod accounts. evmkeypair.MustParseFull expects a
+// hex secp256k1 private key, so every test below will panic at run time
+// until these are replaced with real Base private keys for equivalent
+// accounts on the target server - that data isn't available from this
+// migration pass, so only the package import was swapped here.
 
 const devURL = "http://localhost:8080"
 const prodURL = "https://api.trovotechnologies.com"
@@ -530,7 +538,7 @@ func TestCreateAccount(t *testing.T) {
 	// secretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	// baseURL := stagingURL
 	baseURL := prodURL
@@ -613,7 +621,7 @@ func TestRequestAccountRecoveryEmailOTP(t *testing.T) {
 	// secretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	ownerUsername := "ric1"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	// var sEnc string
@@ -673,7 +681,7 @@ func TestEnableAccountRecovery(t *testing.T) {
 	// secretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	// var sEnc string
@@ -771,7 +779,7 @@ func TestDisableAccountRecovery(t *testing.T) {
 	secretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	// var sEnc string
@@ -888,7 +896,7 @@ func TestDoAccountRecovery(t *testing.T) {
 	// secretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	ownerUsername := "ric1"
-	kp := keypair.MustParseFull(newSigner)
+	kp := evmkeypair.MustParseFull(newSigner)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	// var sEnc string
@@ -1009,7 +1017,7 @@ func TestAccountSetSecurityAnswer(t *testing.T) {
 		t.Errorf("No primary secret or public key specified")
 		return
 	}
-	kp := keypair.MustParseFull(primarySecretKey)
+	kp := evmkeypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	fullPath := "/v1/security-questions"
@@ -1078,7 +1086,7 @@ func TestAccountProfileUpdate(t *testing.T) {
 		t.Errorf("No primary secret or public key specified")
 		return
 	}
-	kp := keypair.MustParseFull(primarySecretKey)
+	kp := evmkeypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	baseURL := devURL
 	fullPath := "/v1/users/upload-picture"
@@ -1129,7 +1137,7 @@ func TestGetSecurityAnswers(t *testing.T) {
 	primarySecretKey := "SA4JYDZJSOVWHOWWLGEZV3NSSE3YRS2BVRNDQM2O6UREN53RJTTHUS4P"
 	// primaryPK := os.Getenv("RICPK")
 	// primarySecretKey := os.Getenv("RICSC")
-	kp := keypair.MustParseFull(primarySecretKey)
+	kp := evmkeypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	// baseURL := "http://localhost:8080"
 	ownerUsername := "ric1"
@@ -1184,7 +1192,7 @@ func TestGetUserInfo(t *testing.T) {
 	// primaryPK := os.Getenv("RICPK")
 	// primarySecretKey := os.Getenv("RICSC")
 	ownerUsername := "ric1"
-	kp := keypair.MustParseFull(primarySecretKey)
+	kp := evmkeypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	// baseURL := "http://localhost:8080"
 	baseURL := stagingURL
@@ -1244,7 +1252,7 @@ func TestGetPaymentHistory(t *testing.T) {
 	// ownerUsername := "ric1"
 	// pk := os.Getenv("RICPK")
 	secretKey := os.Getenv("RICSC")
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	// baseURL := "http://localhost:8080"
 	// baseURL := devURL
@@ -1346,7 +1354,7 @@ func TestClaimAssetMultiAccessDisabled(t *testing.T) {
 	// pk := os.Getenv("RICPK")
 	// secretKey := os.Getenv("RICSC")
 
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	baseURL := devURL
 
 	fullPath := "/v1/users/actions/claim-asset"
@@ -1453,7 +1461,7 @@ func TestClaimAssetMultiAccessEnabled(t *testing.T) {
 	// pk := os.Getenv("RICPK")
 	secretKey := os.Getenv("RICSC")
 
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// baseURL := devURL
 	baseURL := prodURL
 
@@ -1553,7 +1561,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	// secretKey := os.Getenv("RICSC")
 	channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := stagingURL
 	// var sEnc string
@@ -1635,7 +1643,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 		p := *payResponse
 		//sign transaction
 		if len(p.ChannelAccount) == 56 {
-			ckp := keypair.MustParseFull(channelAccountSK)
+			ckp := evmkeypair.MustParseFull(channelAccountSK)
 
 			dsigned, err := middleware.SignBase64Txn(ckp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
@@ -1695,7 +1703,7 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 	signerSecretKey := os.Getenv("RICSC")
 	channelAccountSK := ""
 	// ownerUsername := "ric"
-	signerKP := keypair.MustParseFull(signerSecretKey)
+	signerKP := evmkeypair.MustParseFull(signerSecretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	// var sEnc string
@@ -1752,7 +1760,7 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 		p := *payResponse
 		//sign transaction
 		if len(p.ChannelAccount) == 56 {
-			ckp := keypair.MustParseFull(channelAccountSK)
+			ckp := evmkeypair.MustParseFull(channelAccountSK)
 
 			dsigned, err := middleware.SignBase64Txn(ckp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
@@ -1816,7 +1824,7 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 	signerSecretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	signerKP := keypair.MustParseFull(signerSecretKey)
+	signerKP := evmkeypair.MustParseFull(signerSecretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	// var sEnc string
@@ -1910,7 +1918,7 @@ func TestSwapFromSubWalletMultiAccessDisabled(t *testing.T) {
 	signerSecretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	signerKP := keypair.MustParseFull(signerSecretKey)
+	signerKP := evmkeypair.MustParseFull(signerSecretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	// var sEnc string
@@ -2044,8 +2052,8 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 	// primarySecretKey := "SAWWK6BIPRALRRHVHELHI2Q3U66KBZLTLOPE7DVGJYRKZYFZGBCZZALY"
 	channelAccountSK := ""
 	// ownerUsername := "ric"
-	// subKP := keypair.MustParseFull(subSecretKey)
-	// primaryKP := keypair.MustParseFull(primarySecretKey)
+	// subKP := evmkeypair.MustParseFull(subSecretKey)
+	// primaryKP := evmkeypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	// baseURL := prodURL
 	baseURL := prodURL
@@ -2114,7 +2122,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 		p := *subWalletResponse
 		//sign transaction
 		if len(p.ChannelAccount) == 56 {
-			ckp := keypair.MustParseFull(channelAccountSK)
+			ckp := evmkeypair.MustParseFull(channelAccountSK)
 
 			dsigned, err := middleware.SignBase64Txn(ckp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
@@ -2181,8 +2189,8 @@ func TestTrustAssetMultiAccessDisabled(t *testing.T) {
 	primarySecretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	// subKP := keypair.MustParseFull(subSecretKey)
-	// primaryKP := keypair.MustParseFull(primarySecretKey)
+	// subKP := evmkeypair.MustParseFull(subSecretKey)
+	// primaryKP := evmkeypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	// baseURL := devURL
@@ -2300,8 +2308,8 @@ func TestRemoveTrustAssetMultiAccessDisabled(t *testing.T) {
 	primarySecretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	// subKP := keypair.MustParseFull(subSecretKey)
-	// primaryKP := keypair.MustParseFull(primarySecretKey)
+	// subKP := evmkeypair.MustParseFull(subSecretKey)
+	// primaryKP := evmkeypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	// baseURL := devURL
@@ -2429,7 +2437,7 @@ func TestCreateSharedAccess(t *testing.T) {
 	accessToWallet := "GBIYYWYIDTZAMKABTMUXCPNFNWDNB72473MZL6ZSQWBYU2TUNCQIOD4K"
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	// var sEnc string
@@ -2565,7 +2573,7 @@ func TestCreateSharedAccessWithApprover(t *testing.T) {
 	accessToWallet := "GBQBJFGWYXCKSKTXFCG5WMPKQC3LYJPSPRNADVPQD7W6K5SXSOW744MQ"
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	// var sEnc string
@@ -2705,7 +2713,7 @@ func TestRemoveSharedAccessOnReadOnly(t *testing.T) {
 	accessToWallet := "GBQBJFGWYXCKSKTXFCG5WMPKQC3LYJPSPRNADVPQD7W6K5SXSOW744MQ"
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	// var sEnc string
@@ -2822,7 +2830,7 @@ func TestModifySharedAccess(t *testing.T) {
 	accessToWallet := "GBIYYWYIDTZAMKABTMUXCPNFNWDNB72473MZL6ZSQWBYU2TUNCQIOD4K"
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := stagingURL
 	// var sEnc string
@@ -2988,7 +2996,7 @@ func TestRemoveSharedAccessWithApprover(t *testing.T) {
 	accessToWallet := "GBQBJFGWYXCKSKTXFCG5WMPKQC3LYJPSPRNADVPQD7W6K5SXSOW744MQ"
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
 	// var sEnc string
@@ -3108,7 +3116,7 @@ func TestGetApproveTransaction(t *testing.T) {
 	// accessToWallet := "GBQBJFGWYXCKSKTXFCG5WMPKQC3LYJPSPRNADVPQD7W6K5SXSOW744MQ"
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	// pk := kp.Address()
 	baseURL := stagingURL
@@ -3184,7 +3192,7 @@ func TestApproveTransaction(t *testing.T) {
 	// accessToWallet := "GBQBJFGWYXCKSKTXFCG5WMPKQC3LYJPSPRNADVPQD7W6K5SXSOW744MQ"
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	pk := kp.Address()
 	baseURL := prodURL
@@ -3305,7 +3313,7 @@ func TestRejectTransaction(t *testing.T) {
 	// accessToWallet := "GBQBJFGWYXCKSKTXFCG5WMPKQC3LYJPSPRNADVPQD7W6K5SXSOW744MQ"
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	pk := kp.Address()
 	baseURL := prodURL
@@ -3375,7 +3383,7 @@ func TestCreateMarketOffer(t *testing.T) {
 	// secretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := stagingURL
 	// var sEnc string
@@ -3548,7 +3556,7 @@ func TestGenerateCryptoDepositAddress(t *testing.T) {
 	// secretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := stagingURL
 	// var sEnc string
@@ -3604,7 +3612,7 @@ func TestCreateWithdrawalRequest(t *testing.T) {
 	// secretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := stagingURL
 	// var sEnc string
@@ -3733,7 +3741,7 @@ func TestCreateWithdrawalRequestShared(t *testing.T) {
 	// secretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := stagingURL
 	// var sEnc string
@@ -3863,7 +3871,7 @@ func TestPatronSubscription(t *testing.T) {
 	// secretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
-	kp := keypair.MustParseFull(secretKey)
+	kp := evmkeypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	baseURL := stagingURL
 	// var sEnc string
