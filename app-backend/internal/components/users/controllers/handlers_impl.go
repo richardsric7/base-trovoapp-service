@@ -132,21 +132,21 @@ func getShortlinksLinkIDHandler(callBackRetryChan chan userModels.RetryCallbacks
 	}
 }
 
-// getUsersPaymentsTargetPublicKeyForHistoryHandler godoc
-// @Summary GET /v1/users/payments/:targetPublicKeyForHistory
+// getUsersPaymentsTargetAddressForHistoryHandler godoc
+// @Summary GET /v1/users/payments/:targetAddressForHistory
 // @Tags users
 // @Produce json
-// @Param targetPublicKeyForHistory path string true "Target public key"
+// @Param targetAddressForHistory path string true "Target public key"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
-// @Router /v1/users/payments/{targetPublicKeyForHistory} [get]
-func getUsersPaymentsTargetPublicKeyForHistoryHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+// @Router /v1/users/payments/{targetAddressForHistory} [get]
+func getUsersPaymentsTargetAddressForHistoryHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// var err error
 
-		targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
+		targetAddressForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetAddressForHistory")))
 
-		_, err := evmkeypair.ParseAddress(targetPublicKeyForHistory)
+		_, err := evmkeypair.ParseAddress(targetAddressForHistory)
 		if err != nil {
 
 			statusCode := http.StatusBadRequest
@@ -155,7 +155,7 @@ func getUsersPaymentsTargetPublicKeyForHistoryHandler(callBackRetryChan chan use
 			c.JSON(statusCode, response)
 			return
 		}
-		cacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", targetPublicKeyForHistory)
+		cacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", targetAddressForHistory)
 		cacheKeyParameters := c.Request.URL.RequestURI()
 		{
 			// check cache
@@ -170,7 +170,7 @@ func getUsersPaymentsTargetPublicKeyForHistoryHandler(callBackRetryChan chan use
 		}
 		// cacheDurationInSeconds := 1 * 60 //1 minutes
 		cacheDurationInSeconds := 20 //in seconds
-		conDB.PrintDBStats(fmt.Sprintf("/v1/users/payments/%v", targetPublicKeyForHistory), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("/v1/users/payments/%v", targetAddressForHistory), gc.DB)
 
 		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
@@ -196,10 +196,10 @@ func getUsersPaymentsTargetPublicKeyForHistoryHandler(callBackRetryChan chan use
 			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
-		wallet, temp, err := usersDB.GetWallet(targetPublicKeyForHistory, gc.DB)
+		wallet, temp, err := usersDB.GetWallet(targetAddressForHistory, gc.DB)
 
 		if err != nil {
-			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetAddressForHistory, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -229,10 +229,10 @@ func getUsersPaymentsTargetPublicKeyForHistoryHandler(callBackRetryChan chan use
 			return
 		}
 
-		targetOwnerUser, err := usersDB.GetUser(targetPublicKeyForHistory, gc.DB, gc)
+		targetOwnerUser, err := usersDB.GetUser(targetAddressForHistory, gc.DB, gc)
 
 		if err != nil {
-			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetAddressForHistory, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -269,7 +269,7 @@ func getUsersPaymentsTargetPublicKeyForHistoryHandler(callBackRetryChan chan use
 
 		}
 		//Get Payment history
-		historyRecords := paymentServices.GetPaymentHistory(targetPublicKeyForHistory, gc, c)
+		historyRecords := paymentServices.GetPaymentHistory(targetAddressForHistory, gc, c)
 
 		c.JSON(http.StatusOK, historyRecords)
 		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
@@ -410,7 +410,7 @@ func getUsersTargetUserHandler(callBackRetryChan chan userModels.RetryCallbacks,
 		if queryType == "import" {
 			gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
 
-			log.Println("Wallet import request received from:", identifier, "for:", middleware.ExtractPublicKey(c), "........")
+			log.Println("Wallet import request received from:", identifier, "for:", middleware.ExtractAddress(c), "........")
 			//perform import specific tasks
 
 			//check if username key matches with import credential
@@ -472,7 +472,7 @@ func postUsersHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *shar
 
 		err = json.Unmarshal(data, &userRegistrationInfo)
 
-		userRegistrationInfo.PublicKey = middleware.ExtractPublicKey(c)
+		userRegistrationInfo.Address = middleware.ExtractAddress(c)
 		userRegistrationInfo.PrimarySigner = middleware.ExtractSigner(c)
 		userRegistrationInfo.PublicIP = c.ClientIP()
 		if len(c.GetHeader("Cf-Connecting-Ip")) > 4 {
@@ -530,7 +530,7 @@ func postUsersHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *shar
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = ""
 			//return response
-			c.JSON(http.StatusOK, gin.H{"message": userRegistrationInfo.PublicKey})
+			c.JSON(http.StatusOK, gin.H{"message": userRegistrationInfo.Address})
 			pns.SendFirebaseMessage(userRegistrationInfo.PushNotificationToken, "Registration completed!", fmt.Sprintf("Congratulations! Your TrovoApp account has successfully been created. To receive payment, you can share your primary account username  %s (also known as your alias) to your friends or you can use your public key for payments outside of Trovo Ecosystem. Please take the very important step to backup your wallet or use the available option to enable Account Recovery (Terms and Conditions apply). Thank you!", userRegistrationInfo.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 
 		}
@@ -888,7 +888,7 @@ func postUsersFiatFlutterwaveHandler(callBackRetryChan chan userModels.RetryCall
 		tInput.Status = "PENDING"
 		tInput.Username = user.Username
 
-		err = userServices.SaveUserPaymentInvoiceData(user.Username, tInput.ServiceProvider, tInput.PaymentType, tInput.ID, "PENDING", &user.Username, &user.PublicKey, nil, nil, nil, tInput.Amount, gc)
+		err = userServices.SaveUserPaymentInvoiceData(user.Username, tInput.ServiceProvider, tInput.PaymentType, tInput.ID, "PENDING", &user.Username, &user.Address, nil, nil, nil, tInput.Amount, gc)
 		if err != nil {
 
 			var ex tErrors.GenericError
@@ -1329,7 +1329,7 @@ func postUsersStablerailOnrampcngnAmountHandler(callBackRetryChan chan userModel
 			}
 			return
 		}
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1411,7 +1411,7 @@ func postUsersAssetOptInHandler(callBackRetryChan chan userModels.RetryCallbacks
 			}
 			return
 		}
-		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+		walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1425,7 +1425,7 @@ func postUsersAssetOptInHandler(callBackRetryChan chan userModels.RetryCallbacks
 			}
 			return
 		}
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1519,7 +1519,7 @@ func postSharedAccessUsersAssetOptInHandler(callBackRetryChan chan userModels.Re
 			return
 		}
 
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1535,7 +1535,7 @@ func postSharedAccessUsersAssetOptInHandler(callBackRetryChan chan userModels.Re
 		}
 		{
 			//check if pending shared access modify exists
-			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractAddress(c), gc.DB) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to proceed with this operation."})
 				return
 			}
@@ -1556,7 +1556,7 @@ func postSharedAccessUsersAssetOptInHandler(callBackRetryChan chan userModels.Re
 		if wallet.SharedAccessEnabled == 1 && !isViewOnly {
 			// check if user has initiator access to wallet.
 			for _, p := range signerUser.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
+				if p.WalletAddress == middleware.ExtractAddress(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
 					hasInitiatorAccess = true
 				}
 			}
@@ -1663,7 +1663,7 @@ func deleteUsersAssetOptOutHandler(callBackRetryChan chan userModels.RetryCallba
 			return
 		}
 
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1677,7 +1677,7 @@ func deleteUsersAssetOptOutHandler(callBackRetryChan chan userModels.RetryCallba
 			}
 			return
 		}
-		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+		walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1772,7 +1772,7 @@ func deleteSharedAccessUsersAssetOptOutHandler(callBackRetryChan chan userModels
 			return
 		}
 
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1788,7 +1788,7 @@ func deleteSharedAccessUsersAssetOptOutHandler(callBackRetryChan chan userModels
 		}
 		{
 			//check if pending shared access modify exists
-			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractAddress(c), gc.DB) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
 				return
 			}
@@ -1809,11 +1809,11 @@ func deleteSharedAccessUsersAssetOptOutHandler(callBackRetryChan chan userModels
 		if wallet.SharedAccessEnabled == 1 && !isViewOnly {
 			// check if user has initiator access to wallet.
 			for _, p := range signerUser.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
+				if p.WalletAddress == middleware.ExtractAddress(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
 					hasInitiatorAccess = true
 				}
 			}
-			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractAddress(c)).AddressHasViewOnlyAccess(gc) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
 				return
 			}
@@ -1898,7 +1898,7 @@ func putUsersActionsClaimAssetHandler(callBackRetryChan chan userModels.RetryCal
 			}
 			return
 		}
-		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+		walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1912,7 +1912,7 @@ func putUsersActionsClaimAssetHandler(callBackRetryChan chan userModels.RetryCal
 			}
 			return
 		}
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1934,7 +1934,7 @@ func putUsersActionsClaimAssetHandler(callBackRetryChan chan userModels.RetryCal
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/users/actions/claim-asset %v", middleware.ExtractPublicKey(c)), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/users/actions/claim-asset %v", middleware.ExtractAddress(c)), gc.DB)
 
 		var pendingAssetToClaim userModels.PendingAssetToClaim
 		// var err error
@@ -1967,15 +1967,15 @@ func putUsersActionsClaimAssetHandler(callBackRetryChan chan userModels.RetryCal
 
 		var ownerBalanceCacheKey, tempCacheKey, sNFT string
 
-		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
-		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
-		if wallet.TempPublicKey != nil {
+		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractAddress(c))
+		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractAddress(c))
+		if wallet.TempAddress != nil {
 
-			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempAddress)
 		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
-		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
 
 		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
 		log.Printf("[CLAIM ASSET] Transaction Signature: [%v]\n", pendingAssetToClaim.TransactionSignature)
@@ -2022,7 +2022,7 @@ func deleteUsersActionsRejectAssetHandler(callBackRetryChan chan userModels.Retr
 			}
 			return
 		}
-		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+		walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2036,7 +2036,7 @@ func deleteUsersActionsRejectAssetHandler(callBackRetryChan chan userModels.Retr
 			}
 			return
 		}
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2058,7 +2058,7 @@ func deleteUsersActionsRejectAssetHandler(callBackRetryChan chan userModels.Retr
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/users/actions/reject-asset %v", middleware.ExtractPublicKey(c)), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/users/actions/reject-asset %v", middleware.ExtractAddress(c)), gc.DB)
 
 		var pendingAssetToClaim userModels.PendingAssetToClaim
 		// var err error
@@ -2091,15 +2091,15 @@ func deleteUsersActionsRejectAssetHandler(callBackRetryChan chan userModels.Retr
 
 		var ownerBalanceCacheKey, tempCacheKey, sNFT string
 
-		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
-		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
-		if wallet.TempPublicKey != nil {
+		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractAddress(c))
+		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractAddress(c))
+		if wallet.TempAddress != nil {
 
-			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempAddress)
 		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
-		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
 
 		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
 		log.Printf("[REJECT ASSET] Transaction Signature: [%v]\n", pendingAssetToClaim.TransactionSignature)
@@ -2149,7 +2149,7 @@ func putSharedAccessUsersActionsClaimAssetHandler(callBackRetryChan chan userMod
 			return
 		}
 
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2165,7 +2165,7 @@ func putSharedAccessUsersActionsClaimAssetHandler(callBackRetryChan chan userMod
 		}
 		{
 			//check if pending shared access modify exists
-			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractAddress(c), gc.DB) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
 				return
 			}
@@ -2187,17 +2187,17 @@ func putSharedAccessUsersActionsClaimAssetHandler(callBackRetryChan chan userMod
 			// check if user has initiator access to wallet.
 
 			for _, p := range signerUser.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
+				if p.WalletAddress == middleware.ExtractAddress(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
 					hasInitiatorAccess = true
 				}
 			}
-			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractAddress(c)).AddressHasViewOnlyAccess(gc) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
 				return
 			}
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/shared-access/users/actions/claim-asset %v", middleware.ExtractPublicKey(c)), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/shared-access/users/actions/claim-asset %v", middleware.ExtractAddress(c)), gc.DB)
 
 		var pendingAssetToClaim userModels.PendingAssetToClaim
 		// var err error
@@ -2230,15 +2230,15 @@ func putSharedAccessUsersActionsClaimAssetHandler(callBackRetryChan chan userMod
 
 		var ownerBalanceCacheKey, tempCacheKey, sNFT string
 
-		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
-		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
-		if wallet.TempPublicKey != nil {
+		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractAddress(c))
+		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractAddress(c))
+		if wallet.TempAddress != nil {
 
-			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempAddress)
 		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", wallet.Alias)
-		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
 
 		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
 		log.Printf("[CLAIM ASSET] Transaction Signature: [%v]\n", pendingAssetToClaim.TransactionSignature)
@@ -2305,7 +2305,7 @@ func deleteSharedAccessUsersActionsRejectAssetHandler(callBackRetryChan chan use
 			return
 		}
 
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2321,7 +2321,7 @@ func deleteSharedAccessUsersActionsRejectAssetHandler(callBackRetryChan chan use
 		}
 		{
 			//check if pending shared access modify exists
-			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractAddress(c), gc.DB) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
 				return
 			}
@@ -2342,7 +2342,7 @@ func deleteSharedAccessUsersActionsRejectAssetHandler(callBackRetryChan chan use
 		if wallet.SharedAccessEnabled == 1 && !isViewOnly {
 			// check if user has initiator access to wallet.
 			for _, p := range signerUser.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
+				if p.WalletAddress == middleware.ExtractAddress(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
 					hasInitiatorAccess = true
 				}
 			}
@@ -2352,7 +2352,7 @@ func deleteSharedAccessUsersActionsRejectAssetHandler(callBackRetryChan chan use
 			}
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("REJECT /v1/shared-access/users/actions/reject-asset %v", middleware.ExtractPublicKey(c)), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("REJECT /v1/shared-access/users/actions/reject-asset %v", middleware.ExtractAddress(c)), gc.DB)
 
 		var pendingAssetToClaim userModels.PendingAssetToClaim
 		// var err error
@@ -2385,15 +2385,15 @@ func deleteSharedAccessUsersActionsRejectAssetHandler(callBackRetryChan chan use
 
 		var ownerBalanceCacheKey, tempCacheKey, sNFT string
 
-		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
-		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
-		if wallet.TempPublicKey != nil {
+		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractAddress(c))
+		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractAddress(c))
+		if wallet.TempAddress != nil {
 
-			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempAddress)
 		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", wallet.Alias)
-		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
 
 		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
 		log.Printf("[REJECT ASSET] Transaction Signature: [%v]\n", pendingAssetToClaim.TransactionSignature)
@@ -2469,7 +2469,7 @@ func getUsersPaymentGenerateTargetUserHandler(callBackRetryChan chan userModels.
 		}
 
 		paymentDestination := strings.TrimSpace(strings.ToLower(c.Query("paymentDestination")))
-		if len(paymentDestination) == 56 {
+		if len(paymentDestination) == 42 {
 			paymentDestination = strings.ToUpper(paymentDestination)
 		}
 		assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
@@ -3103,7 +3103,7 @@ func postUsersAccountRecoverHandler(callBackRetryChan chan userModels.RetryCallb
 					{
 						notificationList := make(map[string]string)
 						//start push notificationMessage
-						wallet, e := userModels.UserWalletID(walletPermission.WalletPublicKey).GetWallet(gc.DB, gc)
+						wallet, e := userModels.UserWalletID(walletPermission.WalletAddress).GetWallet(gc.DB, gc)
 						if e != nil {
 							return
 						}
@@ -3238,7 +3238,7 @@ func postSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Retry
 			}
 			return
 		}
-		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+		walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -3253,7 +3253,7 @@ func postSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Retry
 			return
 		}
 
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -3271,7 +3271,7 @@ func postSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Retry
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission on this wallet."})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/shared-access/users/account %v", middleware.ExtractPublicKey(c)), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/shared-access/users/account %v", middleware.ExtractAddress(c)), gc.DB)
 
 		var sharedAccessInfo userModels.UserWalletSharedAccessInfo
 		// var err error
@@ -3286,7 +3286,7 @@ func postSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Retry
 			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
 			return
 		}
-		sharedAccessInfo.WalletPublicKey = middleware.ExtractPublicKey(c)
+		sharedAccessInfo.WalletAddress = middleware.ExtractAddress(c)
 		log.Printf("[DEBUG] sharedAccess %+v\n", sharedAccessInfo)
 		_, err = userServices.CreateSharedWalletAccess(&signerUser, &walletOwner, &wallet, &sharedAccessInfo, gc)
 
@@ -3305,15 +3305,15 @@ func postSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Retry
 
 		var ownerBalanceCacheKey, tempCacheKey, sNFT string
 
-		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
-		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
-		if wallet.TempPublicKey != nil {
+		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractAddress(c))
+		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractAddress(c))
+		if wallet.TempAddress != nil {
 
-			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempAddress)
 		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
-		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
 
 		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
 		log.Printf("[CREATE SHARED ACCESS] Transaction Signature: [%v]\n", sharedAccessInfo.TransactionSignature)
@@ -3363,7 +3363,7 @@ func putSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.RetryC
 			}
 			return
 		}
-		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+		walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -3378,7 +3378,7 @@ func putSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.RetryC
 			return
 		}
 		walletOwner.InvalidateUserCache(gc)
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -3404,17 +3404,17 @@ func putSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.RetryC
 		// check if user has initiator access to wallet.
 		if wallet.SharedAccessEnabled == 1 && !isViewOnly {
 			for _, p := range signerUser.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
+				if p.WalletAddress == middleware.ExtractAddress(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
 					hasInitiatorAccess = true
 				}
 			}
-			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractAddress(c)).AddressHasViewOnlyAccess(gc) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
 				return
 			}
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/shared-access/users/account %v", middleware.ExtractPublicKey(c)), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/shared-access/users/account %v", middleware.ExtractAddress(c)), gc.DB)
 
 		var sharedAccessInfo userModels.ModifySharedAccessInfo
 		// var err error
@@ -3429,7 +3429,7 @@ func putSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.RetryC
 			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
 			return
 		}
-		sharedAccessInfo.WalletPublicKey = middleware.ExtractPublicKey(c)
+		sharedAccessInfo.WalletAddress = middleware.ExtractAddress(c)
 		log.Printf("[DEBUG] modify %+v\n", sharedAccessInfo)
 		_, _, _, _, _, _, err = userServices.ModifySharedWalletAccess(&signerUser, &walletOwner, &wallet, &sharedAccessInfo, gc)
 
@@ -3448,21 +3448,21 @@ func putSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.RetryC
 
 		var ownerBalanceCacheKey, tempCacheKey, sNFT string
 
-		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
-		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
-		if wallet.TempPublicKey != nil {
+		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractAddress(c))
+		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractAddress(c))
+		if wallet.TempAddress != nil {
 
-			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempAddress)
 		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
-		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
 
 		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
 		log.Printf("[MODIFY SHARED ACCESS] Transaction Signature: [%v]\n", sharedAccessInfo.TransactionSignature)
 		if len(sharedAccessInfo.TransactionID) > 0 {
 			if sharedAccessInfo.TransactionID == "PENDING_AUTH" {
-				wallet, _, _ := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+				wallet, _, _ := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 				//saved to pending auth table for disabling shared access
 				notificationList := make(map[string]string)
 				for _, v := range wallet.Permissions {
@@ -3528,7 +3528,7 @@ func deleteSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Ret
 		}
 		{
 			//check if pending shared access modify exists
-			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractAddress(c), gc.DB) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
 				return
 			}
@@ -3547,7 +3547,7 @@ func deleteSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Ret
 			}
 			return
 		}
-		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+		walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -3562,7 +3562,7 @@ func deleteSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Ret
 			return
 		}
 
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -3615,9 +3615,9 @@ func deleteSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Ret
 			return
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/shared-access/users/account %v", middleware.ExtractPublicKey(c)), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/shared-access/users/account %v", middleware.ExtractAddress(c)), gc.DB)
 
-		sharedAccessInfo.WalletPublicKey = middleware.ExtractPublicKey(c)
+		sharedAccessInfo.WalletAddress = middleware.ExtractAddress(c)
 
 		log.Printf("[DEBUG] sharedAccess %+v\n", sharedAccessInfo)
 		err = userServices.RemoveSharedWalletAccess(&signerUser, &wallet, &sharedAccessInfo, gc)
@@ -3637,15 +3637,15 @@ func deleteSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Ret
 
 		var ownerBalanceCacheKey, tempCacheKey, sNFT string
 
-		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
-		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
-		if wallet.TempPublicKey != nil {
+		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractAddress(c))
+		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractAddress(c))
+		if wallet.TempAddress != nil {
 
-			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempAddress)
 		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
-		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
 
 		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
 		log.Printf("[REMOVED SHARED ACCESS] Transaction Signature: [%v]\n", sharedAccessInfo.TransactionSignature)
@@ -3726,18 +3726,18 @@ func getSharedAccessApprovalsHandler(callBackRetryChan chan userModels.RetryCall
 			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
-		permittedPublicKeys := make([]string, 0)
+		permittedAddresses := make([]string, 0)
 
 		for _, k := range signerUser.WalletsSharedWithUser {
 			if k.Permission == "VIEW-ONLY" {
 				continue
 			}
 			// view only is not permitted to see transactions
-			permittedPublicKeys = append(permittedPublicKeys, k.WalletPublicKey)
+			permittedAddresses = append(permittedAddresses, k.WalletAddress)
 		}
 
 		//Get Payment history
-		historyRecords := userServices.GetApprovalList(&signerUser, permittedPublicKeys, gc, c)
+		historyRecords := userServices.GetApprovalList(&signerUser, permittedAddresses, gc, c)
 
 		c.JSON(http.StatusOK, historyRecords)
 
@@ -3783,16 +3783,16 @@ func getSharedAccessApprovalIDHandler(callBackRetryChan chan userModels.RetryCal
 			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
-		permittedPublicKeys := make([]string, 0)
+		permittedAddresses := make([]string, 0)
 
 		for _, k := range signerUser.WalletsSharedWithUser {
 			if k.Permission == "VIEW-ONLY" {
 				continue
 			}
 			// view only is not permitted to see transactions
-			permittedPublicKeys = append(permittedPublicKeys, k.WalletPublicKey)
+			permittedAddresses = append(permittedAddresses, k.WalletAddress)
 		}
-		if len(permittedPublicKeys) == 0 {
+		if len(permittedAddresses) == 0 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permissions to access section."})
 			return
 		}
@@ -3884,17 +3884,17 @@ func postSharedAccessApprovalIDHandler(callBackRetryChan chan userModels.RetryCa
 			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
-		permittedPublicKeys := make(map[string]string, 0)
+		permittedAddresses := make(map[string]string, 0)
 
 		for _, k := range signerUser.WalletsSharedWithUser {
 			if k.Permission != "APPROVER" {
 				continue
 			}
 			// view only is not permitted to see transactions
-			permittedPublicKeys[k.WalletPublicKey] = k.WalletPublicKey
-			// permittedPublicKeys = append(permittedPublicKeys, k.WalletPublicKey)
+			permittedAddresses[k.WalletAddress] = k.WalletAddress
+			// permittedAddresses = append(permittedAddresses, k.WalletAddress)
 		}
-		if len(permittedPublicKeys) == 0 {
+		if len(permittedAddresses) == 0 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permissions to access section."})
 			return
 		}
@@ -3923,7 +3923,7 @@ func postSharedAccessApprovalIDHandler(callBackRetryChan chan userModels.RetryCa
 			return
 		}
 
-		if _, ok := permittedPublicKeys[approvalRequest.WalletPublicKey]; !ok {
+		if _, ok := permittedAddresses[approvalRequest.WalletAddress]; !ok {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permission."})
 			return
 		}
@@ -3972,7 +3972,7 @@ func postSharedAccessApprovalIDHandler(callBackRetryChan chan userModels.RetryCa
 		{
 			notificationList := make(map[string]string)
 			//start push notificationMessage
-			wallet, e := userModels.UserWalletID(approvalRequest.WalletPublicKey).GetWallet(gc.DB, gc)
+			wallet, e := userModels.UserWalletID(approvalRequest.WalletAddress).GetWallet(gc.DB, gc)
 			if e != nil {
 				return
 			}
@@ -4055,17 +4055,17 @@ func deleteSharedAccessApprovalIDHandler(callBackRetryChan chan userModels.Retry
 			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
-		permittedPublicKeys := make(map[string]string, 0)
+		permittedAddresses := make(map[string]string, 0)
 
 		for _, k := range signerUser.WalletsSharedWithUser {
 			if k.Permission != "APPROVER" {
 				continue
 			}
 			// view only is not permitted to see transactions
-			permittedPublicKeys[k.WalletPublicKey] = k.WalletPublicKey
-			// permittedPublicKeys = append(permittedPublicKeys, k.WalletPublicKey)
+			permittedAddresses[k.WalletAddress] = k.WalletAddress
+			// permittedAddresses = append(permittedAddresses, k.WalletAddress)
 		}
-		if len(permittedPublicKeys) == 0 {
+		if len(permittedAddresses) == 0 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permissions to access section."})
 			return
 		}
@@ -4105,7 +4105,7 @@ func deleteSharedAccessApprovalIDHandler(callBackRetryChan chan userModels.Retry
 			}
 		}
 
-		if _, ok := permittedPublicKeys[approvalRequest.WalletPublicKey]; !ok {
+		if _, ok := permittedAddresses[approvalRequest.WalletAddress]; !ok {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permission."})
 			return
 		}
@@ -4141,7 +4141,7 @@ func deleteSharedAccessApprovalIDHandler(callBackRetryChan chan userModels.Retry
 			notificationList := make(map[string]string)
 
 			//start push notificationMessage
-			wallet, e := userModels.UserWalletID(approvalRequest.WalletPublicKey).GetWallet(gc.DB, gc)
+			wallet, e := userModels.UserWalletID(approvalRequest.WalletAddress).GetWallet(gc.DB, gc)
 			if e != nil {
 				return
 			}
@@ -4183,7 +4183,7 @@ func getSharedAccessWalletBalancesHandler(callBackRetryChan chan userModels.Retr
 	return func(c *gin.Context) {
 		// var err error
 
-		conDB.PrintDBStats(fmt.Sprintf("[GET] /v1/shared-access/wallet-balances %v", middleware.ExtractPublicKey(c)), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("[GET] /v1/shared-access/wallet-balances %v", middleware.ExtractAddress(c)), gc.DB)
 
 		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
@@ -4212,7 +4212,7 @@ func getSharedAccessWalletBalancesHandler(callBackRetryChan chan userModels.Retr
 		permitted := false
 
 		for _, k := range signerUser.WalletsSharedWithUser {
-			if k.TargetUsername == signerUser.Username && k.WalletPublicKey == middleware.ExtractPublicKey(c) {
+			if k.TargetUsername == signerUser.Username && k.WalletAddress == middleware.ExtractAddress(c) {
 				permitted = true
 			}
 		}
@@ -4220,7 +4220,7 @@ func getSharedAccessWalletBalancesHandler(callBackRetryChan chan userModels.Retr
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permissions to access this wallet."})
 			return
 		}
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -4285,18 +4285,18 @@ func getSharedAccessWalletBalancesHandler(callBackRetryChan chan userModels.Retr
 	}
 }
 
-// getTrovoManagerWalletBalancesWalletPublicKeyHandler godoc
-// @Summary GET /v1/trovo-manager/wallet-balances/:walletPublicKey
+// getTrovoManagerWalletBalancesWalletAddressHandler godoc
+// @Summary GET /v1/trovo-manager/wallet-balances/:walletAddress
 // @Tags users
 // @Produce json
-// @Param walletPublicKey path string true "Wallet public key"
+// @Param walletAddress path string true "Wallet public key"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
-// @Router /v1/trovo-manager/wallet-balances/{walletPublicKey} [get]
-func getTrovoManagerWalletBalancesWalletPublicKeyHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+// @Router /v1/trovo-manager/wallet-balances/{walletAddress} [get]
+func getTrovoManagerWalletBalancesWalletAddressHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		walletPublicKey := c.Param("walletPublicKey")
-		conDB.PrintDBStats(fmt.Sprintf("[GET] /v1/trovo-manager/wallet-balances/%v", walletPublicKey), gc.DB)
+		walletAddress := c.Param("walletAddress")
+		conDB.PrintDBStats(fmt.Sprintf("[GET] /v1/trovo-manager/wallet-balances/%v", walletAddress), gc.DB)
 
 		var err error
 		au, err := middleware.ExtractTokenMetadata(c.Request)
@@ -4337,7 +4337,7 @@ func getTrovoManagerWalletBalancesWalletPublicKeyHandler(callBackRetryChan chan 
 			c.JSON(statusCode, response)
 			return
 		}
-		wallet, _, err := usersDB.GetWallet(walletPublicKey, gc.DB)
+		wallet, _, err := usersDB.GetWallet(walletAddress, gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -4354,7 +4354,7 @@ func getTrovoManagerWalletBalancesWalletPublicKeyHandler(callBackRetryChan chan 
 
 		assetBalances, err := wallet.GetWalletAssetBalances(gc)
 		if err != nil {
-			log.Printf("[GET Wallet Balances] error for signer:%v, publicKey: %v, error: %v", signerUser.Username, walletPublicKey, err)
+			log.Printf("[GET Wallet Balances] error for signer:%v, publicKey: %v, error: %v", signerUser.Username, walletAddress, err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -4422,7 +4422,7 @@ func postUsersTradesHandler(callBackRetryChan chan userModels.RetryCallbacks, gc
 			}
 			return
 		}
-		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+		walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -4436,7 +4436,7 @@ func postUsersTradesHandler(callBackRetryChan chan userModels.RetryCallbacks, gc
 			}
 			return
 		}
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -4487,23 +4487,23 @@ func postUsersTradesHandler(callBackRetryChan chan userModels.RetryCallbacks, gc
 	}
 }
 
-// getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler godoc
-// @Summary GET /v1/crypto/withdrawal-history/:currency/:targetPublicKeyForHistory
+// getCryptoWithdrawalHistoryCurrencyTargetAddressForHistoryHandler godoc
+// @Summary GET /v1/crypto/withdrawal-history/:currency/:targetAddressForHistory
 // @Tags users
 // @Produce json
 // @Param currency path string true "Currency code"
-// @Param targetPublicKeyForHistory path string true "Target public key"
+// @Param targetAddressForHistory path string true "Target public key"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
-// @Router /v1/crypto/withdrawal-history/{currency}/{targetPublicKeyForHistory} [get]
-func getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+// @Router /v1/crypto/withdrawal-history/{currency}/{targetAddressForHistory} [get]
+func getCryptoWithdrawalHistoryCurrencyTargetAddressForHistoryHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// var err error
 		currency := strings.ToUpper(c.Param("currency"))
 
-		targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
+		targetAddressForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetAddressForHistory")))
 
-		_, err := evmkeypair.ParseAddress(targetPublicKeyForHistory)
+		_, err := evmkeypair.ParseAddress(targetAddressForHistory)
 		if err != nil {
 
 			statusCode := http.StatusBadRequest
@@ -4512,7 +4512,7 @@ func getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler(callBack
 			c.JSON(statusCode, response)
 			return
 		}
-		cacheKey := fmt.Sprintf("[GET] /v1/crypto/withdrawal-history/%v/%v", currency, targetPublicKeyForHistory)
+		cacheKey := fmt.Sprintf("[GET] /v1/crypto/withdrawal-history/%v/%v", currency, targetAddressForHistory)
 		cacheKeyParameters := c.Request.URL.RequestURI()
 		{
 			// check cache
@@ -4527,7 +4527,7 @@ func getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler(callBack
 		}
 		// cacheDurationInSeconds := 1 * 60 //1 minutes
 		cacheDurationInSeconds := 20 //in seconds
-		conDB.PrintDBStats(fmt.Sprintf("/v1/crypto/withdrawal-history/%v/%v", currency, targetPublicKeyForHistory), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("/v1/crypto/withdrawal-history/%v/%v", currency, targetAddressForHistory), gc.DB)
 
 		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
@@ -4553,10 +4553,10 @@ func getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler(callBack
 			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
-		wallet, temp, err := usersDB.GetWallet(targetPublicKeyForHistory, gc.DB)
+		wallet, temp, err := usersDB.GetWallet(targetAddressForHistory, gc.DB)
 
 		if err != nil {
-			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetAddressForHistory, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -4586,10 +4586,10 @@ func getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler(callBack
 			return
 		}
 
-		targetOwnerUser, err := usersDB.GetUser(targetPublicKeyForHistory, gc.DB, gc)
+		targetOwnerUser, err := usersDB.GetUser(targetAddressForHistory, gc.DB, gc)
 
 		if err != nil {
-			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetAddressForHistory, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -4626,7 +4626,7 @@ func getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler(callBack
 
 		}
 		//Get Payment history
-		historyRecords := paymentServices.GetCryptoWithdrawalHistory(targetPublicKeyForHistory, currency, gc, c)
+		historyRecords := paymentServices.GetCryptoWithdrawalHistory(targetAddressForHistory, currency, gc, c)
 
 		c.JSON(http.StatusOK, historyRecords)
 		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
@@ -4635,23 +4635,23 @@ func getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler(callBack
 	}
 }
 
-// getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler godoc
-// @Summary GET /v1/crypto/deposit-history/:currency/:targetPublicKeyForHistory
+// getCryptoDepositHistoryCurrencyTargetAddressForHistoryHandler godoc
+// @Summary GET /v1/crypto/deposit-history/:currency/:targetAddressForHistory
 // @Tags users
 // @Produce json
 // @Param currency path string true "Currency code"
-// @Param targetPublicKeyForHistory path string true "Target public key"
+// @Param targetAddressForHistory path string true "Target public key"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
-// @Router /v1/crypto/deposit-history/{currency}/{targetPublicKeyForHistory} [get]
-func getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+// @Router /v1/crypto/deposit-history/{currency}/{targetAddressForHistory} [get]
+func getCryptoDepositHistoryCurrencyTargetAddressForHistoryHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// var err error
 		currency := strings.ToUpper(c.Param("currency"))
 
-		targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
+		targetAddressForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetAddressForHistory")))
 
-		_, err := evmkeypair.ParseAddress(targetPublicKeyForHistory)
+		_, err := evmkeypair.ParseAddress(targetAddressForHistory)
 		if err != nil {
 
 			statusCode := http.StatusBadRequest
@@ -4660,7 +4660,7 @@ func getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRet
 			c.JSON(statusCode, response)
 			return
 		}
-		cacheKey := fmt.Sprintf("[GET] /v1/crypto/deposit-history/%v/%v", currency, targetPublicKeyForHistory)
+		cacheKey := fmt.Sprintf("[GET] /v1/crypto/deposit-history/%v/%v", currency, targetAddressForHistory)
 		cacheKeyParameters := c.Request.URL.RequestURI()
 		{
 			// check cache
@@ -4675,7 +4675,7 @@ func getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRet
 		}
 		// cacheDurationInSeconds := 1 * 60 //1 minutes
 		cacheDurationInSeconds := 20 //in seconds
-		conDB.PrintDBStats(fmt.Sprintf("/v1/crypto/deposit-history/%v/%v", currency, targetPublicKeyForHistory), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("/v1/crypto/deposit-history/%v/%v", currency, targetAddressForHistory), gc.DB)
 
 		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
@@ -4701,10 +4701,10 @@ func getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRet
 			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
-		wallet, temp, err := usersDB.GetWallet(targetPublicKeyForHistory, gc.DB)
+		wallet, temp, err := usersDB.GetWallet(targetAddressForHistory, gc.DB)
 
 		if err != nil {
-			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetAddressForHistory, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -4734,10 +4734,10 @@ func getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRet
 			return
 		}
 
-		targetOwnerUser, err := usersDB.GetUser(targetPublicKeyForHistory, gc.DB, gc)
+		targetOwnerUser, err := usersDB.GetUser(targetAddressForHistory, gc.DB, gc)
 
 		if err != nil {
-			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetAddressForHistory, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -4774,7 +4774,7 @@ func getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRet
 
 		}
 		//Get Payment history
-		historyRecords := paymentServices.GetCryptoDepositHistory(targetPublicKeyForHistory, currency, gc, c)
+		historyRecords := paymentServices.GetCryptoDepositHistory(targetAddressForHistory, currency, gc, c)
 
 		c.JSON(http.StatusOK, historyRecords)
 		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
@@ -4854,7 +4854,7 @@ func postCryptoWithdrawalsHandler(callBackRetryChan chan userModels.RetryCallbac
 			return
 		}
 
-		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+		walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -4882,7 +4882,7 @@ func postCryptoWithdrawalsHandler(callBackRetryChan chan userModels.RetryCallbac
 			return
 		}
 		wdlInput.Currency = strings.ToUpper(wdlInput.Currency)
-		wallet, temp, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, temp, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 		if temp {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "error-wallet-forbidden", "message": "Wallet forbidden."})
 			return
@@ -4962,7 +4962,7 @@ func postSharedAccessCryptoWithdrawalsHandler(callBackRetryChan chan userModels.
 			return
 		}
 
-		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+		walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -4990,7 +4990,7 @@ func postSharedAccessCryptoWithdrawalsHandler(callBackRetryChan chan userModels.
 			return
 		}
 		wdlInput.Currency = strings.ToUpper(wdlInput.Currency)
-		wallet, temp, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, temp, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 		if temp {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "error-wallet-forbidden", "message": "Wallet forbidden."})
 			return
@@ -5015,7 +5015,7 @@ func postSharedAccessCryptoWithdrawalsHandler(callBackRetryChan chan userModels.
 			hasInitiatorAccess := false
 			// check if user has initiator access to wallet.
 			for _, p := range accountSignerUser.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
+				if p.WalletAddress == middleware.ExtractAddress(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
 					hasInitiatorAccess = true
 				}
 			}
@@ -5094,7 +5094,7 @@ func postCryptoGenerateAddressesCurrencyHandler(callBackRetryChan chan userModel
 	return func(c *gin.Context) {
 		// var err error
 		currency := strings.ToUpper(c.Param("currency"))
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -5130,7 +5130,7 @@ func postCryptoGenerateAddressesCurrencyHandler(callBackRetryChan chan userModel
 			hasInitiatorAccess := false
 			// check if user has initiator access to wallet.
 			for _, p := range accountSignerUser.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
+				if p.WalletAddress == middleware.ExtractAddress(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
 					hasInitiatorAccess = true
 				}
 			}
@@ -6042,7 +6042,7 @@ func postTokenizationExpressedInterestsTokenizedAssetIDHandler(callBackRetryChan
 			return
 		}
 		// //get the wallet you are sending payment from
-		subscriberWallet, _, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		subscriberWallet, _, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -6165,7 +6165,7 @@ func postTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan chan
 			return
 		}
 		//get the wallet you are sending payment from
-		subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -6284,7 +6284,7 @@ func postTokenizationSubscriptionsFiatTokenizedAssetIDHandler(callBackRetryChan 
 			return
 		}
 		//get the wallet you are subscribing from
-		subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -6399,7 +6399,7 @@ func postSharedAccessTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRe
 			return
 		}
 		//get the wallet you are sending payment from
-		subscriptionWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		subscriptionWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -6428,7 +6428,7 @@ func postSharedAccessTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRe
 
 		}
 
-		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+		walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -6476,7 +6476,7 @@ func postSharedAccessTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRe
 			hasInitiatorAccess := false
 			// check if user has initiator access to wallet.
 			for _, p := range accountSignerUser.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
+				if p.WalletAddress == middleware.ExtractAddress(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
 					hasInitiatorAccess = true
 				}
 			}
@@ -6624,7 +6624,7 @@ func getTokenizationSubscriptionsHandler(callBackRetryChan chan userModels.Retry
 			c.JSON(statusCode, response)
 			return
 		}
-		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+		walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -6641,7 +6641,7 @@ func getTokenizationSubscriptionsHandler(callBackRetryChan chan userModels.Retry
 		permitted := false
 
 		for _, k := range signerUser.WalletsSharedWithUser {
-			if k.TargetUsername == signerUser.Username && k.WalletPublicKey == middleware.ExtractPublicKey(c) {
+			if k.TargetUsername == signerUser.Username && k.WalletAddress == middleware.ExtractAddress(c) {
 				permitted = true
 			}
 		}
@@ -7984,7 +7984,7 @@ func putTrovoManagerTokenizationDocumentHandler(callBackRetryChan chan userModel
 			return
 		}
 
-		issuingWallet, temp, getWalletError := usersDB.GetWallet(*t.IssuingWalletPublicKey, gc.DB)
+		issuingWallet, temp, getWalletError := usersDB.GetWallet(*t.IssuingWalletAddress, gc.DB)
 
 		if getWalletError != nil {
 
@@ -8055,7 +8055,7 @@ func putTrovoManagerTokenizationDocumentHandler(callBackRetryChan chan userModel
 			}
 		}
 
-		// t := userModels.IssuingWalletPublicKey(issuingWallet.ID).GetTokenization(gc)
+		// t := userModels.IssuingWalletAddress(issuingWallet.ID).GetTokenization(gc)
 
 		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/tokenization/document %v", t.ID), gc.DB)
 

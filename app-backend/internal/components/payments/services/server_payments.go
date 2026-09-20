@@ -23,7 +23,7 @@ import (
 // 		Destination: receiver, Memo: memo, AssetIssuer: assetIssuer,
 // 		AssetCode: assetCode, Amount: amount,
 // 	}
-// 	if len(assetIssuer) == 56 {
+// 	if len(assetIssuer) == 42 {
 // 		asset = basetxn.CreditAsset{Code: assetCode, Issuer: assetIssuer}
 // 	} else {
 // 		asset = basetxn.NativeAsset{}
@@ -37,7 +37,7 @@ import (
 // 	client := network.GetBlockchainClient()
 // 	var receiverStatus bool
 // 	sourceAccount, _ := bc.GetBlockchainAccountDetail(kp.Address())
-// 	_, err = bc.GetBlockchainAccountDetail(receiverAccount.PublicKey)
+// 	_, err = bc.GetBlockchainAccountDetail(receiverAccount.Address)
 // 	if err != nil {
 // 		if err.Error() == "error-blockchain-account-not-activated" {
 // 			receiverStatus = true
@@ -60,7 +60,7 @@ import (
 // 	// var txnParams basetxn.TransactionParams
 // 	if receiverStatus {
 // 		creatAccountOpRequest := basetxn.CreateAccount{
-// 			Destination: receiverAccount.PublicKey,
+// 			Destination: receiverAccount.Address,
 // 			Amount:      amount,
 // 		}
 
@@ -75,7 +75,7 @@ import (
 // 	} else {
 
 // 		paymentOpRequest := basetxn.Payment{
-// 			Destination: receiverAccount.PublicKey,
+// 			Destination: receiverAccount.Address,
 // 			Amount:      amount,
 // 			Asset:       asset,
 // 		}

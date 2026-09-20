@@ -79,11 +79,11 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 	// 	return &tErrors.ErrorTemporaryServerError{}
 	// }
 	assetOfMarket := os.Getenv("NATIVE_ASSET_CODE")
-	if len(offerRequest.AssetIssuer) == 56 {
+	if len(offerRequest.AssetIssuer) == 42 {
 		assetOfMarket = fmt.Sprintf("%v:%v...%v", offerRequest.AssetCode, offerRequest.AssetIssuer[0:4], offerRequest.AssetIssuer[51:55])
 	}
 	currencyOfMarket := os.Getenv("NATIVE_ASSET_CODE")
-	if len(offerRequest.CurrencyIssuer) == 56 {
+	if len(offerRequest.CurrencyIssuer) == 42 {
 		currencyOfMarket = fmt.Sprintf("%v:%v...%v", offerRequest.CurrencyCode, offerRequest.CurrencyIssuer[0:4], offerRequest.CurrencyIssuer[51:55])
 	}
 
@@ -149,20 +149,20 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 	}
 	{
 		marketOffer = &userModels.MarketOffer{
-			ID:                          uuid.NewString(),
-			SourceWalletAlias:           sourceWallet.Alias,
-			SourceWalletPublicKey:       sourceWallet.ID,
-			MarketMakingWalletPublicKey: sourceWallet.ID,
-			OfferType:                   offerRequest.OfferType,
-			AssetCode:                   offerRequest.AssetCode,
-			AssetIssuer:                 assetIssuer,
-			CurrencyCode:                offerRequest.CurrencyCode,
-			CurrencyIssuer:              currencyIssuer,
-			PricePerUnit:                offerRequest.PricePerUnit,
-			Quantity:                    offerRequest.Quantity,
-			FeeChargedOnAsset:           offerRequest.FeeChargedOnAsset,
-			FeeValue:                    offerRequest.FeeValue,
-			NetQuantity:                 offerRequest.NetQuantity,
+			ID:                        uuid.NewString(),
+			SourceWalletAlias:         sourceWallet.Alias,
+			SourceWalletAddress:       sourceWallet.ID,
+			MarketMakingWalletAddress: sourceWallet.ID,
+			OfferType:                 offerRequest.OfferType,
+			AssetCode:                 offerRequest.AssetCode,
+			AssetIssuer:               assetIssuer,
+			CurrencyCode:              offerRequest.CurrencyCode,
+			CurrencyIssuer:            currencyIssuer,
+			PricePerUnit:              offerRequest.PricePerUnit,
+			Quantity:                  offerRequest.Quantity,
+			FeeChargedOnAsset:         offerRequest.FeeChargedOnAsset,
+			FeeValue:                  offerRequest.FeeValue,
+			NetQuantity:               offerRequest.NetQuantity,
 			// RemainingQuantity:           offerRequest.NetQuantity,
 			// RemainingFeeValue:           offerRequest.FeeValue,
 		}
@@ -220,16 +220,16 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 		transactionByte, _ := json.Marshal(*marketOffer)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
-			ID:                       id,
-			Initiator:                signerUser.Username,
-			InitiatorSignerPublicKey: signerUser.PrimarySigner,
-			WalletPublicKey:          sourceWallet.ID,
-			TransactionType:          "MAKE MARKET OFFER",
-			Description:              description,
-			TransactionSource:        offerRequest.TransactionSource,
-			ApprovalsNeeded:          sourceWallet.NumberOfApprovalsNeeded,
-			TransactionXdr:           xdrBase64,
-			TransactionInfoStr:       &transactionStr,
+			ID:                     id,
+			Initiator:              signerUser.Username,
+			InitiatorSignerAddress: signerUser.PrimarySigner,
+			WalletAddress:          sourceWallet.ID,
+			TransactionType:        "MAKE MARKET OFFER",
+			Description:            description,
+			TransactionSource:      offerRequest.TransactionSource,
+			ApprovalsNeeded:        sourceWallet.NumberOfApprovalsNeeded,
+			TransactionXdr:         xdrBase64,
+			TransactionInfoStr:     &transactionStr,
 		}
 		//save and commit this to database
 		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
@@ -369,16 +369,16 @@ func CancelOffer(signerUser, walletOwner *userModels.User, sourceWallet *userMod
 		transactionByte, _ := json.Marshal(*deleteOfferRequest)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
-			ID:                       id,
-			Initiator:                signerUser.Username,
-			InitiatorSignerPublicKey: signerUser.PrimarySigner,
-			WalletPublicKey:          sourceWallet.ID,
-			TransactionType:          "DELETE MARKET OFFER",
-			Description:              description,
-			TransactionSource:        deleteOfferRequest.TransactionSource,
-			ApprovalsNeeded:          sourceWallet.NumberOfApprovalsNeeded,
-			TransactionXdr:           xdrBase64,
-			TransactionInfoStr:       &transactionStr,
+			ID:                     id,
+			Initiator:              signerUser.Username,
+			InitiatorSignerAddress: signerUser.PrimarySigner,
+			WalletAddress:          sourceWallet.ID,
+			TransactionType:        "DELETE MARKET OFFER",
+			Description:            description,
+			TransactionSource:      deleteOfferRequest.TransactionSource,
+			ApprovalsNeeded:        sourceWallet.NumberOfApprovalsNeeded,
+			TransactionXdr:         xdrBase64,
+			TransactionInfoStr:     &transactionStr,
 		}
 		//save and commit this to database
 		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error

@@ -10,7 +10,7 @@ type ServiceLink struct {
 	CreatedAt                             time.Time `json:"-"`
 	UpdatedAt                             time.Time `json:"-"`
 	OwnerUsername                         string    `json:"TrovoUsername" gorm:"size:100;index:idx_owner_username;index:idx_service_shortname,unique;not null;check:,length(owner_username) > 2"`
-	PublicKey                             string    `json:"publicKey" gorm:"size:56;index:idx_service_user_public_key;not null;"`
+	Address                               string    `json:"publicKey" gorm:"size:56;index:idx_service_user_address;not null;"`
 	ApiKey                                string    `json:"apiKey" gorm:"size:50;index:idx_service_api_key,unique;not null;"`
 	ShortName                             string    `json:"shortName" gorm:"size:50;index:idx_service_shortname,unique;not null;"`
 	LongName                              string    `json:"longName" gorm:"size:100"`
@@ -75,7 +75,6 @@ type ServiceLinkEvent struct {
 	OwnerUsername string  `gorm:"size:100;index:idx_eventdata;not null;check:,length(owner_username) >= 2"`
 	CallbackURL   *string `gorm:"null"`
 }
-
 
 type ServiceLinkRequestInput struct {
 	AuthDescription   string `json:"authDescription,omitempty"`

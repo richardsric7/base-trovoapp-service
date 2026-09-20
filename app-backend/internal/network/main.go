@@ -134,14 +134,14 @@ func init() {
 // the native balance, the asset balance, the account object, and whether
 // there was an error - same shape as the original Stellar version, so
 // existing call sites keep destructuring the same 6 values.
-func BlockchainAccountProperties(client *ethclient.Client, destinationPublicKey string, asset basetxn.Asset) (bool, bool, decimal.Decimal, decimal.Decimal, *AccountInfo, error) {
+func BlockchainAccountProperties(client *ethclient.Client, destinationAddress string, asset basetxn.Asset) (bool, bool, decimal.Decimal, decimal.Decimal, *AccountInfo, error) {
 
-	log.Printf("[BlockchainAccountProperties] obtaining blockchain account properties for  %v \n", destinationPublicKey)
+	log.Printf("[BlockchainAccountProperties] obtaining blockchain account properties for  %v \n", destinationAddress)
 
-	if !common.IsHexAddress(destinationPublicKey) {
-		return false, false, decimal.Zero, decimal.Zero, nil, &tErrors.ErrorInvalidPublicKey{PublicKey: destinationPublicKey}
+	if !common.IsHexAddress(destinationAddress) {
+		return false, false, decimal.Zero, decimal.Zero, nil, &tErrors.ErrorInvalidAddress{Address: destinationAddress}
 	}
-	addr := common.HexToAddress(destinationPublicKey)
+	addr := common.HexToAddress(destinationAddress)
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -152,9 +152,9 @@ func BlockchainAccountProperties(client *ethclient.Client, destinationPublicKey 
 	nonce, err := client.PendingNonceAt(ctx, addr)
 	if err != nil {
 		log.Print("[BlockchainAccountProperties] error fetching nonce: ", err)
-		return destinationAccountExists, false, decimal.Zero, decimal.Zero, &AccountInfo{Address: destinationPublicKey}, &tErrors.ErrorTemporaryServerError{}
+		return destinationAccountExists, false, decimal.Zero, decimal.Zero, &AccountInfo{Address: destinationAddress}, &tErrors.ErrorTemporaryServerError{}
 	}
-	account := &AccountInfo{Address: destinationPublicKey, Nonce: nonce}
+	account := &AccountInfo{Address: destinationAddress, Nonce: nonce}
 
 	weiBalance, err := client.BalanceAt(ctx, addr, nil)
 	if err != nil {
@@ -163,13 +163,13 @@ func BlockchainAccountProperties(client *ethclient.Client, destinationPublicKey 
 	}
 	nativeAccountBalance := weiToDecimal(weiBalance)
 
-	authorized := IsWalletAuthorizedForAsset(destinationPublicKey, asset)
+	authorized := IsWalletAuthorizedForAsset(destinationAddress, asset)
 
 	if asset.IsNative() {
 		return destinationAccountExists, authorized, nativeAccountBalance, decimal.Zero, account, nil
 	}
 
-	assetBalance, err := B20BalanceOf(client, asset.GetIssuer(), destinationPublicKey)
+	assetBalance, err := B20BalanceOf(client, asset.GetIssuer(), destinationAddress)
 	if err != nil {
 		log.Print("[BlockchainAccountProperties] error fetching B20 balance: ", err)
 		return destinationAccountExists, authorized, nativeAccountBalance, decimal.Zero, account, &tErrors.ErrorTemporaryServerError{}
@@ -430,13 +430,13 @@ func SubmitSignedRawTx(client *ethclient.Client, rawTxHex string) (txHash string
 
 // SubmitXdrWithSignature submits a Transaction built via internal/basetxn
 // once every operation is signed, attaching signature (a raw signed tx
-// hex string) as the final missing piece for signerPublicKey's operation
+// hex string) as the final missing piece for signerAddress's operation
 // if one is still outstanding - the Base equivalent of Stellar's
 // client.SubmitTransactionXDR after AddSignatureBase64. Kept named/shaped
 // like the original (xdrBase64 in, tx hash out) for call-site
 // compatibility; xdrBase64 is now a comma-joined list of signed raw txs
 // (basetxn.Transaction.Base64's shape) rather than an XDR envelope.
-func SubmitXdrWithSignature(client *ethclient.Client, signerPublicKey string, xdrBase64 string, signature string) (string, error) {
+func SubmitXdrWithSignature(client *ethclient.Client, signerAddress string, xdrBase64 string, signature string) (string, error) {
 	rawTxs := strings.Split(xdrBase64, ",")
 	if signature != "" {
 		rawTxs = append(rawTxs, signature)
@@ -462,8 +462,8 @@ type SubmittedTransaction struct {
 	Hash string
 }
 
-func SubmitXdrWithSignatureReturnsTrx(client *ethclient.Client, signerPublicKey string, xdrBase64 string, signature string) (txnResult SubmittedTransaction, err error) {
-	hash, err := SubmitXdrWithSignature(client, signerPublicKey, xdrBase64, signature)
+func SubmitXdrWithSignatureReturnsTrx(client *ethclient.Client, signerAddress string, xdrBase64 string, signature string) (txnResult SubmittedTransaction, err error) {
+	hash, err := SubmitXdrWithSignature(client, signerAddress, xdrBase64, signature)
 	return SubmittedTransaction{Hash: hash}, err
 }
 
@@ -557,7 +557,7 @@ func SubmitApprovalsXdrWithSignaturesReturnsTrx(client *ethclient.Client, approv
 // SubmitXdrWithSignatureChannelAccounts submits a transaction co-signed
 // by a channel (gas-sponsoring) account and the sender - both already
 // signed raw txs (see SubmitXdrWithSignatures's doc for why).
-func SubmitXdrWithSignatureChannelAccounts(client *ethclient.Client, signerPublicKey, channelAccountPK string, xdrBase64 string, txSignature, chanSignature string) (string, error) {
+func SubmitXdrWithSignatureChannelAccounts(client *ethclient.Client, signerAddress, channelAccountPK string, xdrBase64 string, txSignature, chanSignature string) (string, error) {
 	rawTxs := []string{}
 	for _, s := range strings.Split(xdrBase64, ",") {
 		if strings.TrimSpace(s) != "" {

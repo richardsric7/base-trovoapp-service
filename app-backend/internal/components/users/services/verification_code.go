@@ -39,7 +39,7 @@ func GenerateAccountRecoveryEmailOTP(userInfo *users.User) string {
 
 	tohash := sha256.New()
 	tohash.Write([]byte(userInfo.Email))
-	tohash.Write([]byte(userInfo.PublicKey))
+	tohash.Write([]byte(userInfo.Address))
 	tohash.Write([]byte(userInfo.Username))
 	tohash.Write([]byte(dateReference))
 	tohash.Write([]byte(saltInCode))
@@ -59,7 +59,7 @@ func GenerateEmailVerificationCode(userInfo users.UserRegistrationInfo, salt str
 
 	tohash := sha256.New()
 	tohash.Write([]byte(userInfo.Email))
-	tohash.Write([]byte(userInfo.PublicKey))
+	tohash.Write([]byte(userInfo.Address))
 	tohash.Write([]byte(userInfo.Username))
 	tohash.Write([]byte(dateReference))
 	tohash.Write([]byte(saltInCode))
@@ -79,7 +79,7 @@ func GeneratePhoneVerificationCode(userInfo *users.User, salt string) string {
 
 	tohash := sha256.New()
 	tohash.Write([]byte(*userInfo.Mobile))
-	tohash.Write([]byte(userInfo.PublicKey))
+	tohash.Write([]byte(userInfo.Address))
 	tohash.Write([]byte(userInfo.Username))
 	tohash.Write([]byte(dateReference))
 	tohash.Write([]byte(saltInCode))

@@ -40,10 +40,10 @@ func GetUser(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user 
 	}
 	//e returns execution errors
 	var e error
-	if len(userInfo) == 56 {
+	if len(userInfo) == 42 {
 		//56 char public key is supplied
 
-		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("temp_public_key = ?", &userInfo).Or("signer = ?", userInfo).Select("user_id")
+		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("temp_address = ?", &userInfo).Or("signer = ?", userInfo).Select("user_id")
 		e = db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("id IN (?)", subQuery).First(&user).Error
 	} else if strings.Contains(userInfo, "_") {
 		//alias format is supplied
@@ -89,12 +89,12 @@ func GetWallet(identifier string, db *gorm.DB) (userWallet userModels.UserWallet
 
 	//e returns execution errors
 	var e error
-	if len(identifier) == 56 {
+	if len(identifier) == 42 {
 		//56 char public key is supplied
-		e = db.Preload(clause.Associations).Where("id = ?", identifier).Or("temp_public_key = ?", &identifier).First(&userWallet).Error
+		e = db.Preload(clause.Associations).Where("id = ?", identifier).Or("temp_address = ?", &identifier).First(&userWallet).Error
 		if e == nil {
-			if userWallet.TempPublicKey != nil {
-				if identifier == *userWallet.TempPublicKey {
+			if userWallet.TempAddress != nil {
+				if identifier == *userWallet.TempAddress {
 					temp = true
 				}
 			}
@@ -125,7 +125,7 @@ func GetWallet(identifier string, db *gorm.DB) (userWallet userModels.UserWallet
 }
 func GetPermissionList(publicKey string, db *gorm.DB) (accessList []userModels.WalletPermission) {
 	accessList = make([]userModels.WalletPermission, 0)
-	db.Preload(clause.Associations).Where("wallet_public_key = ?", publicKey).Find(&accessList)
+	db.Preload(clause.Associations).Where("wallet_address = ?", publicKey).Find(&accessList)
 
 	return
 }
@@ -175,7 +175,7 @@ func GetUserFromPrimarySigner(publicKey string, db *gorm.DB, gc *sharedconfig.Gl
 		}
 	}
 
-	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
+	// discord.Say(fmt.Sprintf("[AddressIsBanned] publicKey: %v is banned\n", publicKey))
 	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, user, 2000)
 	cacheKeyUsername := fmt.Sprintf("userObj %v", user.Username)
 	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, user, 2000)
@@ -194,7 +194,7 @@ func InvalidateUserCache(id string, gc *sharedconfig.GlobalConfig) {
 	if err != nil {
 		return
 	}
-	cacheKey1 := fmt.Sprintf("GetBalance_%s", userAccount.PublicKey)
+	cacheKey1 := fmt.Sprintf("GetBalance_%s", userAccount.Address)
 	cacheKeyUsername := fmt.Sprintf("userObj %v", userAccount.Username)
 	cacheKeyEmail := fmt.Sprintf("userObj %v", userAccount.Email)
 	cacheKeySigner := fmt.Sprintf("userObj %v", userAccount.PrimarySigner)
@@ -219,8 +219,8 @@ func InvalidateUserWalletCache(userAccount *userModels.User, gc *sharedconfig.Gl
 	for _, w := range userAccount.UserWallets {
 		cacheKey1 := fmt.Sprintf("GetBalance_%s", w.ID)
 		cacheKey2 := fmt.Sprintf("GetBalance_%s", func() string {
-			if w.TempPublicKey != nil {
-				return *w.TempPublicKey
+			if w.TempAddress != nil {
+				return *w.TempAddress
 			} else {
 				return "nil"
 			}

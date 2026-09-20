@@ -174,10 +174,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.POST("/v1/trovo-api/tokens/mint", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postTrovoApiTokensMintHandler(gc))
 
 	//get wallet balance from service link
-	router.GET("/v1/trovo-api/users/balance/:walletPublicKey", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getTrovoApiUsersBalanceWalletPublicKeyHandler(gc))
+	router.GET("/v1/trovo-api/users/balance/:walletAddress", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getTrovoApiUsersBalanceWalletAddressHandler(gc))
 
 	//get wallet payment history from service link
-	router.GET("/v1/trovo-api/users/payment-history/:walletPublicKey", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getTrovoApiUsersPaymentHistoryWalletPublicKeyHandler(gc))
+	router.GET("/v1/trovo-api/users/payment-history/:walletAddress", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getTrovoApiUsersPaymentHistoryWalletAddressHandler(gc))
 
 	//send payment from service link
 	router.POST("/v1/trovo-api/users/payment", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postTrovoApiUsersPaymentHandler(callBackRetryChan, gc))

@@ -18,17 +18,17 @@ func authenticationChecks(keyParam string, c *gin.Context) error {
 	keyParam = strings.TrimSpace(keyParam)
 	fullUri := c.Request.URL.RequestURI()
 
-	signerPublicKey := ExtractSigner(c)
+	signerAddress := ExtractSigner(c)
 	signature := ExtractSignature(c)
 	log.Printf("Full Path With Query:[%s] KeyParam:[%s] Signature: [%s]\n", fullUri, keyParam, signature)
 
-	publicKeyFormatError := validators.ValidatePublicKeyFormat(signerPublicKey)
+	publicKeyFormatError := validators.ValidateAddressFormat(signerAddress)
 
 	if publicKeyFormatError != nil {
-		return &errors.ErrorInvalidAuthenticationPublicKey{PublicKey: signerPublicKey}
+		return &errors.ErrorInvalidAuthenticationAddress{Address: signerAddress}
 	}
 
-	err := VerifyHttpSignature(fullUri, keyParam, signature, signerPublicKey)
+	err := VerifyHttpSignature(fullUri, keyParam, signature, signerAddress)
 
 	if err != nil {
 		return err
@@ -38,15 +38,15 @@ func authenticationChecks(keyParam string, c *gin.Context) error {
 
 }
 
-func WebSocketAuthenticationChecks(body, signature, signerPublicKey string) error {
+func WebSocketAuthenticationChecks(body, signature, signerAddress string) error {
 
-	publicKeyFormatError := validators.ValidatePublicKeyFormat(signerPublicKey)
+	publicKeyFormatError := validators.ValidateAddressFormat(signerAddress)
 
 	if publicKeyFormatError != nil {
-		return &errors.ErrorInvalidAuthenticationPublicKey{PublicKey: signerPublicKey}
+		return &errors.ErrorInvalidAuthenticationAddress{Address: signerAddress}
 	}
 
-	err := VerifyHttpSignature("", body, signature, signerPublicKey)
+	err := VerifyHttpSignature("", body, signature, signerAddress)
 
 	if err != nil {
 		return err
@@ -64,7 +64,7 @@ func AuthenticationMiddlewareUsingBody() gin.HandlerFunc {
 			return
 		}
 		h := c.Request.Header.Get("User-Agent")
-		publicKey := ExtractPublicKey(c)
+		publicKey := ExtractAddress(c)
 
 		log.Printf("[%s] is using [%s]\n", publicKey, h)
 
@@ -100,12 +100,12 @@ func AuthenticationMiddlewareUsingTimestamp() gin.HandlerFunc {
 		}
 		h := c.Request.Header.Get("User-Agent")
 		timestamp := ExtractTimestamp(c)
-		signerPublicKey := ExtractSigner(c)
+		signerAddress := ExtractSigner(c)
 
-		log.Printf("[%s] is using [%s]\n", signerPublicKey, h)
-		log.Printf("Timestamp:[%s] signerPublicKey:[%s]\n", timestamp, signerPublicKey)
+		log.Printf("[%s] is using [%s]\n", signerAddress, h)
+		log.Printf("Timestamp:[%s] signerAddress:[%s]\n", timestamp, signerAddress)
 
-		authenticationError := authenticationChecks(signerPublicKey+timestamp, c)
+		authenticationError := authenticationChecks(signerAddress+timestamp, c)
 
 		if authenticationError != nil {
 			var ex errors.GenericError

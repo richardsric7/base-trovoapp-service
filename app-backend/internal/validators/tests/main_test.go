@@ -33,42 +33,42 @@ func TestValidUsernames(t *testing.T) {
 	}
 }
 
-func TestInvalidPublicKeys(t *testing.T) {
+func TestInvalidAddresses(t *testing.T) {
 
 	var publicKeys []string = []string{"bogus", "fake", "SCBTEKU7J6BL3LXUWVZCPBQNVU3DCI4SQ7YFQN3VYMUFPEDB334JVAVT"}
 
 	for idx, publicKey := range publicKeys {
 
-		err := validators.ValidatePublicKeyFormat(publicKey)
+		err := validators.ValidateAddressFormat(publicKey)
 
 		if err == nil {
 			t.Errorf("publicKey should have thrown an error %s", publicKey)
 			continue
 		}
 
-		var ex, ok = err.(*errors.ErrorInvalidPublicKey)
+		var ex, ok = err.(*errors.ErrorInvalidAddress)
 
 		if !ok {
 			t.Errorf("Invalid Public Key exception was not thrown for item number %d, [%v]", idx, err)
 			continue
 		}
 
-		expectedInvalidPublicKey := publicKey
+		expectedInvalidAddress := publicKey
 
-		if ex.PublicKey != expectedInvalidPublicKey {
-			t.Errorf("expected [%s] but got [%s]", expectedInvalidPublicKey, ex.PublicKey)
+		if ex.Address != expectedInvalidAddress {
+			t.Errorf("expected [%s] but got [%s]", expectedInvalidAddress, ex.Address)
 		}
 	}
 
 }
 
-func TestValidPublicKey(t *testing.T) {
+func TestValidAddress(t *testing.T) {
 
 	var publicKeys []string = []string{"0xc4FE8226634b79a06e49f5DFdB02475E2eA8AF28", "0xD59AC3c804E6A19d0418CDb2BA96F3F02A1166ab"}
 
 	for idx, publicKey := range publicKeys {
 
-		err := validators.ValidatePublicKeyFormat(publicKey)
+		err := validators.ValidateAddressFormat(publicKey)
 
 		if err != nil {
 			t.Errorf("public key validation not have thrown an error [%d], %v", idx, err)

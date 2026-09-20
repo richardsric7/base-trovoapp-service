@@ -75,7 +75,7 @@ func WalletCountInitiatorAccess(wallet *userModels.UserWallet, gc *sharedconfig.
 	return
 }
 
-func PublicKeyCountViewOnlyAccess(publicKey string, gc *sharedconfig.GlobalConfig) (accessCount uint) {
+func AddressCountViewOnlyAccess(publicKey string, gc *sharedconfig.GlobalConfig) (accessCount uint) {
 	if publicKey == "" {
 		return 0
 	}
@@ -93,7 +93,7 @@ func PublicKeyCountViewOnlyAccess(publicKey string, gc *sharedconfig.GlobalConfi
 	return
 }
 
-func PublicKeyHasViewOnlyAccess(publicKey string, gc *sharedconfig.GlobalConfig) (viewOnly bool) {
+func AddressHasViewOnlyAccess(publicKey string, gc *sharedconfig.GlobalConfig) (viewOnly bool) {
 	viewOnly = true
 	if publicKey == "" {
 		return false
@@ -112,7 +112,7 @@ func PublicKeyHasViewOnlyAccess(publicKey string, gc *sharedconfig.GlobalConfig)
 	return
 }
 
-func PublicKeyHasViewOnlyAccessWACL(publicKey string, accessList []userModels.WalletPermissionInfo, gc *sharedconfig.GlobalConfig) (viewOnly bool) {
+func AddressHasViewOnlyAccessWACL(publicKey string, accessList []userModels.WalletPermissionInfo, gc *sharedconfig.GlobalConfig) (viewOnly bool) {
 	viewOnly = true
 	if publicKey == "" {
 		return false
@@ -127,7 +127,7 @@ func PublicKeyHasViewOnlyAccessWACL(publicKey string, accessList []userModels.Wa
 	return
 }
 
-func PublicKeyCountApproverAccessWACL(publicKey string, accessList []userModels.WalletPermissionInfo, gc *sharedconfig.GlobalConfig) (accessCount uint) {
+func AddressCountApproverAccessWACL(publicKey string, accessList []userModels.WalletPermissionInfo, gc *sharedconfig.GlobalConfig) (accessCount uint) {
 	if publicKey == "" {
 		return 0
 	}
@@ -141,7 +141,7 @@ func PublicKeyCountApproverAccessWACL(publicKey string, accessList []userModels.
 	return
 }
 
-func PublicKeyCountInitiatorAccessWACL(publicKey string, accessList []userModels.WalletPermissionInfo, gc *sharedconfig.GlobalConfig) (accessCount uint) {
+func AddressCountInitiatorAccessWACL(publicKey string, accessList []userModels.WalletPermissionInfo, gc *sharedconfig.GlobalConfig) (accessCount uint) {
 	if publicKey == "" {
 		return 0
 	}
@@ -155,7 +155,7 @@ func PublicKeyCountInitiatorAccessWACL(publicKey string, accessList []userModels
 	return
 }
 
-func PublicKeyCountApproverAccess(publicKey string, gc *sharedconfig.GlobalConfig) (accessCount uint) {
+func AddressCountApproverAccess(publicKey string, gc *sharedconfig.GlobalConfig) (accessCount uint) {
 	if publicKey == "" {
 		return 0
 	}
@@ -173,7 +173,7 @@ func PublicKeyCountApproverAccess(publicKey string, gc *sharedconfig.GlobalConfi
 	return
 }
 
-func PublicKeyCountInitiatorAccess(publicKey string, gc *sharedconfig.GlobalConfig) (accessCount uint) {
+func AddressCountInitiatorAccess(publicKey string, gc *sharedconfig.GlobalConfig) (accessCount uint) {
 	if publicKey == "" {
 		return 0
 	}
@@ -214,15 +214,15 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	}
 	var linkedWallet userModels.UserWallet
 	var hasLinkedWallet bool
-	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
+	if wallet.WalletType == 1 && wallet.LinkedWalletAddress != nil {
 		// set the linked wallet if it is a tokenization wallet
 		hasLinkedWallet = true
 		// accessInfo.LinkedWalletSignatureRequired = 1
-		// accessInfo.LinkedWalletPublicKey = *wallet.LinkedWalletPublicKey
-		linkedWallet, err = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
+		// accessInfo.LinkedWalletAddress = *wallet.LinkedWalletAddress
+		linkedWallet, err = userModels.UserWalletID(*wallet.LinkedWalletAddress).GetWallet(gc.DB, gc)
 		if err != nil {
 			return returnedWallet, &tErrors.CustomError{
-				Param:      "linkedWalletPublicKey",
+				Param:      "linkedWalletAddress",
 				Err:        "error-getting-linked-wallet",
 				ErrMessage: "Linked Wallet could not be validated.",
 				Code:       http.StatusBadRequest,
@@ -265,7 +265,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	}
 
 	if wallet.PrimaryWallet == 1 {
-		if !PublicKeyHasViewOnlyAccessWACL(accessInfo.WalletPublicKey, accessInfo.Permissions, gc) {
+		if !AddressHasViewOnlyAccessWACL(accessInfo.WalletAddress, accessInfo.Permissions, gc) {
 			return returnedWallet, &tErrors.ErrorOnlyViewAccessAllowedInPrimaryWallet{}
 		}
 	}
@@ -329,17 +329,17 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			TargetUsername:        v.TargetUsername,
 			Name:                  name,
 			Permission:            v.Permission,
-			WalletPublicKey:       wallet.ID,
+			WalletAddress:         wallet.ID,
 			WalletAlias:           wallet.Alias,
 			PushNotificationToken: u.PushNotificationToken,
 		}
 		//infor of shared access users
 		accessListInfo = append(accessListInfo, pi)
 		accessList = append(accessList, userModels.WalletPermission{
-			ID:              permissionID,
-			TargetUsername:  v.TargetUsername,
-			Permission:      v.Permission,
-			WalletPublicKey: wallet.ID,
+			ID:             permissionID,
+			TargetUsername: v.TargetUsername,
+			Permission:     v.Permission,
+			WalletAddress:  wallet.ID,
 		})
 		if v.Permission == "APPROVER" {
 			numberOfSubmittedApprovers++
@@ -358,10 +358,10 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			//if it is a tokenized wallet, then build linkedwallet access list
 			if hasLinkedWallet {
 				linkedWalletAccessList = append(linkedWalletAccessList, userModels.WalletPermission{
-					ID:              uuid.NewString(),
-					TargetUsername:  v.TargetUsername,
-					Permission:      v.Permission,
-					WalletPublicKey: linkedWallet.ID,
+					ID:             uuid.NewString(),
+					TargetUsername: v.TargetUsername,
+					Permission:     v.Permission,
+					WalletAddress:  linkedWallet.ID,
 				})
 			}
 		}
@@ -542,14 +542,14 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 	var linkedWallet userModels.UserWallet
 	var hasLinkedWallet bool
-	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
+	if wallet.WalletType == 1 && wallet.LinkedWalletAddress != nil {
 		// set the linked wallet if it is a tokenization wallet
 		hasLinkedWallet = true
 
-		linkedWallet, err = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
+		linkedWallet, err = userModels.UserWalletID(*wallet.LinkedWalletAddress).GetWallet(gc.DB, gc)
 		if err != nil {
 			err = &tErrors.CustomError{
-				Param:      "linkedWalletPublicKey",
+				Param:      "linkedWalletAddress",
 				Err:        "error-getting-linked-wallet",
 				ErrMessage: "Linked Wallet could not be validated.",
 				Code:       http.StatusBadRequest,
@@ -570,7 +570,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	}
 	viewOnly := make(map[string]string, 0)
 	// oldApproverPermissionMap := make(map[string]userModels.WalletPermission, 0)
-	walletID := userModels.UserWalletID(accessInfo.WalletPublicKey)
+	walletID := userModels.UserWalletID(accessInfo.WalletAddress)
 	var linkedWalletID userModels.UserWalletID
 	if hasLinkedWallet {
 		linkedWalletID = userModels.UserWalletID(linkedWallet.ID)
@@ -578,7 +578,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 	fw, err := walletID.GetWallet(gc.DB, gc)
 	if err != nil {
-		log.Printf("[ModifySharedWalletAccess] error could not get wallet object for %v %+v\n", accessInfo.WalletPublicKey, accessInfo)
+		log.Printf("[ModifySharedWalletAccess] error could not get wallet object for %v %+v\n", accessInfo.WalletAddress, accessInfo)
 		return
 	}
 	wallet = &fw
@@ -612,7 +612,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	}
 
 	if wallet.PrimaryWallet == 1 {
-		if !PublicKeyHasViewOnlyAccessWACL(accessInfo.WalletPublicKey, accessInfo.AddedPermissions, gc) || !PublicKeyHasViewOnlyAccessWACL(accessInfo.WalletPublicKey, accessInfo.ModifiedPermissions, gc) {
+		if !AddressHasViewOnlyAccessWACL(accessInfo.WalletAddress, accessInfo.AddedPermissions, gc) || !AddressHasViewOnlyAccessWACL(accessInfo.WalletAddress, accessInfo.ModifiedPermissions, gc) {
 			log.Printf("[ModifySharedWalletAccess] error only view -only access allowed for primary wallet for %+v\n", accessInfo)
 			err = &tErrors.ErrorOnlyViewAccessAllowedInPrimaryWallet{}
 			return
@@ -669,15 +669,15 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			TargetUsername:        v.TargetUsername,
 			Name:                  name,
 			Permission:            v.Permission,
-			WalletPublicKey:       wallet.ID,
+			WalletAddress:         wallet.ID,
 			WalletAlias:           wallet.Alias,
 			PushNotificationToken: u.PushNotificationToken,
 		})
 		revokedList = append(revokedList, userModels.WalletPermission{
-			ID:              userPermission.ID,
-			TargetUsername:  v.TargetUsername,
-			Permission:      v.Permission,
-			WalletPublicKey: wallet.ID,
+			ID:             userPermission.ID,
+			TargetUsername: v.TargetUsername,
+			Permission:     v.Permission,
+			WalletAddress:  wallet.ID,
 		})
 		if hasLinkedWallet {
 			linkedUserPermission, eLinked = linkedWalletID.GetUserPermissionOnWallet(v.TargetUsername, v.Permission, dbTX)
@@ -693,10 +693,10 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			}
 
 			linkedRevokedList = append(linkedRevokedList, userModels.WalletPermission{
-				ID:              linkedUserPermission.ID,
-				TargetUsername:  v.TargetUsername,
-				Permission:      v.Permission,
-				WalletPublicKey: linkedWallet.ID,
+				ID:             linkedUserPermission.ID,
+				TargetUsername: v.TargetUsername,
+				Permission:     v.Permission,
+				WalletAddress:  linkedWallet.ID,
 			})
 		}
 
@@ -808,17 +808,17 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			TargetUsername:        v.TargetUsername,
 			Name:                  name,
 			Permission:            v.Permission,
-			WalletPublicKey:       wallet.ID,
+			WalletAddress:         wallet.ID,
 			WalletAlias:           wallet.Alias,
 			PushNotificationToken: u.PushNotificationToken,
 		})
 		modifiedList = append(modifiedList, userModels.WalletPermission{
-			CreatedAt:       ePermission.CreatedAt,
-			UpdatedAt:       ePermission.UpdatedAt,
-			ID:              ePermission.ID,
-			WalletPublicKey: wallet.ID,
-			TargetUsername:  ePermission.TargetUsername,
-			Permission:      v.Permission, //modify the permission
+			CreatedAt:      ePermission.CreatedAt,
+			UpdatedAt:      ePermission.UpdatedAt,
+			ID:             ePermission.ID,
+			WalletAddress:  wallet.ID,
+			TargetUsername: ePermission.TargetUsername,
+			Permission:     v.Permission, //modify the permission
 		})
 		if hasLinkedWallet {
 			linkedEPermission, eLinked = linkedWalletID.GetUserPermissionOnWallet(v.TargetUsername, v.Permission, dbTX)
@@ -834,12 +834,12 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			}
 
 			linkedModifiedList = append(linkedModifiedList, userModels.WalletPermission{
-				CreatedAt:       linkedEPermission.CreatedAt,
-				UpdatedAt:       linkedEPermission.UpdatedAt,
-				ID:              linkedEPermission.ID,
-				WalletPublicKey: linkedWallet.ID,
-				TargetUsername:  linkedEPermission.TargetUsername,
-				Permission:      v.Permission, //modify the permission
+				CreatedAt:      linkedEPermission.CreatedAt,
+				UpdatedAt:      linkedEPermission.UpdatedAt,
+				ID:             linkedEPermission.ID,
+				WalletAddress:  linkedWallet.ID,
+				TargetUsername: linkedEPermission.TargetUsername,
+				Permission:     v.Permission, //modify the permission
 			})
 
 		}
@@ -931,7 +931,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			TargetUsername:        v.TargetUsername,
 			Name:                  name,
 			Permission:            v.Permission,
-			WalletPublicKey:       wallet.ID,
+			WalletAddress:         wallet.ID,
 			WalletAlias:           wallet.Alias,
 			PushNotificationToken: u.PushNotificationToken,
 		}
@@ -991,24 +991,24 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			TargetUsername:        v.TargetUsername,
 			Name:                  name,
 			Permission:            v.Permission,
-			WalletPublicKey:       wallet.ID,
+			WalletAddress:         wallet.ID,
 			WalletAlias:           wallet.Alias,
 			PushNotificationToken: u.PushNotificationToken,
 		})
 
 		addedList = append(addedList, userModels.WalletPermission{
-			ID:              permissionID,
-			TargetUsername:  v.TargetUsername,
-			Permission:      v.Permission,
-			WalletPublicKey: wallet.ID,
+			ID:             permissionID,
+			TargetUsername: v.TargetUsername,
+			Permission:     v.Permission,
+			WalletAddress:  wallet.ID,
 		})
 
 		if hasLinkedWallet {
 			linkedAddedList = append(linkedAddedList, userModels.WalletPermission{
-				ID:              uuid.NewString(),
-				TargetUsername:  v.TargetUsername,
-				Permission:      v.Permission,
-				WalletPublicKey: linkedWallet.ID,
+				ID:             uuid.NewString(),
+				TargetUsername: v.TargetUsername,
+				Permission:     v.Permission,
+				WalletAddress:  linkedWallet.ID,
 			})
 		}
 
@@ -1070,7 +1070,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			TargetUsername:        v.TargetUsername,
 			Name:                  name,
 			Permission:            v.Permission,
-			WalletPublicKey:       wallet.ID,
+			WalletAddress:         wallet.ID,
 			WalletAlias:           wallet.Alias,
 			PushNotificationToken: u.PushNotificationToken,
 		}
@@ -1344,16 +1344,16 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		transactionByte, _ := json.Marshal(*accessInfo)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
-			ID:                       id,
-			Initiator:                signerUser.Username,
-			InitiatorSignerPublicKey: signerUser.PrimarySigner,
-			WalletPublicKey:          wallet.ID,
-			TransactionType:          "MODIFY SHARED ACCESS",
-			Description:              description,
-			TransactionSource:        transactionSource,
-			ApprovalsNeeded:          accessInfo.NumberOfApprovalsNeeded,
-			TransactionXdr:           xdrBase64,
-			TransactionInfoStr:       &transactionStr,
+			ID:                     id,
+			Initiator:              signerUser.Username,
+			InitiatorSignerAddress: signerUser.PrimarySigner,
+			WalletAddress:          wallet.ID,
+			TransactionType:        "MODIFY SHARED ACCESS",
+			Description:            description,
+			TransactionSource:      transactionSource,
+			ApprovalsNeeded:        accessInfo.NumberOfApprovalsNeeded,
+			TransactionXdr:         xdrBase64,
+			TransactionInfoStr:     &transactionStr,
 		}
 		// rollback all the other changes since the changes can only apply when approvals are completed.
 		dbTX.Rollback()
@@ -1383,7 +1383,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 	// var managedAccess userModels.UserWalletSharedAccess
 	var hasLinkedWallet bool
 	var linkedWallet userModels.UserWallet
-	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
+	if wallet.WalletType == 1 && wallet.LinkedWalletAddress != nil {
 		hasLinkedWallet = true
 	}
 
@@ -1400,7 +1400,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 	var errLinked error
 	accessList := wallet.Permissions
 	if hasLinkedWallet {
-		linkedWallet, errLinked = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
+		linkedWallet, errLinked = userModels.UserWalletID(*wallet.LinkedWalletAddress).GetWallet(gc.DB, gc)
 		if errLinked != nil {
 			return &tErrors.CustomError{
 				Param:      "username",
@@ -1508,16 +1508,16 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 			transactionByte, _ := json.Marshal(*accessInfo)
 			transactionStr := string(transactionByte)
 			pendingAuth := userModels.PendingAuth{
-				ID:                       id,
-				Initiator:                signerUser.Username,
-				InitiatorSignerPublicKey: signerUser.PrimarySigner,
-				WalletPublicKey:          wallet.ID,
-				TransactionType:          "DISABLE SHARED ACCESS",
-				Description:              description,
-				TransactionSource:        accessInfo.TransactionSource,
-				ApprovalsNeeded:          approvalsNeeded,
-				TransactionXdr:           xdrBase64,
-				TransactionInfoStr:       &transactionStr,
+				ID:                     id,
+				Initiator:              signerUser.Username,
+				InitiatorSignerAddress: signerUser.PrimarySigner,
+				WalletAddress:          wallet.ID,
+				TransactionType:        "DISABLE SHARED ACCESS",
+				Description:            description,
+				TransactionSource:      accessInfo.TransactionSource,
+				ApprovalsNeeded:        approvalsNeeded,
+				TransactionXdr:         xdrBase64,
+				TransactionInfoStr:     &transactionStr,
 			}
 			// rollback all the other changes since the changes can only apply when approvals are completed.
 			// dbTX.Rollback()
@@ -1599,14 +1599,14 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	var hasLinkedWallet bool
 	var errLinkedWallet error
 	var linkedWallet userModels.UserWallet
-	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
+	if wallet.WalletType == 1 && wallet.LinkedWalletAddress != nil {
 		// set the linked wallet if it is a tokenization wallet
 		hasLinkedWallet = true
 
-		linkedWallet, errLinkedWallet = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
+		linkedWallet, errLinkedWallet = userModels.UserWalletID(*wallet.LinkedWalletAddress).GetWallet(gc.DB, gc)
 		if errLinkedWallet != nil {
 			err = &tErrors.CustomError{
-				Param:      "linkedWalletPublicKey",
+				Param:      "linkedWalletAddress",
 				Err:        "error-getting-linked-wallet",
 				ErrMessage: "Linked Wallet could not be validated.",
 				Code:       http.StatusBadRequest,
@@ -1655,9 +1655,9 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	}
 	{
 		//check if account recovery is enabled, then disable it on the wallet.
-		if walletOwner.AccountRecoveryEnabled == 1 && !PublicKeyHasViewOnlyAccessWACL(wallet.ID, accessInfo, gc) && PublicKeyCountApproverAccessWACL(wallet.ID, accessInfo, gc) > 1 {
+		if walletOwner.AccountRecoveryEnabled == 1 && !AddressHasViewOnlyAccessWACL(wallet.ID, accessInfo, gc) && AddressCountApproverAccessWACL(wallet.ID, accessInfo, gc) > 1 {
 			// get the recovery keypair
-			recoveryAddress := bc.GetRecoveryAccountAddress(walletOwner.Username, walletOwner.PublicKey)
+			recoveryAddress := bc.GetRecoveryAccountAddress(walletOwner.Username, walletOwner.Address)
 
 			if userBc.SignerIsValid(wallet.ID, recoveryAddress) {
 				//recovery a signer to the wallet. remove it
@@ -1766,7 +1766,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				log.Printf("[generateCreateSharedAccessXdr] by [%v] Shared Access WalletAccount underfunded \n", wallet.Alias)
 
 				err = &tErrors.CustomError{
-					Param:      "walletPublicKey",
+					Param:      "walletAddress",
 					Err:        "error-wallet-underfunded",
 					ErrMessage: fmt.Sprintf("Wallet %v needs more than %v %v balance to perform this operation", wallet.Alias, totalNativeBalanceNeeded.String(), os.Getenv("NATIVE_ASSET_CODE")),
 					Code:       404,
@@ -1863,7 +1863,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, numberOfSubmittedApprovers, numberOfApprovalsNeeded, oldNumberOfApprovers int, ops []basetxn.Operation, gc *sharedconfig.GlobalConfig) (xdrbase64, transactionSource string, messages []string, err error) {
 	var hasLinkedWallet bool
-	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
+	if wallet.WalletType == 1 && wallet.LinkedWalletAddress != nil {
 		hasLinkedWallet = true
 	}
 
@@ -1918,7 +1918,7 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 		//check if account recovery is enabled, then disable it on the wallet.
 		if walletOwner.AccountRecoveryEnabled == 1 && numberOfSubmittedApprovers > 0 {
 			// get the recovery keypair
-			recoveryAddress := bc.GetRecoveryAccountAddress(walletOwner.Username, walletOwner.PublicKey)
+			recoveryAddress := bc.GetRecoveryAccountAddress(walletOwner.Username, walletOwner.Address)
 
 			if userBc.SignerIsValid(wallet.ID, recoveryAddress) {
 				//recovery a signer to the wallet. remove it
@@ -1939,7 +1939,7 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 							Address: recoveryAddress,
 							Weight:  0,
 						},
-						SourceAccount: *wallet.LinkedWalletPublicKey,
+						SourceAccount: *wallet.LinkedWalletAddress,
 					})
 
 					//add message about disabling recovery on that wallet
@@ -1976,7 +1976,7 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 					LowThreshold:    basetxn.NewThreshold(uint32(numberOfApprovalsNeeded)),
 					MediumThreshold: basetxn.NewThreshold(uint32(numberOfApprovalsNeeded)),
 					HighThreshold:   basetxn.NewThreshold(uint32(numberOfApprovalsNeeded)),
-					SourceAccount:   *wallet.LinkedWalletPublicKey,
+					SourceAccount:   *wallet.LinkedWalletAddress,
 				})
 			}
 		}
@@ -2113,11 +2113,11 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 	var hasLinkedWallet bool
 	// var linkedWallet userModels.UserWallet
-	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
+	if wallet.WalletType == 1 && wallet.LinkedWalletAddress != nil {
 		hasLinkedWallet = true
 	}
 	// if hasLinkedWallet {
-	// 	linkedWallet, _ = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
+	// 	linkedWallet, _ = userModels.UserWalletID(*wallet.LinkedWalletAddress).GetWallet(gc.DB, gc)
 
 	// }
 	client := gc.BantuExpansionClient
@@ -2166,7 +2166,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 		//check if account recovery is enabled, then re-enable it on the wallet.
 		if walletOwner.AccountRecoveryEnabled == 1 && multipartySign {
 			// get the recovery keypair
-			recoveryAddress := bc.GetRecoveryAccountAddress(walletOwner.Username, walletOwner.PublicKey)
+			recoveryAddress := bc.GetRecoveryAccountAddress(walletOwner.Username, walletOwner.Address)
 
 			if !userBc.SignerIsValid(wallet.ID, recoveryAddress) {
 				//recovery a signer to the wallet. remove it
@@ -2189,7 +2189,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 							Address: recoveryAddress,
 							Weight:  1,
 						},
-						SourceAccount: *wallet.LinkedWalletPublicKey,
+						SourceAccount: *wallet.LinkedWalletAddress,
 					})
 
 					//add message about disabling recovery on that wallet
@@ -2228,7 +2228,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 							Address: user3p.PrimarySigner,
 							Weight:  0,
 						},
-						SourceAccount: *wallet.LinkedWalletPublicKey,
+						SourceAccount: *wallet.LinkedWalletAddress,
 					})
 				}
 			}
@@ -2241,7 +2241,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				log.Printf("[generateRemoveSharedAccessXdr] by [%v] Shared Access WalletAccount underfunded \n", wallet.Alias)
 
 				err = &tErrors.CustomError{
-					Param:      "walletPublicKey",
+					Param:      "walletAddress",
 					Err:        "error-wallet-underfunded",
 					ErrMessage: fmt.Sprintf("Wallet %v needs more than %v %v balance to perform this operation", wallet.Alias, totalNativeBalanceNeeded.String(), os.Getenv("NATIVE_ASSET_CODE")),
 					Code:       404,
@@ -2395,13 +2395,13 @@ func generateRemoveRecoveredAccountAccessOps(wallet *userModels.UserWallet, appr
 
 	for _, aRec := range listOfRecovery {
 		//ensure u r using the account signer, since the account may have been recovered, or may be recovered in the future, changing the signer, but retaining the primary key
-		approverAccountExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, aRec.OldSignerPublicKey, nativeAsset)
+		approverAccountExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, aRec.OldSignerAddress, nativeAsset)
 
 		if approverAccountExists {
 			//account exists, check if it already it a signer in the wallet
 
 			//remove signer if already a signer
-			if network.IsAccountSigner(walletSourceAccount.Address, aRec.OldSignerPublicKey) {
+			if network.IsAccountSigner(walletSourceAccount.Address, aRec.OldSignerAddress) {
 				if aRec.MasterWallet == 1 {
 					//primary signer and master signer
 					ops = append(ops, &basetxn.SetOptions{
@@ -2413,7 +2413,7 @@ func generateRemoveRecoveredAccountAccessOps(wallet *userModels.UserWallet, appr
 
 					ops = append(ops, &basetxn.SetOptions{
 						Signer: &basetxn.Signer{
-							Address: aRec.OldSignerPublicKey,
+							Address: aRec.OldSignerAddress,
 							Weight:  0,
 						},
 						SourceAccount: wallet.ID,
@@ -2430,13 +2430,13 @@ func generateRemoveRecoveredAccountAccessOps(wallet *userModels.UserWallet, appr
 	return ops, ignore
 }
 
-func HasAccessToPublicKey(signerPublicKey, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
-	signerUser, err := usersDB.GetUserFromPrimarySigner(signerPublicKey, gc.DB, gc)
+func HasAccessToAddress(signerAddress, targetAddress string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
+	signerUser, err := usersDB.GetUserFromPrimarySigner(signerAddress, gc.DB, gc)
 
 	if err != nil {
 		return false
 	}
-	wallet, temp, err := usersDB.GetWallet(targetPublicKey, gc.DB)
+	wallet, temp, err := usersDB.GetWallet(targetAddress, gc.DB)
 	if err != nil {
 		return false
 	}
@@ -2450,8 +2450,8 @@ func HasAccessToPublicKey(signerPublicKey, targetPublicKey string, gc *sharedcon
 
 }
 
-func HasInitiatorPermissionToPublicKey(ownerSignerPublicKey, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
-	user, err := usersDB.GetUserFromPrimarySigner(ownerSignerPublicKey, gc.DB, gc)
+func HasInitiatorPermissionToAddress(ownerSignerAddress, targetAddress string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
+	user, err := usersDB.GetUserFromPrimarySigner(ownerSignerAddress, gc.DB, gc)
 
 	if err != nil {
 		return false
@@ -2461,7 +2461,7 @@ func HasInitiatorPermissionToPublicKey(ownerSignerPublicKey, targetPublicKey str
 		return false
 	}
 	for _, walletAccess := range walletPermissions {
-		if walletAccess.WalletPublicKey == targetPublicKey && walletAccess.Permission == "INITIATOR" {
+		if walletAccess.WalletAddress == targetAddress && walletAccess.Permission == "INITIATOR" {
 			return true
 		}
 	}
@@ -2469,14 +2469,14 @@ func HasInitiatorPermissionToPublicKey(ownerSignerPublicKey, targetPublicKey str
 	return false
 }
 
-func SignerHasInitiatorPermissionToPublicKey(signerOwner userModels.User, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
+func SignerHasInitiatorPermissionToAddress(signerOwner userModels.User, targetAddress string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
 
 	walletPermissions := signerOwner.WalletsSharedWithUser
 	if len(walletPermissions) == 0 {
 		return false
 	}
 	for _, walletAccess := range walletPermissions {
-		if walletAccess.WalletPublicKey == targetPublicKey && walletAccess.Permission == "INITIATOR" {
+		if walletAccess.WalletAddress == targetAddress && walletAccess.Permission == "INITIATOR" {
 			return true
 		}
 	}

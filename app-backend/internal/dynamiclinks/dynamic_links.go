@@ -452,7 +452,7 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 		assetIssuer = ""
 	}
 
-	if len(assetIssuer) > 0 && len(assetIssuer) != 56 {
+	if len(assetIssuer) > 0 && len(assetIssuer) != 42 {
 		err = errors.New("invalid asset issuer")
 		return
 	}
@@ -500,7 +500,7 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 // GenerateTokenizedAssetDeeplink generates deep link for tokenized asset Data
 func GenerateTokenizedAssetDeeplink(assetCode, assetIssuer string, gc *sharedconfig.GlobalConfig) (p TokenizedAssetDeepLinkData, err error) {
 
-	if len(assetIssuer) > 0 && len(assetIssuer) != 56 {
+	if len(assetIssuer) > 0 && len(assetIssuer) != 42 {
 		err = errors.New("invalid asset issuer")
 		return
 	}

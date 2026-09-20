@@ -33,7 +33,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	//shortlink
 	router.GET("/v1/shortlinks/:linkID", getShortlinksLinkIDHandler(callBackRetryChan, gc))
 
-	router.GET("/v1/users/payments/:targetPublicKeyForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), getUsersPaymentsTargetPublicKeyForHistoryHandler(callBackRetryChan, gc))
+	router.GET("/v1/users/payments/:targetAddressForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), getUsersPaymentsTargetAddressForHistoryHandler(callBackRetryChan, gc))
 
 	router.GET("/v1/curated-assets/users", middleware.AuthenticationMiddlewareUsingTimestamp(), getCuratedAssetsUsersHandler(callBackRetryChan, gc))
 
@@ -142,7 +142,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	router.GET("/v1/shared-access/wallet-balances", middleware.AuthenticationMiddlewareUsingTimestamp(), getSharedAccessWalletBalancesHandler(callBackRetryChan, gc))
 
 	//get specific  wallet balance
-	router.GET("/v1/trovo-manager/wallet-balances/:walletPublicKey", middleware.JwtTokenAuthMiddleware(), getTrovoManagerWalletBalancesWalletPublicKeyHandler(callBackRetryChan, gc))
+	router.GET("/v1/trovo-manager/wallet-balances/:walletAddress", middleware.JwtTokenAuthMiddleware(), getTrovoManagerWalletBalancesWalletAddressHandler(callBackRetryChan, gc))
 
 	// market making
 	{
@@ -151,9 +151,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	}
 	//CRYPTO
 	{
-		router.GET("/v1/crypto/withdrawal-history/:currency/:targetPublicKeyForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), getCryptoWithdrawalHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRetryChan, gc))
+		router.GET("/v1/crypto/withdrawal-history/:currency/:targetAddressForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), getCryptoWithdrawalHistoryCurrencyTargetAddressForHistoryHandler(callBackRetryChan, gc))
 
-		router.GET("/v1/crypto/deposit-history/:currency/:targetPublicKeyForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), getCryptoDepositHistoryCurrencyTargetPublicKeyForHistoryHandler(callBackRetryChan, gc))
+		router.GET("/v1/crypto/deposit-history/:currency/:targetAddressForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), getCryptoDepositHistoryCurrencyTargetAddressForHistoryHandler(callBackRetryChan, gc))
 
 		//get specific  wallet balance, middleware.AuthenticationMiddlewareUsingTimestamp()
 		router.GET("/v1/crypto/withdrawal-networks/:currency", middleware.AuthenticationMiddlewareUsingTimestamp(), getCryptoWithdrawalNetworksCurrencyHandler(callBackRetryChan, gc))
@@ -176,7 +176,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	if os.Getenv("ENABLE_ASSET_TOKENIZATION") == "1" {
 		log.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ASSET TOKENIZATION is enabled!")
-		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) != 56 {
+		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) != 42 {
 			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV TOKENIZATION_ISSUING_PROFILE_WALLET is missing!")
 
 		}
@@ -184,12 +184,12 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV TOKENIZATION_ISSUING_PROFILE is missing!")
 
 		}
-		if len(os.Getenv("TOKENIZATION_FEE_WALLET")) != 56 {
+		if len(os.Getenv("TOKENIZATION_FEE_WALLET")) != 42 {
 			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV TOKENIZATION_FEE_WALLET is missing!")
 
 		}
 
-		if len(os.Getenv("TOKENIZATION_APPLICATION_FEE_ASSET")) < 56 {
+		if len(os.Getenv("TOKENIZATION_APPLICATION_FEE_ASSET")) < 44 {
 			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV TOKENIZATION_APPLICATION_FEE_ASSET is invaid!")
 
 		}
@@ -264,7 +264,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 			//get the wallet you are exiting from
-			exitingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+			exitingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 			if getWalletError != nil {
 
@@ -374,7 +374,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 			//get the wallet you are exiting from
-			exitingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+			exitingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 			if getWalletError != nil {
 
@@ -403,7 +403,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			}
 
-			walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+			walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)
 
 			if err != nil {
 				var ex tErrors.GenericError
@@ -450,7 +450,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				hasInitiatorAccess := false
 				// check if user has initiator access to wallet.
 				for _, p := range accountSignerUser.WalletsSharedWithUser {
-					if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
+					if p.WalletAddress == middleware.ExtractAddress(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
 						hasInitiatorAccess = true
 					}
 				}

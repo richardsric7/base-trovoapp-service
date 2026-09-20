@@ -1581,7 +1581,7 @@ func getServicelinksAppAuthorizeVerifyOwnerUsernameTargetUserAuthIdHandler(gc *s
 			c.JSON(statusCode, response)
 			return
 		}
-		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
+		if mInfo.Address != middleware.ExtractAddress(c) {
 			//wrong access
 			statusCode := http.StatusUnauthorized
 			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
@@ -1676,7 +1676,7 @@ func getServicelinksPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfi
 		ownerUsername := strings.TrimSpace(strings.ToLower(c.Query("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		paymentDestination := strings.TrimSpace(strings.ToLower(c.Query("paymentDestination")))
-		if len(paymentDestination) == 56 {
+		if len(paymentDestination) == 42 {
 			paymentDestination = strings.ToUpper(paymentDestination)
 		}
 		assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
@@ -1723,7 +1723,7 @@ func getServicelinksPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfi
 			c.JSON(statusCode, response)
 			return
 		}
-		// if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
+		// if mInfo.Address != middleware.ExtractAddress(c) {
 		// 	//wrong access
 		// 	statusCode := http.StatusUnauthorized
 		// 	response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
@@ -1802,7 +1802,7 @@ func getTrovoApiPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfig) g
 		ownerUsername := strings.TrimSpace(strings.ToLower(c.Query("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		paymentDestination := strings.TrimSpace(strings.ToLower(c.Query("paymentDestination")))
-		if len(paymentDestination) == 56 {
+		if len(paymentDestination) == 42 {
 			paymentDestination = strings.ToUpper(paymentDestination)
 		}
 		assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
@@ -1849,7 +1849,7 @@ func getTrovoApiPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfig) g
 			c.JSON(statusCode, response)
 			return
 		}
-		// if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
+		// if mInfo.Address != middleware.ExtractAddress(c) {
 		// 	//wrong access
 		// 	statusCode := http.StatusUnauthorized
 		// 	response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
@@ -2035,7 +2035,7 @@ func getServicelinksOwnerUsernameTargetUserUserinfoHandler(gc *sharedconfig.Glob
 			c.JSON(statusCode, response)
 			return
 		}
-		// if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
+		// if mInfo.Address != middleware.ExtractAddress(c) {
 		// 	//wrong access
 		// 	statusCode := http.StatusUnauthorized
 		// 	response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
@@ -2122,7 +2122,7 @@ func postServicelinksOwnerUsernameTargetUserPushHandler(gc *sharedconfig.GlobalC
 			c.JSON(statusCode, response)
 			return
 		}
-		// if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
+		// if mInfo.Address != middleware.ExtractAddress(c) {
 		// 	//wrong access
 		// 	statusCode := http.StatusUnauthorized
 		// 	response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
@@ -2273,11 +2273,11 @@ func postTrovoApiUsersOnboardHandler(gc *sharedconfig.GlobalConfig) gin.HandlerF
 
 		err = json.Unmarshal(data, &userRegistrationInfo)
 
-		if len(userRegistrationInfo.PublicKey) != 56 {
+		if len(userRegistrationInfo.Address) != 42 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-public-key", "data": "publicKey", "message": "Invalid Public key."})
 			return
 		}
-		if len(userRegistrationInfo.PrimarySigner) != 56 {
+		if len(userRegistrationInfo.PrimarySigner) != 42 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-primary-signer-public-key", "data": "primarySigner", "message": "Invalid Primary Signer Public key."})
 			return
 		}
@@ -2536,7 +2536,7 @@ func postTrovoApiTokensMintHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFun
 			return
 		}
 
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2617,15 +2617,15 @@ func postTrovoApiTokensMintHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFun
 	}
 }
 
-// getTrovoApiUsersBalanceWalletPublicKeyHandler godoc
-// @Summary GET /v1/trovo-api/users/balance/:walletPublicKey
+// getTrovoApiUsersBalanceWalletAddressHandler godoc
+// @Summary GET /v1/trovo-api/users/balance/:walletAddress
 // @Tags servicelinks
 // @Produce json
-// @Param walletPublicKey path string true "Wallet public key"
+// @Param walletAddress path string true "Wallet public key"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
-// @Router /v1/trovo-api/users/balance/{walletPublicKey} [get]
-func getTrovoApiUsersBalanceWalletPublicKeyHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+// @Router /v1/trovo-api/users/balance/{walletAddress} [get]
+func getTrovoApiUsersBalanceWalletAddressHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
@@ -2676,9 +2676,9 @@ func getTrovoApiUsersBalanceWalletPublicKeyHandler(gc *sharedconfig.GlobalConfig
 			}
 			return
 		}
-		walletPublicKey := c.Param("walletPublicKey")
+		walletAddress := c.Param("walletAddress")
 
-		wallet, _, err := usersDB.GetWallet(walletPublicKey, gc.DB)
+		wallet, _, err := usersDB.GetWallet(walletAddress, gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2728,7 +2728,7 @@ func getTrovoApiUsersBalanceWalletPublicKeyHandler(gc *sharedconfig.GlobalConfig
 
 		assetBalances, err := wallet.GetWalletAssetBalances(gc)
 		if err != nil {
-			log.Printf("[GET Wallet Balances] error for signer:%v, publicKey: %v, error: %v", signerUser.Username, walletPublicKey, err)
+			log.Printf("[GET Wallet Balances] error for signer:%v, publicKey: %v, error: %v", signerUser.Username, walletAddress, err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -2753,15 +2753,15 @@ func getTrovoApiUsersBalanceWalletPublicKeyHandler(gc *sharedconfig.GlobalConfig
 	}
 }
 
-// getTrovoApiUsersPaymentHistoryWalletPublicKeyHandler godoc
-// @Summary GET /v1/trovo-api/users/payment-history/:walletPublicKey
+// getTrovoApiUsersPaymentHistoryWalletAddressHandler godoc
+// @Summary GET /v1/trovo-api/users/payment-history/:walletAddress
 // @Tags servicelinks
 // @Produce json
-// @Param walletPublicKey path string true "Wallet public key"
+// @Param walletAddress path string true "Wallet public key"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
-// @Router /v1/trovo-api/users/payment-history/{walletPublicKey} [get]
-func getTrovoApiUsersPaymentHistoryWalletPublicKeyHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+// @Router /v1/trovo-api/users/payment-history/{walletAddress} [get]
+func getTrovoApiUsersPaymentHistoryWalletAddressHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
@@ -2812,9 +2812,9 @@ func getTrovoApiUsersPaymentHistoryWalletPublicKeyHandler(gc *sharedconfig.Globa
 			}
 			return
 		}
-		walletPublicKey := c.Param("walletPublicKey")
+		walletAddress := c.Param("walletAddress")
 
-		wallet, temp, err := usersDB.GetWallet(walletPublicKey, gc.DB)
+		wallet, temp, err := usersDB.GetWallet(walletAddress, gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2871,7 +2871,7 @@ func getTrovoApiUsersPaymentHistoryWalletPublicKeyHandler(gc *sharedconfig.Globa
 
 		}
 
-		_, err = evmkeypair.ParseAddress(walletPublicKey)
+		_, err = evmkeypair.ParseAddress(walletAddress)
 		if err != nil {
 
 			statusCode := http.StatusBadRequest
@@ -2880,7 +2880,7 @@ func getTrovoApiUsersPaymentHistoryWalletPublicKeyHandler(gc *sharedconfig.Globa
 			c.JSON(statusCode, response)
 			return
 		}
-		cacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", walletPublicKey)
+		cacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", walletAddress)
 		cacheKeyParameters := c.Request.URL.RequestURI()
 		{
 			// check cache
@@ -2897,7 +2897,7 @@ func getTrovoApiUsersPaymentHistoryWalletPublicKeyHandler(gc *sharedconfig.Globa
 		cacheDurationInSeconds := 20 //in seconds
 
 		//Get Payment history
-		historyRecords := paymentServices.GetPaymentHistory(walletPublicKey, gc, c)
+		historyRecords := paymentServices.GetPaymentHistory(walletAddress, gc, c)
 
 		c.JSON(http.StatusOK, historyRecords)
 		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
@@ -2971,7 +2971,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 			return
 		}
 		signerAccountAlias := accountSignerUser.Username
-		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractAddress(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] %v error:%v\n", signerAccountAlias, getUserError)
 		}
 		if accountSignerUser.Suspended == 1 {
@@ -2997,7 +2997,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 
 		{
 			//check if pending shared access modify exists
-			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractAddress(c), gc.DB) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
 				return
 			}
@@ -3019,7 +3019,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 			c.JSON(invalidJSON.HTTPCode(), invalidJSON.JSONError())
 			return
 		}
-		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractAddress(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] paymentInfo %+v\n", paymentInfo)
 		}
 
@@ -3044,8 +3044,8 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 			return
 		}
 		//get the wallet you are sending payment from
-		sourceWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+		sourceWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractAddress(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] %v error:%v\n", signerAccountAlias, getWalletError)
 		}
 		if getWalletError != nil {
@@ -3103,7 +3103,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 		var getDestinationUserError, getDestinationWalletError error
 		//check if the public key exists in TROVO and then transform to username
 		paymentInfo.Messages = make([]string, 0)
-		publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
+		publicKeyPayment := len(paymentInfo.Destination) == 42
 		if publicKeyPayment {
 			paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
 			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
@@ -3178,7 +3178,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 
 		}
 		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &sourceWallet, &paymentInfo, gc)
-		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractAddress(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] returned Payment Error: [%v]\n", paymentError)
 
 			if paymentInfoReturned != nil {
@@ -3214,31 +3214,31 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 			}
 
 			paymentServices.UpdateAndLogUserPaymentGeoInformation(&accountSignerUser, paymentInfoReturned, gc.DB)
-			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
 			senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", signerAccountAlias)
 
 			gc.RedisCache.InvalidateCachedHttpResponse(senderCacheKey, senderPaymentHistoryCacheKey)
 			gc.RedisCache.InvalidateCachedHttpResponse(senderPaymentHistoryCacheKey)
 			var senderBalanceCacheKey, senderTempCacheKey, receiverBalanceCacheKey, receiverTempCacheKey, rNTF, sNFT string
 
-			senderBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
-			sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+			senderBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractAddress(c))
+			sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractAddress(c))
 			if returnedDestination != nil {
-				receiverBalanceCacheKey = fmt.Sprintf("GetBalance_%s", returnedDestination.PublicKey)
-				rNTF = fmt.Sprintf("GetNFTs_%s", returnedDestination.PublicKey)
+				receiverBalanceCacheKey = fmt.Sprintf("GetBalance_%s", returnedDestination.Address)
+				rNTF = fmt.Sprintf("GetNFTs_%s", returnedDestination.Address)
 
 			}
-			if len(destinationWallet.ID) == 56 {
+			if len(destinationWallet.ID) == 42 {
 				destinationWallet.InvalidateUserCache(gc)
-				if destinationWallet.TempPublicKey != nil {
+				if destinationWallet.TempAddress != nil {
 
-					receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
+					receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempAddress)
 				}
 			}
-			if len(sourceWallet.ID) == 56 {
-				if sourceWallet.TempPublicKey != nil {
+			if len(sourceWallet.ID) == 42 {
+				if sourceWallet.TempAddress != nil {
 
-					senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempPublicKey)
+					senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempAddress)
 				}
 
 			}
@@ -3247,7 +3247,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 				destinationUsername := strings.TrimSpace(strings.ToLower(destinationUser.Username))
 
 				receiverCacheKey := fmt.Sprintf("[GET] /v1/users/%v", destinationUsername)
-				receiverPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+				receiverPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverCacheKey, receiverPaymentHistoryCacheKey)
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverPaymentHistoryCacheKey, senderBalanceCacheKey, receiverBalanceCacheKey)
 				returnedDestination.InvalidateUserCache(gc)
@@ -3281,7 +3281,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 					if paymentInfoReturned.AssetIssuer == "" {
 						assetCode = os.Getenv("NATIVE_ASSET_CODE")
 					}
-					senderWallet, _, _ := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+					senderWallet, _, _ := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 					jsonPayload := payload{
 						Destination:     paymentInfoReturned.Destination,
 						Sender:          senderWallet.Alias,
@@ -4899,7 +4899,7 @@ func postTrovoApiAssetsMarketplacePrimaryHandler(gc *sharedconfig.GlobalConfig) 
 			return
 		}
 		//get the wallet you are sending payment from
-		destinationWallet, temp, getWalletError := usersDB.GetWallet(tInput.DestinationWalletPublicKey, gc.DB)
+		destinationWallet, temp, getWalletError := usersDB.GetWallet(tInput.DestinationWalletAddress, gc.DB)
 
 		if getWalletError != nil {
 

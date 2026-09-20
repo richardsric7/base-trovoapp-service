@@ -11,10 +11,10 @@ import (
 )
 
 // GetUserInfo gets the user Information
-func GetUserInfo(identifier string, signerPublicKey string, gc *sharedconfig.GlobalConfig) (userInfo userModels.UserInfo, err error) {
+func GetUserInfo(identifier string, signerAddress string, gc *sharedconfig.GlobalConfig) (userInfo userModels.UserInfo, err error) {
 	var owner bool
 	//get user from DB
-	primarySigner, err := usersDB.GetUserFromPrimarySigner(signerPublicKey, gc.DB, gc)
+	primarySigner, err := usersDB.GetUserFromPrimarySigner(signerAddress, gc.DB, gc)
 	if err != nil {
 		return userModels.UserInfo{}, &tErrors.CustomError{Param: "primarySigner",
 			Err:        "error invalid primary signer",

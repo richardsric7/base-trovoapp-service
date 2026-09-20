@@ -302,7 +302,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/crypto/deposit-history/{currency}/{targetPublicKeyForHistory}": {
+        "/v1/crypto/deposit-history/{currency}/{targetAddressForHistory}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -310,7 +310,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "GET /v1/crypto/deposit-history/:currency/:targetPublicKeyForHistory",
+                "summary": "GET /v1/crypto/deposit-history/:currency/:targetAddressForHistory",
                 "parameters": [
                     {
                         "type": "string",
@@ -322,7 +322,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Target public key",
-                        "name": "targetPublicKeyForHistory",
+                        "name": "targetAddressForHistory",
                         "in": "path",
                         "required": true
                     }
@@ -388,7 +388,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/crypto/withdrawal-history/{currency}/{targetPublicKeyForHistory}": {
+        "/v1/crypto/withdrawal-history/{currency}/{targetAddressForHistory}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -396,7 +396,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "GET /v1/crypto/withdrawal-history/:currency/:targetPublicKeyForHistory",
+                "summary": "GET /v1/crypto/withdrawal-history/:currency/:targetAddressForHistory",
                 "parameters": [
                     {
                         "type": "string",
@@ -408,7 +408,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Target public key",
-                        "name": "targetPublicKeyForHistory",
+                        "name": "targetAddressForHistory",
                         "in": "path",
                         "required": true
                     }
@@ -3783,7 +3783,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/trovo-api/users/balance/{walletPublicKey}": {
+        "/v1/trovo-api/users/balance/{walletAddress}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -3791,12 +3791,12 @@ const docTemplate = `{
                 "tags": [
                     "servicelinks"
                 ],
-                "summary": "GET /v1/trovo-api/users/balance/:walletPublicKey",
+                "summary": "GET /v1/trovo-api/users/balance/:walletAddress",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Wallet public key",
-                        "name": "walletPublicKey",
+                        "name": "walletAddress",
                         "in": "path",
                         "required": true
                     }
@@ -3915,7 +3915,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/trovo-api/users/payment-history/{walletPublicKey}": {
+        "/v1/trovo-api/users/payment-history/{walletAddress}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -3923,12 +3923,12 @@ const docTemplate = `{
                 "tags": [
                     "servicelinks"
                 ],
-                "summary": "GET /v1/trovo-api/users/payment-history/:walletPublicKey",
+                "summary": "GET /v1/trovo-api/users/payment-history/:walletAddress",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Wallet public key",
-                        "name": "walletPublicKey",
+                        "name": "walletAddress",
                         "in": "path",
                         "required": true
                     }
@@ -4677,7 +4677,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/trovo-manager/wallet-balances/{walletPublicKey}": {
+        "/v1/trovo-manager/wallet-balances/{walletAddress}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -4685,12 +4685,12 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "GET /v1/trovo-manager/wallet-balances/:walletPublicKey",
+                "summary": "GET /v1/trovo-manager/wallet-balances/:walletAddress",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Wallet public key",
-                        "name": "walletPublicKey",
+                        "name": "walletAddress",
                         "in": "path",
                         "required": true
                     }
@@ -5599,7 +5599,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/users/payments/{targetPublicKeyForHistory}": {
+        "/v1/users/payments/{targetAddressForHistory}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -5607,12 +5607,12 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "GET /v1/users/payments/:targetPublicKeyForHistory",
+                "summary": "GET /v1/users/payments/:targetAddressForHistory",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Target public key",
-                        "name": "targetPublicKeyForHistory",
+                        "name": "targetAddressForHistory",
                         "in": "path",
                         "required": true
                     }
@@ -6528,7 +6528,7 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "newSignerPublicKey": {
+                "newSignerAddress": {
                     "type": "string"
                 },
                 "securityAnswers": {
@@ -6671,7 +6671,7 @@ const docTemplate = `{
                 "transactionSignature": {
                     "type": "string"
                 },
-                "walletPublicKey": {
+                "walletAddress": {
                     "type": "string"
                 }
             }
@@ -7232,7 +7232,7 @@ const docTemplate = `{
                 "emailOtp": {
                     "type": "string"
                 },
-                "newSignerPublicKey": {
+                "newSignerAddress": {
                     "type": "string"
                 },
                 "securityAnswers": {
@@ -7412,7 +7412,7 @@ const docTemplate = `{
                 "transactionSignature": {
                     "type": "string"
                 },
-                "walletPublicKey": {
+                "walletAddress": {
                     "type": "string"
                 }
             }
@@ -7545,7 +7545,7 @@ const docTemplate = `{
                 "linkedWalletMustSign": {
                     "type": "integer"
                 },
-                "linkedWalletPublicKey": {
+                "linkedWalletAddress": {
                     "description": "required for initial call only if wallet type is issuing wallet",
                     "type": "string"
                 },
@@ -7570,7 +7570,7 @@ const docTemplate = `{
                 "subWalletSignature": {
                     "type": "string"
                 },
-                "subwalletPublicKey": {
+                "subwalletAddress": {
                     "description": "required for Initial Call",
                     "type": "string"
                 },
@@ -7585,7 +7585,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "walletType": {
-                    "description": "0=normal, 1= assetIssuing (if issuing wallet, then linkedWalletPublicKey is required). Required for initial Call",
+                    "description": "0=normal, 1= assetIssuing (if issuing wallet, then linkedWalletAddress is required). Required for initial Call",
                     "type": "integer"
                 }
             }
@@ -7611,7 +7611,7 @@ const docTemplate = `{
                 "linkedWalletMustSign": {
                     "type": "integer"
                 },
-                "linkedWalletPublicKey": {
+                "linkedWalletAddress": {
                     "type": "string"
                 },
                 "linkedWalletSignature": {
@@ -8973,7 +8973,7 @@ const docTemplate = `{
                 "commit": {
                     "type": "integer"
                 },
-                "destinationWalletPublicKey": {
+                "destinationWalletAddress": {
                     "type": "string"
                 },
                 "memo": {
@@ -9065,7 +9065,7 @@ const docTemplate = `{
                 "transactionSignature": {
                     "type": "string"
                 },
-                "walletPublicKey": {
+                "walletAddress": {
                     "type": "string"
                 }
             }
@@ -9243,7 +9243,7 @@ const docTemplate = `{
                     }
                 },
                 "sHash": {
-                    "description": "LinkedWalletPublicKey            string                 ` + "`" + `json:\"linkedWalletPublicKey\"` + "`" + `\nLinkedWalletSignatureRequired    int                    ` + "`" + `json:\"linkedWalletSignatureRequired\"` + "`" + `",
+                    "description": "LinkedWalletAddress            string                 ` + "`" + `json:\"linkedWalletAddress\"` + "`" + `\nLinkedWalletSignatureRequired    int                    ` + "`" + `json:\"linkedWalletSignatureRequired\"` + "`" + `",
                     "type": "string"
                 },
                 "signatureRequired": {
@@ -9259,7 +9259,7 @@ const docTemplate = `{
                 "transactionSignature": {
                     "type": "string"
                 },
-                "walletPublicKey": {
+                "walletAddress": {
                     "type": "string"
                 }
             }

@@ -149,14 +149,14 @@ type OKResponse struct {
 }
 
 type CryptoWalletDepositAddress struct {
-	ID                   string    `json:"id"`
-	CreatedAt            time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"createdAt"`
-	UserID               string    `gorm:"not null;size:100;" json:"-"`
-	TrovoWalletPublicKey string    `gorm:"not null;size:100;index:idx_unique_address,unique" json:"TrovoWalletPublicKey"`
-	Currency             string    `gorm:"not null;size:12;index:idx_unique_address,unique" json:"currency"`
-	DepositAddress       string    `gorm:"not null;size:100" json:"depositAddress"`
-	Network              string    `gorm:"not null;size:100;index:idx_unique_address,unique" json:"network"`
-	QRCode               *string   `gorm:"null;" json:"qrCode"`
+	ID                 string    `json:"id"`
+	CreatedAt          time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"createdAt"`
+	UserID             string    `gorm:"not null;size:100;" json:"-"`
+	TrovoWalletAddress string    `gorm:"not null;size:100;index:idx_unique_address,unique" json:"TrovoWalletAddress"`
+	Currency           string    `gorm:"not null;size:12;index:idx_unique_address,unique" json:"currency"`
+	DepositAddress     string    `gorm:"not null;size:100" json:"depositAddress"`
+	Network            string    `gorm:"not null;size:100;index:idx_unique_address,unique" json:"network"`
+	QRCode             *string   `gorm:"null;" json:"qrCode"`
 }
 
 type CryptoSubwalletResponse struct {
@@ -207,16 +207,16 @@ type CryptoWithdrawalNetworksResponse struct {
 }
 
 type CryptoWithdrawal struct {
-	TrovoWalletPublicKey string  `gorm:"size:100" json:"TrovoWalletPublicKey"`
-	WithdrawalID         string  `gorm:"primaryKey" json:"withdrawalId"`
-	Amount               float64 `json:"amount"`
-	Fees                 float64 `json:"fees"`
-	PerformedOn          string  `json:"createdAt"`
-	UpdatedOn            string  `json:"updatedAt"`
-	Currency             string  `gorm:"size:100" json:"currency"`
-	Network              string  `gorm:"size:100" json:"network"`
-	ToAddress            string  `gorm:"size:100" json:"toAddress"`
-	Status               string  `json:"status"`
+	TrovoWalletAddress string  `gorm:"size:100" json:"TrovoWalletAddress"`
+	WithdrawalID       string  `gorm:"primaryKey" json:"withdrawalId"`
+	Amount             float64 `json:"amount"`
+	Fees               float64 `json:"fees"`
+	PerformedOn        string  `json:"createdAt"`
+	UpdatedOn          string  `json:"updatedAt"`
+	Currency           string  `gorm:"size:100" json:"currency"`
+	Network            string  `gorm:"size:100" json:"network"`
+	ToAddress          string  `gorm:"size:100" json:"toAddress"`
+	Status             string  `json:"status"`
 }
 
 type OnliquiditySubWalletInput struct {

@@ -755,7 +755,7 @@ func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.H
 				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error saving payment data [%+v]. Err: %v\n", event, err)
 			}
 			//save payment invoices
-			err = userServices.SaveUserPaymentInvoiceData(user.Username, "flutterwave", "ACTIVATION", event.Data.TxRef, "COMPLETED", &user.Username, &user.PublicKey, nil, nil, nil, float64(event.Data.Amount), gc)
+			err = userServices.SaveUserPaymentInvoiceData(user.Username, "flutterwave", "ACTIVATION", event.Data.TxRef, "COMPLETED", &user.Username, &user.Address, nil, nil, nil, float64(event.Data.Amount), gc)
 			if err != nil {
 				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error saving payment invoice [%+v]. Err: %v\n", event, err))
 				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error saving payment invoice [%+v]. Err: %v\n", event, err)

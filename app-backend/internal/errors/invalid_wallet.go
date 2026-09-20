@@ -11,7 +11,7 @@ const errorInvalidWallet = "error-invalid-wallet"
 
 // ErrorInvalidWallet for invalid wallet
 type ErrorInvalidWallet struct {
-	PublicKey string
+	Address string
 }
 
 // Error returns the error string
@@ -31,7 +31,7 @@ func (e *ErrorInvalidWallet) Data() string {
 
 // Message returns tring message of error
 func (e *ErrorInvalidWallet) Message() string {
-	return fmt.Sprintf("wallet address %v is invalid", e.PublicKey)
+	return fmt.Sprintf("wallet address %v is invalid", e.Address)
 }
 
 // JSONError returns json of the error

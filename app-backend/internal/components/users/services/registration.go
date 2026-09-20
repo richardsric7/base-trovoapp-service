@@ -23,10 +23,10 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 	if len(os.Getenv("REGISTRATION_ERROR_WEBHOOK")) > 50 {
 		discord.WebhookURL = os.Getenv("REGISTRATION_ERROR_WEBHOOK")
 	}
-	// if banned, errBanned := users.PublicKeyIsBanned(userInfo.PublicKey, gc.DB); banned {
+	// if banned, errBanned := users.AddressIsBanned(userInfo.Address, gc.DB); banned {
 	// 	return userInfo, false, errBanned
 	// }
-	keyExists, errExists := users.PublicKeyAlreadyExists(userInfo.PublicKey, gc.DB)
+	keyExists, errExists := users.AddressAlreadyExists(userInfo.Address, gc.DB)
 	if errExists != nil && !keyExists {
 		//server error
 		return userInfo, false, errExists
@@ -35,7 +35,7 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 
 		return userInfo, false, errExists
 	}
-	exists, errExists := users.PrimarySignerAlreadyExists(userInfo.PublicKey, gc.DB)
+	exists, errExists := users.PrimarySignerAlreadyExists(userInfo.Address, gc.DB)
 	if errExists != nil && !exists {
 		//system error
 		return userInfo, false, errExists
@@ -147,10 +147,10 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 	// dbTx.Commit()
 	{
 		//send to monitoring service
-		trackPublicKey := userModels.TrackedPublicKey{
-			PublicKey: user.PublicKey,
+		trackAddress := userModels.TrackedAddress{
+			Address: user.Address,
 		}
-		errTrack := gc.RoachDB.Create(&trackPublicKey).Error
+		errTrack := gc.RoachDB.Create(&trackAddress).Error
 		if errTrack != nil {
 			//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
 			discord.Say(fmt.Sprintf("[RegisterUser] tracking public key for payment history failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", userInfo.Username, errTrack, userInfo))

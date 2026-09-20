@@ -50,13 +50,13 @@ func postUsersSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 		}
 		{
 			//check if pending shared access op exists
-			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractAddress(c), gc.DB) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
 				return
 			}
 		}
 
-		wallet, temp, getWalletError := usersdb.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, temp, getWalletError := usersdb.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -182,7 +182,6 @@ func postUsersSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
-
 // postSharedAccessSwapHandler godoc
 // @Summary POST /v1/shared-access/swap
 // @Tags payments
@@ -198,7 +197,7 @@ func postSharedAccessSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc 
 
 		{
 			//check if pending shared access op exists
-			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractAddress(c), gc.DB) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
 				return
 			}
@@ -240,7 +239,7 @@ func postSharedAccessSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc 
 
 		}
 
-		wallet, temp, getWalletError := usersdb.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		wallet, temp, getWalletError := usersdb.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -302,7 +301,7 @@ func postSharedAccessSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc 
 		if wallet.SharedAccessEnabled == 1 && !isViewOnly {
 
 			for _, p := range signerOwner.WalletsSharedWithUser {
-				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerOwner.Username && p.Permission == "INITIATOR" {
+				if p.WalletAddress == middleware.ExtractAddress(c) && p.TargetUsername == signerOwner.Username && p.Permission == "INITIATOR" {
 					hasInitiatorAccess = true
 				}
 			}

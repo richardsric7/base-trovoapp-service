@@ -319,7 +319,7 @@ type TokenizedAsset struct {
 	ClosedGroupID                                *string    `gorm:"null" json:"closedGroupId"`
 	SecApproval                                  int        `gorm:"default:0" json:"secApproval"`
 	SecApprovalIdNumber                          *string    `json:"secApprovalIdNumber"`
-	IssuingWalletPublicKey                       *string    `gorm:"size:60" json:"issuingWalletPublicKey"`
+	IssuingWalletAddress                         *string    `gorm:"size:60" json:"issuingWalletAddress"`
 	IssuingWalletAlias                           *string    `gorm:"size:60" json:"issuingWalletAlias"`
 	MarketMakingWallet                           *string    `json:"marketMakingWallet"`
 	AssetDescription                             *string    `json:"assetDescription"`
@@ -780,7 +780,7 @@ type TokenizedAssetJSON struct {
 	OfferingType                                string    `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
 	SecApproval                                 int       `gorm:"default:0" json:"secApproval"`
 	SecApprovalIdNumber                         string    `json:"secApprovalIdNumber"`
-	IssuingWalletPublicKey                      string    `gorm:"size:60" json:"issuingWalletPublicKey"`
+	IssuingWalletAddress                        string    `gorm:"size:60" json:"issuingWalletAddress"`
 	IssuingWalletAlias                          string    `gorm:"size:60" json:"issuingWalletAlias"`
 	MarketMakingWallet                          string    `json:"marketMakingWallet"`
 	AssetDescription                            string    `json:"assetDescription"`
@@ -916,7 +916,7 @@ func (gc *GlobalConfig) GetCuratedAssetByClassID(assetClassID uint64, includeIna
 
 type PostTokenizationTrustlineCandidate struct {
 	ID          uint64
-	PublicKey   string
+	Address     string
 	Description string
 }
 
@@ -1120,8 +1120,8 @@ func (ti *TokenizedAsset) ToJSON() (t TokenizedAssetJSON) {
 		t.SecApprovalIdNumber = *ti.SecApprovalIdNumber
 	}
 
-	if ti.IssuingWalletPublicKey != nil {
-		t.IssuingWalletPublicKey = *ti.IssuingWalletPublicKey
+	if ti.IssuingWalletAddress != nil {
+		t.IssuingWalletAddress = *ti.IssuingWalletAddress
 	}
 	if ti.IssuingWalletAlias != nil {
 		t.IssuingWalletAlias = *ti.IssuingWalletAlias
@@ -1387,7 +1387,7 @@ type FeeCollection struct {
 	UpdatedAt                  time.Time `json:"updatedAt"`
 	ID                         string    `gorm:"size:100;primaryKey" json:"id"`
 	FromUsername               string    `json:"fromUsername"`
-	FromWalletPublicKey        string    `json:"fromWalletPublicKey"`
+	FromWalletAddress          string    `json:"fromWalletAddress"`
 	FromWalletAlias            string    `json:"fromWalletAlias"`
 	BelongsToEnterpriseProfile *string   `gorm:"null" json:"belongsToEnterpriseProfile"` //enterprise profile username if this user belongs to an enterprise profile
 	FeeType                    string    `gorm:"not null" json:"feeType"`

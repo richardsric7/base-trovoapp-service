@@ -38,7 +38,7 @@ func ValidatePaymentInfo(paymentInfo *paymentModels.PaymentInfo) (*paymentModels
 
 	{
 		if len(paymentInfo.AssetIssuer) > 0 {
-			err := validators.ValidatePublicKeyFormat(paymentInfo.AssetIssuer)
+			err := validators.ValidateAddressFormat(paymentInfo.AssetIssuer)
 			if err != nil {
 				return paymentInfo, err
 			}
@@ -49,7 +49,7 @@ func ValidatePaymentInfo(paymentInfo *paymentModels.PaymentInfo) (*paymentModels
 
 	{
 		if len(paymentInfo.ChannelAccount) > 0 {
-			err := validators.ValidatePublicKeyFormat(paymentInfo.ChannelAccount)
+			err := validators.ValidateAddressFormat(paymentInfo.ChannelAccount)
 			if err != nil {
 				return paymentInfo, err
 			}
@@ -107,7 +107,7 @@ func ValidateMintingInfo(mintingInfo *userModels.MintingInfo) (*userModels.Minti
 
 	{
 		if len(mintingInfo.AssetIssuer) > 0 {
-			err := validators.ValidatePublicKeyFormat(mintingInfo.AssetIssuer)
+			err := validators.ValidateAddressFormat(mintingInfo.AssetIssuer)
 			if err != nil {
 				return mintingInfo, err
 			}
@@ -118,7 +118,7 @@ func ValidateMintingInfo(mintingInfo *userModels.MintingInfo) (*userModels.Minti
 
 	{
 		if len(mintingInfo.ChannelAccount) > 0 {
-			err := validators.ValidatePublicKeyFormat(mintingInfo.ChannelAccount)
+			err := validators.ValidateAddressFormat(mintingInfo.ChannelAccount)
 			if err != nil {
 				return mintingInfo, err
 			}

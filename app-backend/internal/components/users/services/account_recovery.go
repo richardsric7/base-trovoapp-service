@@ -42,7 +42,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	if user.AccountRecoveryEnabled == 1 {
 		return &tErrors.CustomError{Param: "username", Err: "error account recovery already enabled.", ErrMessage: "Account recovery already enabled."}
 	}
-	wallet, _ := userModels.UserWalletID(user.PublicKey).GetWallet(gc.DB, gc)
+	wallet, _ := userModels.UserWalletID(user.Address).GetWallet(gc.DB, gc)
 	if wallet.SharedAccessEnabled == 1 && !WalletHasViewOnlyAccess(&wallet, gc) {
 		return &tErrors.CustomError{Param: "username", Err: "error primary wallet has shared access.", ErrMessage: "Primary wallet has shared access enabled! Only primary wallets without shared access or with view only shared access can participate in account recovery at this time."}
 	}
@@ -58,7 +58,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 
-	nativeBalance, e := userBc.GetNativeBalance(user.PublicKey)
+	nativeBalance, e := userBc.GetNativeBalance(user.Address)
 	if e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
 			return &tErrors.CustomError{Param: "username", Err: "error primary account not yet activated", ErrMessage: fmt.Sprintf("Primary account is not yet activated. Please send upto 50 %v to the primary wallet to continue.", os.Getenv("NATIVE_ASSET_CODE"))}
@@ -72,7 +72,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	}
 
 	//get the recovery keypair
-	recoveryAddress := bc.GetRecoveryAccountAddress(user.Username, user.PublicKey)
+	recoveryAddress := bc.GetRecoveryAccountAddress(user.Username, user.Address)
 	if len(recoveryAddress) == 0 {
 		return &tErrors.CustomError{Param: "username", Err: "error generating recovery address", ErrMessage: "Could not generate valid recovery address for account."}
 
@@ -85,7 +85,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 			ops = append(ops, &basetxn.CreateAccount{
 				Destination:   recoveryAddress,
 				Amount:        fmt.Sprintf("%v", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount),
-				SourceAccount: user.PublicKey,
+				SourceAccount: user.Address,
 			})
 			messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your unique recovery key on the blockchain.", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount, RECOVERY_SIGNER_ACTIVATION_AMOUNT.AssetCode, user.Username))
 
@@ -97,17 +97,17 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	// 		Destination:   recoveryAddress,
 	// 		Amount:        "6",
 	// 		Asset:         basetxn.NativeAsset{},
-	// 		SourceAccount: user.PublicKey,
+	// 		SourceAccount: user.Address,
 	// 	})
 	// }
-	if !userBc.SignerIsValid(user.PublicKey, recoveryAddress) {
+	if !userBc.SignerIsValid(user.Address, recoveryAddress) {
 		//recovery not a signer to the primary wallet.
 		ops = append(ops, &basetxn.SetOptions{
 			Signer: &basetxn.Signer{
 				Address: recoveryAddress,
 				Weight:  1,
 			},
-			SourceAccount: user.PublicKey,
+			SourceAccount: user.Address,
 		})
 	}
 	//check for subwallets
@@ -138,7 +138,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 						ops = append(ops, &basetxn.CreateAccount{
 							Destination:   w.ID,
 							Amount:        fmt.Sprintf("%v", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount),
-							SourceAccount: user.PublicKey,
+							SourceAccount: user.Address,
 						})
 						messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your subwallet [%v] on the blockchain.", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount, RECOVERY_SIGNER_ACTIVATION_AMOUNT.AssetCode, user.Username, w.Alias))
 
@@ -230,7 +230,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 			feeAddress := feeKeypair.Address()
 
 			feeAsset := basetxn.CreditAsset{Code: ACCOUNT_RECOVERY_FEE.FeeAssetCode, Issuer: ACCOUNT_RECOVERY_FEE.FeeAssetIssuer}
-			_, _, _, assetBalance, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, user.PublicKey, feeAsset)
+			_, _, _, assetBalance, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, user.Address, feeAsset)
 			if assetBalance.LessThan(serviceFee) {
 				return &tErrors.CustomError{Param: "username", Err: "error-primary-wallet-underfunded", ErrMessage: fmt.Sprintf("%v %v is required on wallet %v to pay for fees for this service. Please first fund the wallet with at least %v %v.", serviceFee.String(), ACCOUNT_RECOVERY_FEE.FeeAssetCode, user.Username, serviceFee.Sub(assetBalance), ACCOUNT_RECOVERY_FEE.FeeAssetCode)}
 
@@ -251,7 +251,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 			ops = append(ops, &basetxn.Payment{
 				Destination:   feeAddress,
 				Amount:        serviceFee.String(),
-				SourceAccount: user.PublicKey,
+				SourceAccount: user.Address,
 				Asset:         feeAsset,
 			})
 			// paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be added from wallet %v as service fee (%v).", serviceFee.String(), assetCode, sourceWallet.Alias, feeLabel))
@@ -277,7 +277,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	}
 	tx, err := basetxn.NewTransaction(
 		basetxn.TransactionParams{
-			SourceAccount:        user.PublicKey,
+			SourceAccount:        user.Address,
 			IncrementSequenceNum: true,
 			Operations:           ops,
 			BaseFee:              2000,
@@ -380,7 +380,7 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 	if !ValidateSecurityAnswers(user, payload.SecurityAnswers, gc) {
 		return &tErrors.CustomError{Param: "username", Err: "error invalid security answers", ErrMessage: "Answers to the security questions are invalid."}
 	}
-	nativeBalance, e := userBc.GetNativeBalance(user.PublicKey)
+	nativeBalance, e := userBc.GetNativeBalance(user.Address)
 	if e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
 			return &tErrors.CustomError{Param: "username", Err: "error primary account not yet activated", ErrMessage: fmt.Sprintf("Primary account is not yet activated. Please send upto 50 %v to the primary wallet to continue.", os.Getenv("NATIVE_ASSET_CODE"))}
@@ -397,7 +397,7 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 	}
 
 	//get the recovery keypair
-	recoveryAddress := bc.GetRecoveryAccountAddress(user.Username, user.PublicKey)
+	recoveryAddress := bc.GetRecoveryAccountAddress(user.Username, user.Address)
 	if len(recoveryAddress) == 0 {
 		return &tErrors.CustomError{Param: "username", Err: "error generating recovery address", ErrMessage: "Could not generate valid recovery address for account."}
 
@@ -410,7 +410,7 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 		// 	ops = append(ops, &basetxn.CreateAccount{
 		// 		Destination:   recoveryAddress,
 		// 		Amount:        os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"),
-		// 		SourceAccount: user.PublicKey,
+		// 		SourceAccount: user.Address,
 		// 	})
 		// 	messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your unique recovery key on the blockchain.", os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), user.Username))
 
@@ -424,7 +424,7 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 	// 		Destination:   recoveryAddress,
 	// 		Amount:        "6",
 	// 		Asset:         basetxn.NativeAsset{},
-	// 		SourceAccount: user.PublicKey,
+	// 		SourceAccount: user.Address,
 	// 	})
 	// }
 
@@ -523,7 +523,7 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 
 	tx, err := basetxn.NewTransaction(
 		basetxn.TransactionParams{
-			SourceAccount:        user.PublicKey,
+			SourceAccount:        user.Address,
 			IncrementSequenceNum: true,
 			Operations:           ops,
 			BaseFee:              2000,
@@ -593,18 +593,18 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 	messages := make([]string, 0)
 	payload.Messages = make([]string, 0)
 	RECOVERY_SIGNER_ACTIVATION_AMOUNT := user.UserWallets[0].GetActivationFee("RECOVERY_SIGNER_ACTIVATION_AMOUNT", gc)
-	if len(payload.NewSignerPublicKey) != 56 {
-		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
+	if len(payload.NewSignerAddress) != 42 {
+		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "newSignerAddress", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
 	}
 	{
 		// PARSE SIGNER KEY
-		_, e := evmkeypair.ParseAddress(payload.NewSignerPublicKey)
+		_, e := evmkeypair.ParseAddress(payload.NewSignerAddress)
 		if e != nil {
-			return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
+			return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "newSignerAddress", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
 		}
 	}
-	if _, e := usersDB.GetUser(payload.NewSignerPublicKey, gc.DB, gc); e == nil {
-		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error new signer public key already in use.", ErrMessage: "The new signer public key is already in use on another account."}
+	if _, e := usersDB.GetUser(payload.NewSignerAddress, gc.DB, gc); e == nil {
+		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "newSignerAddress", Err: "error new signer public key already in use.", ErrMessage: "The new signer public key is already in use on another account."}
 	}
 	if user.AccountRecoveryEnabled == 0 {
 		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error account recovery not enabled.", ErrMessage: "Account recovery not enabled."}
@@ -613,14 +613,14 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 	defer dbtx.Rollback()
 	// save to recovery log.
 	masterRecover := 0
-	if user.PrimarySigner == user.PublicKey {
+	if user.PrimarySigner == user.Address {
 		masterRecover = 1
 	}
 	arl := userModels.UserAccountRecoveryLog{
-		Username:           user.Username,
-		OldSignerPublicKey: user.PrimarySigner,
-		NewSignerPublicKey: payload.NewSignerPublicKey,
-		MasterWallet:       masterRecover,
+		Username:         user.Username,
+		OldSignerAddress: user.PrimarySigner,
+		NewSignerAddress: payload.NewSignerAddress,
+		MasterWallet:     masterRecover,
 	}
 	e = dbtx.Omit(clause.Associations).Create(&arl).Error
 	if e != nil {
@@ -635,7 +635,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error invalid email otp", ErrMessage: "Email OTP is invalid."}
 	}
 
-	nativeBalance, e := userBc.GetNativeBalance(user.PublicKey)
+	nativeBalance, e := userBc.GetNativeBalance(user.Address)
 	if e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
 			return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error primary account not yet activated", ErrMessage: fmt.Sprintf("Primary account is not yet activated. Please send upto 50 %v to the primary wallet to continue.", os.Getenv("NATIVE_ASSET_CODE"))}
@@ -649,21 +649,21 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 	}
 
 	//get the recovery keypair
-	recoveryKeyPair, _ := bc.RecoveryAccountKeypair(user.Username, user.PublicKey)
+	recoveryKeyPair, _ := bc.RecoveryAccountKeypair(user.Username, user.Address)
 	recoveryAddress := recoveryKeyPair.Address()
 	if len(recoveryAddress) == 0 {
 		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error generating recovery address", ErrMessage: "Could not generate valid recovery address for account."}
 
 	}
 	//activate new signer Address and add signer to primary key
-	_, e = userBc.GetBlockchainAccountDetail(payload.NewSignerPublicKey)
+	_, e = userBc.GetBlockchainAccountDetail(payload.NewSignerAddress)
 	if e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
 			//activate account
 			ops = append(ops, &basetxn.CreateAccount{
-				Destination:   payload.NewSignerPublicKey,
+				Destination:   payload.NewSignerAddress,
 				Amount:        fmt.Sprintf("%v", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount),
-				SourceAccount: user.PublicKey,
+				SourceAccount: user.Address,
 			})
 			messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your new signer key on the blockchain.", fmt.Sprintf("%v", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount), RECOVERY_SIGNER_ACTIVATION_AMOUNT.AssetCode, user.Username))
 
@@ -673,14 +673,14 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 
 	}
 
-	if !userBc.SignerIsValid(user.PublicKey, payload.NewSignerPublicKey) {
+	if !userBc.SignerIsValid(user.Address, payload.NewSignerAddress) {
 		//newsigner not a signer to the primary wallet.
 		ops = append(ops, &basetxn.SetOptions{
 			Signer: &basetxn.Signer{
-				Address: payload.NewSignerPublicKey,
+				Address: payload.NewSignerAddress,
 				Weight:  1,
 			},
-			SourceAccount: user.PublicKey,
+			SourceAccount: user.Address,
 		})
 	}
 
@@ -711,18 +711,18 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 						ops = append(ops, &basetxn.CreateAccount{
 							Destination:   w.ID,
 							Amount:        fmt.Sprintf("%v", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount),
-							SourceAccount: user.PublicKey,
+							SourceAccount: user.Address,
 						})
 						messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your subwallet [%v] on the blockchain.", RECOVERY_SIGNER_ACTIVATION_AMOUNT.Amount, RECOVERY_SIGNER_ACTIVATION_AMOUNT.AssetCode, user.Username, w.Alias))
 
 					}
 				}
 				if w.WalletType == 0 || w.WalletType == 1 {
-					if !userBc.SignerIsValid(w.ID, payload.NewSignerPublicKey) {
+					if !userBc.SignerIsValid(w.ID, payload.NewSignerAddress) {
 						//recovery not a signer to the sub wallet. add it
 						ops = append(ops, &basetxn.SetOptions{
 							Signer: &basetxn.Signer{
-								Address: payload.NewSignerPublicKey,
+								Address: payload.NewSignerAddress,
 								Weight:  1,
 							},
 							SourceAccount: w.ID,
@@ -731,11 +731,11 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 				}
 
 				if w.WalletType == 2 || w.WalletType == 3 {
-					if !userBc.SignerIsValid(w.ID, payload.NewSignerPublicKey) {
+					if !userBc.SignerIsValid(w.ID, payload.NewSignerAddress) {
 						//recovery not a signer to the sub wallet. add it
 						ops = append(ops, &basetxn.SetOptions{
 							Signer: &basetxn.Signer{
-								Address: payload.NewSignerPublicKey,
+								Address: payload.NewSignerAddress,
 								Weight:  1,
 							},
 							SourceAccount: w.ID,
@@ -765,18 +765,18 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 	//last operation
 	if payload.DisableOldSignerFromPrimaryWallet == 1 {
 
-		if userBc.SignerIsValid(user.PublicKey, user.PrimarySigner) {
+		if userBc.SignerIsValid(user.Address, user.PrimarySigner) {
 			//remove old signer directive is enabled. remove old signer
-			if user.PublicKey == user.PrimarySigner {
+			if user.Address == user.PrimarySigner {
 				//it is the master key you need to disable - deauthorizing
 				//self via a weight-0 Signer entry (see basetxn.SetOptions'
 				//doc) is this app's equivalent of Stellar's MasterWeight=0
 				ops = append(ops, &basetxn.SetOptions{
 					Signer: &basetxn.Signer{
-						Address: user.PublicKey,
+						Address: user.Address,
 						Weight:  0,
 					},
-					SourceAccount: user.PublicKey,
+					SourceAccount: user.Address,
 				})
 			} else {
 				ops = append(ops, &basetxn.SetOptions{
@@ -784,7 +784,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 						Address: user.PrimarySigner,
 						Weight:  0,
 					},
-					SourceAccount: user.PublicKey,
+					SourceAccount: user.Address,
 				})
 			}
 
@@ -801,14 +801,14 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 	if payload.Commit == 1 {
 		// generate new transaction
 		user.LastRecoveredAccountOn = time.Now().UTC()
-		user.PrimarySigner = payload.NewSignerPublicKey
+		user.PrimarySigner = payload.NewSignerAddress
 		dbErr := dbtx.Omit(clause.Associations).Save(user).Error
 		if dbErr != nil {
 			log.Println("[DoAccountRecovery]error saving user database status ", err)
 			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
 		}
 		for i, v := range wallets {
-			v.Signer = payload.NewSignerPublicKey
+			v.Signer = payload.NewSignerAddress
 			wallets[i] = v
 		}
 		dbErr = dbtx.Omit(clause.Associations).Save(&wallets).Error
@@ -849,7 +849,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		}
 		tx, err := basetxn.NewTransaction(
 			basetxn.TransactionParams{
-				SourceAccount:        user.PublicKey,
+				SourceAccount:        user.Address,
 				IncrementSequenceNum: true,
 				Operations:           ops,
 				BaseFee:              2000,
@@ -894,25 +894,25 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 
 func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.InactiveAccountRecoveryRequest, gc *sharedconfig.GlobalConfig) (userInfo userModels.UserInfo, err error) {
 	var e error
-	payload.NewSignerPublicKey = strings.ToUpper(payload.NewSignerPublicKey)
+	payload.NewSignerAddress = strings.ToUpper(payload.NewSignerAddress)
 	answers := payload.SecurityAnswers
-	if len(payload.NewSignerPublicKey) != 56 {
-		return userInfo, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
+	if len(payload.NewSignerAddress) != 42 {
+		return userInfo, &tErrors.CustomError{Param: "newSignerAddress", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
 	}
 	{
 		// PARSE SIGNER KEY
-		_, e := evmkeypair.ParseAddress(payload.NewSignerPublicKey)
+		_, e := evmkeypair.ParseAddress(payload.NewSignerAddress)
 		if e != nil {
-			return userInfo, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
+			return userInfo, &tErrors.CustomError{Param: "newSignerAddress", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
 		}
 	}
 
-	if _, e := usersDB.GetUser(payload.NewSignerPublicKey, gc.DB, gc); e == nil {
-		return userInfo, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error new signer public key already in use.", ErrMessage: "The new signer public key is already in use on another account."}
+	if _, e := usersDB.GetUser(payload.NewSignerAddress, gc.DB, gc); e == nil {
+		return userInfo, &tErrors.CustomError{Param: "newSignerAddress", Err: "error new signer public key already in use.", ErrMessage: "The new signer public key is already in use on another account."}
 	}
 
-	if _, e := usersDB.GetUserFromPrimarySigner(payload.NewSignerPublicKey, gc.DB, gc); e == nil {
-		return userInfo, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error new signer public key already in use.", ErrMessage: "The new signer public key is already in use on another account."}
+	if _, e := usersDB.GetUserFromPrimarySigner(payload.NewSignerAddress, gc.DB, gc); e == nil {
+		return userInfo, &tErrors.CustomError{Param: "newSignerAddress", Err: "error new signer public key already in use.", ErrMessage: "The new signer public key is already in use on another account."}
 	}
 
 	if subjectUser.HasSecurityQuestions == 1 {
@@ -930,13 +930,13 @@ func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.
 		return userInfo, &tErrors.CustomError{Param: "username", Err: "error option not allowed", ErrMessage: "Account not qualified to use this option. This user is not qualified to use this option of recovery. Please use wallet recovery option."}
 	}
 
-	if subjectUser.PublicKey != subjectUser.PrimarySigner {
+	if subjectUser.Address != subjectUser.PrimarySigner {
 		log.Println("[DoInactiveAccountRecover] error primary signer and main public key does not match")
 
 		return userInfo, &tErrors.CustomError{Param: "username", Err: "error option not allowed", ErrMessage: "Account not qualified to use this option. This user is not qualified to use this option of recovery. Please use wallet recovery option."}
 	}
 	wallets := subjectUser.UserWallets
-	_, err = userBc.GetBlockchainAccountDetail(subjectUser.PublicKey)
+	_, err = userBc.GetBlockchainAccountDetail(subjectUser.Address)
 	if err == nil {
 		//account already active
 		log.Println("[DoInactiveAccountRecover]  account is already activated")
@@ -977,8 +977,8 @@ func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.
 		log.Printf("[DoInactiveAccountRecover] error removing existing user wallet data for %v. error: %v\n", subjectUser.Username, e)
 		return userInfo, &tErrors.ErrorTemporaryServerError{}
 	}
-	subjectUser.PrimarySigner = payload.NewSignerPublicKey
-	subjectUser.PublicKey = payload.NewSignerPublicKey
+	subjectUser.PrimarySigner = payload.NewSignerAddress
+	subjectUser.Address = payload.NewSignerAddress
 	subjectUser.HasSecurityQuestions = 1
 	subjectUser.UserWallets = make([]userModels.UserWallet, 0)
 	subjectUser.BuildPrimaryWallet()
@@ -1010,7 +1010,7 @@ func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.
 	dbtx.Commit()
 	RemoveAccountRecoveryEmailOTP(subjectUser, payload.EmailOTP, dbtx)
 
-	return GetUserInfo(subjectUser.ID, payload.NewSignerPublicKey, gc)
+	return GetUserInfo(subjectUser.ID, payload.NewSignerAddress, gc)
 
 }
 

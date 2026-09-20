@@ -144,7 +144,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		swapFee := sharedconfig.FeeCollection{
 			ID:                         gc.GenerateUUIDString(),
 			FromUsername:               walletOwner.Username,
-			FromWalletPublicKey:        wallet.ID,
+			FromWalletAddress:          wallet.ID,
 			FromWalletAlias:            wallet.Alias,
 			BelongsToEnterpriseProfile: walletOwner.CreatedByServiceLinkID,
 			FeeType:                    "SWAP",
@@ -157,7 +157,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		vatFeeCollection := sharedconfig.FeeCollection{
 			ID:                         gc.GenerateUUIDString(),
 			FromUsername:               walletOwner.Username,
-			FromWalletPublicKey:        walletOwner.ID,
+			FromWalletAddress:          walletOwner.ID,
 			FromWalletAlias:            wallet.Alias,
 			BelongsToEnterpriseProfile: walletOwner.CreatedByServiceLinkID,
 			FeeType:                    "VAT",
@@ -251,10 +251,10 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		id := uuid.NewString()
 		destinationAsset := os.Getenv("NATIVE_ASSET_CODE")
 		sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
-		if len(swapInfo.SourceAssetIssuer) == 56 {
+		if len(swapInfo.SourceAssetIssuer) == 42 {
 			sourceAsset = fmt.Sprintf("%v:%v...%v", swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer[0:4], swapInfo.SourceAssetIssuer[51:55])
 		}
-		if len(swapInfo.DestinationAssetIssuer) == 56 {
+		if len(swapInfo.DestinationAssetIssuer) == 42 {
 			destinationAsset = fmt.Sprintf("%v:%v...%v", swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer[0:4], swapInfo.DestinationAssetIssuer[51:55])
 		}
 		description := fmt.Sprintf("Swap\n From:%v,\n To:%v,\n Est. Value After: %v", sourceAsset, destinationAsset, swapInfo.SwappedEstimate)
@@ -277,16 +277,16 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		transactionByte, _ := json.Marshal(*swapInfo)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
-			ID:                       id,
-			Initiator:                signerUser.Username,
-			InitiatorSignerPublicKey: signerUser.PrimarySigner,
-			WalletPublicKey:          wallet.ID,
-			TransactionType:          "SWAP",
-			Description:              description,
-			TransactionSource:        swapInfo.TransactionSource,
-			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
-			TransactionXdr:           swapInfo.Transaction,
-			TransactionInfoStr:       &transactionStr,
+			ID:                     id,
+			Initiator:              signerUser.Username,
+			InitiatorSignerAddress: signerUser.PrimarySigner,
+			WalletAddress:          wallet.ID,
+			TransactionType:        "SWAP",
+			Description:            description,
+			TransactionSource:      swapInfo.TransactionSource,
+			ApprovalsNeeded:        wallet.NumberOfApprovalsNeeded,
+			TransactionXdr:         swapInfo.Transaction,
+			TransactionInfoStr:     &transactionStr,
 		}
 		//save and commit this to database
 		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
@@ -397,10 +397,10 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 		id := uuid.NewString()
 		destinationAsset := os.Getenv("NATIVE_ASSET_CODE")
 		sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
-		if len(swapInfo.SourceAssetIssuer) == 56 {
+		if len(swapInfo.SourceAssetIssuer) == 42 {
 			sourceAsset = fmt.Sprintf("%v:%v...%v", swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer[0:4], swapInfo.SourceAssetIssuer[51:55])
 		}
-		if len(swapInfo.DestinationAssetIssuer) == 56 {
+		if len(swapInfo.DestinationAssetIssuer) == 42 {
 			destinationAsset = fmt.Sprintf("%v:%v...%v", swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer[0:4], swapInfo.DestinationAssetIssuer[51:55])
 		}
 		description := fmt.Sprintf("Swap\n From:%v,\n To:%v,\n Est. Value After: %v", sourceAsset, destinationAsset, swapInfo.RequiredEstimate)
@@ -423,16 +423,16 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 		transactionByte, _ := json.Marshal(*swapInfo)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
-			ID:                       id,
-			Initiator:                signerUser.Username,
-			InitiatorSignerPublicKey: signerUser.PrimarySigner,
-			WalletPublicKey:          wallet.ID,
-			TransactionType:          "SWAP",
-			Description:              description,
-			TransactionSource:        swapInfo.TransactionSource,
-			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
-			TransactionXdr:           swapInfo.Transaction,
-			TransactionInfoStr:       &transactionStr,
+			ID:                     id,
+			Initiator:              signerUser.Username,
+			InitiatorSignerAddress: signerUser.PrimarySigner,
+			WalletAddress:          wallet.ID,
+			TransactionType:        "SWAP",
+			Description:            description,
+			TransactionSource:      swapInfo.TransactionSource,
+			ApprovalsNeeded:        wallet.NumberOfApprovalsNeeded,
+			TransactionXdr:         swapInfo.Transaction,
+			TransactionInfoStr:     &transactionStr,
 		}
 		//save and commit this to database
 		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error

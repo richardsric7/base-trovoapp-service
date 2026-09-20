@@ -17,7 +17,7 @@ type User struct {
 	FirstName                string                  `gorm:"size:50" json:"firstName"`
 	LastName                 *string                 `gorm:"size:50" json:"lastName"`
 	Mobile                   *string                 `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
-	PublicKey                string                  `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
+	Address                  string                  `gorm:"size:56; index:idx_user_unique_address, unique" json:"publicKey"`
 	PrimarySigner            string                  `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
 	Referrer                 *string                 `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
 	ReferralLink             *string                 `json:"referralLink"`
@@ -55,7 +55,7 @@ type UserWallet struct {
 	CreatedAt               time.Time          `json:"createdAt"`
 	UpdatedAt               time.Time          `json:"updatedAt"`
 	ID                      string             `gorm:"size:56" json:"publicKey"`
-	TempPublicKey           *string            `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
+	TempAddress             *string            `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
 	Tag                     *string            `gorm:"null;size:50" json:"tag"`
 	Description             *string            `gorm:"null;size:100" json:"description"`
 	Alias                   string             `gorm:"size:70; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
@@ -66,11 +66,11 @@ type UserWallet struct {
 	PrimaryWallet           int                `gorm:"type:integer;not null;default:0" json:"primaryWallet"`
 	NumberOfApprovalsNeeded int                `gorm:"type:integer; default:0" json:"numberOfApprovalsNeeded"`
 	WalletType              int                `gorm:"type:integer; default:0" json:"walletType"` //0=normal, 1= assetIssuing, 2= marketMaking, 3 = bulkPayment
-	Permissions             []WalletPermission `gorm:"foreignKey:WalletPublicKey;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"permissions"`
+	Permissions             []WalletPermission `gorm:"foreignKey:WalletAddress;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"permissions"`
 	SharedAccessCreatedAt   time.Time          `json:"sharedAccessCreatedAt"`
 	SharedAccessUpdatedAt   time.Time          `json:"sharedAccessUpdatedAt"`
 	FeeDisabled             int                `gorm:"type:integer; not null; default:0" json:"feeDisabled"`
-	LinkedWalletPublicKey   *string            `gorm:"index:idx_linked_wallet_pubk, unique" json:"linkedWalletPublicKey"`
+	LinkedWalletAddress     *string            `gorm:"index:idx_linked_wallet_pubk, unique" json:"linkedWalletAddress"`
 }
 
 type UserFiatPaymentMethod struct {
@@ -98,15 +98,15 @@ type DeletedUserAccount struct {
 	Status        int       `gorm:"type:integer;not null;default:0" json:"status"`
 }
 type WalletPermission struct {
-	CreatedAt       time.Time `json:"createdAt"`
-	UpdatedAt       time.Time `json:"updatedAt"`
-	ID              string    `json:"id"`
-	WalletPublicKey string    `gorm:"size:90;not null; index:access_level_permission,unique;index:idx_public_key_shared" json:"walletPublicKey"`
-	TargetUsername  string    `gorm:"size:16;not null; index:access_level_permission,unique;" json:"targetUsername"`
-	Permission      string    `gorm:"size:10;not null; index:access_level_permission,unique" json:"permission"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+	ID             string    `json:"id"`
+	WalletAddress  string    `gorm:"size:90;not null; index:access_level_permission,unique;index:idx_address_shared" json:"walletAddress"`
+	TargetUsername string    `gorm:"size:16;not null; index:access_level_permission,unique;" json:"targetUsername"`
+	Permission     string    `gorm:"size:10;not null; index:access_level_permission,unique" json:"permission"`
 }
 type UserWalletSharedAccessInfo struct {
-	WalletPublicKey         string                 `json:"walletPublicKey"`
+	WalletAddress           string                 `json:"walletAddress"`
 	NumberOfApprovalsNeeded int                    `json:"numberOfApprovalsNeeded"`
 	Permissions             []WalletPermissionInfo `json:"permissions"`
 	Transaction             string                 `json:"transaction"`
@@ -116,7 +116,7 @@ type UserWalletSharedAccessInfo struct {
 	NetworkPassPhrase string   `json:"networkPassPhrase"`
 	Messages          []string `json:"messages"`
 	SignatureRequired int      `json:"signatureRequired"`
-	// LinkedWalletPublicKey            string                 `json:"linkedWalletPublicKey"`
+	// LinkedWalletAddress            string                 `json:"linkedWalletAddress"`
 	// LinkedWalletSignatureRequired    int                    `json:"linkedWalletSignatureRequired"`
 	SHash      string `json:"sHash"`
 	Approvers  []User `json:"-"`
@@ -124,7 +124,7 @@ type UserWalletSharedAccessInfo struct {
 	Viewers    []User `json:"-"`
 }
 type DisableSharedAccessInfo struct {
-	WalletPublicKey      string                 `json:"walletPublicKey"`
+	WalletAddress        string                 `json:"walletAddress"`
 	Transaction          string                 `json:"transaction"`
 	TransactionSignature string                 `json:"transactionSignature"`
 	TransactionID        string                 `json:"transactionId"`
@@ -139,7 +139,7 @@ type DisableSharedAccessInfo struct {
 }
 
 type ModifySharedAccessInfo struct {
-	WalletPublicKey         string                 `json:"walletPublicKey"`
+	WalletAddress           string                 `json:"walletAddress"`
 	NumberOfApprovalsNeeded int                    `json:"numberOfApprovalsNeeded"`
 	Transaction             string                 `json:"transaction"`
 	TransactionSignature    string                 `json:"transactionSignature"`
@@ -157,7 +157,7 @@ type ModifySharedAccessInfo struct {
 }
 type WalletPermissionInfo struct {
 	ID                    string  `json:"Id"`
-	WalletPublicKey       string  `json:"-"`
+	WalletAddress         string  `json:"-"`
 	WalletAlias           string  `json:"-"`
 	TargetUsername        string  `json:"targetUsername"`
 	Name                  string  `json:"name"`
@@ -181,7 +181,7 @@ type ServiceLinksUser struct {
 	FirstName             string    `gorm:"size:50" json:"firstName"`
 	LastName              *string   `gorm:"size:50" json:"lastName"`
 	Mobile                *string   `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
-	PublicKey             string    `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
+	Address               string    `gorm:"size:56; index:idx_user_unique_address, unique" json:"publicKey"`
 	PrimarySigner         string    `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
 	PushNotificationToken *string   `json:"pushNotificationToken"`
 	Corporate             int       `gorm:"type:integer;not null; default:0" json:"corporate"`
@@ -202,7 +202,7 @@ type UserRegistrationInfo struct {
 	LastName               string `json:"lastName"`
 	Mobile                 string `json:"mobile"`
 	MobileCountryCode      string `json:"mobileCountryCode"`
-	PublicKey              string `json:"publicKey"`
+	Address                string `json:"publicKey"`
 	PrimarySigner          string `json:"primarySigner"`
 	Referrer               string `json:"referrer"`
 	PushNotificationToken  string `json:"pushNotificationToken,omitempty"`
@@ -223,7 +223,7 @@ type Username string
 
 type WalletAlias string
 
-type LinkedWalletPublicKey string
+type LinkedWalletAddress string
 
 // UserSigner is type for signer Public Key
 type UserSigner string
@@ -253,14 +253,14 @@ type Upline struct {
 
 type TrackedWallet struct {
 	// ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
-	ID        string `gorm:""`
-	PublicKey string `gorm:"index:idx_tracked_wallet_public_key,unique"`
-	Alias     string `gorm:"index:idx_tracked_wallet_alias"`
-	Name      string `gorm:"index:idx_tracked_wallet_name"`
+	ID      string `gorm:""`
+	Address string `gorm:"index:idx_tracked_wallet_address,unique"`
+	Alias   string `gorm:"index:idx_tracked_wallet_alias"`
+	Name    string `gorm:"index:idx_tracked_wallet_name"`
 }
 
-type TrackedPublicKey struct {
-	PublicKey string `gorm:"primaryKey"`
+type TrackedAddress struct {
+	Address string `gorm:"primaryKey"`
 }
 
 type SecurityQuestion struct {
@@ -298,15 +298,15 @@ type UserAccountDeletionPayload struct {
 }
 
 type UserAccountRecoveryLog struct {
-	CreatedAt          time.Time `json:"createdAt"`
-	Username           string    `gorm:"size:100;primaryKey" json:"username"`
-	OldSignerPublicKey string    `gorm:"size:100;primaryKey" json:"oldSignerPublicKey"`
-	NewSignerPublicKey string    `gorm:"size:100" json:"newSignerPublicKey"`
-	MasterWallet       int       `gorm:"default:0" json:"masterWallet"`
+	CreatedAt        time.Time `json:"createdAt"`
+	Username         string    `gorm:"size:100;primaryKey" json:"username"`
+	OldSignerAddress string    `gorm:"size:100;primaryKey" json:"oldSignerAddress"`
+	NewSignerAddress string    `gorm:"size:100" json:"newSignerAddress"`
+	MasterWallet     int       `gorm:"default:0" json:"masterWallet"`
 }
 
 type AccountRecoveryRequest struct {
-	NewSignerPublicKey                string             `json:"newSignerPublicKey"`
+	NewSignerAddress                  string             `json:"newSignerAddress"`
 	DisableOldSignerFromPrimaryWallet uint64             `json:"disableOldSignerFromPrimaryWallet"`
 	Commit                            uint64             `json:"commit"`
 	Messages                          []string           `json:"messages"`
@@ -317,10 +317,10 @@ type AccountRecoveryRequest struct {
 }
 
 type InactiveAccountRecoveryRequest struct {
-	NewSignerPublicKey string             `json:"newSignerPublicKey"`
-	SecurityAnswers    UserSecurityAnswer `json:"securityAnswers"`
-	EmailOTP           string             `json:"emailOtp"`
-	Username           string             `json:"username"`
+	NewSignerAddress string             `json:"newSignerAddress"`
+	SecurityAnswers  UserSecurityAnswer `json:"securityAnswers"`
+	EmailOTP         string             `json:"emailOtp"`
+	Username         string             `json:"username"`
 }
 
 type PendingAuth struct {
@@ -328,8 +328,8 @@ type PendingAuth struct {
 	UpdatedAt                    time.Time                     `gorm:"default:CURRENT_TIMESTAMP" json:"updatedAt"`
 	ID                           string                        `gorm:"size:56" json:"id"`
 	Initiator                    string                        `gorm:"size:20;not null;index:idx_pending_auth_initiator" json:"initiator"`
-	InitiatorSignerPublicKey     string                        `gorm:"size:56;not null;index:idx_pending_auth_signer_public_key" json:"initiatorSignerPublicKey"`
-	WalletPublicKey              string                        `gorm:"size:56;not null;index:idx_pending_auth_wallet_public_key" json:"walletPublicKey"`
+	InitiatorSignerAddress       string                        `gorm:"size:56;not null;index:idx_pending_auth_signer_address" json:"initiatorSignerAddress"`
+	WalletAddress                string                        `gorm:"size:56;not null;index:idx_pending_auth_wallet_address" json:"walletAddress"`
 	TransactionType              string                        `gorm:"size:28;not null;index:idx_pending_auth_transaction_type" json:"transactionType"`
 	Description                  string                        `gorm:"not null;" json:"description"`
 	TransactionSource            string                        `gorm:"size:56;not null;" json:"-"`
@@ -349,7 +349,7 @@ type PendingTransactionSignature struct {
 	ID                       string    `gorm:"size:56"`
 	PendingAuthID            string    `gorm:"size:56;not null;index:idx_pending_trxsig_pending_auth,unique"`
 	Approver                 string    `gorm:"size:20;not null;index:idx_pending_trxsig_pending_auth,unique;index:idx_pending_trxsig_approver" json:"approver"`
-	ApproverSignerPublicKey  string    `gorm:"size:56;not null;index:idx_pending_trxsig_approver_signer" json:"approverSignerPublicKey"`
+	ApproverSignerAddress    string    `gorm:"size:56;not null;index:idx_pending_trxsig_approver_signer" json:"approverSignerAddress"`
 	TransactionWithSignature string    `gorm:"not null" json:"transactionWithSignature"`
 }
 

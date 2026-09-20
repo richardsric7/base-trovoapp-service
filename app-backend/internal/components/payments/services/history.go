@@ -14,7 +14,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c *gin.Context) (records paymentModels.PaginatedPaymentHistory) {
+func GetPaymentHistory(targetAddress string, gc *sharedconfig.GlobalConfig, c *gin.Context) (records paymentModels.PaginatedPaymentHistory) {
 	var err error
 	var paymentHistories []paymentModels.PaymentHistory
 	records.Records = make([]paymentModels.PaymentHistoryJSON, 0)
@@ -33,8 +33,8 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 	var countQuery *gorm.DB
 	oD := "ASC"
 	transactionType := strings.TrimSpace(c.Query("transactionType"))
-	fromPublicKey := strings.TrimSpace(strings.ToUpper(c.Query("fromPublicKey")))
-	toPublicKey := strings.TrimSpace(strings.ToUpper(c.Query("toPublicKey")))
+	fromAddress := strings.TrimSpace(strings.ToUpper(c.Query("fromAddress")))
+	toAddress := strings.TrimSpace(strings.ToUpper(c.Query("toAddress")))
 	name := strings.TrimSpace(c.Query("name"))
 	memo := strings.TrimSpace(c.Query("memo"))
 	limitU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("limit", "25")), 10, 64)
@@ -68,20 +68,20 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 	}
 
 	{
-		query = query.Where("(from_public_key = ? OR to_public_key = ?)", targetPublicKey, targetPublicKey)
-		countQuery = countQuery.Where("(from_public_key = ? OR to_public_key = ?)", targetPublicKey, targetPublicKey)
+		query = query.Where("(from_address = ? OR to_address = ?)", targetAddress, targetAddress)
+		countQuery = countQuery.Where("(from_address = ? OR to_address = ?)", targetAddress, targetAddress)
 
 	}
 
-	if len(fromPublicKey) == 56 {
-		query = query.Where("from_public_key = ?", fromPublicKey)
-		countQuery = countQuery.Where("from_public_key = ?", fromPublicKey)
+	if len(fromAddress) == 42 {
+		query = query.Where("from_address = ?", fromAddress)
+		countQuery = countQuery.Where("from_address = ?", fromAddress)
 
 	}
 
-	if len(toPublicKey) == 56 {
-		query = query.Where("to_public_key = ?", toPublicKey)
-		countQuery = countQuery.Where("to_public_key = ?", toPublicKey)
+	if len(toAddress) == 42 {
+		query = query.Where("to_address = ?", toAddress)
+		countQuery = countQuery.Where("to_address = ?", toAddress)
 
 	}
 	if len(assetCode) > 0 {
@@ -89,7 +89,7 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 		countQuery = countQuery.Where("asset_code = ?", strings.ToUpper(assetCode))
 
 	}
-	if len(assetIssuer) == 56 {
+	if len(assetIssuer) == 42 {
 		query = query.Where("asset_issuer = ?", assetIssuer)
 		countQuery = countQuery.Where("asset_issuer = ?", assetIssuer)
 
@@ -186,7 +186,7 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 	return records
 }
 
-func GetCryptoDepositHistory(targetPublicKey, currency string, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedCryptoDepositHistory) {
+func GetCryptoDepositHistory(targetAddress, currency string, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedCryptoDepositHistory) {
 	var err error
 	var depositHistory []userModels.CryptoDeposit
 	records.Records = make([]userModels.CryptoDepositJSON, 0)
@@ -226,8 +226,8 @@ func GetCryptoDepositHistory(targetPublicKey, currency string, gc *sharedconfig.
 	}
 
 	{
-		query = query.Where("trovo_wallet_public_key = ?", targetPublicKey)
-		countQuery = countQuery.Where("trovo_wallet_public_key = ?", targetPublicKey)
+		query = query.Where("trovo_wallet_address = ?", targetAddress)
+		countQuery = countQuery.Where("trovo_wallet_address = ?", targetAddress)
 
 	}
 
@@ -299,7 +299,7 @@ func GetCryptoDepositHistory(targetPublicKey, currency string, gc *sharedconfig.
 	return records
 }
 
-func GetCryptoWithdrawalHistory(targetPublicKey, currency string, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedCryptoWithdrawalHistory) {
+func GetCryptoWithdrawalHistory(targetAddress, currency string, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedCryptoWithdrawalHistory) {
 	var err error
 	var wdlHistory []userModels.WithdrawalRequest
 	records.Records = make([]userModels.WithdrawalRequest, 0)
@@ -337,8 +337,8 @@ func GetCryptoWithdrawalHistory(targetPublicKey, currency string, gc *sharedconf
 	}
 
 	{
-		query = query.Where("(wallet_public_key = ?)", targetPublicKey)
-		countQuery = countQuery.Where("(wallet_public_key = ?)", targetPublicKey)
+		query = query.Where("(wallet_address = ?)", targetAddress)
+		countQuery = countQuery.Where("(wallet_address = ?)", targetAddress)
 
 	}
 

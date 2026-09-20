@@ -14,7 +14,7 @@ type UserJSON struct {
 	FirstName              string                    `json:"firstName"`
 	LastName               string                    `json:"lastName"`
 	Mobile                 string                    `json:"mobile"`
-	PublicKey              string                    `json:"publicKey"`
+	Address                string                    `json:"publicKey"`
 	PrimarySigner          string                    `json:"primarySigner"`
 	Referrer               string                    `json:"referrer"`
 	ReferralLink           string                    `json:"referralLink"`
@@ -50,7 +50,7 @@ type UserJSON struct {
 type UserWalletJSON struct {
 	CreatedAt               time.Time              `json:"createdAt"`
 	ID                      string                 `json:"publicKey"`
-	TempPublicKey           string                 `json:"-"`
+	TempAddress             string                 `json:"-"`
 	Tag                     string                 `json:"tag"`
 	Description             string                 `json:"description"`
 	Alias                   string                 `json:"alias"`  //primaryUsername_tag for sub wallets
@@ -64,16 +64,16 @@ type UserWalletJSON struct {
 	Permissions             []WalletPermissionJSON `json:"permissions"`
 	SharedAccessCreatedAt   time.Time              `json:"sharedAccessCreatedAt"`
 	SharedAccessUpdatedAt   time.Time              `json:"sharedAccessUpdatedAt"`
-	LinkedWalletPublicKey   string                 `json:"linkedWalletPublicKey"`
+	LinkedWalletAddress     string                 `json:"linkedWalletAddress"`
 }
 
 type WalletPermissionJSON struct {
-	CreatedAt       time.Time `json:"createdAt"`
-	UpdatedAt       time.Time `json:"updatedAt"`
-	WalletPublicKey string    `json:"walletPublicKey"`
-	TargetUsername  string    `json:"targetUsername"`
-	FullName        string    `json:"fullName"`
-	Permission      string    `json:"permission"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+	WalletAddress  string    `json:"walletAddress"`
+	TargetUsername string    `json:"targetUsername"`
+	FullName       string    `json:"fullName"`
+	Permission     string    `json:"permission"`
 }
 
 type AuthJSON struct {
@@ -81,7 +81,7 @@ type AuthJSON struct {
 	UpdatedAt           time.Time `json:"updatedAt"`
 	ID                  string    `json:"id"`
 	WalletOwnerUsername string    `json:"walletOwnerUsername"`
-	WalletPublicKey     string    `json:"walletPublicKey"`
+	WalletAddress       string    `json:"walletAddress"`
 	Alias               string    `json:"alias"`
 	Initiator           string    `json:"initiator"`
 	TransactionType     string    `json:"transactionType"`
@@ -106,7 +106,7 @@ type PaginatedAuths struct {
 
 type SubWalletInfo struct {
 	WalletType              int      `json:"walletType"` //0=normal, 1= assetIssuing, 2= marketMaking, 3 = bulkPayment
-	PublicKey               string   `json:"publicKey"`
+	Address                 string   `json:"publicKey"`
 	WalletTag               string   `json:"walletTag"`
 	WalletDescription       string   `json:"walletDescription"`
 	Alias                   string   `json:"alias"`
@@ -123,14 +123,14 @@ type SubWalletInfo struct {
 	FeeAmount               string   `json:"feeAmount"`
 	FeeCode                 string   `json:"feeCode"`
 	LinkedWalletMustSign    int      `json:"linkedWalletMustSign"`
-	LinkedWalletPublicKey   string   `json:"linkedWalletPublicKey"`
+	LinkedWalletAddress     string   `json:"linkedWalletAddress"`
 	LinkedWalletSignature   string   `json:"linkedWalletSignature"`
 }
 
 type ServiceLinkSubWalletInfo struct {
-	WalletType            int      `json:"walletType"`         //0=normal, 1= assetIssuing (if issuing wallet, then linkedWalletPublicKey is required). Required for initial Call
-	SubwalletPublicKey    string   `json:"subwalletPublicKey"` //required for Initial Call
-	WalletTag             string   `json:"walletTag"`          //required for initial Call
+	WalletType            int      `json:"walletType"`       //0=normal, 1= assetIssuing (if issuing wallet, then linkedWalletAddress is required). Required for initial Call
+	SubwalletAddress      string   `json:"subwalletAddress"` //required for Initial Call
+	WalletTag             string   `json:"walletTag"`        //required for initial Call
 	Alias                 string   `json:"alias"`
 	Transaction           string   `json:"transaction"`
 	PrimarySignature      string   `json:"primarySignature"`
@@ -142,13 +142,13 @@ type ServiceLinkSubWalletInfo struct {
 	FeeAmount             string   `json:"feeAmount"`
 	FeeCode               string   `json:"feeCode"`
 	LinkedWalletMustSign  int      `json:"linkedWalletMustSign"`
-	LinkedWalletPublicKey string   `json:"linkedWalletPublicKey"` //required for initial call only if wallet type is issuing wallet
+	LinkedWalletAddress   string   `json:"linkedWalletAddress"` //required for initial call only if wallet type is issuing wallet
 	LinkedWalletSignature string   `json:"linkedWalletSignature"`
 }
 
 func (i *ServiceLinkSubWalletInfo) ToSubwalletInfo(gc *sharedconfig.GlobalConfig) (o SubWalletInfo) {
 	o.WalletType = i.WalletType
-	o.PublicKey = i.SubwalletPublicKey
+	o.Address = i.SubwalletAddress
 	o.WalletTag = i.WalletTag
 	o.WalletDescription = i.WalletTag
 	o.Alias = i.Alias
@@ -162,7 +162,7 @@ func (i *ServiceLinkSubWalletInfo) ToSubwalletInfo(gc *sharedconfig.GlobalConfig
 	o.FeeAmount = i.FeeAmount
 	o.FeeCode = i.FeeCode
 	o.LinkedWalletMustSign = i.LinkedWalletMustSign
-	o.LinkedWalletPublicKey = i.LinkedWalletPublicKey
+	o.LinkedWalletAddress = i.LinkedWalletAddress
 	o.LinkedWalletSignature = i.LinkedWalletSignature
 
 	return
@@ -171,7 +171,7 @@ func (i *ServiceLinkSubWalletInfo) ToSubwalletInfo(gc *sharedconfig.GlobalConfig
 
 func (i *SubWalletInfo) ToServiceLinkSubwalletInfo(gc *sharedconfig.GlobalConfig) (o ServiceLinkSubWalletInfo) {
 	o.WalletType = i.WalletType
-	o.SubwalletPublicKey = i.PublicKey
+	o.SubwalletAddress = i.Address
 	o.WalletTag = i.WalletTag
 	o.Alias = i.Alias
 	o.Transaction = i.Transaction
@@ -184,7 +184,7 @@ func (i *SubWalletInfo) ToServiceLinkSubwalletInfo(gc *sharedconfig.GlobalConfig
 	o.FeeAmount = i.FeeAmount
 	o.FeeCode = i.FeeCode
 	o.LinkedWalletMustSign = i.LinkedWalletMustSign
-	o.LinkedWalletPublicKey = i.LinkedWalletPublicKey
+	o.LinkedWalletAddress = i.LinkedWalletAddress
 	o.LinkedWalletSignature = i.LinkedWalletSignature
 
 	return

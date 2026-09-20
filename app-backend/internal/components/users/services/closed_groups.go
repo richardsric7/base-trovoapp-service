@@ -156,7 +156,7 @@ func generateClosedGroupXdr(owner *userModels.User, closedGroupInput *userModels
 	// var asset basetxn.Asset
 	asset := basetxn.CreditAsset{Code: cgFeeAssetCode, Issuer: cgFeeAssetIssuer}
 
-	sourceAccountExists, _, nativeBalance, customBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.PublicKey, asset)
+	sourceAccountExists, _, nativeBalance, customBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.Address, asset)
 
 	if sourceAccountErr != nil {
 		log.Println("[generateClosedGroupXdr] error checking account properties on blockchain. Error ", sourceAccountErr)
@@ -209,7 +209,7 @@ func generateClosedGroupXdr(owner *userModels.User, closedGroupInput *userModels
 		Destination:   cgFeeKP.Address(),
 		Amount:        requiredUsdWorth,
 		Asset:         basetxn.CreditAsset{Code: cgFeeAssetCode, Issuer: cgFeeAssetIssuer},
-		SourceAccount: owner.PublicKey, //primary wallet
+		SourceAccount: owner.Address, //primary wallet
 	})
 	closedGroupInput.Messages = append(closedGroupInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the creation of the closed group.", requiredUsdWorth, cgFeeAssetCode, owner.Username))
 

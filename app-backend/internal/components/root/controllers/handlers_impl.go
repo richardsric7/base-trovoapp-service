@@ -13,11 +13,10 @@ func getHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		rootInfo := root.GetRootInfo()
-		rootInfo.PublicKey = middleware.ExtractPublicKey(c)
+		rootInfo.Address = middleware.ExtractAddress(c)
 		c.JSON(200, rootInfo)
 	}
 }
-
 
 func getDotwellKnownAppleAppSiteAssociationHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -35,7 +34,6 @@ func getDotwellKnownAppleAppSiteAssociationHandler() gin.HandlerFunc {
 		})
 	}
 }
-
 
 func getDotwellKnownAssetlinksDotjsonHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {

@@ -2,7 +2,7 @@ package middleware
 
 import "github.com/gin-gonic/gin"
 
-func ExtractPublicKey(c *gin.Context) string {
+func ExtractAddress(c *gin.Context) string {
 
 	publicKey := c.GetHeader("X-TW-PUBLIC-KEY")
 

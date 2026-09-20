@@ -26,7 +26,7 @@ type ErrorResponse struct {
 }
 
 type RegSuccessInfo struct {
-	PublicKey string `json:"message"`
+	Address string `json:"message"`
 }
 type UserRegistrationInfo struct {
 	Username              string `json:"username"`
@@ -35,7 +35,7 @@ type UserRegistrationInfo struct {
 	LastName              string `json:"lastName"`
 	Mobile                string `json:"mobile"`
 	MobileCountryCode     string `json:"mobileCountryCode,omitempty"`
-	PublicKey             string `json:"publicKey,omitempty"`
+	Address               string `json:"publicKey,omitempty"`
 	Referrer              string `json:"referrer,omitempty"`
 	PushNotificationToken string `json:"pushNotificationToken,omitempty"`
 	Corporate             uint   `json:"corporate"`
@@ -62,7 +62,7 @@ type PaymentInfo struct {
 	CallbackURLS            map[string]string `json:"-"`
 }
 type SubWalletInfo struct {
-	PublicKey               string   `json:"publicKey"`
+	Address                 string   `json:"publicKey"`
 	WalletTag               string   `json:"walletTag"`
 	WalletDescription       string   `json:"walletDescription"`
 	Transaction             string   `json:"transaction"`
@@ -91,7 +91,7 @@ type UserJSON struct {
 	FirstName                    string                       `json:"firstName"`
 	LastName                     string                       `json:"lastName"`
 	Mobile                       string                       `json:"mobile"`
-	PublicKey                    string                       `json:"publicKey"`
+	Address                      string                       `json:"publicKey"`
 	PrimarySigner                string                       `json:"primarySigner"`
 	Referrer                     string                       `json:"referrer"`
 	ReferralLink                 string                       `json:"referralLink"`
@@ -112,14 +112,14 @@ type UserJSON struct {
 }
 
 type CryptoWalletDepositAddress struct {
-	ID                   string    `json:"id"`
-	CreatedAt            time.Time `gorm:"default:now()" json:"createdAt"`
-	UserID               string    `gorm:"not null;size:100;" json:"-"`
-	TrovoWalletPublicKey string    `gorm:"not null;size:100;index:idx_unique_address,unique" json:"TrovoWalletPublicKey"`
-	Currency             string    `gorm:"not null;size:12;index:idx_unique_address,unique" json:"currency"`
-	DepositAddress       string    `gorm:"not null;size:100" json:"depositAddress"`
-	Network              string    `gorm:"not null;size:100;index:idx_unique_address,unique" json:"network"`
-	QRCode               *string   `gorm:"null;" json:"qrCode"`
+	ID                 string    `json:"id"`
+	CreatedAt          time.Time `gorm:"default:now()" json:"createdAt"`
+	UserID             string    `gorm:"not null;size:100;" json:"-"`
+	TrovoWalletAddress string    `gorm:"not null;size:100;index:idx_unique_address,unique" json:"TrovoWalletAddress"`
+	Currency           string    `gorm:"not null;size:12;index:idx_unique_address,unique" json:"currency"`
+	DepositAddress     string    `gorm:"not null;size:100" json:"depositAddress"`
+	Network            string    `gorm:"not null;size:100;index:idx_unique_address,unique" json:"network"`
+	QRCode             *string   `gorm:"null;" json:"qrCode"`
 }
 
 type CryptoSubwalletResponse struct {
@@ -209,7 +209,7 @@ type AssetClass struct {
 type UserWalletJSON struct {
 	CreatedAt              time.Time                  `json:"createdAt"`
 	ID                     string                     `json:"publicKey"`
-	TempPublicKey          string                     `json:"-"`
+	TempAddress            string                     `json:"-"`
 	Tag                    string                     `json:"tag"`
 	Description            string                     `json:"description"`
 	Alias                  string                     `json:"alias"`  //primaryUsername_tag for sub wallets
@@ -238,7 +238,7 @@ type WalletPermissionJSON struct {
 }
 type ThirdPartyWalletAccess struct {
 	Owner             string `json:"owner"`
-	PublicKey         string `json:"publicKey"`
+	Address           string `json:"publicKey"`
 	Permission        string `json:"permission"`
 	WalletAlias       string `json:"walletAlias"`
 	WalletDescription string `json:"walletDescription"`
@@ -294,9 +294,9 @@ type PaymentHistoryJSON struct {
 	TransactionDate time.Time `json:"transactionDate"`
 	TransactionType string    `json:"transactionType"`
 	From            string    `json:"from"` //trovoWallet alias and name
-	FromPublicKey   string    `json:"fromPublicKey"`
+	FromAddress     string    `json:"fromAddress"`
 	To              string    `json:"to"` //trovoWallet alias and name
-	ToPublicKey     string    `json:"toPublicKey"`
+	ToAddress       string    `json:"toAddress"`
 	Memo            string    `json:"memo"`
 	AssetIssuer     string    `json:"assetIssuer"`
 	AssetCode       string    `json:"assetCode"`
@@ -387,7 +387,7 @@ type UserAccountRecoveryPayload struct {
 }
 
 type AccountRecoveryRequest struct {
-	NewSignerPublicKey                string             `json:"newSignerPublicKey"`
+	NewSignerAddress                  string             `json:"newSignerAddress"`
 	DisableOldSignerFromPrimaryWallet uint64             `json:"disableOldSignerFromPrimaryWallet"`
 	Commit                            uint64             `json:"commit"`
 	Messages                          []string           `json:"messages"`
@@ -397,7 +397,7 @@ type AccountRecoveryRequest struct {
 	TransactionID                     string             `json:"transactionId"`
 }
 type UserWalletSharedAccessInfo struct {
-	WalletPublicKey         string                 `json:"walletPublicKey"`
+	WalletAddress           string                 `json:"walletAddress"`
 	NumberOfApprovalsNeeded int                    `json:"numberOfApprovalsNeeded"`
 	Permissions             []WalletPermissionInfo `json:"permissions"`
 	Transaction             string                 `json:"transaction"`
@@ -408,7 +408,7 @@ type UserWalletSharedAccessInfo struct {
 	SignatureRequired       int                    `json:"signatureRequired"`
 }
 type ModifySharedAccessInfo struct {
-	WalletPublicKey         string                 `json:"walletPublicKey"`
+	WalletAddress           string                 `json:"walletAddress"`
 	NumberOfApprovalsNeeded int                    `json:"numberOfApprovalsNeeded"`
 	Transaction             string                 `json:"transaction"`
 	TransactionSignature    string                 `json:"transactionSignature"`
@@ -425,7 +425,7 @@ type ModifySharedAccessInfo struct {
 }
 type WalletPermissionInfo struct {
 	ID                    string  `json:"Id"`
-	WalletPublicKey       string  `json:"-"`
+	WalletAddress         string  `json:"-"`
 	WalletAlias           string  `json:"-"`
 	TargetUsername        string  `json:"targetUsername"`
 	Name                  string  `json:"name"`
@@ -433,7 +433,7 @@ type WalletPermissionInfo struct {
 	PushNotificationToken *string `json:"-"`
 }
 type DisableSharedAccessInfo struct {
-	WalletPublicKey      string   `json:"walletPublicKey"`
+	WalletAddress        string   `json:"walletAddress"`
 	Transaction          string   `json:"transaction"`
 	TransactionSignature string   `json:"transactionSignature"`
 	TransactionID        string   `json:"transactionId"`
@@ -496,7 +496,7 @@ type AuthJSON struct {
 	UpdatedAt           time.Time `json:"updatedAt"`
 	ID                  string    `json:"id"`
 	WalletOwnerUsername string    `json:"walletOwnerUsername"`
-	WalletPublicKey     string    `json:"walletPublicKey"`
+	WalletAddress       string    `json:"walletAddress"`
 	Alias               string    `json:"alias"`
 	Initiator           string    `json:"initiator"`
 	TransactionType     string    `json:"transactionType"`
@@ -559,7 +559,7 @@ func TestCreateAccount(t *testing.T) {
 	// 	LastName:          "Initator",
 	// 	Mobile:            "+234-8050564392",
 	// 	MobileCountryCode: "NG",
-	// 	PublicKey:         pk,
+	// 	Address:         pk,
 	// 	Referrer:          "ric1",
 	// 	VerificationCode:  "",
 	// }
@@ -570,7 +570,7 @@ func TestCreateAccount(t *testing.T) {
 		LastName:          "Rcichards",
 		Mobile:            "+234-8180067955",
 		MobileCountryCode: "NG",
-		PublicKey:         pk,
+		Address:           pk,
 		Referrer:          "",
 		VerificationCode:  "397012",
 	}
@@ -912,7 +912,7 @@ func TestDoAccountRecovery(t *testing.T) {
 	payload := AccountRecoveryRequest{
 		Username:                          ownerUsername,
 		EmailOTP:                          "342474",
-		NewSignerPublicKey:                kp.Address(),
+		NewSignerAddress:                  kp.Address(),
 		DisableOldSignerFromPrimaryWallet: 1,
 		Commit:                            0,
 		SecurityAnswers: UserSecurityAnswer{
@@ -2069,7 +2069,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 	}
 
 	subwalletPayload := SubWalletInfo{
-		PublicKey:         subPK,
+		Address:           subPK,
 		WalletTag:         "bulkpay",
 		WalletDescription: "market making wallet",
 		WalletType:        3,
@@ -2126,7 +2126,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 			p.ChannelAccountSignature = dsigned
 
 		}
-		primarySignature, subwalletSignature, _, err := middleware.SignSubwalletBase64Txn(primarySecretKey, subSecretKey,"", p.Transaction, p.NetworkPassPhrase)
+		primarySignature, subwalletSignature, _, err := middleware.SignSubwalletBase64Txn(primarySecretKey, subSecretKey, "", p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestCreateSubWalletMultiAccessDisabled] sub transactions error:", err)
 			t.Error(err.Error())
@@ -2592,25 +2592,25 @@ func TestCreateSharedAccessWithApprover(t *testing.T) {
 	}
 	accessList = append(accessList,
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "ric",
-			Permission:      "INITIATOR"},
+			WalletAddress:  accessToWallet,
+			TargetUsername: "ric",
+			Permission:     "INITIATOR"},
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "ric1",
-			Permission:      "INITIATOR"},
+			WalletAddress:  accessToWallet,
+			TargetUsername: "ric1",
+			Permission:     "INITIATOR"},
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "ric",
-			Permission:      "APPROVER"},
+			WalletAddress:  accessToWallet,
+			TargetUsername: "ric",
+			Permission:     "APPROVER"},
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "ric1",
-			Permission:      "APPROVER"},
+			WalletAddress:  accessToWallet,
+			TargetUsername: "ric1",
+			Permission:     "APPROVER"},
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "onoja",
-			Permission:      "APPROVER"})
+			WalletAddress:  accessToWallet,
+			TargetUsername: "onoja",
+			Permission:     "APPROVER"})
 	payload.Permissions = accessList
 
 	log.Printf("[DEBUG] Payload: %+v\n", payload)
@@ -2851,45 +2851,45 @@ func TestModifySharedAccess(t *testing.T) {
 	revokeList = make([]WalletPermissionInfo, 0)
 	addedList = append(addedList,
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "efizee",
-			Permission:      "INITIATOR"},
+			WalletAddress:  accessToWallet,
+			TargetUsername: "efizee",
+			Permission:     "INITIATOR"},
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "muche",
-			Permission:      "INITIATOR"},
+			WalletAddress:  accessToWallet,
+			TargetUsername: "muche",
+			Permission:     "INITIATOR"},
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "muche",
-			Permission:      "APPROVER"})
+			WalletAddress:  accessToWallet,
+			TargetUsername: "muche",
+			Permission:     "APPROVER"})
 
 	// modifyList = append(modifyList,
 	// 	WalletPermissionInfo{
-	// 		WalletPublicKey: accessToWallet,
+	// 		WalletAddress: accessToWallet,
 	// 		TargetUsername:  "ric",
 	// 		Permission:      "INITIATOR"},
 	// 	WalletPermissionInfo{
-	// 		WalletPublicKey: accessToWallet,
+	// 		WalletAddress: accessToWallet,
 	// 		TargetUsername:  "ric1",
 	// 		Permission:      "INITIATOR"},
 	// 	WalletPermissionInfo{
-	// 		WalletPublicKey: accessToWallet,
+	// 		WalletAddress: accessToWallet,
 	// 		TargetUsername:  "ric",
 	// 		Permission:      "APPROVER"},
 	// 	WalletPermissionInfo{
-	// 		WalletPublicKey: accessToWallet,
+	// 		WalletAddress: accessToWallet,
 	// 		TargetUsername:  "ric1",
 	// 		Permission:      "APPROVER"},
 	// 	WalletPermissionInfo{
-	// 		WalletPublicKey: accessToWallet,
+	// 		WalletAddress: accessToWallet,
 	// 		TargetUsername:  "kenmaddy",
 	// 		Permission:      "APPROVER"})
 
 	revokeList = append(revokeList,
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "onoja",
-			Permission:      "APPROVER"})
+			WalletAddress:  accessToWallet,
+			TargetUsername: "onoja",
+			Permission:     "APPROVER"})
 
 	payload.AddedPermissions = addedList
 	payload.RevokedPermissions = revokeList

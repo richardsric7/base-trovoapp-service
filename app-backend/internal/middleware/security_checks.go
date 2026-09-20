@@ -30,7 +30,7 @@ func SignString(toSign string, secretKey string) (string, error) {
 	return signature, nil
 }
 
-// SignHttp returns a signed base64 encoded string of fullPathWithQuery+keyParam. keyParam = signerPublicKey+timestamp
+// SignHttp returns a signed base64 encoded string of fullPathWithQuery+keyParam. keyParam = signerAddress+timestamp
 func SignHttp(fullPathWithQuery string, keyParam string, secretKey string) (string, error) {
 	// log.Printf("path + string:[%v]\n", fullPathWithQuery+body)
 	keyParam = strings.TrimSpace(keyParam)
@@ -129,10 +129,10 @@ func SignSubwalletBase64Txn(primarySecretKey, subWalletSecretKey, linkedWalletSe
 }
 
 // VerifySignatureString verifies if the signatures match with the one to be generated from toSign. toSign = publicKey+timestamp
-func VerifySignatureString(toSign string, base64Signature string, signerPublicKey string) error {
-	kp, errParsingPublicKey := evmkeypair.ParseAddress(signerPublicKey)
-	if errParsingPublicKey != nil {
-		return &tErrors.ErrorInvalidPublicKey{}
+func VerifySignatureString(toSign string, base64Signature string, signerAddress string) error {
+	kp, errParsingAddress := evmkeypair.ParseAddress(signerAddress)
+	if errParsingAddress != nil {
+		return &tErrors.ErrorInvalidAddress{}
 	}
 	toSign = strings.TrimSpace(toSign)
 
@@ -154,11 +154,11 @@ func VerifySignatureString(toSign string, base64Signature string, signerPublicKe
 
 }
 
-// VerifyHttpSignature verifies the httpRequest signation retrieved from X-TW-SIGNATURE header. keyParam = signerPublicKey+timestamp
-func VerifyHttpSignature(fullPathWithQuery string, keyParam string, base64Signature string, signerPublicKey string) error {
+// VerifyHttpSignature verifies the httpRequest signation retrieved from X-TW-SIGNATURE header. keyParam = signerAddress+timestamp
+func VerifyHttpSignature(fullPathWithQuery string, keyParam string, base64Signature string, signerAddress string) error {
 	keyParam = strings.TrimSpace(keyParam)
 	fullPathWithQuery = strings.TrimSpace(fullPathWithQuery)
-	signatureError := VerifySignatureString(fullPathWithQuery+keyParam, base64Signature, signerPublicKey)
+	signatureError := VerifySignatureString(fullPathWithQuery+keyParam, base64Signature, signerAddress)
 
 	if signatureError != nil {
 		log.Printf("invalid signature: %s\n", signatureError)

@@ -673,10 +673,10 @@ func UserTriggers(db *gorm.DB) error {
 	AS $$
 	BEGIN
 	   IF NEW.suspended = 1 AND OLD.suspended = 0 THEN
-	   INSERT INTO banned_public_keys (public_key) VALUES(NEW.public_key) ON CONFLICT DO NOTHING;
+	   INSERT INTO banned_addresses (address) VALUES(NEW.address) ON CONFLICT DO NOTHING;
 	   END IF;
 	   IF NEW.suspended = 0 AND OLD.suspended = 1 THEN
-	   DELETE FROM banned_public_keys WHERE public_key = NEW.public_key;
+	   DELETE FROM banned_addresses WHERE address = NEW.address;
 	   END IF;
 	   IF NEW.mobile != OLD.mobile THEN
 	   DELETE FROM user_mobile_phone_verifications WHERE user_id = NEW.id;

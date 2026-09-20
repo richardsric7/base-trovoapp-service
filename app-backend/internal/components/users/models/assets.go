@@ -99,7 +99,7 @@ func (i BantuAsset) GetAssetImage(gc *sharedconfig.GlobalConfig) string {
 	if len(i.AssetCode) == 0 && len(i.AssetIssuer) == 0 {
 		return os.Getenv("NATIVE_ASSET_IMAGE_URL")
 	}
-	if len(strings.TrimSpace(i.AssetIssuer)) != 56 {
+	if len(strings.TrimSpace(i.AssetIssuer)) != 42 {
 		return defaultAssetImageURL
 	}
 	cassets := assetsDB.GetCuratedAssets(false, gc)
@@ -186,7 +186,7 @@ func (i BantuAsset) GetDepositAddresses(walletID string, gc *sharedconfig.Global
 		return
 	}
 	//get the deposit addresses
-	e := gc.DB.Where("trovo_wallet_public_key = ? AND LOWER(currency) = ?", walletID, strings.ToLower(i.AssetCode)).Find(&depositAddresses).Error
+	e := gc.DB.Where("trovo_wallet_address = ? AND LOWER(currency) = ?", walletID, strings.ToLower(i.AssetCode)).Find(&depositAddresses).Error
 	if e != nil {
 		log.Printf("[GetDepositAddresses]Error getting deposit address, error: %v\n", e)
 	}
@@ -268,7 +268,7 @@ func (i BantuAsset) GetBlockchainAssetProperty(gc *sharedconfig.GlobalConfig) (a
 	var count int64
 	gc.DB.Table("curated_assets").Where("asset_code = ? AND asset_issuer = ?", strings.ToUpper(i.AssetCode), strings.ToLower(i.AssetIssuer)).Count(&count)
 	if count == 0 {
-		gc.DB.Table("tokenized_assets").Where("asset_code = ? AND issuing_wallet_public_key = ?", strings.ToUpper(i.AssetCode), strings.ToLower(i.AssetIssuer)).Count(&count)
+		gc.DB.Table("tokenized_assets").Where("asset_code = ? AND issuing_wallet_address = ?", strings.ToUpper(i.AssetCode), strings.ToLower(i.AssetIssuer)).Count(&count)
 	}
 	if count == 0 {
 		return assetStat, nil

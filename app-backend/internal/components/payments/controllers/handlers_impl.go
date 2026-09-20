@@ -57,7 +57,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 			return
 		}
 		signerAccountAlias := accountSignerUser.Username
-		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractAddress(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] %v error:%v\n", signerAccountAlias, getUserError)
 		}
 		if accountSignerUser.Suspended == 1 {
@@ -83,7 +83,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 
 		{
 			//check if pending shared access modify exists
-			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractAddress(c), gc.DB) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
 				return
 			}
@@ -105,7 +105,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 			c.JSON(invalidJSON.HTTPCode(), invalidJSON.JSONError())
 			return
 		}
-		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractAddress(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] paymentInfo %+v\n", paymentInfo)
 		}
 
@@ -130,8 +130,8 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 			return
 		}
 		//get the wallet you are sending payment from
-		sourceWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+		sourceWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractAddress(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] %v error:%v\n", signerAccountAlias, getWalletError)
 		}
 		if getWalletError != nil {
@@ -189,7 +189,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 		var getDestinationUserError, getDestinationWalletError error
 		//check if the public key exists in TROVO and then transform to username
 		paymentInfo.Messages = make([]string, 0)
-		publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
+		publicKeyPayment := len(paymentInfo.Destination) == 42
 		if publicKeyPayment {
 			paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
 			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
@@ -264,7 +264,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 
 		}
 		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &sourceWallet, &paymentInfo, gc)
-		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractAddress(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] returned Payment Error: [%v]\n", paymentError)
 
 			if paymentInfoReturned != nil {
@@ -300,31 +300,31 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 			}
 
 			payments.UpdateAndLogUserPaymentGeoInformation(&accountSignerUser, paymentInfoReturned, gc.DB)
-			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
 			senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", signerAccountAlias)
 
 			gc.RedisCache.InvalidateCachedHttpResponse(senderCacheKey, senderPaymentHistoryCacheKey)
 			gc.RedisCache.InvalidateCachedHttpResponse(senderPaymentHistoryCacheKey)
 			var senderBalanceCacheKey, senderTempCacheKey, receiverBalanceCacheKey, receiverTempCacheKey, rNTF, sNFT string
 
-			senderBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
-			sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+			senderBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractAddress(c))
+			sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractAddress(c))
 			if returnedDestination != nil {
-				receiverBalanceCacheKey = fmt.Sprintf("GetBalance_%s", returnedDestination.PublicKey)
-				rNTF = fmt.Sprintf("GetNFTs_%s", returnedDestination.PublicKey)
+				receiverBalanceCacheKey = fmt.Sprintf("GetBalance_%s", returnedDestination.Address)
+				rNTF = fmt.Sprintf("GetNFTs_%s", returnedDestination.Address)
 
 			}
-			if len(destinationWallet.ID) == 56 {
+			if len(destinationWallet.ID) == 42 {
 				destinationWallet.InvalidateUserCache(gc)
-				if destinationWallet.TempPublicKey != nil {
+				if destinationWallet.TempAddress != nil {
 
-					receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
+					receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempAddress)
 				}
 			}
-			if len(sourceWallet.ID) == 56 {
-				if sourceWallet.TempPublicKey != nil {
+			if len(sourceWallet.ID) == 42 {
+				if sourceWallet.TempAddress != nil {
 
-					senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempPublicKey)
+					senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempAddress)
 				}
 
 			}
@@ -333,7 +333,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 				destinationUsername := strings.TrimSpace(strings.ToLower(destinationUser.Username))
 
 				receiverCacheKey := fmt.Sprintf("[GET] /v1/users/%v", destinationUsername)
-				receiverPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+				receiverPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverCacheKey, receiverPaymentHistoryCacheKey)
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverPaymentHistoryCacheKey, senderBalanceCacheKey, receiverBalanceCacheKey)
 				returnedDestination.InvalidateUserCache(gc)
@@ -367,7 +367,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 					if paymentInfoReturned.AssetIssuer == "" {
 						assetCode = os.Getenv("NATIVE_ASSET_CODE")
 					}
-					senderWallet, _, _ := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+					senderWallet, _, _ := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 					jsonPayload := payload{
 						Destination:     paymentInfoReturned.Destination,
 						Sender:          senderWallet.Alias,
@@ -457,7 +457,6 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 	}
 }
 
-
 // postSharedAccessPaymentHandler godoc
 // @Summary POST /v1/shared-access/payment
 // @Tags payments
@@ -473,7 +472,7 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 		var err error
 		{
 			//check if pending shared access modify exists
-			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractAddress(c), gc.DB) {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
 				return
 			}
@@ -498,16 +497,16 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 		hasInitiatorAccess := false
 		// check if user has initiator access to wallet.
 		for _, p := range accountSignerUser.WalletsSharedWithUser {
-			if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
+			if p.WalletAddress == middleware.ExtractAddress(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
 				hasInitiatorAccess = true
 			}
 		}
-		if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+		if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractAddress(c)).AddressHasViewOnlyAccess(gc) {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
 			return
 		}
 		//get the wallet you are sending payment from
-		sourceWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		sourceWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -563,7 +562,7 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 			}
 		}
 		signerAccountAlias := accountSignerUser.Username
-		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractAddress(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] %v error:%v\n", signerAccountAlias, getUserError)
 		}
 		if accountSignerUser.Suspended == 1 {
@@ -603,7 +602,7 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 			c.JSON(invalidJSON.HTTPCode(), invalidJSON.JSONError())
 			return
 		}
-		if sourceWalletOwnerAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+		if sourceWalletOwnerAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractAddress(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] paymentInfo %+v\n", paymentInfo)
 		}
 		// trim the destination
@@ -635,7 +634,7 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 		var getDestinationWalletError error
 		//check if the public key exists in TROVO and then transform to username
 		paymentInfo.Messages = make([]string, 0)
-		publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
+		publicKeyPayment := len(paymentInfo.Destination) == 42
 
 		if publicKeyPayment {
 			paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
@@ -677,7 +676,7 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 
 		}
 		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &sourceWallet, &paymentInfo, gc)
-		if sourceWalletOwnerAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+		if sourceWalletOwnerAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractAddress(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] returned Payment Error: [%v]\n", paymentError)
 
 			if paymentInfoReturned != nil {
@@ -712,30 +711,30 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 				accountSignerUser.PublicIP = c.GetHeader("Cf-Connecting-Ip")
 			}
 			payments.UpdateAndLogUserPaymentGeoInformation(&accountSignerUser, paymentInfoReturned, gc.DB)
-			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
 			senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", sourceWalletOwnerAlias)
 
 			gc.RedisCache.InvalidateCachedHttpResponse(senderCacheKey, senderPaymentHistoryCacheKey)
 			gc.RedisCache.InvalidateCachedHttpResponse(senderPaymentHistoryCacheKey)
 			var senderBalanceCacheKey, senderTempCacheKey, receiverBalanceCacheKey, receiverTempCacheKey, rNTF, sNFT string
 
-			senderBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
-			sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+			senderBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractAddress(c))
+			sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractAddress(c))
 			if returnedDestination != nil {
-				receiverBalanceCacheKey = fmt.Sprintf("GetBalance_%s", returnedDestination.PublicKey)
-				rNTF = fmt.Sprintf("GetNFTs_%s", returnedDestination.PublicKey)
+				receiverBalanceCacheKey = fmt.Sprintf("GetBalance_%s", returnedDestination.Address)
+				rNTF = fmt.Sprintf("GetNFTs_%s", returnedDestination.Address)
 
 			}
-			if len(destinationWallet.ID) == 56 {
-				if destinationWallet.TempPublicKey != nil {
+			if len(destinationWallet.ID) == 42 {
+				if destinationWallet.TempAddress != nil {
 
-					receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
+					receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempAddress)
 				}
 			}
-			if len(sourceWallet.ID) == 56 {
-				if sourceWallet.TempPublicKey != nil {
+			if len(sourceWallet.ID) == 42 {
+				if sourceWallet.TempAddress != nil {
 
-					senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempPublicKey)
+					senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempAddress)
 				}
 
 			}
@@ -744,7 +743,7 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 				destinationUsername := strings.TrimSpace(strings.ToLower(destinationUser.Username))
 
 				receiverCacheKey := fmt.Sprintf("[GET] /v1/users/%v", destinationUsername)
-				receiverPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+				receiverPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverCacheKey, receiverPaymentHistoryCacheKey)
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverPaymentHistoryCacheKey, senderBalanceCacheKey, receiverBalanceCacheKey)
 			}

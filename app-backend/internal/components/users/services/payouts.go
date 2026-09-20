@@ -41,7 +41,7 @@ func main() {
 
 	// Initialize with accounts from initial fetch
 	// for _, accountID := range initialAccounts {
-	// 	accountsWithKGM[accountID.PublicKey] = true
+	// 	accountsWithKGM[accountID.Address] = true
 	// }
 
 	// Create a channel to receive streaming events
@@ -56,8 +56,8 @@ func main() {
 }
 
 type BasicBalance struct {
-	PublicKey string
-	Balance   float64
+	Address string
+	Balance float64
 }
 
 // fetchInitialAccounts enumerated every Stellar account holding the KGM
@@ -107,8 +107,8 @@ func processData(balance, publicKey string, payout *userModels.ProceedPayout, gc
 		TokenizedAssetID:               payout.TokenizedAssetID,
 		Batch:                          payout.Batch,
 		PayoutAssetCode:                *payout.TokenizedAsset.AssetCode,
-		PayoutAssetIssuer:              *payout.TokenizedAsset.IssuingWalletPublicKey,
-		BeneficiaryPublicKey:           publicKey,
+		PayoutAssetIssuer:              *payout.TokenizedAsset.IssuingWalletAddress,
+		BeneficiaryAddress:             publicKey,
 		ConfirmedTokenizedAssetBalance: bal,
 		AmountToReceive:                amountToReceive.InexactFloat64(),
 		CannotReceiveAsset:             canReceiveAsset,

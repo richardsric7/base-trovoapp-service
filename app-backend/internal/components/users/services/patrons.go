@@ -125,7 +125,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 		}
 	}
 
-	// primaryWallet, _:=owner.GetWalletByPublicKey(owner.PublicKey, gc.DB)
+	// primaryWallet, _:=owner.GetWalletByAddress(owner.Address, gc.DB)
 
 	{
 		//routine checks for package subscription qualification
@@ -379,7 +379,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 		vatFeeCollection := sharedconfig.FeeCollection{
 			ID:                         gc.GenerateUUIDString(),
 			FromUsername:               owner.Username,
-			FromWalletPublicKey:        owner.PublicKey,
+			FromWalletAddress:          owner.Address,
 			FromWalletAlias:            owner.Username,
 			BelongsToEnterpriseProfile: owner.CreatedByServiceLinkID,
 			FeeType:                    "VAT",
@@ -445,7 +445,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 	var errGetEstimate error
 	var requiredSourceQuantity, estimatedTrov string
 	var path []basetxn.Asset
-	if len(patronSubInput.PaymentAssetIssuer) == 56 {
+	if len(patronSubInput.PaymentAssetIssuer) == 42 {
 		sourceAssets = strings.ToUpper(fmt.Sprintf("%v:%v", patronSubInput.PaymentAssetCode, patronSubInput.PaymentAssetIssuer))
 	}
 
@@ -462,7 +462,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 
 	// _, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), nativeAsset)
 
-	sourceAccountExists, _, nativeBalance, customBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.PublicKey, asset)
+	sourceAccountExists, _, nativeBalance, customBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.Address, asset)
 
 	if sourceAccountErr != nil {
 		log.Println("[generatePatronSubscriptionXdr] error checking account properties on blockchain. Error ", sourceAccountErr)
@@ -526,14 +526,14 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 		}
 	}
 	// //assume the primary wallet does not have trustline to the trov asset. Build the trustline.
-	// _, destAccountTrustsDestinationAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.PublicKey, basetxn.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"})
+	// _, destAccountTrustsDestinationAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.Address, basetxn.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"})
 
 	// if !destAccountTrustsDestinationAsset {
 
 	// 	ops = append(ops, &basetxn.ChangeTrust{
 	// 		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: basetxn.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"}},
 	// 		Limit:         "900000000000",
-	// 		SourceAccount: owner.PublicKey,
+	// 		SourceAccount: owner.Address,
 	// 	})
 	// }
 	if !strings.EqualFold(patronSubInput.PaymentAssetCode, "TROV") {
@@ -569,7 +569,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 				DestAsset:     basetxn.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
 				DestMin:       "0.0000001",
 				Path:          path,
-				SourceAccount: owner.PublicKey, //primary wallet
+				SourceAccount: owner.Address, //primary wallet
 			})
 		}
 	} else {
@@ -578,7 +578,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 			Destination:   patronFeeKP.Address(),
 			Amount:        requiredSourceQuantity,
 			Asset:         basetxn.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
-			SourceAccount: owner.PublicKey, //primary wallet
+			SourceAccount: owner.Address, //primary wallet
 		})
 	}
 

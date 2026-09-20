@@ -33,9 +33,9 @@ type StartMessage struct {
 }
 
 type StreamObject struct {
-	PublicKey string
-	Alias     string
-	request   interface{}
+	Address string
+	Alias   string
+	request interface{}
 }
 
 // UserWebSocketAPI handles websocket connections

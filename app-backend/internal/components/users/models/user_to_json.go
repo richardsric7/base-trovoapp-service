@@ -11,7 +11,7 @@ func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
 	jsonObj.Username = u.Username
 	jsonObj.Email = u.Email
 	jsonObj.FirstName = u.FirstName
-	jsonObj.PublicKey = u.PublicKey
+	jsonObj.Address = u.Address
 	jsonObj.PrimarySigner = u.PrimarySigner
 	jsonObj.Corporate = u.Corporate
 	jsonObj.MobileVerified = u.MobileVerified
@@ -141,8 +141,8 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 
 	//nullable
 	{
-		if uw.TempPublicKey != nil {
-			jsonObj.TempPublicKey = *uw.TempPublicKey
+		if uw.TempAddress != nil {
+			jsonObj.TempAddress = *uw.TempAddress
 		}
 		if uw.Tag != nil {
 			jsonObj.Tag = *uw.Tag
@@ -150,8 +150,8 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 		if uw.Description != nil {
 			jsonObj.Description = *uw.Description
 		}
-		if uw.LinkedWalletPublicKey != nil {
-			jsonObj.LinkedWalletPublicKey = *uw.LinkedWalletPublicKey
+		if uw.LinkedWalletAddress != nil {
+			jsonObj.LinkedWalletAddress = *uw.LinkedWalletAddress
 		}
 
 	}
@@ -166,7 +166,7 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 func (wa *WalletPermission) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj WalletPermissionJSON) {
 	jsonObj.CreatedAt = wa.CreatedAt
 	jsonObj.UpdatedAt = wa.UpdatedAt
-	jsonObj.WalletPublicKey = wa.WalletPublicKey
+	jsonObj.WalletAddress = wa.WalletAddress
 	jsonObj.TargetUsername = wa.TargetUsername
 	jsonObj.Permission = wa.Permission
 	var name string
@@ -187,8 +187,8 @@ func (a *PendingAuth) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj AuthJSON) {
 		return
 	}
 	var walletOwnerUsername, walletAlias string
-	// walletOwner,e:=UserWalletID(a.WalletPublicKey).GetWalletOwner(gc.DB)
-	wallet, e := UserWalletID(a.WalletPublicKey).GetWallet(gc.DB, gc)
+	// walletOwner,e:=UserWalletID(a.WalletAddress).GetWalletOwner(gc.DB)
+	wallet, e := UserWalletID(a.WalletAddress).GetWallet(gc.DB, gc)
 	if e == nil {
 		if wallet.Tag != nil {
 			//subwallet
@@ -205,7 +205,7 @@ func (a *PendingAuth) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj AuthJSON) {
 		UpdatedAt:           a.UpdatedAt,
 		ID:                  a.ID,
 		WalletOwnerUsername: walletOwnerUsername,
-		WalletPublicKey:     a.WalletPublicKey,
+		WalletAddress:       a.WalletAddress,
 		Alias:               walletAlias,
 		Initiator:           a.Initiator,
 		TransactionType:     a.TransactionType,

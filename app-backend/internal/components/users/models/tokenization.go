@@ -88,7 +88,7 @@ type TokenizedAsset struct {
 	ClosedGroup                        ClosedGroup                `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"closedGroupInfo"`
 	SecApproval                        int                        `gorm:"default:0" json:"secApproval"`
 	SecApprovalIdNumber                *string                    `json:"secApprovalIdNumber"`
-	IssuingWalletPublicKey             *string                    `gorm:"size:60" json:"issuingWalletPublicKey"`
+	IssuingWalletAddress               *string                    `gorm:"size:60" json:"issuingWalletAddress"`
 	IssuingWalletAlias                 *string                    `gorm:"size:60" json:"issuingWalletAlias"`
 	MarketMakingWallet                 *string                    `json:"marketMakingWallet"`
 	AssetDescription                   *string                    `json:"assetDescription"`
@@ -145,7 +145,7 @@ type TokenizedAsset struct {
 	NumberOfTokenToBeSold                        float64                         `gorm:"default:0" json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                      float64                         `gorm:"default:0" json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale                 *string                         `json:"walletToHoldAssetsNotForSale"`
-	FundsHoldingWalletPublicKey                  *string                         `json:"fundsHoldingWalletPublicKey"`
+	FundsHoldingWalletAddress                    *string                         `json:"fundsHoldingWalletAddress"`
 	PricePerToken                                float64                         `gorm:"default:0" json:"pricePerToken"`
 	SalesStart                                   time.Time                       `json:"salesStart"`
 	SalesEnd                                     time.Time                       `json:"salesEnd"`
@@ -671,7 +671,7 @@ type TokenizedAssetJSONInput struct {
 	NumberOfTokenToBeSold                        float64   `json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                      float64   `json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale                 string    `json:"walletToHoldAssetsNotForSale"` //wallet that the original owner wants to use to receive their portion of tokenized asset that are not meant for sale.
-	FundsHoldingWalletPublicKey                  string    `json:"fundsHoldingWalletPublicKey"`
+	FundsHoldingWalletAddress                    string    `json:"fundsHoldingWalletAddress"`
 	PricePerToken                                float64   `json:"pricePerToken"`
 	SalesStart                                   time.Time `json:"salesStart"`
 	SalesEnd                                     time.Time `json:"salesEnd"`
@@ -1181,7 +1181,7 @@ type TokenizedAssetJSON struct {
 	ClosedGroup                                  ClosedGroup                     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"closedGroupInfo"`
 	SecApproval                                  int                             `gorm:"default:0" json:"secApproval"`
 	SecApprovalIdNumber                          string                          `json:"secApprovalIdNumber"`
-	IssuingWalletPublicKey                       string                          `gorm:"size:60" json:"issuingWalletPublicKey"`
+	IssuingWalletAddress                         string                          `gorm:"size:60" json:"issuingWalletAddress"`
 	IssuingWalletAlias                           string                          `gorm:"size:60" json:"issuingWalletAlias"`
 	MarketMakingWallet                           string                          `json:"marketMakingWallet"`
 	AssetDescription                             string                          `json:"assetDescription"`
@@ -1223,7 +1223,7 @@ type TokenizedAssetJSON struct {
 	NumberOfTokenToBeSold                        float64                         `gorm:"default:0" json:"numberOfTokenToBeSold"`
 	TotalTokenHeldByManager                      float64                         `gorm:"default:0" json:"totalTokenHeldByManager"`
 	WalletToHoldAssetsNotForSale                 string                          `json:"walletToHoldAssetsNotForSale"`
-	FundsHoldingWalletPublicKey                  string                          `json:"fundsHoldingWalletPublicKey"`
+	FundsHoldingWalletAddress                    string                          `json:"fundsHoldingWalletAddress"`
 	PricePerToken                                float64                         `gorm:"default:0" json:"pricePerToken"`
 	SalesStart                                   time.Time                       `json:"salesStart"`
 	SalesEnd                                     time.Time                       `json:"salesEnd"`
@@ -1873,7 +1873,7 @@ type AssetTokenizationDocumentType struct {
 	// ColumnName              string `json:"-" form:"-"`
 }
 
-type IssuingWalletPublicKey string
+type IssuingWalletAddress string
 
 type ExistingAssetValidationAssetInformation struct {
 	ID                             uint64 `gorm:"" json:"-" form:"-"`
@@ -1959,7 +1959,7 @@ type TokenizedAssetSubscription struct {
 	AssetCode          string         `gorm:"not null;size:12" json:"assetCode"`
 	AssetIssuer        string         `gorm:"not null;size:100" json:"assetIssuer"`
 	WalletAlias        string         `gorm:"not null;size:100" json:"walletAlias"`
-	WalletPublicKey    string         `gorm:"not null;size:100" json:"walletPublicKey"`
+	WalletAddress      string         `gorm:"not null;size:100" json:"walletAddress"`
 	Amount             float64        `json:"amount"` //fiat Amount in tokenized asset quote currency
 	Price              float64        `json:"price"`  // in tokenized asset price in quote currency
 	SubscriberUsername string         `gorm:"not null;size:100" json:"subscriberUsername"`
@@ -1983,7 +1983,7 @@ type ExpressionOfInterest struct {
 type TokenizedAssetSubscriptionInput struct {
 	TokenizedAssetID     string   `json:"tokenizedAssetId"`
 	SubscriberUsername   string   `json:"subscriberUsername"`
-	WalletPublicKey      string   `json:"walletPublicKey"`
+	WalletAddress        string   `json:"walletAddress"`
 	Amount               float64  `json:"amount"` //fiat Amount in tokenized asset quote currency
 	SwappedEstimate      string   `json:"swappedEstimate"`
 	Transaction          string   `json:"transaction"`
@@ -2020,27 +2020,27 @@ type FiatTokenizedAssetSubscriptionInput struct {
 }
 
 type TokenizedAssetPrimarySalesPurchaseInputForServiceLink struct {
-	TokenizedAssetID           string   `json:"tokenizedAssetId"`
-	PurchaserUsername          string   `json:"purchaserUsername"`
-	DestinationWalletPublicKey string   `json:"destinationWalletPublicKey"`
-	AmountInAssetCurrency      float64  `json:"amountInAssetCurrency"` //fiat Amount in tokenized asset quote currency
-	SwappedEstimate            string   `json:"swappedEstimate"`
-	Transaction                string   `json:"transaction"`
-	TransactionSignature       string   `json:"transactionSignature"`
-	TransactionID              string   `json:"transactionId"`
-	NetworkPassPhrase          string   `json:"networkPassPhrase"`
-	Messages                   []string `json:"messages"`
-	Memo                       string   `json:"memo"`
-	SignatureRequired          int      `json:"signatureRequired"`
-	Commit                     int      `json:"commit"`
-	PaymentAssetCode           string   `json:"paymentAssetCode"`
-	PaymentAssetIssuer         string   `json:"paymentAssetIssuer"`
+	TokenizedAssetID         string   `json:"tokenizedAssetId"`
+	PurchaserUsername        string   `json:"purchaserUsername"`
+	DestinationWalletAddress string   `json:"destinationWalletAddress"`
+	AmountInAssetCurrency    float64  `json:"amountInAssetCurrency"` //fiat Amount in tokenized asset quote currency
+	SwappedEstimate          string   `json:"swappedEstimate"`
+	Transaction              string   `json:"transaction"`
+	TransactionSignature     string   `json:"transactionSignature"`
+	TransactionID            string   `json:"transactionId"`
+	NetworkPassPhrase        string   `json:"networkPassPhrase"`
+	Messages                 []string `json:"messages"`
+	Memo                     string   `json:"memo"`
+	SignatureRequired        int      `json:"signatureRequired"`
+	Commit                   int      `json:"commit"`
+	PaymentAssetCode         string   `json:"paymentAssetCode"`
+	PaymentAssetIssuer       string   `json:"paymentAssetIssuer"`
 }
 
 func (i *TokenizedAssetSubscriptionInput) ToServiceLinkInput(gc *sharedconfig.GlobalConfig) (si TokenizedAssetPrimarySalesPurchaseInputForServiceLink) {
 	si.TokenizedAssetID = i.TokenizedAssetID
 	si.PurchaserUsername = i.SubscriberUsername
-	si.DestinationWalletPublicKey = i.WalletPublicKey
+	si.DestinationWalletAddress = i.WalletAddress
 	si.AmountInAssetCurrency = i.Amount
 	si.SwappedEstimate = i.SwappedEstimate
 	si.Transaction = i.Transaction
@@ -2059,7 +2059,7 @@ func (i *TokenizedAssetSubscriptionInput) ToServiceLinkInput(gc *sharedconfig.Gl
 func (i *TokenizedAssetPrimarySalesPurchaseInputForServiceLink) ToSubscriptionInput(gc *sharedconfig.GlobalConfig) (si TokenizedAssetSubscriptionInput) {
 	si.TokenizedAssetID = i.TokenizedAssetID
 	si.SubscriberUsername = i.PurchaserUsername
-	si.WalletPublicKey = i.DestinationWalletPublicKey
+	si.WalletAddress = i.DestinationWalletAddress
 	si.Amount = i.AmountInAssetCurrency
 	si.SwappedEstimate = i.SwappedEstimate
 	si.Transaction = i.Transaction
@@ -2115,7 +2115,7 @@ type TokenizedAssetPayoutSchedule struct {
 	Batch                          string         `gorm:"not null;size:100;index:," json:"batch"` //asset code + payout cycle + month + year
 	PayoutAssetCode                string         `gorm:"not null;size:12" json:"payoutAssetCode"`
 	PayoutAssetIssuer              string         `gorm:"not null;size:100" json:"payoutAssetIssuer"`
-	BeneficiaryPublicKey           string         `gorm:"not null;size:100" json:"beneficiaryPublicKey"`
+	BeneficiaryAddress             string         `gorm:"not null;size:100" json:"beneficiaryAddress"`
 	ConfirmedTokenizedAssetBalance float64        `json:"confirmedTokenizedAssetBalance"` //asset balance at the time of preparing schedule
 	AmountToReceive                float64        `json:"amountToReceive"`
 	CannotReceiveAsset             int            `gorm:"default:0" json:"CannotReceiveAsset"` //checks if the beneficiary can receive the asset or not.
@@ -2128,14 +2128,14 @@ type TokenizedAssetPayoutEngineTask struct {
 	MemoFromBatch                  string    `gorm:"not null;size:28;index:," json:"batch"` //asset code + payout cycle + month + year
 	PayoutAssetCode                string    `gorm:"not null;size:12" json:"payoutAssetCode"`
 	PayoutAssetIssuer              string    `gorm:"not null;size:100" json:"payoutAssetIssuer"`
-	BeneficiaryPublicKey           string    `gorm:"not null;size:100" json:"beneficiaryPublicKey"`
+	BeneficiaryAddress             string    `gorm:"not null;size:100" json:"beneficiaryAddress"`
 	AmountToReceive                string    `json:"amountToReceive"`
 	Paid                           int       `gorm:"default:0" json:"paid"`
 }
 
 type PostTokenizationTrustlineCandidate struct {
 	ID          uint64
-	PublicKey   string
+	Address     string
 	Description string
 }
 
@@ -2145,7 +2145,7 @@ func (p PostTokenizationTrustlineCandidate) GetUntrustedTokenizedAssets(gc *shar
 	//get curated tokenized assets
 	assets := gc.GetCuratedAssetByClassID(3, false)
 	//get account balance
-	account, _, err := UserWalletID(p.PublicKey).GetBlockchainAccountDetail(gc)
+	account, _, err := UserWalletID(p.Address).GetBlockchainAccountDetail(gc)
 	if err != nil {
 		return
 	}
@@ -2212,22 +2212,22 @@ func (did AssetTokenizationDocumentID) GetTokenization(gc *sharedconfig.GlobalCo
 	return
 }
 
-func (i IssuingWalletPublicKey) GetTokenizationByDocumentID(did uint64, gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
+func (i IssuingWalletAddress) GetTokenizationByDocumentID(did uint64, gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
 	return AssetTokenizationDocumentID(did).GetTokenization(gc)
 }
 
 // GetTokenization gets the tokenized asset by issuing wallet and returns the first one ordered by the asset tokenization status from 0.
-func (i IssuingWalletPublicKey) GetTokenizationByAssetCode(assetCode string, gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
-	e := gc.DB.Preload(clause.Associations).Order("asset_tokenization_status ASC").Where("issuing_wallet_public_key = ? AND asset_code = upper(?)", string(i), assetCode).First(&t).Error
+func (i IssuingWalletAddress) GetTokenizationByAssetCode(assetCode string, gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
+	e := gc.DB.Preload(clause.Associations).Order("asset_tokenization_status ASC").Where("issuing_wallet_address = ? AND asset_code = upper(?)", string(i), assetCode).First(&t).Error
 	if e != nil {
-		log.Printf("[IssuingWalletPublicKey::GetTokenization] Error getting tokenized asset for %v, %v\n", string(i), e)
+		log.Printf("[IssuingWalletAddress::GetTokenization] Error getting tokenized asset for %v, %v\n", string(i), e)
 	}
 	return
 }
-func (i IssuingWalletPublicKey) GetTokenizationByID(id string, gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
-	e := gc.DB.Preload(clause.Associations).Where("issuing_wallet_public_key = ? AND id = ?", string(i), id).First(&t).Error
+func (i IssuingWalletAddress) GetTokenizationByID(id string, gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
+	e := gc.DB.Preload(clause.Associations).Where("issuing_wallet_address = ? AND id = ?", string(i), id).First(&t).Error
 	if e != nil {
-		log.Printf("[IssuingWalletPublicKey::GetTokenization] Error getting tokenized asset for %v, %v\n", string(i), e)
+		log.Printf("[IssuingWalletAddress::GetTokenization] Error getting tokenized asset for %v, %v\n", string(i), e)
 	}
 	return
 }
@@ -2252,7 +2252,7 @@ func (t TokenizedAssetCode) IsTokenizedAsset(gc *sharedconfig.GlobalConfig) bool
 	return e == nil
 }
 
-func (i IssuingWalletPublicKey) GetTokenizationFeeByID(feeID uint64, gc *sharedconfig.GlobalConfig) (fee TokenizationFee) {
+func (i IssuingWalletAddress) GetTokenizationFeeByID(feeID uint64, gc *sharedconfig.GlobalConfig) (fee TokenizationFee) {
 	gc.DB.Preload(clause.Associations).Where("id = ?", feeID).First(&fee)
 
 	return
@@ -2269,11 +2269,11 @@ func (t *TokenizedAsset) GetExpressedInterestByUsername(subscriber string, gc *s
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
-	var issuerWalletPublicKey string
-	if t.IssuingWalletPublicKey != nil {
-		issuerWalletPublicKey = *t.IssuingWalletPublicKey
+	var issuerWalletAddress string
+	if t.IssuingWalletAddress != nil {
+		issuerWalletAddress = *t.IssuingWalletAddress
 	}
-	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ? AND Subscriber_Username = ?", t.ID, issuerWalletPublicKey, subscriber).First(&exp).Error
+	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ? AND Subscriber_Username = ?", t.ID, issuerWalletAddress, subscriber).First(&exp).Error
 
 	return
 }
@@ -2284,11 +2284,11 @@ func (t *TokenizedAsset) SumExpressedInterest(gc *sharedconfig.GlobalConfig) (su
 		log.Println("[TokenizedAsset::SumExpressedInterest] Error tokenized asset is nil")
 		return
 	}
-	var issuerWalletPublicKey string
-	if t.IssuingWalletPublicKey != nil {
-		issuerWalletPublicKey = *t.IssuingWalletPublicKey
+	var issuerWalletAddress string
+	if t.IssuingWalletAddress != nil {
+		issuerWalletAddress = *t.IssuingWalletAddress
 	}
-	gc.DB.Model(&ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletPublicKey).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	gc.DB.Model(&ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletAddress).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
@@ -2298,11 +2298,11 @@ func (t *TokenizedAsset) CountExpressedInterests(gc *sharedconfig.GlobalConfig) 
 		log.Println("[TokenizedAsset::CountExpressedInterests] Error tokenized asset is nil")
 		return
 	}
-	var issuerWalletPublicKey string
-	if t.IssuingWalletPublicKey != nil {
-		issuerWalletPublicKey = *t.IssuingWalletPublicKey
+	var issuerWalletAddress string
+	if t.IssuingWalletAddress != nil {
+		issuerWalletAddress = *t.IssuingWalletAddress
 	}
-	gc.DB.Model(ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletPublicKey).Count(&count)
+	gc.DB.Model(ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletAddress).Count(&count)
 
 	return
 }
@@ -2312,11 +2312,11 @@ func (t *TokenizedAsset) CountNumberOfSubscribers(gc *sharedconfig.GlobalConfig)
 		log.Println("[TokenizedAsset::CountNumberOfSubscribers] Error tokenized asset is nil")
 		return
 	}
-	var issuerWalletPublicKey string
-	if t.IssuingWalletPublicKey != nil {
-		issuerWalletPublicKey = *t.IssuingWalletPublicKey
+	var issuerWalletAddress string
+	if t.IssuingWalletAddress != nil {
+		issuerWalletAddress = *t.IssuingWalletAddress
 	}
-	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletPublicKey).Count(&count)
+	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletAddress).Count(&count)
 
 	return
 }
@@ -2327,11 +2327,11 @@ func (t *TokenizedAsset) SumAmountSoldInFiat(gc *sharedconfig.GlobalConfig) (sum
 		log.Println("[TokenizedAsset::SumAmountSoldInFiat] Error tokenized asset is nil")
 		return
 	}
-	var issuerWalletPublicKey string
-	if t.IssuingWalletPublicKey != nil {
-		issuerWalletPublicKey = *t.IssuingWalletPublicKey
+	var issuerWalletAddress string
+	if t.IssuingWalletAddress != nil {
+		issuerWalletAddress = *t.IssuingWalletAddress
 	}
-	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletPublicKey).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletAddress).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
@@ -2343,26 +2343,26 @@ func (t *TokenizedAsset) SumAmountBoughtByWalletOwner(walletAlias string, gc *sh
 		return
 	}
 	ownerUsername := strings.Split(walletAlias, "_")[0]
-	var issuerWalletPublicKey string
-	if t.IssuingWalletPublicKey != nil {
-		issuerWalletPublicKey = *t.IssuingWalletPublicKey
+	var issuerWalletAddress string
+	if t.IssuingWalletAddress != nil {
+		issuerWalletAddress = *t.IssuingWalletAddress
 	}
-	gc.DB.Model(&TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND asset_issuer = ? AND Wallet_Alias LIKE ?", t.ID, issuerWalletPublicKey, strings.ToLower(ownerUsername)+"%").Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	gc.DB.Model(&TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND asset_issuer = ? AND Wallet_Alias LIKE ?", t.ID, issuerWalletAddress, strings.ToLower(ownerUsername)+"%").Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
 
-func (t *TokenizedAsset) GetTokenizedAssetSubscriptionByWalletPublicKey(subscriberWalletPublicKey string, gc *sharedconfig.GlobalConfig) (sub TokenizedAssetSubscription, err error) {
+func (t *TokenizedAsset) GetTokenizedAssetSubscriptionByWalletAddress(subscriberWalletAddress string, gc *sharedconfig.GlobalConfig) (sub TokenizedAssetSubscription, err error) {
 	if t == nil {
-		log.Printf("[TokenizedAsset::GetTokenizedAssetSubscriptionByWalletPublicKey] Error tokenized asset is nil %v\n", subscriberWalletPublicKey)
+		log.Printf("[TokenizedAsset::GetTokenizedAssetSubscriptionByWalletAddress] Error tokenized asset is nil %v\n", subscriberWalletAddress)
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
-	var issuerWalletPublicKey string
-	if t.IssuingWalletPublicKey != nil {
-		issuerWalletPublicKey = *t.IssuingWalletPublicKey
+	var issuerWalletAddress string
+	if t.IssuingWalletAddress != nil {
+		issuerWalletAddress = *t.IssuingWalletAddress
 	}
-	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ? AND Wallet_Public_Key = ?", t.ID, issuerWalletPublicKey, subscriberWalletPublicKey).First(&sub).Error
+	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ? AND Wallet_Public_Key = ?", t.ID, issuerWalletAddress, subscriberWalletAddress).First(&sub).Error
 
 	return
 }
@@ -2810,11 +2810,11 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 				t.WalletToHoldAssetsNotForSale = nil
 			}
 
-			if len(ti.FundsHoldingWalletPublicKey) > 0 {
+			if len(ti.FundsHoldingWalletAddress) > 0 {
 
-				t.FundsHoldingWalletPublicKey = &ti.FundsHoldingWalletPublicKey
+				t.FundsHoldingWalletAddress = &ti.FundsHoldingWalletAddress
 			} else {
-				t.FundsHoldingWalletPublicKey = nil
+				t.FundsHoldingWalletAddress = nil
 			}
 
 		}
@@ -3006,9 +3006,9 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	if ne(ti.ProjectIdentifiedOtherRelevantRisks) {
 		t.ProjectIdentifiedOtherRelevantRisks = &ti.ProjectIdentifiedOtherRelevantRisks
 	}
-	if t.DeepLink == nil && t.AssetCode != nil && t.IssuingWalletPublicKey != nil {
+	if t.DeepLink == nil && t.AssetCode != nil && t.IssuingWalletAddress != nil {
 		//set deep link
-		p, _ := dynamiclinks.GenerateTokenizedAssetDeeplink(*t.AssetCode, *t.IssuingWalletPublicKey, gc)
+		p, _ := dynamiclinks.GenerateTokenizedAssetDeeplink(*t.AssetCode, *t.IssuingWalletAddress, gc)
 		if len(p.DynamicLink) > 0 {
 			t.DeepLink = &p.DynamicLink
 		}
@@ -5198,8 +5198,8 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 		t.SecApprovalIdNumber = *ti.SecApprovalIdNumber
 	}
 
-	if ti.IssuingWalletPublicKey != nil {
-		t.IssuingWalletPublicKey = *ti.IssuingWalletPublicKey
+	if ti.IssuingWalletAddress != nil {
+		t.IssuingWalletAddress = *ti.IssuingWalletAddress
 	}
 	if ti.IssuingWalletAlias != nil {
 		t.IssuingWalletAlias = *ti.IssuingWalletAlias
@@ -5285,8 +5285,8 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.WalletToHoldAssetsNotForSale != nil {
 		t.WalletToHoldAssetsNotForSale = *ti.WalletToHoldAssetsNotForSale
 	}
-	if ti.FundsHoldingWalletPublicKey != nil {
-		t.FundsHoldingWalletPublicKey = *ti.FundsHoldingWalletPublicKey
+	if ti.FundsHoldingWalletAddress != nil {
+		t.FundsHoldingWalletAddress = *ti.FundsHoldingWalletAddress
 	}
 	t.PricePerToken = ti.PricePerToken
 	t.SalesStart = ti.SalesStart
@@ -5468,9 +5468,9 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 		t.QuantityOfTokensSold = decimal.NewFromFloat(t.QuantityOfTokensSoldInFiat / t.PricePerToken).Truncate(7).InexactFloat64()
 	}
 	t.PurchaseCommitments = ti.SumExpressedInterest(gc)
-	if ti.DeepLink == nil && ti.AssetCode != nil && ti.IssuingWalletPublicKey != nil {
+	if ti.DeepLink == nil && ti.AssetCode != nil && ti.IssuingWalletAddress != nil {
 		//set deep link
-		p, _ := dynamiclinks.GenerateTokenizedAssetDeeplink(*ti.AssetCode, *ti.IssuingWalletPublicKey, gc)
+		p, _ := dynamiclinks.GenerateTokenizedAssetDeeplink(*ti.AssetCode, *ti.IssuingWalletAddress, gc)
 		if len(p.DynamicLink) > 0 {
 			ti.DeepLink = &p.DynamicLink
 			//save the tokenized asset information
@@ -6544,9 +6544,9 @@ func (tas *TokenizedAssetSubscription) UpdateTokenizedAssetSubscriptionFromInput
 	tas.ID = uuid.NewString()
 	tas.TokenizedAssetID = ta.ID
 	tas.AssetCode = *ta.AssetCode
-	tas.AssetIssuer = *ta.IssuingWalletPublicKey
+	tas.AssetIssuer = *ta.IssuingWalletAddress
 	tas.WalletAlias = subscriberWallet.Alias
-	tas.WalletPublicKey = subscriberWallet.ID
+	tas.WalletAddress = subscriberWallet.ID
 	tas.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
 	tas.Price = ta.PricePerToken
 	tas.SubscriberUsername = subscriberUsername
@@ -6565,7 +6565,7 @@ func (e *ExpressionOfInterest) UpdateExpressionOfInterestFromInput(subscriberUse
 	}
 	e.TokenizedAssetID = ta.ID
 	e.AssetCode = *ta.AssetCode
-	e.AssetIssuer = *ta.IssuingWalletPublicKey
+	e.AssetIssuer = *ta.IssuingWalletAddress
 	e.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
 	e.Price = ta.PricePerToken
 	e.SubscriberUsername = subscriberUsername
@@ -6744,11 +6744,11 @@ type MarketOffersPage struct {
 // GetMarketOffers fetches the market maker's available liquidity for this
 // tokenized asset. See MarketOffersPage's doc for the Base simplification.
 func (t *TokenizedAsset) GetMarketOffers(gc *sharedconfig.GlobalConfig) (marketOffers MarketOffersPage, err error) {
-	if t.MarketMakingWallet == nil || t.AssetCode == nil || t.IssuingWalletPublicKey == nil {
+	if t.MarketMakingWallet == nil || t.AssetCode == nil || t.IssuingWalletAddress == nil {
 		return
 	}
 	seller := *t.MarketMakingWallet
-	tokenContract := *t.IssuingWalletPublicKey
+	tokenContract := *t.IssuingWalletAddress
 	client := network.GetBlockchainClient()
 
 	balance, e := network.B20BalanceOf(client, tokenContract, seller)
@@ -6792,15 +6792,15 @@ type TokenizedAssetEarlyExit struct {
 	UpdatedAt        time.Time `json:"updatedAt"`
 	TokenizedAssetID string    `gorm:"not null;size:100" json:"tokenizedAssetId"`
 
-	WalletUsername  string `json:"walletUsername"`
-	WalletPublicKey string `gorm:"not null;size:100" json:"walletPublicKey"`
-	AccountNumber   string `json:"accountNumber"`
-	AccountName     string `json:"accountName"`
-	PayoutCurrency  string `json:"payoutCurrency"`
-	BankID          uint64 `json:"bankId"`
-	Bank            Bank   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"bankInfo"`
-	SettlementTime  string `json:"settlementTime"`
-	TransactionID   string `json:"transactionId"`
+	WalletUsername string `json:"walletUsername"`
+	WalletAddress  string `gorm:"not null;size:100" json:"walletAddress"`
+	AccountNumber  string `json:"accountNumber"`
+	AccountName    string `json:"accountName"`
+	PayoutCurrency string `json:"payoutCurrency"`
+	BankID         uint64 `json:"bankId"`
+	Bank           Bank   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"bankInfo"`
+	SettlementTime string `json:"settlementTime"`
+	TransactionID  string `json:"transactionId"`
 
 	TokenQuantityToExit     float64 `json:"tokenQuantityToExit"`
 	CurrentNAVPerToken      float64 `json:"CurrentNAVPerToken"`
@@ -6811,7 +6811,7 @@ type TokenizedAssetEarlyExit struct {
 
 type TokenizedAssetEarlyExitInput struct {
 	TokenizedAssetID     string   `gorm:"not null;size:100" json:"tokenizedAssetId"`
-	WalletPublicKey      string   `json:"walletPublicKey"`
+	WalletAddress        string   `json:"walletAddress"`
 	AccountNumber        string   `json:"accountNumber"`
 	AccountName          string   `json:"accountName"`
 	BankID               uint64   `json:"bankId"`

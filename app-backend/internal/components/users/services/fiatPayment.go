@@ -41,7 +41,7 @@ func SaveUserPaymentData(username, provider, paymentType, txID string, amount fl
 	return gc.DB.Save(&t).Error
 }
 
-func SaveUserPaymentInvoiceData(username, provider, paymentType, txID, status string, walletAlias, walletPublicKey, tokenizedAssetID, transaction, transactionSignature *string, amount float64, gc *sharedconfig.GlobalConfig) error {
+func SaveUserPaymentInvoiceData(username, provider, paymentType, txID, status string, walletAlias, walletAddress, tokenizedAssetID, transaction, transactionSignature *string, amount float64, gc *sharedconfig.GlobalConfig) error {
 
 	t := userModels.FiatPaymentInvoice{
 		ID:                   txID,
@@ -51,7 +51,7 @@ func SaveUserPaymentInvoiceData(username, provider, paymentType, txID, status st
 		PaymentType:          paymentType,
 		Status:               status,
 		WalletAlias:          walletAlias,
-		WalletPublicKey:      walletPublicKey,
+		WalletAddress:        walletAddress,
 		TokenizedAssetID:     tokenizedAssetID,
 		Transaction:          transaction,
 		TransactionSignature: transactionSignature,

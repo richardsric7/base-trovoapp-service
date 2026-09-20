@@ -133,7 +133,6 @@ type SetTrustLineFlags struct {
 
 func (s SetTrustLineFlags) opSourceAccount() string { return s.SourceAccount }
 
-
 // PathPaymentStrictSend/PathPaymentStrictReceive mirror Stellar's
 // same-named operations: swap SendAsset for DestAsset via the network's
 // best available price path, either fixing the send amount (StrictSend,

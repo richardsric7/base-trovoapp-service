@@ -46,7 +46,7 @@ func GetApprovalList(approverUser *userModels.User, publicKeysSharedWithUser []s
 	transactionStatus := strings.ToUpper(strings.TrimSpace(c.Query("transactionStatus")))
 	initiator := strings.TrimSpace(strings.ToLower(c.Query("initiator")))
 	description := strings.TrimSpace(strings.ToLower(c.Query("description")))
-	walletPublicKey := strings.TrimSpace(strings.ToUpper(c.Query("walletPublicKey")))
+	walletAddress := strings.TrimSpace(strings.ToUpper(c.Query("walletAddress")))
 	excludeUserApproved, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("excludeUserApproved", "1")), 10, 64)
 	walletAlias := strings.ToLower(strings.TrimSpace(c.Query("walletAlias")))
 	limitU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("limit", "25")), 10, 64)
@@ -54,11 +54,11 @@ func GetApprovalList(approverUser *userModels.User, publicKeysSharedWithUser []s
 	pageU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("page", "1")), 10, 64)
 	page := int(pageU)
 
-	// var walletOwnerPublicKey string
+	// var walletOwnerAddress string
 	if len(walletAlias) > 2 {
 		wo, e := userModels.WalletAlias(walletAlias).GetWallet(gc.DB, gc)
 		if e == nil {
-			walletPublicKey = wo.ID
+			walletAddress = wo.ID
 		}
 	}
 
@@ -79,15 +79,15 @@ func GetApprovalList(approverUser *userModels.User, publicKeysSharedWithUser []s
 		countQuery = countQuery.Order(orderBy + " " + oD)
 
 	} else {
-		query = query.Order("transaction_status desc, wallet_public_key asc, approvals_gotten/approvals_needed asc")
+		query = query.Order("transaction_status desc, wallet_address asc, approvals_gotten/approvals_needed asc")
 		// query = query.Order("created_at DESC")
 		// countQuery = countQuery.Order("created_at DESC")
-		countQuery = countQuery.Order("transaction_status desc, wallet_public_key asc, approvals_gotten/approvals_needed asc")
+		countQuery = countQuery.Order("transaction_status desc, wallet_address asc, approvals_gotten/approvals_needed asc")
 	}
 
 	{
-		query = query.Where("(wallet_public_key IN (?))", publicKeysSharedWithUser)
-		countQuery = countQuery.Where("(wallet_public_key IN (?))", publicKeysSharedWithUser)
+		query = query.Where("(wallet_address IN (?))", publicKeysSharedWithUser)
+		countQuery = countQuery.Where("(wallet_address IN (?))", publicKeysSharedWithUser)
 
 	}
 	if excludeUserApproved == 1 {
@@ -98,9 +98,9 @@ func GetApprovalList(approverUser *userModels.User, publicKeysSharedWithUser []s
 
 	}
 
-	if len(walletPublicKey) == 56 {
-		query = query.Where("(wallet_public_key = ?)", walletPublicKey)
-		countQuery = countQuery.Where("(wallet_public_key = ?)", walletPublicKey)
+	if len(walletAddress) == 42 {
+		query = query.Where("(wallet_address = ?)", walletAddress)
+		countQuery = countQuery.Where("(wallet_address = ?)", walletAddress)
 
 	}
 
@@ -240,22 +240,22 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 
-	walletOwner, e := userModels.UserWalletID(p.WalletPublicKey).GetWalletOwner(gc.DB, gc)
+	walletOwner, e := userModels.UserWalletID(p.WalletAddress).GetWalletOwner(gc.DB, gc)
 	if e != nil {
 		log.Println("[ApproveTransaction] error getting wallet owner user object for modify shared access")
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 	walletOwner.InvalidateUserCache(gc)
 
-	wallet, e := userModels.UserWalletID(p.WalletPublicKey).GetWallet(gc.DB, gc)
+	wallet, e := userModels.UserWalletID(p.WalletAddress).GetWallet(gc.DB, gc)
 	if e != nil {
 		log.Println("[ApproveTransaction] error getting wallet object for modify shared access")
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 	var errLinked error
-	if wallet.WalletType == 1 && wallet.LinkedWalletPublicKey != nil {
+	if wallet.WalletType == 1 && wallet.LinkedWalletAddress != nil {
 		hasLinkedWallet = true
-		linkedWallet, errLinked = userModels.UserWalletID(*wallet.LinkedWalletPublicKey).GetWallet(gc.DB, gc)
+		linkedWallet, errLinked = userModels.UserWalletID(*wallet.LinkedWalletAddress).GetWallet(gc.DB, gc)
 		if errLinked != nil {
 			log.Println("[ApproveTransaction] error getting wallet object for modify shared access")
 			return &tErrors.ErrorTemporaryServerError{}
@@ -317,7 +317,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		paymentFee = sharedconfig.FeeCollection{
 			ID:                         gc.GenerateUUIDString(),
 			FromUsername:               walletOwner.Username,
-			FromWalletPublicKey:        wallet.ID,
+			FromWalletAddress:          wallet.ID,
 			FromWalletAlias:            wallet.Alias,
 			BelongsToEnterpriseProfile: walletOwner.CreatedByServiceLinkID,
 			FeeType:                    "PAYMENT",
@@ -330,7 +330,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		vatFeeCollection = sharedconfig.FeeCollection{
 			ID:                         gc.GenerateUUIDString(),
 			FromUsername:               walletOwner.Username,
-			FromWalletPublicKey:        wallet.ID,
+			FromWalletAddress:          wallet.ID,
 			FromWalletAlias:            wallet.Alias,
 			BelongsToEnterpriseProfile: walletOwner.CreatedByServiceLinkID,
 			FeeType:                    "VAT",
@@ -381,7 +381,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		swapFee = sharedconfig.FeeCollection{
 			ID:                         gc.GenerateUUIDString(),
 			FromUsername:               walletOwner.Username,
-			FromWalletPublicKey:        wallet.ID,
+			FromWalletAddress:          wallet.ID,
 			FromWalletAlias:            wallet.Alias,
 			BelongsToEnterpriseProfile: walletOwner.CreatedByServiceLinkID,
 			FeeType:                    "SWAP",
@@ -394,7 +394,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		vatFeeCollection = sharedconfig.FeeCollection{
 			ID:                         gc.GenerateUUIDString(),
 			FromUsername:               walletOwner.Username,
-			FromWalletPublicKey:        walletOwner.ID,
+			FromWalletAddress:          walletOwner.ID,
 			FromWalletAlias:            wallet.Alias,
 			BelongsToEnterpriseProfile: walletOwner.CreatedByServiceLinkID,
 			FeeType:                    "VAT",
@@ -484,7 +484,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		ID:                       uuid.NewString(),
 		PendingAuthID:            p.ID,
 		Approver:                 signerUser.Username,
-		ApproverSignerPublicKey:  signerUser.PrimarySigner,
+		ApproverSignerAddress:    signerUser.PrimarySigner,
 		TransactionWithSignature: approvalInfo.TransactionSignature,
 	}
 
@@ -943,7 +943,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			// wdlRequest.TransactionID = wdlInput.TransactionID
 			wdlRequest = userModels.WithdrawalRequest{
 				ID:                   uuid.NewString(),
-				WalletPublicKey:      wallet.ID,
+				WalletAddress:        wallet.ID,
 				WalletAlias:          wallet.Alias,
 				UserID:               wallet.UserID,
 				Currency:             wdlInput.Currency,
@@ -1009,7 +1009,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 			cAsset := assetModels.CuratedAsset{
 				AssetCode:       *ta.AssetCode,
-				AssetIssuer:     *ta.IssuingWalletPublicKey,
+				AssetIssuer:     *ta.IssuingWalletAddress,
 				AssetName:       *ta.AssetName,
 				Description:     *ta.AssetDescription,
 				ImageURL:        ta.AssetLogo,
@@ -1082,9 +1082,9 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			if e != nil {
 				log.Println("[ApproveTransaction] error retrieving subscriber info", assetSubscription.SubscriberUsername)
 			}
-			subscriberWallet, e := userModels.UserWalletID(assetSubscription.WalletPublicKey).GetWallet(dbTX, gc)
+			subscriberWallet, e := userModels.UserWalletID(assetSubscription.WalletAddress).GetWallet(dbTX, gc)
 			if e != nil {
-				log.Println("[ApproveTransaction] error retrieving subscriberWallet info", assetSubscription.WalletPublicKey)
+				log.Println("[ApproveTransaction] error retrieving subscriberWallet info", assetSubscription.WalletAddress)
 			}
 
 			var taSubscription userModels.TokenizedAssetSubscription
@@ -1323,7 +1323,7 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 			ta.AssetTokenizationStatus = 3
 			// remove the issuing wallet and marketting wallet(distributor)
 			ta.IssuingWalletAlias = nil
-			ta.IssuingWalletPublicKey = nil
+			ta.IssuingWalletAddress = nil
 			ta.MarketMakingWallet = nil
 			// get wallet Permisions
 			pl := distroWallet.GetPermissionList(dbTX)
@@ -1366,19 +1366,19 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 			{
 				//remove it from payment engine also.
 				//send to monitoring service
-				trackPublicKey := userModels.TrackedPublicKey{
-					PublicKey: issuingWallet.ID,
+				trackAddress := userModels.TrackedAddress{
+					Address: issuingWallet.ID,
 				}
-				errTrack := gc.RoachDB.Delete(&trackPublicKey).Error
+				errTrack := gc.RoachDB.Delete(&trackAddress).Error
 				if errTrack != nil {
 					//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
 					discord.Say(fmt.Sprintf("[RejectTransaction] removing tracking wallet public key for payment history failed for:%v, with DB Error:%v\n\n\nFailedData:%+v", issuingWallet.Alias, errTrack, issuingWallet))
 
 				}
-				trackPublicKey = userModels.TrackedPublicKey{
-					PublicKey: distroWallet.ID,
+				trackAddress = userModels.TrackedAddress{
+					Address: distroWallet.ID,
 				}
-				errTrack = gc.RoachDB.Delete(&trackPublicKey).Error
+				errTrack = gc.RoachDB.Delete(&trackAddress).Error
 				if errTrack != nil {
 					//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
 					discord.Say(fmt.Sprintf("[RejectTransaction] removing tracking wallet public key for payment history failed for:%v, with DB Error:%v\n\n\nFailedData:%+v", distroWallet.Alias, errTrack, distroWallet))
@@ -1412,18 +1412,18 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 
 }
 
-func CheckPendingSharedAccessApproval(walletPublicKey string, db *gorm.DB) (exists bool) {
+func CheckPendingSharedAccessApproval(walletAddress string, db *gorm.DB) (exists bool) {
 
 	var pendingApproval userModels.PendingAuth
-	e := db.Where("wallet_public_key = ? AND (transaction_type = ? OR transaction_type = ?) AND transaction_status = ?", walletPublicKey, "DISABLE SHARED ACCESS", "MODIFY SHARED ACCESS", "PENDING").First(&pendingApproval).Error
+	e := db.Where("wallet_address = ? AND (transaction_type = ? OR transaction_type = ?) AND transaction_status = ?", walletAddress, "DISABLE SHARED ACCESS", "MODIFY SHARED ACCESS", "PENDING").First(&pendingApproval).Error
 	return e == nil
 
 }
 
-func CheckDuplicatePendingApproval(walletPublicKey, transactionType, description string, db *gorm.DB) (exists bool) {
+func CheckDuplicatePendingApproval(walletAddress, transactionType, description string, db *gorm.DB) (exists bool) {
 
 	var pendingApproval userModels.PendingAuth
-	e := db.Where("wallet_public_key = ? AND transaction_type = ? AND description = ? AND transaction_status = ?", walletPublicKey, transactionType, description, "PENDING").First(&pendingApproval).Error
+	e := db.Where("wallet_address = ? AND transaction_type = ? AND description = ? AND transaction_status = ?", walletAddress, transactionType, description, "PENDING").First(&pendingApproval).Error
 	return e == nil
 
 }

@@ -28,9 +28,9 @@ func GetServiceInfo(mInfo, apikey string, db *gorm.DB) (user servicelinkModels.S
 
 	//e returns execution errors
 	var e error
-	if len(mInfo) == 56 {
+	if len(mInfo) == 42 {
 		//56 char publick key is supplied
-		e = db.Where(servicelinkModels.ServiceLink{PublicKey: mInfo, ApiKey: apikey}).First(&user).Error
+		e = db.Where(servicelinkModels.ServiceLink{Address: mInfo, ApiKey: apikey}).First(&user).Error
 	} else {
 		//username is supplied
 		e = db.First(&user, servicelinkModels.ServiceLink{OwnerUsername: strings.ToLower(mInfo), ApiKey: apikey}).Error

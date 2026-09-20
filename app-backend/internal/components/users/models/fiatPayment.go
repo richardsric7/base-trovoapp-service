@@ -6,7 +6,7 @@ type FiatPaymentConfig struct {
 	ID               uint64 `json:"-"`
 	ServiceProvider  string `json:"serviceProvider"`
 	Token            string `json:"token"`
-	PublicKey        string `json:"publicKey"`
+	Address          string `json:"publicKey"`
 	SecretKey        string `json:"secretKey"`
 	EncryptionKey    string `json:"encryptionKey"`
 	VerificationHash string `json:"verificationHash"`
@@ -47,7 +47,7 @@ type FiatPaymentInvoice struct {
 	Refunded             int       `gorm:"default:0" json:"refunded"`
 	TokenizedAssetID     *string   `gorm:"null;size:100" json:"tokenizedAssetId"`
 	WalletAlias          *string   `gorm:"null;size:100" json:"walletAlias"`
-	WalletPublicKey      *string   `gorm:"null;size:100" json:"walletPublicKey"`
+	WalletAddress        *string   `gorm:"null;size:100" json:"walletAddress"`
 	Transaction          *string   `json:"transaction"`
 	TransactionSignature *string   `json:"transactionSignature"`
 	TransactionSource    *string   `gorm:"null;size:100" json:"-"`

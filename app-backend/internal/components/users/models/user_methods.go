@@ -65,7 +65,7 @@ func selfSignerAccountDetail(address string) AccountDetail {
 	return AccountDetail{
 		ID: address,
 		Signers: []Signer{
-			{Key: address, Weight: 1, Type: "secp256k1_public_key"},
+			{Key: address, Weight: 1, Type: "secp256k1_address"},
 		},
 	}
 }
@@ -164,9 +164,9 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 	// log.Println("xbnUsdPrice", xbnUsdPrice)
 	cacheKey := fmt.Sprintf("GetBalance_%s", u.ID)
 	if temp {
-		if u.TempPublicKey != nil {
+		if u.TempAddress != nil {
 
-			cacheKey = fmt.Sprintf("GetBalance_%s", *u.TempPublicKey)
+			cacheKey = fmt.Sprintf("GetBalance_%s", *u.TempAddress)
 		}
 
 	}
@@ -432,8 +432,8 @@ func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []N
 	nfts = make([]NFT, 0)
 	cacheKey := fmt.Sprintf("GetNFTs_%s", u.ID)
 	if temp {
-		if u.TempPublicKey != nil {
-			cacheKey = fmt.Sprintf("GetNFTs_%s", *u.TempPublicKey)
+		if u.TempAddress != nil {
+			cacheKey = fmt.Sprintf("GetNFTs_%s", *u.TempAddress)
 
 		}
 
@@ -798,12 +798,12 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool, gc *sharedconfig.Glob
 	address := u.ID
 	cacheKey := fmt.Sprintf("bca_%v", u.ID)
 	if temp {
-		if u.TempPublicKey == nil {
+		if u.TempAddress == nil {
 			err = &tErrors.ErrorBlockchainAccountNotActivated{}
 			return
 		}
-		address = *u.TempPublicKey
-		cacheKey = fmt.Sprintf("bca_%v", *u.TempPublicKey)
+		address = *u.TempAddress
+		cacheKey = fmt.Sprintf("bca_%v", *u.TempAddress)
 	}
 	return fetchAccountDetail(address, gc, cacheKey)
 }
@@ -847,7 +847,7 @@ func isIssuerOfAssetCode(issuer, assetCode string) bool {
 	if count > 0 {
 		return true
 	}
-	db.Table("tokenized_assets").Where("issuing_wallet_public_key = ? AND asset_code = ?", strings.ToLower(issuer), strings.ToUpper(assetCode)).Count(&count)
+	db.Table("tokenized_assets").Where("issuing_wallet_address = ? AND asset_code = ?", strings.ToLower(issuer), strings.ToUpper(assetCode)).Count(&count)
 	return count > 0
 }
 
@@ -921,40 +921,40 @@ func (u *UserWallet) GetBlockchainAccountDataKey(temp bool, gc *sharedconfig.Glo
 }
 
 func (u *User) BuildPrimaryWallet() {
-	tempKP, _ := network.TempAccountKeypair(u.PublicKey)
+	tempKP, _ := network.TempAccountKeypair(u.Address)
 	var tempPK string
 	if tempKP != nil {
 		tempPK = tempKP.Address()
 	}
 	description := "Primary/Default wallet"
 	userWallet := UserWallet{
-		ID:            u.PublicKey,
-		TempPublicKey: &tempPK,
+		ID:            u.Address,
+		TempAddress:   &tempPK,
 		Description:   &description,
 		Alias:         u.Username,
-		Signer:        u.PublicKey,
+		Signer:        u.Address,
 		UserID:        u.ID,
 		PrimaryWallet: 1,
 	}
 	u.UserWallets = append(u.UserWallets, userWallet)
 }
 
-func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescription string, walletType int, linkedWalletPublicKey string, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+func (u *User) BuildNewSubWallet(subWalletAddress, walletTag, walletDescription string, walletType int, linkedWalletAddress string, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
 	walletTag = strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(walletTag, "_", ""), ".", ""), " ", ""), "%", ""))
 	walletDescription = strings.TrimSpace(walletDescription)
 	hasMMSubwallet := false
 	hasBPSubWallet := false
 
-	if len(linkedWalletPublicKey) > 0 && len(linkedWalletPublicKey) != 56 {
+	if len(linkedWalletAddress) > 0 && len(linkedWalletAddress) != 42 {
 		log.Println("[BuildNewSubWallet] invalid parameters")
 		return userWallet, &tErrors.CustomError{
-			Param:      "linkedWalletPublicKey",
+			Param:      "linkedWalletAddress",
 			Err:        "error-sub-wallet-parameters-invalid",
 			ErrMessage: "Sub-wallet parameters are invalid. Ensure linkedWallet public key is 56 characters long.",
 			Code:       http.StatusBadRequest,
 		}
 	}
-	if len(subWalletPublicKey) != 56 || len(walletTag) == 0 {
+	if len(subWalletAddress) != 42 || len(walletTag) == 0 {
 		log.Println("[BuildNewSubWallet] invalid parameters")
 		return userWallet, &tErrors.CustomError{
 			Param:      "id",
@@ -979,8 +979,8 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 	{
 		//check to ensure sub-wallet does not already exist
 		for _, wallet := range userWallets {
-			if wallet.ID == subWalletPublicKey {
-				log.Printf("[BuildNewSubWallet] wallet [%v] already exists in your account\n", subWalletPublicKey)
+			if wallet.ID == subWalletAddress {
+				log.Printf("[BuildNewSubWallet] wallet [%v] already exists in your account\n", subWalletAddress)
 				return userWallet, &tErrors.CustomError{
 					Param:      "id",
 					Err:        "error-sub-wallet-already-exists-in-your-account",
@@ -1027,7 +1027,7 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 	}
 	{
 		//check if wallet already exists in wallets
-		_, errWallet := u.GetWalletByPublicKey(subWalletPublicKey, gc.DB)
+		_, errWallet := u.GetWalletByAddress(subWalletAddress, gc.DB)
 		if errWallet != nil {
 			if errWallet.Error() != "error-wallet-not-found" {
 				log.Println("[BuildNewSubWallet] other service error ...", errWallet)
@@ -1037,7 +1037,7 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 
 		} else {
 			//wallet already exists.
-			log.Printf("[BuildNewSubWallet] wallet [%v] found in another account\n", subWalletPublicKey)
+			log.Printf("[BuildNewSubWallet] wallet [%v] found in another account\n", subWalletAddress)
 
 			return userWallet, &tErrors.CustomError{
 				Param:      "id",
@@ -1047,7 +1047,7 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 			}
 		}
 	}
-	tempKP, pErr := network.TempAccountKeypair(subWalletPublicKey)
+	tempKP, pErr := network.TempAccountKeypair(subWalletAddress)
 	var tempPK string
 	if pErr != nil {
 		return userWallet, &tErrors.CustomError{
@@ -1063,24 +1063,24 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 
 	alias := fmt.Sprintf("%s_%s", u.Username, walletTag)
 	userSubWallet := UserWallet{
-		ID:            subWalletPublicKey,
-		TempPublicKey: &tempPK,
-		Tag:           &walletTag,
-		Description:   &walletDescription,
-		Alias:         alias,
-		Signer:        u.PrimarySigner,
-		UserID:        u.ID,
-		WalletType:    walletType,
+		ID:          subWalletAddress,
+		TempAddress: &tempPK,
+		Tag:         &walletTag,
+		Description: &walletDescription,
+		Alias:       alias,
+		Signer:      u.PrimarySigner,
+		UserID:      u.ID,
+		WalletType:  walletType,
 	}
-	if len(linkedWalletPublicKey) > 0 {
-		userSubWallet.LinkedWalletPublicKey = &linkedWalletPublicKey
+	if len(linkedWalletAddress) > 0 {
+		userSubWallet.LinkedWalletAddress = &linkedWalletAddress
 	}
 
 	return userSubWallet, nil
 }
 
 func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
-	if uw.LinkedWalletPublicKey == nil {
+	if uw.LinkedWalletAddress == nil {
 		return userWallet, &tErrors.CustomError{
 			Param:      "id",
 			Err:        "error-linked-wallet-public-key-invalid",
@@ -1088,7 +1088,7 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.Glob
 			Code:       http.StatusBadRequest,
 		}
 	}
-	if *uw.LinkedWalletPublicKey == "" {
+	if *uw.LinkedWalletAddress == "" {
 		return userWallet, &tErrors.CustomError{
 			Param:      "id",
 			Err:        "error-linked-wallet-public-key-invalid",
@@ -1112,8 +1112,8 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.Glob
 	{
 		//check to ensure sub-wallet does not already exist
 		for _, wallet := range userWallets {
-			if wallet.ID == *uw.LinkedWalletPublicKey {
-				log.Printf("[BuildNewLinkedSubWallet] wallet [%v] already exists in your account\n", *uw.LinkedWalletPublicKey)
+			if wallet.ID == *uw.LinkedWalletAddress {
+				log.Printf("[BuildNewLinkedSubWallet] wallet [%v] already exists in your account\n", *uw.LinkedWalletAddress)
 				return userWallet, &tErrors.CustomError{
 					Param:      "id",
 					Err:        "error-sub-wallet-already-exists-in-your-account",
@@ -1144,7 +1144,7 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.Glob
 	}
 	{
 		//check if wallet already exists in wallets
-		_, errWallet := owner.GetWalletByPublicKey(*uw.LinkedWalletPublicKey, gc.DB)
+		_, errWallet := owner.GetWalletByAddress(*uw.LinkedWalletAddress, gc.DB)
 		if errWallet != nil {
 			if errWallet.Error() != "error-wallet-not-found" {
 				log.Println("[BuildNewLinkedSubWallet] other service error ...", errWallet)
@@ -1154,7 +1154,7 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.Glob
 
 		} else {
 			//wallet already exists.
-			log.Printf("[BuildNewLinkedSubWallet] wallet [%v] found in another account\n", uw.LinkedWalletPublicKey)
+			log.Printf("[BuildNewLinkedSubWallet] wallet [%v] found in another account\n", uw.LinkedWalletAddress)
 
 			return userWallet, &tErrors.CustomError{
 				Param:      "id",
@@ -1164,7 +1164,7 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.Glob
 			}
 		}
 	}
-	tempKP, pErr := network.TempAccountKeypair(*uw.LinkedWalletPublicKey)
+	tempKP, pErr := network.TempAccountKeypair(*uw.LinkedWalletAddress)
 	var tempPK string
 	if pErr != nil {
 		return userWallet, &tErrors.CustomError{
@@ -1180,37 +1180,37 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.Glob
 
 	alias := fmt.Sprintf("%s_%s", owner.Username, walletTag)
 	userSubWallet := UserWallet{
-		ID:            *uw.LinkedWalletPublicKey,
-		TempPublicKey: &tempPK,
-		Tag:           &walletTag,
-		Description:   &walletDescription,
-		Alias:         alias,
-		Signer:        owner.PrimarySigner,
-		UserID:        owner.ID,
-		WalletType:    0,
+		ID:          *uw.LinkedWalletAddress,
+		TempAddress: &tempPK,
+		Tag:         &walletTag,
+		Description: &walletDescription,
+		Alias:       alias,
+		Signer:      owner.PrimarySigner,
+		UserID:      owner.ID,
+		WalletType:  0,
 	}
 	return userSubWallet, nil
 }
 
-func (lw LinkedWalletPublicKey) String() string {
+func (lw LinkedWalletAddress) String() string {
 	return string(lw)
 }
-func (lw LinkedWalletPublicKey) IsValid(gc *sharedconfig.GlobalConfig) (w UserWallet, valid bool) {
-	e := gc.DB.Where("linked_wallet_public_key = ?", string(lw)).First(&w).Error
+func (lw LinkedWalletAddress) IsValid(gc *sharedconfig.GlobalConfig) (w UserWallet, valid bool) {
+	e := gc.DB.Where("linked_wallet_address = ?", string(lw)).First(&w).Error
 	if e == nil {
 		return w, true
 	}
 	return w, false
 }
 func (u UserWallet) IsValidLinkedWallet(gc *sharedconfig.GlobalConfig) (w UserWallet, valid bool) {
-	e := gc.DB.Where("linked_wallet_public_key = ?", u.ID).First(&w).Error
+	e := gc.DB.Where("linked_wallet_address = ?", u.ID).First(&w).Error
 	if e == nil {
 		return w, true
 	}
 	return w, false
 }
 
-func (lw *LinkedWalletPublicKey) BuildNewLinkedSubWallet(owner *User, uw *UserWallet, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+func (lw *LinkedWalletAddress) BuildNewLinkedSubWallet(owner *User, uw *UserWallet, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
 
 	return uw.BuildNewLinkedSubWallet(owner, gc)
 
@@ -1274,7 +1274,7 @@ func (publicKey UserSigner) GetOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig)
 
 func (id UserWalletID) GetPermissionList(db *gorm.DB) (accessList []WalletPermission) {
 	accessList = make([]WalletPermission, 0)
-	db.Preload(clause.Associations).Where("wallet_public_key = ?", string(id)).Find(&accessList)
+	db.Preload(clause.Associations).Where("wallet_address = ?", string(id)).Find(&accessList)
 
 	return
 }
@@ -1345,7 +1345,7 @@ func (u *UserWallet) GetPermissionList(db *gorm.DB) (accessList []WalletPermissi
 		}
 	}
 	accessList = make([]WalletPermission, 0)
-	db.Preload(clause.Associations).Where("wallet_public_key = ?", u.ID).Find(&accessList)
+	db.Preload(clause.Associations).Where("wallet_address = ?", u.ID).Find(&accessList)
 
 	return
 }
@@ -1367,7 +1367,7 @@ func (a WalletAlias) GetAccessList(db *gorm.DB, gc *sharedconfig.GlobalConfig) (
 	return
 }
 
-func (u *UserWallet) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
+func (u *UserWallet) AddressHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
 	if u == nil {
 		return true
 	}
@@ -1816,7 +1816,7 @@ func (id UserWalletID) GetWallet(db *gorm.DB, gc *sharedconfig.GlobalConfig) (wa
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found
 			err = &tErrors.ErrorInvalidWallet{
-				PublicKey: string(id),
+				Address: string(id),
 			}
 			return
 		}
@@ -1855,7 +1855,7 @@ func (a WalletAlias) GetWallet(db *gorm.DB, gc *sharedconfig.GlobalConfig) (wall
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found
 			err = &tErrors.ErrorInvalidWallet{
-				PublicKey: string(a),
+				Address: string(a),
 			}
 			return
 		}
@@ -1882,7 +1882,7 @@ func (a ApprovalID) GetSubmittedTransaction(db *gorm.DB) (pendingAuth PendingAut
 	return
 }
 
-func (id UserWalletID) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
+func (id UserWalletID) AddressHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
 	if id == "" {
 		return true
 	}
@@ -2107,7 +2107,7 @@ func (u *User) GetUplines(gc *sharedconfig.GlobalConfig) (lv1, lv2, lv3 string) 
 	return
 }
 
-func (u *User) GetWalletByPublicKey(publicKey string, db *gorm.DB) (wallet UserWallet, err error) {
+func (u *User) GetWalletByAddress(publicKey string, db *gorm.DB) (wallet UserWallet, err error) {
 	e := db.Preload(clause.Associations).Where("id = ?", publicKey).First(&wallet).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -2120,7 +2120,7 @@ func (u *User) GetWalletByPublicKey(publicKey string, db *gorm.DB) (wallet UserW
 			}
 			return
 		}
-		log.Printf("[GetWalletByPublicKey] error: %s\n", e)
+		log.Printf("[GetWalletByAddress] error: %s\n", e)
 		err = &tErrors.ErrorTemporaryServerError{}
 	}
 	return wallet, nil
@@ -2169,7 +2169,7 @@ func (id UserWalletID) GetWalletOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig
 }
 
 func (id UserWalletID) GetUserPermissionOnWallet(username, permission string, db *gorm.DB) (walletPermission WalletPermission, err error) {
-	e := db.Where("target_username = ? AND wallet_public_key = ? AND permission = ?", username, string(id), strings.ToUpper(permission)).First(&walletPermission).Error
+	e := db.Where("target_username = ? AND wallet_address = ? AND permission = ?", username, string(id), strings.ToUpper(permission)).First(&walletPermission).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found
@@ -2265,8 +2265,8 @@ func (u Username) GetSimpleUser(db *gorm.DB, gc *sharedconfig.GlobalConfig) (own
 	return u.GetFullUser(db, gc)
 }
 
-func (u Username) GetUserPermissionOnWallet(walletPublicKey string, db *gorm.DB) (walletPermission WalletPermission, err error) {
-	e := db.Where("target_username = ? AND wallet_public_key = ?", string(u), walletPublicKey).First(&walletPermission).Error
+func (u Username) GetUserPermissionOnWallet(walletAddress string, db *gorm.DB) (walletPermission WalletPermission, err error) {
+	e := db.Where("target_username = ? AND wallet_address = ?", string(u), walletAddress).First(&walletPermission).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found
@@ -2327,13 +2327,13 @@ func (u Username) GetFeeReadyTokenizedAssetApplicationByInitiatorUsername(db *go
 
 	return
 }
-func (u *User) HasAccessToPublicKey(publicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
+func (u *User) HasAccessToAddress(publicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
 	// walletPermissions := u.Fetch3rdPartyWalletPermissions(gc)
 	// if len(walletPermissions) == 0 {
 	// 	return false
 	// }
 	for _, walletAccess := range u.WalletsSharedWithUser {
-		if walletAccess.WalletPublicKey == publicKey {
+		if walletAccess.WalletAddress == publicKey {
 			return true
 		}
 	}
@@ -2411,7 +2411,7 @@ func (wp *WalletPermission) ToWalletPermissionInfo(user *User, w *UserWallet, gc
 
 	wpInfo = WalletPermissionInfo{
 		ID:                    wp.ID,
-		WalletPublicKey:       wp.WalletPublicKey,
+		WalletAddress:         wp.WalletAddress,
 		WalletAlias:           w.Alias,
 		TargetUsername:        wp.TargetUsername,
 		Name:                  name,
@@ -2454,19 +2454,19 @@ func (u *User) FetchWalletsPermissionsSharedWithUser(gc *sharedconfig.GlobalConf
 		}
 
 		//use it to fetch wallet details
-		wallet, err := UserWalletID(assignedPermission.WalletPublicKey).GetWallet(gc.DB, gc)
+		wallet, err := UserWalletID(assignedPermission.WalletAddress).GetWallet(gc.DB, gc)
 		if err != nil {
 			return
 		}
 
-		thirdPartyWallet.WalletPublicKey = wallet.ID
+		thirdPartyWallet.WalletAddress = wallet.ID
 		thirdPartyWallet.WalletAlias = wallet.Alias
 		if wallet.Description != nil {
 			thirdPartyWallet.WalletDescription = *wallet.Description
 		}
 		thirdPartyWallet.AssetBalances, _ = wallet.GetWalletAssetBalances(gc)
 		//use it to fetch wallet owner details
-		owner, err := UserWalletID(assignedPermission.WalletPublicKey).GetWalletOwner(gc.DB, gc)
+		owner, err := UserWalletID(assignedPermission.WalletAddress).GetWalletOwner(gc.DB, gc)
 		if err != nil {
 			return
 		}
@@ -2544,8 +2544,8 @@ func (w *UserWallet) WalletCountInitiatorAccess(gc *sharedconfig.GlobalConfig) (
 	return
 }
 
-func (w *UserWallet) HasInitiatorPermissionToPublicKey(ownerSignerPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
-	user, err := UserSigner(ownerSignerPublicKey).GetOwner(gc.DB, gc)
+func (w *UserWallet) HasInitiatorPermissionToAddress(ownerSignerAddress string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
+	user, err := UserSigner(ownerSignerAddress).GetOwner(gc.DB, gc)
 
 	if err != nil {
 		return false
@@ -2555,7 +2555,7 @@ func (w *UserWallet) HasInitiatorPermissionToPublicKey(ownerSignerPublicKey stri
 		return false
 	}
 	for _, walletAccess := range walletPermissions {
-		if walletAccess.WalletPublicKey == w.ID && walletAccess.Permission == "INITIATOR" {
+		if walletAccess.WalletAddress == w.ID && walletAccess.Permission == "INITIATOR" {
 			return true
 		}
 	}
@@ -2563,14 +2563,14 @@ func (w *UserWallet) HasInitiatorPermissionToPublicKey(ownerSignerPublicKey stri
 	return false
 }
 
-func (w *UserWallet) SignerHasInitiatorPermissionToPublicKey(signerOwner User, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
+func (w *UserWallet) SignerHasInitiatorPermissionToAddress(signerOwner User, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
 
 	walletPermissions := signerOwner.FetchWalletsPermissionsSharedWithUser(gc)
 	if len(walletPermissions) == 0 {
 		return false
 	}
 	for _, walletAccess := range walletPermissions {
-		if walletAccess.WalletPublicKey == w.ID && walletAccess.Permission == "INITIATOR" {
+		if walletAccess.WalletAddress == w.ID && walletAccess.Permission == "INITIATOR" {
 			return true
 		}
 	}
@@ -2645,7 +2645,7 @@ func (u *User) BelongsToAnEnterpriseProfile() bool {
 
 func (u *User) GetFiatActiationAmount(gc *sharedconfig.GlobalConfig) (activationAmount, trovPercent float64) {
 	cc := CountryCode(*u.CountryCode).GetConfig(gc)
-	_, exists, _ := UserWalletID(u.PublicKey).GetBlockchainAccountDetail(gc)
+	_, exists, _ := UserWalletID(u.Address).GetBlockchainAccountDetail(gc)
 
 	if exists {
 		return 0, cc.TrovTokenActivationPercent
@@ -2682,7 +2682,7 @@ func (u *User) ToServiceLinkUser(gc *sharedconfig.GlobalConfig) (slUser ServiceL
 		FirstName:             u.FirstName,
 		LastName:              u.LastName,
 		Mobile:                u.Mobile,
-		PublicKey:             u.PublicKey,
+		Address:               u.Address,
 		PrimarySigner:         u.PrimarySigner,
 		PushNotificationToken: u.PushNotificationToken,
 		Corporate:             u.Corporate,
@@ -2710,7 +2710,7 @@ func (w *UserWallet) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 		return
 	}
 
-	cacheKey1 := fmt.Sprintf("GetBalance_%s", userAccount.PublicKey)
+	cacheKey1 := fmt.Sprintf("GetBalance_%s", userAccount.Address)
 	cacheKeyUsername := fmt.Sprintf("userObj %v", userAccount.Username)
 	cacheKeyEmail := fmt.Sprintf("userObj %v", userAccount.Email)
 	cacheKeySigner := fmt.Sprintf("userObj %v", userAccount.PrimarySigner)
@@ -2731,8 +2731,8 @@ func (u *User) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 	if u == nil {
 		return
 	}
-	cacheKey1 := fmt.Sprintf("GetBalance_%s", u.PublicKey)
-	// cacheKeyBCA := fmt.Sprintf("bca_%v", u.PublicKey)
+	cacheKey1 := fmt.Sprintf("GetBalance_%s", u.Address)
+	// cacheKeyBCA := fmt.Sprintf("bca_%v", u.Address)
 
 	cacheKeyUsername := fmt.Sprintf("userObj %v", u.Username)
 	cacheKeyEmail := fmt.Sprintf("userObj %v", u.Email)
@@ -2766,9 +2766,9 @@ func (u *User) InvalidateUserWalletCache(gc *sharedconfig.GlobalConfig) {
 		cacheKeyWalletID := fmt.Sprintf("walletObj_%v", w.ID)
 		cacheKeyPShared := fmt.Sprintf("FetchWalletsPermissionsSharedWithUser_%s", w.UserID)
 		cacheKeybca1 := fmt.Sprintf("bca_%v", w.ID)
-		if w.TempPublicKey != nil {
-			cacheKeytempW := fmt.Sprintf("GetBalance_%s", *w.TempPublicKey)
-			cacheKeybca2 := fmt.Sprintf("bca_%v", *w.TempPublicKey)
+		if w.TempAddress != nil {
+			cacheKeytempW := fmt.Sprintf("GetBalance_%s", *w.TempAddress)
+			cacheKeybca2 := fmt.Sprintf("bca_%v", *w.TempAddress)
 			gc.RedisCache.DeleteFromCache(cacheKeybca2, cacheKeytempW)
 
 		}
@@ -2780,7 +2780,7 @@ func (u *User) InvalidateUserWalletCache(gc *sharedconfig.GlobalConfig) {
 }
 
 func (w UserWallet) GetMarketOfferByID(offerID string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (marketOfer MarketOffer, err error) {
-	e := db.Where("id = ?", offerID).Where("source_wallet_public_key = ?", w.ID).First(&marketOfer).Error
+	e := db.Where("id = ?", offerID).Where("source_wallet_address = ?", w.ID).First(&marketOfer).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found
@@ -2846,7 +2846,7 @@ func (mo *MarketOffer) CancelBlockchainOffer(gc *sharedconfig.GlobalConfig) (off
 
 func (w UserWallet) GetCryptoDepositAddresses(currency string, gc *sharedconfig.GlobalConfig) (cryptoAddresses []CryptoWalletDepositAddress) {
 	cryptoAddresses = make([]CryptoWalletDepositAddress, 0)
-	e := gc.DB.Where("trovo_wallet_public_key = ? AND LOWER(currency) = ?", w.ID, strings.ToLower(currency)).Find(&cryptoAddresses).Error
+	e := gc.DB.Where("trovo_wallet_address = ? AND LOWER(currency) = ?", w.ID, strings.ToLower(currency)).Find(&cryptoAddresses).Error
 	if e != nil {
 		log.Printf("[GetCryptoDepositAddresses] error fetching cryptoAddresses from db %v", e)
 	}

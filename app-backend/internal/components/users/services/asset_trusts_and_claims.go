@@ -64,14 +64,14 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 			return pendingAssetToClaim, false, err
 		}
 
-		err = validators.ValidatePublicKeyFormat(pendingAssetToClaim.AssetIssuer)
+		err = validators.ValidateAddressFormat(pendingAssetToClaim.AssetIssuer)
 
 		if err != nil {
 			return pendingAssetToClaim, false, err
 		}
 	}
 
-	err = gc.DB.Where("transaction_type = 'ACCEPT PENDING ASSET' AND transaction_status = 'PENDING' AND wallet_public_key = ? AND description like ?", wallet.ID, "%"+pendingAssetToClaim.AssetCode+":%").First(&userModels.PendingAuth{}).Error
+	err = gc.DB.Where("transaction_type = 'ACCEPT PENDING ASSET' AND transaction_status = 'PENDING' AND wallet_address = ? AND description like ?", wallet.ID, "%"+pendingAssetToClaim.AssetCode+":%").First(&userModels.PendingAuth{}).Error
 	if err == nil {
 		return pendingAssetToClaim, false, &tErrors.CustomError{
 			Param:      "assetCode",
@@ -129,23 +129,23 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 		log.Printf("[ClaimPendingAsset]shared access with approver permission enabled for %v \n", wallet.Alias)
 		id := uuid.NewString()
 		assetOfPayment := os.Getenv("NATIVE_ASSET_CODE")
-		if len(pendingAssetToClaim.AssetIssuer) == 56 {
+		if len(pendingAssetToClaim.AssetIssuer) == 42 {
 			assetOfPayment = fmt.Sprintf("%v:%v...%v", pendingAssetToClaim.AssetCode, pendingAssetToClaim.AssetIssuer[0:4], pendingAssetToClaim.AssetIssuer[51:55])
 		}
 		description := fmt.Sprintf("Accept & claim pending balance for asset %v.\nMessages:%v", assetOfPayment, pendingAssetToClaim.Messages)
 		transactionByte, _ := json.Marshal(*pendingAssetToClaim)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
-			ID:                       id,
-			Initiator:                signerUser.Username,
-			InitiatorSignerPublicKey: signerUser.PrimarySigner,
-			WalletPublicKey:          wallet.ID,
-			TransactionType:          "ACCEPT PENDING ASSET",
-			Description:              description,
-			TransactionSource:        pendingAssetToClaim.TransactionSource,
-			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
-			TransactionXdr:           xdrBase64,
-			TransactionInfoStr:       &transactionStr,
+			ID:                     id,
+			Initiator:              signerUser.Username,
+			InitiatorSignerAddress: signerUser.PrimarySigner,
+			WalletAddress:          wallet.ID,
+			TransactionType:        "ACCEPT PENDING ASSET",
+			Description:            description,
+			TransactionSource:      pendingAssetToClaim.TransactionSource,
+			ApprovalsNeeded:        wallet.NumberOfApprovalsNeeded,
+			TransactionXdr:         xdrBase64,
+			TransactionInfoStr:     &transactionStr,
 		}
 		//save and commit this to database
 		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
@@ -195,7 +195,7 @@ func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWall
 			return pendingAssetToClaim, false, err
 		}
 
-		err = validators.ValidatePublicKeyFormat(pendingAssetToClaim.AssetIssuer)
+		err = validators.ValidateAddressFormat(pendingAssetToClaim.AssetIssuer)
 
 		if err != nil {
 			return pendingAssetToClaim, false, err
@@ -250,23 +250,23 @@ func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWall
 		log.Printf("[ClaimPendingAsset]shared access with approver permission enabled for %v \n", wallet.Alias)
 		id := uuid.NewString()
 		assetOfPayment := os.Getenv("NATIVE_ASSET_CODE")
-		if len(pendingAssetToClaim.AssetIssuer) == 56 {
+		if len(pendingAssetToClaim.AssetIssuer) == 42 {
 			assetOfPayment = fmt.Sprintf("%v:%v...%v", pendingAssetToClaim.AssetCode, pendingAssetToClaim.AssetIssuer[0:4], pendingAssetToClaim.AssetIssuer[51:55])
 		}
 		description := fmt.Sprintf("Reject pending balance for %v.\nMessages: %v", assetOfPayment, pendingAssetToClaim.Messages)
 		transactionByte, _ := json.Marshal(*pendingAssetToClaim)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
-			ID:                       id,
-			Initiator:                signerUser.Username,
-			InitiatorSignerPublicKey: signerUser.PrimarySigner,
-			WalletPublicKey:          wallet.ID,
-			TransactionType:          "REJECT PENDING ASSET",
-			Description:              description,
-			TransactionSource:        pendingAssetToClaim.TransactionSource,
-			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
-			TransactionXdr:           xdrBase64,
-			TransactionInfoStr:       &transactionStr,
+			ID:                     id,
+			Initiator:              signerUser.Username,
+			InitiatorSignerAddress: signerUser.PrimarySigner,
+			WalletAddress:          wallet.ID,
+			TransactionType:        "REJECT PENDING ASSET",
+			Description:            description,
+			TransactionSource:      pendingAssetToClaim.TransactionSource,
+			ApprovalsNeeded:        wallet.NumberOfApprovalsNeeded,
+			TransactionXdr:         xdrBase64,
+			TransactionInfoStr:     &transactionStr,
 		}
 		//save and commit this to database
 		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
@@ -285,7 +285,7 @@ func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWall
 
 func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (string, error) {
 	var tokenizedAssetIssuerMustSign bool
-	if len(pendingAssetToClaim.AssetIssuer) != 56 {
+	if len(pendingAssetToClaim.AssetIssuer) != 42 {
 		return "", &tErrors.CustomError{
 			Param:      "assetIssuer",
 			Err:        "error-missing-parameter",
@@ -455,7 +455,7 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 }
 
 func generateRejectPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (string, error) {
-	if len(pendingAssetToClaim.AssetIssuer) != 56 {
+	if len(pendingAssetToClaim.AssetIssuer) != 42 {
 		return "", &tErrors.CustomError{
 			Param:      "assetIssuer",
 			Err:        "error-missing-parameter",
@@ -469,9 +469,9 @@ func generateRejectPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetTo
 	if err != nil {
 		return "", err
 	}
-	originPublicKey := userBc.BlockchainAssetLastPaymentSource(tempKeyPair.Address(), pendingAssetToClaim.AssetCode, pendingAssetToClaim.AssetIssuer, gc)
+	originAddress := userBc.BlockchainAssetLastPaymentSource(tempKeyPair.Address(), pendingAssetToClaim.AssetCode, pendingAssetToClaim.AssetIssuer, gc)
 
-	if len(originPublicKey) == 0 {
+	if len(originAddress) == 0 {
 		err = &tErrors.CustomError{
 			Param:      "assetCode",
 			Err:        "error-could not get payment source",
@@ -519,7 +519,7 @@ func generateRejectPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetTo
 	if customAccountBalance.GreaterThan(decimal.Zero) {
 
 		ops = append(ops, &basetxn.Payment{
-			Destination:   originPublicKey,
+			Destination:   originAddress,
 			Amount:        customAccountBalance.Truncate(7).String(),
 			Asset:         asset,
 			SourceAccount: tempAccount.Address,
@@ -589,7 +589,7 @@ func generateRejectPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetTo
 
 func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
 	var tokenizedAssetIssuerMustSign bool
-	if len(trustLineInfo.AssetIssuer) != 56 {
+	if len(trustLineInfo.AssetIssuer) != 42 {
 		return "", &tErrors.CustomError{
 			Param:      "assetIssuer",
 			Err:        "error-missing-parameter",
@@ -601,7 +601,7 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 	assetCode := trustLineInfo.AssetCode
 	minBalance := decimal.RequireFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE"))
 	trustLineInfo.Messages = make([]string, 0)
-	if len(assetCode) == 0 || len(assetCode) > 12 || len(assetIssuer) != 56 {
+	if len(assetCode) == 0 || len(assetCode) > 12 || len(assetIssuer) != 42 {
 		return "", &tErrors.CustomError{Param: "assetCode", Err: "error-invalid-asset", ErrMessage: "Asset Supplied is invalid.", Code: http.StatusBadRequest}
 	}
 
@@ -741,7 +741,7 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 	assetIssuer := trustLineInfo.AssetIssuer
 	assetCode := trustLineInfo.AssetCode
 	minBalance := decimal.RequireFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE"))
-	if len(assetIssuer) != 56 {
+	if len(assetIssuer) != 42 {
 		return "", &tErrors.CustomError{
 			Param:      "assetIssuer",
 			Err:        "error-missing-parameter",
@@ -749,7 +749,7 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 			Code:       http.StatusBadRequest,
 		}
 	}
-	if len(assetCode) == 0 || len(assetCode) > 12 || len(assetIssuer) != 56 {
+	if len(assetCode) == 0 || len(assetCode) > 12 || len(assetIssuer) != 42 {
 		return "", &tErrors.CustomError{Param: "assetCode", Err: "error-invalid-asset", ErrMessage: "Asset Supplied is invalid.", Code: http.StatusBadRequest}
 	}
 
@@ -798,7 +798,7 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 	// if serviceFee.IsPositive() {
 	// 	if trustLineInfo.Multiparty == 1 {
 	// 		//process service fee
-	// 		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
+	// 		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 42 {
 	// 			ops = append(ops, &basetxn.Payment{
 	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
@@ -930,28 +930,28 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 		log.Printf("[TrustAsset]shared access with approver permission enabled for %v \n", wallet.Alias)
 		id := uuid.NewString()
 		assetOfPayment := os.Getenv("NATIVE_ASSET_CODE")
-		if len(trustLineInfo.AssetIssuer) == 56 {
+		if len(trustLineInfo.AssetIssuer) == 42 {
 			assetOfPayment = fmt.Sprintf("%v:%v...%v", trustLineInfo.AssetCode, trustLineInfo.AssetIssuer[0:4], trustLineInfo.AssetIssuer[51:55])
 		}
 		description := fmt.Sprintf("Opt in asset %v.\nMessages: %v", assetOfPayment, trustLineInfo.Messages)
 		transactionByte, _ := json.Marshal(*trustLineInfo)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
-			ID:                       id,
-			Initiator:                signerUser.Username,
-			InitiatorSignerPublicKey: signerUser.PrimarySigner,
-			WalletPublicKey:          wallet.ID,
-			TransactionType:          "OPT IN ASSET",
-			Description:              description,
-			TransactionSource:        trustLineInfo.TransactionSource,
-			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
-			TransactionXdr:           xdrBase64,
-			TransactionInfoStr:       &transactionStr,
+			ID:                     id,
+			Initiator:              signerUser.Username,
+			InitiatorSignerAddress: signerUser.PrimarySigner,
+			WalletAddress:          wallet.ID,
+			TransactionType:        "OPT IN ASSET",
+			Description:            description,
+			TransactionSource:      trustLineInfo.TransactionSource,
+			ApprovalsNeeded:        wallet.NumberOfApprovalsNeeded,
+			TransactionXdr:         xdrBase64,
+			TransactionInfoStr:     &transactionStr,
 		}
 		//save and commit this to database
 
 		//check for duplicate
-		if CheckDuplicatePendingApproval(pendingAuth.WalletPublicKey, pendingAuth.TransactionType, pendingAuth.Description, gc.DB) {
+		if CheckDuplicatePendingApproval(pendingAuth.WalletAddress, pendingAuth.TransactionType, pendingAuth.Description, gc.DB) {
 			//duplicate exists. resist the duplicate
 			return trustLineInfo, &tErrors.CustomError{
 				Param:      "transaction",
@@ -1035,23 +1035,23 @@ func RemoveAssetTrust(signerUser *userModels.User, wallet *userModels.UserWallet
 		log.Printf("[RemoveAssetTrust]shared access with approver permission enabled for %v \n", wallet.Alias)
 		id := uuid.NewString()
 		assetOfPayment := os.Getenv("NATIVE_ASSET_CODE")
-		if len(trustLineInfo.AssetIssuer) == 56 {
+		if len(trustLineInfo.AssetIssuer) == 42 {
 			assetOfPayment = fmt.Sprintf("%v:%v...%v", trustLineInfo.AssetCode, trustLineInfo.AssetIssuer[0:4], trustLineInfo.AssetIssuer[51:55])
 		}
 		description := fmt.Sprintf("Opt out asset %v.\nMessages: %v", assetOfPayment, trustLineInfo.Messages)
 		transactionByte, _ := json.Marshal(*trustLineInfo)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
-			ID:                       id,
-			Initiator:                signerUser.Username,
-			InitiatorSignerPublicKey: signerUser.PrimarySigner,
-			WalletPublicKey:          wallet.ID,
-			TransactionType:          "OPT OUT ASSET",
-			Description:              description,
-			TransactionSource:        trustLineInfo.TransactionSource,
-			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
-			TransactionXdr:           xdrBase64,
-			TransactionInfoStr:       &transactionStr,
+			ID:                     id,
+			Initiator:              signerUser.Username,
+			InitiatorSignerAddress: signerUser.PrimarySigner,
+			WalletAddress:          wallet.ID,
+			TransactionType:        "OPT OUT ASSET",
+			Description:            description,
+			TransactionSource:      trustLineInfo.TransactionSource,
+			ApprovalsNeeded:        wallet.NumberOfApprovalsNeeded,
+			TransactionXdr:         xdrBase64,
+			TransactionInfoStr:     &transactionStr,
 		}
 		//save and commit this to database
 		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error

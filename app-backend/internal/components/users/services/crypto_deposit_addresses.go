@@ -43,7 +43,7 @@ func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc
 	defer dbTX.Rollback()
 	for _, v := range sub.Addresses {
 
-		eCheck := dbTX.Where("trovo_wallet_public_key = ? AND currency = ? AND network = ?", wallet.ID, currency, v.Network).First(&userModels.CryptoWalletDepositAddress{}).Error
+		eCheck := dbTX.Where("trovo_wallet_address = ? AND currency = ? AND network = ?", wallet.ID, currency, v.Network).First(&userModels.CryptoWalletDepositAddress{}).Error
 
 		if eCheck == nil {
 			//address already exists...skip
@@ -55,13 +55,13 @@ func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc
 			qrCode = &qrc
 		}
 		da := userModels.CryptoWalletDepositAddress{
-			ID:                   uuid.NewString(),
-			UserID:               wallet.UserID,
-			TrovoWalletPublicKey: wallet.ID,
-			Currency:             currency,
-			DepositAddress:       v.Address,
-			Network:              v.Network,
-			QRCode:               qrCode,
+			ID:                 uuid.NewString(),
+			UserID:             wallet.UserID,
+			TrovoWalletAddress: wallet.ID,
+			Currency:           currency,
+			DepositAddress:     v.Address,
+			Network:            v.Network,
+			QRCode:             qrCode,
 		}
 
 		depositAddresses = append(depositAddresses, da)
@@ -79,7 +79,7 @@ func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc
 	}
 	if len(sub.Addresses) > 0 {
 		log.Printf("[GenerateDepositAddresses] No new deposit addresses for %v %v. Retrieved: [%+v] Fetching existing addresses.\n", wallet.Alias, currency, sub.Addresses)
-		dbTX.Where("trovo_wallet_public_key = ? AND currency = ?", wallet.ID, currency).First(&depositAddresses)
+		dbTX.Where("trovo_wallet_address = ? AND currency = ?", wallet.ID, currency).First(&depositAddresses)
 		wallet.InvalidateUserCache(gc)
 		return depositAddresses, nil
 	}

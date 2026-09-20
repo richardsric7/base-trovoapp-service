@@ -31,13 +31,13 @@ func ValidateSwapSendInfo(swapInfo *swapModels.SwapSendInfo) error {
 
 	{
 		if len(swapInfo.SourceAssetIssuer) > 0 {
-			err := validators.ValidatePublicKeyFormat(swapInfo.SourceAssetIssuer)
+			err := validators.ValidateAddressFormat(swapInfo.SourceAssetIssuer)
 			if err != nil {
 				return err
 			}
 		}
 		if len(swapInfo.DestinationAssetIssuer) > 0 {
-			err := validators.ValidatePublicKeyFormat(swapInfo.DestinationAssetIssuer)
+			err := validators.ValidateAddressFormat(swapInfo.DestinationAssetIssuer)
 			if err != nil {
 				return err
 			}
@@ -126,13 +126,13 @@ func ValidateSwapReceiveInfo(swapInfo *swapModels.SwapReceiveInfo) error {
 
 	{
 		if len(swapInfo.SourceAssetIssuer) > 0 {
-			err := validators.ValidatePublicKeyFormat(swapInfo.SourceAssetIssuer)
+			err := validators.ValidateAddressFormat(swapInfo.SourceAssetIssuer)
 			if err != nil {
 				return err
 			}
 		}
 		if len(swapInfo.DestinationAssetIssuer) > 0 {
-			err := validators.ValidatePublicKeyFormat(swapInfo.DestinationAssetIssuer)
+			err := validators.ValidateAddressFormat(swapInfo.DestinationAssetIssuer)
 			if err != nil {
 				return err
 			}

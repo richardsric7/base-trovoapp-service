@@ -132,12 +132,12 @@ func main() {
 
 			exit = true
 		}
-		if os.Getenv("ENABLE_CRYPTO_DEPOSIT_MINTING") == "1" && len(os.Getenv("CRYPTO_DEPOSIT_MINTING_INITIATOR_PUBLIC_KEY")) != 56 {
+		if os.Getenv("ENABLE_CRYPTO_DEPOSIT_MINTING") == "1" && len(os.Getenv("CRYPTO_DEPOSIT_MINTING_INITIATOR_PUBLIC_KEY")) != 42 {
 			log.Println("CRYPTO_DEPOSIT_MINTING_INITIATOR_PUBLIC_KEY environment variable is required when ENABLE_CRYPTO_DEPOSIT_MINTING is set to 1")
 
 			exit = true
 		}
-		// if os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" && len(os.Getenv("MARKET_MAKING_FEE_WALLET")) != 56 {
+		// if os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" && len(os.Getenv("MARKET_MAKING_FEE_WALLET")) != 42 {
 		// 	log.Println("MARKET_MAKING_FEE_WALLET environment variable is required when MARKET_MAKING_FEE_ENABLED is set to 1")
 
 		// 	exit = true
@@ -156,7 +156,7 @@ func main() {
 		// 		exit = true
 		// 	}
 		// }
-		// if os.Getenv("SWAP_FEE_ENABLED") == "1" && len(os.Getenv("SWAP_FEE_WALLET")) != 56 {
+		// if os.Getenv("SWAP_FEE_ENABLED") == "1" && len(os.Getenv("SWAP_FEE_WALLET")) != 42 {
 		// 	log.Println("SWAP_FEE_WALLET environment variable is required when SWAP_FEE_ENABLED is set to 1")
 
 		// 	exit = true
@@ -220,10 +220,10 @@ func main() {
 			}
 		}
 		log.Println("migrating tracked wallet done...")
-		errMigrate = roachDB.AutoMigrate(&paymentModels.TrackedPublicKey{})
+		errMigrate = roachDB.AutoMigrate(&paymentModels.TrackedAddress{})
 		if errMigrate != nil {
 			if !strings.Contains(errMigrate.Error(), "constraint") {
-				log.Fatalf("Error migrating TrackedPublicKey model, error: %v", errMigrate)
+				log.Fatalf("Error migrating TrackedAddress model, error: %v", errMigrate)
 			}
 		}
 		log.Println("migrating tracked public key done...")
@@ -711,7 +711,7 @@ func main() {
 					}
 					//initiate minting
 					amountLessFees := ((decimal.RequireFromString((di.Amount).(string)).Sub(decimal.RequireFromString(di.Fees))).Div(decimal.NewFromInt(10).Pow(decimal.NewFromInt(int64(di.Decimal))))).Truncate(7)
-					log.Printf("preparing to mint %v %v to %v\n", amountLessFees.String(), di.Currency, da.TrovoWalletPublicKey)
+					log.Printf("preparing to mint %v %v to %v\n", amountLessFees.String(), di.Currency, da.TrovoWalletAddress)
 
 					signerPK := os.Getenv("CRYPTO_DEPOSIT_MINTING_INITIATOR_PUBLIC_KEY")
 					signerUser, err := userModels.UserWalletID(signerPK).GetWalletOwner(globalConfig.DB, &globalConfig)
@@ -748,24 +748,24 @@ func main() {
 					createdAt, _ := time.Parse(layout, pdi.CreatedAt)
 					updatedAt, _ := time.Parse(layout, pdi.UpdatedAt)
 					depositItem := userModels.CryptoDeposit{
-						CreatedAt:            createdAt,
-						UpdatedAt:            updatedAt,
-						TrovoWalletPublicKey: da.TrovoWalletPublicKey,
-						DepositID:            pdi.DepositID,
-						TxID:                 pdi.TxID,
-						Amount:               amountLessFees.String(),
-						Currency:             ca.AssetCode,
-						Decimal:              pdi.Decimal,
-						Fees:                 pdi.Fees,
-						FromAddress:          pdi.FromAddress,
-						ToAddress:            pdi.ToAddress,
-						IsCompleted:          pdi.IsCompleted,
-						IsValid:              pdi.IsValid,
-						IsVerified:           pdi.IsVerified,
+						CreatedAt:          createdAt,
+						UpdatedAt:          updatedAt,
+						TrovoWalletAddress: da.TrovoWalletAddress,
+						DepositID:          pdi.DepositID,
+						TxID:               pdi.TxID,
+						Amount:             amountLessFees.String(),
+						Currency:           ca.AssetCode,
+						Decimal:            pdi.Decimal,
+						Fees:               pdi.Fees,
+						FromAddress:        pdi.FromAddress,
+						ToAddress:          pdi.ToAddress,
+						IsCompleted:        pdi.IsCompleted,
+						IsValid:            pdi.IsValid,
+						IsVerified:         pdi.IsVerified,
 					}
 
 					mintingInfo := userModels.MintingInfo{
-						Destination: da.TrovoWalletPublicKey,
+						Destination: da.TrovoWalletAddress,
 						Memo:        fmt.Sprintf("%v %v", amountLessFees.String(), da.Currency),
 						AssetIssuer: ca.AssetIssuer,
 						AssetCode:   ca.AssetCode,

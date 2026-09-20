@@ -44,7 +44,7 @@ func GetRecoveryAccountAddress(username, publicKey string) (recoveryAddress stri
 
 }
 
-func MarketMakingSignerKeypair(username, walletPublicKey string) (*evmkeypair.Full, error) {
+func MarketMakingSignerKeypair(username, walletAddress string) (*evmkeypair.Full, error) {
 	kAccountSalt := "e45nDk4rk4LAhbX"
 	kExtraAccountSalt := os.Getenv("MARKET_MAKING_SALT")
 	if len(kExtraAccountSalt) == 0 {
@@ -57,7 +57,7 @@ func MarketMakingSignerKeypair(username, walletPublicKey string) (*evmkeypair.Fu
 	h.Write([]byte(kExtraAccountSalt))
 	h.Write([]byte(mnemonic))
 	h.Write([]byte(username))
-	h.Write([]byte(walletPublicKey))
+	h.Write([]byte(walletAddress))
 
 	hashed := h.Sum(nil)
 
@@ -68,9 +68,9 @@ func MarketMakingSignerKeypair(username, walletPublicKey string) (*evmkeypair.Fu
 
 }
 
-func GetMarketMakingSignerAddress(username, walletPublicKey string) (mmAddress string) {
+func GetMarketMakingSignerAddress(username, walletAddress string) (mmAddress string) {
 
-	kp, err := MarketMakingSignerKeypair(username, walletPublicKey)
+	kp, err := MarketMakingSignerKeypair(username, walletAddress)
 	if err != nil {
 		return ""
 	}
@@ -78,7 +78,7 @@ func GetMarketMakingSignerAddress(username, walletPublicKey string) (mmAddress s
 
 }
 
-func BulkPaymentSignerKeypair(username, walletPublicKey string) (*evmkeypair.Full, error) {
+func BulkPaymentSignerKeypair(username, walletAddress string) (*evmkeypair.Full, error) {
 	kAccountSalt := "e45nDk4rk4LAhbX"
 	kExtraAccountSalt := os.Getenv("BULK_PAYMENT_SALT")
 	if len(kExtraAccountSalt) == 0 {
@@ -91,7 +91,7 @@ func BulkPaymentSignerKeypair(username, walletPublicKey string) (*evmkeypair.Ful
 	h.Write([]byte(kExtraAccountSalt))
 	h.Write([]byte(mnemonic))
 	h.Write([]byte(username))
-	h.Write([]byte(walletPublicKey))
+	h.Write([]byte(walletAddress))
 
 	hashed := h.Sum(nil)
 
@@ -102,9 +102,9 @@ func BulkPaymentSignerKeypair(username, walletPublicKey string) (*evmkeypair.Ful
 
 }
 
-func GetBulkPaymentSignerAddress(username, walletPublicKey string) (bulkPaymentAddress string) {
+func GetBulkPaymentSignerAddress(username, walletAddress string) (bulkPaymentAddress string) {
 
-	kp, err := MarketMakingSignerKeypair(username, walletPublicKey)
+	kp, err := MarketMakingSignerKeypair(username, walletAddress)
 	if err != nil {
 		return ""
 	}

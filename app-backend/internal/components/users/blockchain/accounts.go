@@ -106,7 +106,7 @@ func GetBlockchainAccountDetail(publicKey string) (result AccountDetailResult, e
 		return result, &tErrors.ErrorBlockchainAccountNotActivated{}
 	}
 	result.Signers = map[string]userModels.Signer{
-		publicKey: {Key: publicKey, Weight: 1, Type: "secp256k1_public_key"},
+		publicKey: {Key: publicKey, Weight: 1, Type: "secp256k1_address"},
 	}
 	return result, nil
 }
@@ -128,30 +128,30 @@ func GetNativeBalance(publicKey string) (decimal.Decimal, error) {
 }
 
 // BlockchainAssetIssuedByIssuer fetches the blockchain asset information using public key
-func BlockchainAssetIssuedByIssuer(issuerPublicKey, assetCode string) bool {
+func BlockchainAssetIssuedByIssuer(issuerAddress, assetCode string) bool {
 	db := network.DB()
 	if db == nil {
 		return false
 	}
 	var count int64
-	db.Table("curated_assets").Where("asset_issuer = ? AND asset_code = ?", issuerPublicKey, assetCode).Count(&count)
+	db.Table("curated_assets").Where("asset_issuer = ? AND asset_code = ?", issuerAddress, assetCode).Count(&count)
 	if count > 0 {
 		return true
 	}
-	db.Table("tokenized_assets").Where("issuing_wallet_public_key = ? AND asset_code = ?", issuerPublicKey, assetCode).Count(&count)
+	db.Table("tokenized_assets").Where("issuing_wallet_address = ? AND asset_code = ?", issuerAddress, assetCode).Count(&count)
 	return count > 0
 }
 
 // BlockchainAssetIssuedByIssuer fetches the blockchain asset information using public key
-func BlockchainAssetLastPaymentSource(toPublicKey, assetCode, issuerPublicKey string, gc *sharedconfig.GlobalConfig) string {
+func BlockchainAssetLastPaymentSource(toAddress, assetCode, issuerAddress string, gc *sharedconfig.GlobalConfig) string {
 	type PaymentHistory struct {
 		ID              string
 		TransactionType string    `gorm:"index:idx_payment_history_unique_key,unique"`
 		TransactionDate time.Time `json:"transactionDate" gorm:"index:idx_payment_history_tx_time"`
 		From            *string   `json:"from" gorm:"size:150;index:idx_payment_history_from;null"` //trovoWallet alias and name
-		FromPublicKey   string    `json:"fromPublicKey" gorm:"size:150;index:idx_payment_history_from_pk;not null;index:idx_payment_history_unique_key,unique;index:idx_payment_history_unique_key,unique"`
+		FromAddress     string    `json:"fromAddress" gorm:"size:150;index:idx_payment_history_from_pk;not null;index:idx_payment_history_unique_key,unique;index:idx_payment_history_unique_key,unique"`
 		To              *string   `json:"to" gorm:"size:56;index:idx_payment_history_to;null"` //trovoWallet alias and name
-		ToPublicKey     string    `json:"toPublicKey" gorm:"size:56;index:idx_payment_history_to_pk;not null;index:idx_payment_history_unique_key,unique"`
+		ToAddress       string    `json:"toAddress" gorm:"size:56;index:idx_payment_history_to_pk;not null;index:idx_payment_history_unique_key,unique"`
 		Memo            *string   `json:"memo" gorm:"size:28;null"`
 		AssetIssuer     *string   `json:"assetIssuer" gorm:"size:56;null;"`
 		AssetCode       string    `json:"assetCode" gorm:"size:12;not null;index:idx_payment_history_unique_key,unique"`
@@ -161,9 +161,9 @@ func BlockchainAssetLastPaymentSource(toPublicKey, assetCode, issuerPublicKey st
 	}
 
 	var ph PaymentHistory
-	e := gc.DB.Order("transaction_date DESC").Where("to_public_key = ? AND asset_code = ? AND (CASE WHEN asset_issuer IS NULL THEN '' ELSE asset_issuer END) = ?", toPublicKey, assetCode, issuerPublicKey).First(&ph).Error
+	e := gc.DB.Order("transaction_date DESC").Where("to_address = ? AND asset_code = ? AND (CASE WHEN asset_issuer IS NULL THEN '' ELSE asset_issuer END) = ?", toAddress, assetCode, issuerAddress).First(&ph).Error
 	if e == nil {
-		return ph.FromPublicKey
+		return ph.FromAddress
 	}
 	return ""
 }

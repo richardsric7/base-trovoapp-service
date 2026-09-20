@@ -26,7 +26,7 @@ import (
 
 func GetCryptoDepositAddresses(wallet *userModels.UserWallet, currency string, gc *sharedconfig.GlobalConfig) (cryptoAddresses []userModels.CryptoWalletDepositAddress) {
 	cryptoAddresses = make([]userModels.CryptoWalletDepositAddress, 0)
-	e := gc.DB.Where("trovo_wallet_public_key = ? AND LOWER(currency) = ?", wallet.ID, strings.ToLower(currency)).Find(&cryptoAddresses).Error
+	e := gc.DB.Where("trovo_wallet_address = ? AND LOWER(currency) = ?", wallet.ID, strings.ToLower(currency)).Find(&cryptoAddresses).Error
 	if e != nil {
 		log.Printf("[GetCryptoDepositAddresses] error fetching cryptoAddresses from db %v", e)
 	}
@@ -296,7 +296,7 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 		//save the withdrawal request
 		wdlRequest := userModels.WithdrawalRequest{
 			ID:                   uuid.NewString(),
-			WalletPublicKey:      wallet.ID,
+			WalletAddress:        wallet.ID,
 			WalletAlias:          wallet.Alias,
 			UserID:               wallet.UserID,
 			Currency:             wdlInput.Currency,
@@ -341,15 +341,15 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 		transactionByte, _ := json.Marshal(*wdlInput)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
-			ID:                       id,
-			Initiator:                signerUser.Username,
-			InitiatorSignerPublicKey: signerUser.PrimarySigner,
-			WalletPublicKey:          wallet.ID,
-			TransactionType:          "CRYPTO WITHDRAWAL",
-			Description:              description,
-			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
-			TransactionXdr:           xdrBase64,
-			TransactionInfoStr:       &transactionStr,
+			ID:                     id,
+			Initiator:              signerUser.Username,
+			InitiatorSignerAddress: signerUser.PrimarySigner,
+			WalletAddress:          wallet.ID,
+			TransactionType:        "CRYPTO WITHDRAWAL",
+			Description:            description,
+			ApprovalsNeeded:        wallet.NumberOfApprovalsNeeded,
+			TransactionXdr:         xdrBase64,
+			TransactionInfoStr:     &transactionStr,
 		}
 		//save and commit this to database
 		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
@@ -486,7 +486,7 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 		}
 		return
 	}
-	wdlItem.TrovoWalletPublicKey = wallet.ID
+	wdlItem.TrovoWalletAddress = wallet.ID
 	wdlItem.Fees = wdlInput.WithdrawalServiceFee
 	e = gc.DB.Omit(clause.Associations).Save(&wdlItem).Error
 	if e != nil {

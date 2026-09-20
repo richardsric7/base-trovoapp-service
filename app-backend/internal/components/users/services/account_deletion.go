@@ -33,7 +33,7 @@ func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDelet
 		return &tErrors.CustomError{Param: "username", Err: "error account recovery enabled", ErrMessage: "Account cannot be deleted while account recovery is still active. Please disable account recovery on this account before proceeding."}
 	}
 
-	wallet, _ := userModels.UserWalletID(user.PublicKey).GetWallet(gc.DB, gc)
+	wallet, _ := userModels.UserWalletID(user.Address).GetWallet(gc.DB, gc)
 
 	dbtx := gc.DB.Begin()
 	defer dbtx.Rollback()
@@ -65,7 +65,7 @@ func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDelet
 	}
 
 	var accountNotActiveOnBlockchain bool
-	_, e = userBc.GetBlockchainAccountDetail(user.PublicKey)
+	_, e = userBc.GetBlockchainAccountDetail(user.Address)
 	if e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
 
