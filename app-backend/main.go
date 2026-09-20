@@ -104,8 +104,12 @@ func main() {
 	// CI step that migrated nothing.
 	if !migrateOnly {
 		exit := false
-		requiredEnvironmentVariables := []string{"EXPANSION_URL", "BLOCKCHAIN_NETWORK_PASSPHRASE",
-			"MNEMONIC_TEMP_ACCOUNTS", "BLOCKCHAIN_BASE_RESERVE", "MAILGUN_PRIVATE_API_KEY", "CDB_CONNECTION_STRING",
+		// BLOCKCHAIN_NETWORK_PASSPHRASE and BLOCKCHAIN_BASE_RESERVE are
+		// vestigial on Base (see network.GetBlockchainNetworkPassPhrase /
+		// GetBlockchainBaseReserve) - both handle being unset gracefully,
+		// so they're no longer required to boot.
+		requiredEnvironmentVariables := []string{"EXPANSION_URL",
+			"MNEMONIC_TEMP_ACCOUNTS", "MAILGUN_PRIVATE_API_KEY", "CDB_CONNECTION_STRING",
 			"IPAPI_KEY", "IPAPI_HOST", "VERIFICATION_CODE_SALT", "ENABLE_EMAIL_VALIDATION", "ENABLE_CACHING", "DEFAULT_ASSET_IMAGE_URL",
 			"REDIS_HOST", "REDIS_PORT", "DYNAMIC_LINKS_DOMAIN_PREFIX", "DYNAMIC_LINKS_ANDROID_PACKAGE_NAME",
 			"DYNAMIC_LINKS_IOS_BUNDLE_ID", "DYNAMIC_LINKS_FALLBACK_BASE_URL", "MAILGUN_DOMAIN", "NATIVE_ASSET_IMAGE_URL",
