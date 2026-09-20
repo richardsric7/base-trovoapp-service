@@ -374,7 +374,7 @@ func UpdateStablerailCNGNOnrampStatus(r userModels.StablerailRequest, gc *shared
 				DestinationWallet: sronramp.TrovoWalletAddress,
 				Amount:            sronramp.TotalAmount,
 				Ticker:            "CNGN",
-				Network:           "xbn",
+				Network:           "base",
 			}
 
 			StableRailInitiateAssetWithdrawal(&assetWdlRq, gc)
