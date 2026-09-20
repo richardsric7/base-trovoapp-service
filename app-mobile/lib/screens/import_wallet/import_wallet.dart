@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/models/user.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
@@ -223,7 +224,8 @@ class _ImportWalletState extends State<ImportWallet> {
                           70.sp,
                           300.sp,
                           onChanged: (value) async {
-                            if (value != null && (value.length == 64 || value.length == 66)) {
+                            if (value != null &&
+                                (value.length == 64 || value.length == 66)) {
                               setState(() {
                                 info = parseKey(context, value)!;
                               });
@@ -275,7 +277,7 @@ class _ImportWalletState extends State<ImportWallet> {
                                         maxWidth: width / 1.4,
                                       ),
                                       child: Text(
-                                        info?.publicKey ?? '',
+                                        info?.address ?? '',
                                         overflow: TextOverflow.visible,
                                         style: TextStyle(
                                           color: notifier.getblck,
@@ -289,9 +291,7 @@ class _ImportWalletState extends State<ImportWallet> {
                                       child: IconButton(
                                         onPressed: () => {
                                           Clipboard.setData(
-                                            ClipboardData(
-                                              text: info!.publicKey,
-                                            ),
+                                            ClipboardData(text: info!.address),
                                           ),
                                           showSnackBar(
                                             "publickey".tr(),
@@ -529,15 +529,15 @@ class _ImportWalletState extends State<ImportWallet> {
         // to get userinfo from the server. This way we can use these stored data
         // to create new user account if the provided user account does not exist
         appState.setTempPassword = password;
-        appState.setTempPublicKey = creds.publicKey;
+        appState.setTempAddress = creds.address;
         appState.setTempSecretKey = creds.secretKey;
         String result = await FCM().getPushNotificationToken();
         var token = result.split('|').first;
 
         Map responseData = await makeGetRequest(
           uri: '/v1/users/${username}?type=import&pnt=$token',
-          signer: creds.publicKey,
-          publicKey: creds.publicKey,
+          signer: creds.address,
+          address: creds.address,
           secretKey: creds.secretKey,
         );
 
@@ -592,7 +592,7 @@ class _ImportWalletState extends State<ImportWallet> {
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
     await StoreData().storeInsertData('isFirstTime', false);
     await StoreData().storeInsertData('password', appState.tempPassword);
-    await StoreData().storeInsertData('publicKey', appState.tempPublicKey);
+    await StoreData().storeInsertData('address', appState.tempAddress);
     await StoreData().storeInsertData('walletMode', appState.walletMode);
     await StoreData().storeInsertData('secretKey', <String>[
       appState.tempSecretKey,

@@ -6,8 +6,8 @@ import 'permission.dart';
 
 class Wallet {
   DateTime? createdAt;
-  String? publicKey;
-  String? linkedWalletPublicKey;
+  String? address;
+  String? linkedWalletAddress;
   String? secretKey;
   String? tag;
   String? description;
@@ -33,8 +33,8 @@ class Wallet {
 
   Wallet({
     this.createdAt,
-    this.publicKey,
-    this.linkedWalletPublicKey,
+    this.address,
+    this.linkedWalletAddress,
     this.secretKey,
     this.tag,
     this.description,
@@ -59,8 +59,8 @@ class Wallet {
   toJSONEncodable() {
     return <String, dynamic>{
       "createdAt": createdAt!.toIso8601String(),
-      "publicKey": publicKey,
-      "linkedWalletPublicKey": linkedWalletPublicKey,
+      "address": address,
+      "linkedWalletAddress": linkedWalletAddress,
       "secretKey": secretKey,
       "tag": tag,
       "description": description,
@@ -87,8 +87,8 @@ class Wallet {
   ) {
     return Wallet(
       createdAt: DateTime.parse(m["createdAt"]),
-      publicKey: m["publicKey"],
-      linkedWalletPublicKey: m["linkedWalletPublicKey"],
+      address: m["address"],
+      linkedWalletAddress: m["linkedWalletAddress"],
       secretKey: m["secretKey"],
       tag: m["tag"],
       description: m["description"],
@@ -106,10 +106,10 @@ class Wallet {
       sharedAccessUpdatedAt: DateTime.parse(m["sharedAccessUpdatedAt"]),
       permissions: getPermissionList(m["permissions"]),
       claimedAssets: deserializeAssetList(
-        assetBalances[m["publicKey"]]['claimed'],
+        assetBalances[m["address"]]['claimed'],
       ),
       unClaimedAssets: deserializeAssetList(
-        assetBalances[m["publicKey"]]['unclaimed'],
+        assetBalances[m["address"]]['unclaimed'],
       ),
     );
   }
@@ -138,7 +138,7 @@ class Wallet {
 
   Wallet deserializeSharedJson(m, List<String> accesses) {
     return Wallet(
-      publicKey: m["walletPublicKey"],
+      address: m["walletAddress"],
       alias: m["walletAlias"],
       permission: m["permission"],
       accesses: accesses,
@@ -184,7 +184,7 @@ class Wallet {
           Permission(
             createdAt: DateTime.parse(permissionArrayString[i]['createdAt']),
             updatedAt: DateTime.parse(permissionArrayString[i]['updatedAt']),
-            walletPublicKey: permissionArrayString[i]['walletPublicKey'],
+            walletAddress: permissionArrayString[i]['walletAddress'],
             targetUsername: permissionArrayString[i]['targetUsername'],
             fullName: permissionArrayString[i]['fullName'],
             permission: permissionArrayString[i]['permission'],

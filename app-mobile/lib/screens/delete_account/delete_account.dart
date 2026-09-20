@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,6 +19,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/storage/store.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class DeleteAccount extends StatefulWidget {
@@ -211,7 +213,7 @@ class _DeleteAccountState extends State<DeleteAccount> {
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: appState.primaryWallet.publicKey!,
+        address: appState.primaryWallet.address!,
       );
 
       inspect(responseData);

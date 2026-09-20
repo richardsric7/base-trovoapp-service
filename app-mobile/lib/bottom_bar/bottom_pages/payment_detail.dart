@@ -16,6 +16,7 @@ import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'payment_history.dart';
 
@@ -41,7 +42,7 @@ class _PaymentDetails extends State<PaymentDetails>
   String password = '';
   late TransactionInfo viewData;
   String? name;
-  String? publicKey;
+  String? address;
   double? amount;
   String? assetCode;
   String? date;
@@ -61,14 +62,14 @@ class _PaymentDetails extends State<PaymentDetails>
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![PaymentDetailsViewPageConfig.key];
     name = '${extractUsername(viewData.from!)}';
-    publicKey = viewData.fromPublicKey;
+    address = viewData.fromAddress;
     memo = viewData.memo!;
 
     // if record.from is same as the current active wallet public key
     // then it was a send transaction
     if (viewData.transactionDirection == TransactionDirection.Send) {
       name = extractUsername(viewData.to!);
-      publicKey = viewData.toPublicKey;
+      address = viewData.toAddress;
     }
 
     if (viewData.transactionType!.contains('SWAP') &&
@@ -84,8 +85,8 @@ class _PaymentDetails extends State<PaymentDetails>
     amount = viewData.amount;
 
     assetCode = viewData.assetCode;
-    date =
-        DateFormat('MMMM dd, yyyy hh:mm a').format(viewData.transactionDate!);
+    date = DateFormat('MMMM dd, yyyy hh:mm a')
+        .format(viewData.transactionDate!);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -106,26 +107,30 @@ class _PaymentDetails extends State<PaymentDetails>
                 '${viewData.transactionType!.capitalizeFirst!} ${"details".tr()}',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 22),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 22,
+                ),
               ),
               SizedBox(height: height / 30),
               Text(
-                formatAmount(viewData.transactionDirection!, viewData.amount,
-                    viewData.assetCode),
+                formatAmount(
+                  viewData.transactionDirection!,
+                  viewData.amount,
+                  viewData.assetCode,
+                ),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: viewData.transactionDirection! ==
-                            TransactionDirection.Send
-                        ? Colors.red
-                        : notifier.getgreencolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 20),
+                  color:
+                      viewData.transactionDirection! ==
+                          TransactionDirection.Send
+                      ? Colors.red
+                      : notifier.getgreencolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 20,
+                ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Stack(
                 alignment: AlignmentDirectional.center,
                 children: [
@@ -133,8 +138,9 @@ class _PaymentDetails extends State<PaymentDetails>
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.isDark
                             ? darktilewhitecolor
                             : notifier.getaddsubwalletgrey,
@@ -144,12 +150,11 @@ class _PaymentDetails extends State<PaymentDetails>
                         children: [
                           if (TransactionDirection.Swap !=
                               viewData.transactionDirection!) ...[
-                            SizedBox(
-                              height: height / 90,
-                            ),
+                            SizedBox(height: height / 90),
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20.0,
+                              ),
                               child: Text(
                                 viewData.transactionDirection! ==
                                         TransactionDirection.Send
@@ -173,7 +178,8 @@ class _PaymentDetails extends State<PaymentDetails>
                                         flex: 3,
                                         child: Padding(
                                           padding: const EdgeInsets.symmetric(
-                                              horizontal: 20.0),
+                                            horizontal: 20.0,
+                                          ),
                                           child: Text(
                                             viewData.transactionDirection! ==
                                                     TransactionDirection.Send
@@ -195,16 +201,15 @@ class _PaymentDetails extends State<PaymentDetails>
                                           onPressed: () => {
                                             Clipboard.setData(
                                               ClipboardData(
-                                                text: viewData.toPublicKey!,
+                                                text: viewData.toAddress!,
                                               ),
                                             ),
                                             showSnackBar(
-                                                "tousername".tr(), context),
+                                              "tousername".tr(),
+                                              context,
+                                            ),
                                           },
-                                          icon: Icon(
-                                            Icons.copy,
-                                            size: 20,
-                                          ),
+                                          icon: Icon(Icons.copy, size: 20),
                                           color: notifier.getbluewhitecolor,
                                         ),
                                       ),
@@ -216,26 +221,33 @@ class _PaymentDetails extends State<PaymentDetails>
                                         flex: 3,
                                         child: Padding(
                                           padding: const EdgeInsets.symmetric(
-                                              horizontal: 20.0),
+                                            horizontal: 20.0,
+                                          ),
                                           child: Text(
                                             viewData.transactionDirection! ==
                                                     TransactionDirection.Send
                                                 ? truncate(
-                                                        viewData.fromPublicKey!,
-                                                        length: 5) +
-                                                    viewData.fromPublicKey!
-                                                        .substring(viewData
-                                                                .fromPublicKey!
-                                                                .length -
-                                                            5)
+                                                        viewData.fromAddress!,
+                                                        length: 5,
+                                                      ) +
+                                                      viewData.fromAddress!
+                                                          .substring(
+                                                            viewData
+                                                                    .fromAddress!
+                                                                    .length -
+                                                                5,
+                                                          )
                                                 : truncate(
-                                                        viewData.toPublicKey!,
-                                                        length: 5) +
-                                                    viewData.toPublicKey!
-                                                        .substring(viewData
-                                                                .toPublicKey!
-                                                                .length -
-                                                            5),
+                                                        viewData.toAddress!,
+                                                        length: 5,
+                                                      ) +
+                                                      viewData.toAddress!
+                                                          .substring(
+                                                            viewData
+                                                                    .toAddress!
+                                                                    .length -
+                                                                5,
+                                                          ),
                                             style: TextStyle(
                                               fontWeight: FontWeight.w500,
                                               color: notifier.getbluewhitecolor,
@@ -252,21 +264,20 @@ class _PaymentDetails extends State<PaymentDetails>
                                           onPressed: () => {
                                             Clipboard.setData(
                                               ClipboardData(
-                                                text: viewData
-                                                            .transactionDirection! ==
+                                                text:
+                                                    viewData.transactionDirection! ==
                                                         TransactionDirection
                                                             .Send
-                                                    ? viewData.fromPublicKey!
-                                                    : viewData.toPublicKey!,
+                                                    ? viewData.fromAddress!
+                                                    : viewData.toAddress!,
                                               ),
                                             ),
                                             showSnackBar(
-                                                "topublickey2".tr(), context),
+                                              "topublickey2".tr(),
+                                              context,
+                                            ),
                                           },
-                                          icon: Icon(
-                                            Icons.copy,
-                                            size: 20,
-                                          ),
+                                          icon: Icon(Icons.copy, size: 20),
                                           color: notifier.getbluewhitecolor,
                                         ),
                                       ),
@@ -275,15 +286,17 @@ class _PaymentDetails extends State<PaymentDetails>
                                 ],
                               ),
                             ),
-                            Divider(
-                              height: 5,
-                            ),
+                            Divider(height: 5),
                           ],
                           if (TransactionDirection.Swap !=
                               viewData.transactionDirection!) ...[
                             Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
+                              padding: const EdgeInsets.fromLTRB(
+                                20.0,
+                                15,
+                                0,
+                                0,
+                              ),
                               child: Text(
                                 viewData.transactionDirection! ==
                                         TransactionDirection.Send
@@ -297,23 +310,20 @@ class _PaymentDetails extends State<PaymentDetails>
                                 ),
                               ),
                             ),
-                            SizedBox(
-                              height: 5,
-                            ),
+                            SizedBox(height: 5),
                             SizedBox(
                               width: width / 1.2,
                               child: Row(
                                 children: [
-                                  SizedBox(
-                                    width: width / 20,
-                                  ),
+                                  SizedBox(width: width / 20),
                                   Expanded(
                                     flex: 5,
                                     child: Text(
                                       name.toString().isEmpty
-                                          ? truncate(publicKey!, length: 5) +
-                                              publicKey!.substring(
-                                                  publicKey!.length - 5)
+                                          ? truncate(address!, length: 5) +
+                                                address!.substring(
+                                                  address!.length - 5,
+                                                )
                                           : name!,
                                       style: TextStyle(
                                         color: notifier.getbluewhitecolor,
@@ -330,20 +340,18 @@ class _PaymentDetails extends State<PaymentDetails>
                                         Clipboard.setData(
                                           ClipboardData(
                                             text: name.toString().isEmpty
-                                                ? publicKey!
+                                                ? address!
                                                 : name!,
                                           ),
                                         );
                                         showSnackBar(
-                                            name.toString().isEmpty
-                                                ? "address".tr()
-                                                : "username".tr(),
-                                            context);
+                                          name.toString().isEmpty
+                                              ? "address".tr()
+                                              : "username".tr(),
+                                          context,
+                                        );
                                       },
-                                      icon: Icon(
-                                        Icons.copy,
-                                        size: 20,
-                                      ),
+                                      icon: Icon(Icons.copy, size: 20),
                                       color: notifier.getbluewhitecolor,
                                     ),
                                   ),
@@ -355,15 +363,14 @@ class _PaymentDetails extends State<PaymentDetails>
                                 width: width / 1.2,
                                 child: Row(
                                   children: [
-                                    SizedBox(
-                                      width: width / 20,
-                                    ),
+                                    SizedBox(width: width / 20),
                                     Expanded(
                                       flex: 5,
                                       child: Text(
-                                        truncate(publicKey!, length: 5) +
-                                            publicKey!.substring(
-                                                publicKey!.length - 5),
+                                        truncate(address!, length: 5) +
+                                            address!.substring(
+                                              address!.length - 5,
+                                            ),
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: notifier.getbluewhitecolor,
@@ -378,16 +385,11 @@ class _PaymentDetails extends State<PaymentDetails>
                                         padding: EdgeInsets.zero,
                                         onPressed: () => {
                                           Clipboard.setData(
-                                            ClipboardData(
-                                              text: publicKey!,
-                                            ),
+                                            ClipboardData(text: address!),
                                           ),
                                           showSnackBar("address".tr(), context),
                                         },
-                                        icon: Icon(
-                                          Icons.copy,
-                                          size: 20,
-                                        ),
+                                        icon: Icon(Icons.copy, size: 20),
                                         color: notifier.getbluewhitecolor,
                                       ),
                                     ),
@@ -395,17 +397,14 @@ class _PaymentDetails extends State<PaymentDetails>
                                 ),
                               ),
                             ],
-                            Divider(
-                              height: 5,
-                            ),
+                            Divider(height: 5),
                           ],
                           if (viewData.memo!.isNotEmpty) ...[
-                            SizedBox(
-                              height: height / 90,
-                            ),
+                            SizedBox(height: height / 90),
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20.0,
+                              ),
                               child: Text(
                                 "formemo".tr(),
                                 style: TextStyle(
@@ -416,12 +415,11 @@ class _PaymentDetails extends State<PaymentDetails>
                                 ),
                               ),
                             ),
-                            SizedBox(
-                              height: 5,
-                            ),
+                            SizedBox(height: 5),
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20.0,
+                              ),
                               child: Text(
                                 memo,
                                 style: TextStyle(
@@ -432,16 +430,13 @@ class _PaymentDetails extends State<PaymentDetails>
                                 ),
                               ),
                             ),
-                            Divider(
-                              height: 5,
-                            ),
+                            Divider(height: 5),
                           ],
-                          SizedBox(
-                            height: height / 90,
-                          ),
+                          SizedBox(height: height / 90),
                           Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0,
+                            ),
                             child: Text(
                               "blockchainproof".tr(),
                               style: TextStyle(
@@ -452,21 +447,20 @@ class _PaymentDetails extends State<PaymentDetails>
                               ),
                             ),
                           ),
-                          SizedBox(
-                            height: 5,
-                          ),
+                          SizedBox(height: 5),
                           Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0,
+                            ),
                             child: Row(
                               children: [
                                 Expanded(
                                   flex: 5,
                                   child: GestureDetector(
                                     onTap: () => appState.goToWebView(
-                                        getExplorerBaseUrl(
-                                                appState.walletMode) +
-                                            viewData.transactionId!),
+                                      getExplorerBaseUrl(appState.walletMode) +
+                                          viewData.transactionId!,
+                                    ),
                                     child: Text(
                                       viewData.transactionId!,
                                       style: TextStyle(
@@ -489,27 +483,23 @@ class _PaymentDetails extends State<PaymentDetails>
                                         ),
                                       ),
                                       showSnackBar(
-                                          "transactionid".tr(), context),
+                                        "transactionid".tr(),
+                                        context,
+                                      ),
                                     },
-                                    icon: Icon(
-                                      Icons.copy,
-                                      size: 20,
-                                    ),
+                                    icon: Icon(Icons.copy, size: 20),
                                     color: notifier.getbluewhitecolor,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          Divider(
-                            height: 5,
-                          ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
+                          Divider(height: 5),
+                          SizedBox(height: height / 50),
                           Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0,
+                            ),
                             child: Text(
                               "date".tr(),
                               style: TextStyle(
@@ -520,12 +510,11 @@ class _PaymentDetails extends State<PaymentDetails>
                               ),
                             ),
                           ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
+                          SizedBox(height: height / 50),
                           Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0,
+                            ),
                             child: Text(
                               '$date',
                               style: TextStyle(
@@ -536,16 +525,15 @@ class _PaymentDetails extends State<PaymentDetails>
                               ),
                             ),
                           ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
+                          SizedBox(height: height / 50),
                         ],
                       ),
                     ),
                   ),
                   Image.asset(
                     'assets/images/trovo_white.png',
-                    height: TransactionDirection.Swap !=
+                    height:
+                        TransactionDirection.Swap !=
                             viewData.transactionDirection!
                         ? height / 4.5
                         : height / 6.5,
@@ -555,9 +543,7 @@ class _PaymentDetails extends State<PaymentDetails>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Button(
                 "generatereceipt".tr(),
                 notifier.getbluecolor,
@@ -571,9 +557,7 @@ class _PaymentDetails extends State<PaymentDetails>
                   appState.viewData![ShareReceiptViewPageConfig.key] = viewData;
                 },
               ),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
             ],
           ),
         ),
@@ -584,16 +568,14 @@ class _PaymentDetails extends State<PaymentDetails>
   Widget showUserInfo() {
     return Row(
       children: [
-        SizedBox(
-          width: width / 20,
-        ),
+        SizedBox(width: width / 20),
         Container(
           width: width / 1.7,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [],
           ),
-        )
+        ),
       ],
     );
   }

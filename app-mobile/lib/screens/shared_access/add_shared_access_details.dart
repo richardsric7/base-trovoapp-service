@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,7 +23,9 @@ import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
+
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 class AddSharedAccessDetails extends StatefulWidget {
@@ -598,7 +601,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
         body: requestBody,
         signer: wallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.publicKey!,
+        address: wallet.address!,
       );
 
       if (responseData['statusCode'] == 202) {
@@ -650,7 +653,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
         body: requestBody,
         signer: wallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.publicKey!,
+        address: wallet.address!,
       );
 
       if (responseData['statusCode'] == 200) {
@@ -662,7 +665,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
         await updateUserInfo(
           appState.primaryWallet.signer!,
           appState.secretKeys[0],
-          appState.primaryWallet.publicKey,
+          appState.primaryWallet.address,
           appState.userInfo!.username,
           appState,
           forceRefresh: true,
@@ -686,7 +689,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                 state: PageState.addAll,
                 pages: [BottomHomePageConfig, WalletPreparationViewPageConfig],
               );
-              // appState.setActiveTokenizationWalletPublicKey = null;
+              // appState.setActiveTokenizationWalletAddress = null;
               appState.viewData = {};
               appState.backupSecrets.clear();
               appState.returnView = null;

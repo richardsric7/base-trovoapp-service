@@ -17,6 +17,7 @@ import 'package:trovo_app/storage/store.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/models/user.dart';
+
 import '../router/page_actions.dart';
 import 'cache.dart';
 
@@ -60,14 +61,14 @@ class DataProvider with ChangeNotifier {
           continue;
         }
 
-        _transactionableWallets[wallets[i].publicKey!] = {
-          'publicKey': wallets[i].publicKey,
+        _transactionableWallets[wallets[i].address!] = {
+          'address': wallets[i].address,
           'alias': wallets[i].alias,
           'threshold': wallets[i].walletThreshold,
           'sharedAccessEnabled': wallets[i].primaryWallet == 1
               ? 0
               : wallets[i].sharedAccessEnabled,
-          'claimedAssets': assetBalances[wallets[i].publicKey!]['claimed'],
+          'claimedAssets': assetBalances[wallets[i].address!]['claimed'],
         };
       }
     }
@@ -76,8 +77,8 @@ class DataProvider with ChangeNotifier {
       // then get all the shared wallets where I have initiator access on
       for (var i = 0; i < sharedWallets.length; i++) {
         if (sharedWallets[i]['permission'] == 'INITIATOR') {
-          _transactionableWallets[sharedWallets[i]['walletPublicKey']] = {
-            'publicKey': sharedWallets[i]['walletPublicKey'],
+          _transactionableWallets[sharedWallets[i]['walletAddress']] = {
+            'address': sharedWallets[i]['walletAddress'],
             'alias': '${sharedWallets[i]['walletAlias']}',
             'permission': sharedWallets[i]['permission'],
             'threshold': sharedWallets[i]['walletSettings']['walletThreshold'],
@@ -232,9 +233,9 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  String tempPublicKey = '';
-  set setTempPublicKey(value) {
-    tempPublicKey = value;
+  String tempAddress = '';
+  set setTempAddress(value) {
+    tempAddress = value;
     notifyListeners();
   }
 
@@ -389,15 +390,15 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  String? filterFromPublicKey;
-  set setFilterFromPublicKey(value) {
-    filterFromPublicKey = value;
+  String? filterFromAddress;
+  set setFilterFromAddress(value) {
+    filterFromAddress = value;
     notifyListeners();
   }
 
-  String? filterToPublicKey;
-  set setFilterToPublicKey(value) {
-    filterToPublicKey = value;
+  String? filterToAddress;
+  set setFilterToAddress(value) {
+    filterToAddress = value;
     notifyListeners();
   }
 
@@ -423,11 +424,11 @@ class DataProvider with ChangeNotifier {
   int currentPage = 1;
   int totalRecords = 0;
 
-  getHistory(context, String forPublicKey, {void Function()? onDone}) async {
+  getHistory(context, String forAddress, {void Function()? onDone}) async {
     showLoader(context);
     await fetchHistory(
       context,
-      forPublicKey,
+      forAddress,
       limit: limit.toString(),
       query: filterQuery,
     );
@@ -440,7 +441,7 @@ class DataProvider with ChangeNotifier {
 
   Future<void> fetchHistory(
     context,
-    String forPublicKey, {
+    String forAddress, {
     String? limit,
     String? query,
   }) async {
@@ -449,10 +450,10 @@ class DataProvider with ChangeNotifier {
       // the payment history view is opened from shared wallet. So we use the
       // viewData to get the public key of the shared wallet and fetch its transaction
       // history.
-      // var publicKey = viewData![PaymentHistoryViewPageConfig.key] != null
-      //     ? viewData![PaymentHistoryViewPageConfig.key]['walletPublicKey']
-      //     : activeWallet!.publicKey!;
-      var uri = '/v1/users/payments/${forPublicKey}?limit=$limit${query}';
+      // var address = viewData![PaymentHistoryViewPageConfig.key] != null
+      //     ? viewData![PaymentHistoryViewPageConfig.key]['walletAddress']
+      //     : activeWallet!.address!;
+      var uri = '/v1/users/payments/${forAddress}?limit=$limit${query}';
       if (!filterAsset.contains("*")) {
         var splitAssetInfo = filterAsset.split("|");
         uri +=
@@ -461,7 +462,7 @@ class DataProvider with ChangeNotifier {
       Map responseData = await makeGetRequest(
         uri: uri,
         signer: activeWallet!.signer!,
-        publicKey: forPublicKey,
+        address: forAddress,
         secretKey: secretKeys[0],
       );
 
@@ -496,7 +497,7 @@ class DataProvider with ChangeNotifier {
         updateUserInfo(
           userInfo!.wallets![0].signer,
           secretKeys[0],
-          userInfo!.wallets![0].publicKey,
+          userInfo!.wallets![0].address,
           userInfo!.username,
           this,
           forceRefresh: true,
@@ -538,9 +539,9 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  String filterWalletPublicKey = "";
-  set setFilterWalletPublicKey(value) {
-    filterWalletPublicKey = value;
+  String filterWalletAddress = "";
+  set setFilterWalletAddress(value) {
+    filterWalletAddress = value;
     notifyListeners();
   }
 
@@ -570,7 +571,7 @@ class DataProvider with ChangeNotifier {
         uri: Uri.encodeFull(uri),
         signer: activeWallet!.signer!,
         secretKey: secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.signer!,
+        address: activeWallet!.signer!,
       );
 
       if (responseData['statusCode'] == 200) {
@@ -592,19 +593,19 @@ class DataProvider with ChangeNotifier {
 
   Future<void> fetchDepositHistory(
     context, {
-    required String publicKey,
+    required String address,
     required String? currency,
   }) async {
     try {
       showLoader(context);
       var uri =
-          '/v1/crypto/deposit-history/$currency/$publicKey?limit=$limit${filterQuery}';
+          '/v1/crypto/deposit-history/$currency/$address?limit=$limit${filterQuery}';
 
       Map responseData = await makeGetRequest(
         uri: uri,
         signer: activeWallet!.signer!,
         secretKey: secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.signer!,
+        address: activeWallet!.signer!,
       );
 
       hideLoader(context);
@@ -648,19 +649,19 @@ class DataProvider with ChangeNotifier {
 
   Future<void> fetchWithdrawalHistory(
     context, {
-    required String publicKey,
+    required String address,
     required String? currency,
   }) async {
     try {
       showLoader(context);
       var uri =
-          '/v1/crypto/withdrawal-history/$currency/$publicKey?limit=$limit${filterQuery}';
+          '/v1/crypto/withdrawal-history/$currency/$address?limit=$limit${filterQuery}';
 
       Map responseData = await makeGetRequest(
         uri: uri,
         signer: activeWallet!.signer!,
         secretKey: secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.signer!,
+        address: activeWallet!.signer!,
       );
 
       hideLoader(context);
@@ -753,7 +754,7 @@ class DataProvider with ChangeNotifier {
               ? ''
               : initialDynamicLink.queryParameters['assetCode'],
           initialDynamicLink.queryParameters['assetIssuer'],
-          onDone: (walletPublicKey, isSharedWallet) {
+          onDone: (walletAddress, isSharedWallet) {
             var deeplinkInfo = {
               "assetCode":
                   initialDynamicLink.queryParameters['assetCode'] == 'ETH'
@@ -767,11 +768,11 @@ class DataProvider with ChangeNotifier {
                   .queryParameters['amount'], // amount we want to send
               "memo": initialDynamicLink.queryParameters['memo'],
               'action': 'payment',
-              'sendingWallet': walletPublicKey,
+              'sendingWallet': walletAddress,
             };
 
             var claimedAssets =
-                transactionableWallets[walletPublicKey]['claimedAssets'];
+                transactionableWallets[walletAddress]['claimedAssets'];
 
             var deeplinkAssetCode = deeplinkInfo['assetCode'] == 'ETH'
                 ? ''
@@ -871,7 +872,7 @@ class DataProvider with ChangeNotifier {
       uri: Uri.encodeFull(uri),
       signer: primaryWallet.signer!,
       secretKey: secretKeys[0], // the primary wallet secret key
-      publicKey: primaryWallet.signer!,
+      address: primaryWallet.signer!,
     );
     if (responseData['statusCode'] == 200) {
       tokenizationData = responseData['data'];
@@ -891,7 +892,7 @@ class DataProvider with ChangeNotifier {
         uri: Uri.encodeFull(uri),
         signer: primaryWallet.signer!,
         secretKey: secretKeys[0], // the primary wallet secret key
-        publicKey: primaryWallet.signer!,
+        address: primaryWallet.signer!,
       );
 
       if (responseData['statusCode'] == 200) {

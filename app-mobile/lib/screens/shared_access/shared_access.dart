@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class SharedAccess extends StatefulWidget {
@@ -75,7 +77,7 @@ class _SharedAccessState extends State<SharedAccess>
     ApprovalsListFilterType.TransactionId: "Transaction ID",
     ApprovalsListFilterType.Initiator: "Initiator",
     ApprovalsListFilterType.Description: "Description",
-    ApprovalsListFilterType.WalletPublicKey: "Wallet public key",
+    ApprovalsListFilterType.WalletAddress: "Wallet public key",
     ApprovalsListFilterType.WalletAlias: "Wallet alias",
   };
   var transactionTypes = <String>[
@@ -132,7 +134,7 @@ class _SharedAccessState extends State<SharedAccess>
     return shareableWallets.map<DropdownMenuItem<String>>((wallet) {
       return DropdownMenuItem(
         child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
-        value: wallet.publicKey,
+        value: wallet.address,
       );
     }).toList();
   }
@@ -227,7 +229,7 @@ class _SharedAccessState extends State<SharedAccess>
     );
     appState.sharedAccesstabController = TabController(length: 3, vsync: this);
     selectedWallet = shareableWallets.isNotEmpty
-        ? shareableWallets.first.publicKey!
+        ? shareableWallets.first.address!
         : '';
 
     if ((appState.returnView != null && appState.returnView!.pages != null) &&
@@ -249,9 +251,9 @@ class _SharedAccessState extends State<SharedAccess>
           appState.backupSecrets.first,
         );
         activeWallet = shareableWallets
-            .where((wallet) => wallet.publicKey == account.publicKey)
+            .where((wallet) => wallet.address == account.address)
             .first;
-        selectedWallet = account.publicKey;
+        selectedWallet = account.address;
       }
     }
 
@@ -273,8 +275,8 @@ class _SharedAccessState extends State<SharedAccess>
     width = MediaQuery.of(context).size.width;
     shareableWallets = appState.userInfo!.getShareableWallets;
 
-    if (shareableWallets.where((w) => w.publicKey == selectedWallet).isEmpty) {
-      selectedWallet = shareableWallets.first.publicKey!;
+    if (shareableWallets.where((w) => w.address == selectedWallet).isEmpty) {
+      selectedWallet = shareableWallets.first.address!;
     }
 
     return ScreenUtilInit(
@@ -930,8 +932,8 @@ class _SharedAccessState extends State<SharedAccess>
                                       .numberOfApprovalsNeeded!,
                               isPrimaryWallet:
                                   filteredWallets[walletIndex].primaryWallet!,
-                              walletPublicKey:
-                                  filteredWallets[walletIndex].publicKey!,
+                              walletAddress:
+                                  filteredWallets[walletIndex].address!,
                               walletAlias: filteredWallets[walletIndex].alias!,
                               permissions:
                                   filteredWallets[walletIndex].permissions,
@@ -991,7 +993,7 @@ class _SharedAccessState extends State<SharedAccess>
               'walletAlias': appState.sharedWallets[i]['walletAlias'],
               'permissions': <String>[appState.sharedWallets[i]['permission']],
               'owner': appState.sharedWallets[i]['owner'],
-              'walletPublicKey': appState.sharedWallets[i]['walletPublicKey'],
+              'walletAddress': appState.sharedWallets[i]['walletAddress'],
               'walletDescription':
                   appState.sharedWallets[i]['walletDescription'],
             };
@@ -1024,7 +1026,7 @@ class _SharedAccessState extends State<SharedAccess>
                 // add the shared access data to viewData so we can pass it to
                 // shared access details view when user taps on it
                 appState.viewData = {
-                  'walletPublicKey': wallets[walletKeys[i]]['walletPublicKey'],
+                  'walletAddress': wallets[walletKeys[i]]['walletAddress'],
                 };
 
                 appState.currentAction = PageAction(
@@ -1035,7 +1037,7 @@ class _SharedAccessState extends State<SharedAccess>
               child: accessGrantedToMe(
                 walletOwner: wallets[walletKeys[i]]['owner'],
                 walletAlias: walletKeys[i],
-                publicKey: wallets[walletKeys[i]]['walletPublicKey'],
+                address: wallets[walletKeys[i]]['walletAddress'],
                 permissions: wallets[walletKeys[i]]['permissions'],
                 walletDescription: wallets[walletKeys[i]]['walletDescription'],
               ),
@@ -1061,7 +1063,7 @@ class _SharedAccessState extends State<SharedAccess>
   Widget accessGrantedToMe({
     required String walletOwner,
     required String walletAlias,
-    required String publicKey,
+    required String address,
     required List<String> permissions,
     required walletDescription,
   }) {
@@ -1174,7 +1176,7 @@ class _SharedAccessState extends State<SharedAccess>
 
   Widget accessGrantedByMe({
     required String walletAlias,
-    required String walletPublicKey,
+    required String walletAddress,
     required int isPrimaryWallet,
     required int numberOfApprovalsNeeded,
     required List<Permission>? permissions,
@@ -1203,7 +1205,7 @@ class _SharedAccessState extends State<SharedAccess>
             viewOnlySharedWalletOptions(
               context,
               () {
-                appState.viewData = {'walletPublicKey': walletPublicKey};
+                appState.viewData = {'walletAddress': walletAddress};
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
                   page: UpdateSharedAccessViewPageConfig,
@@ -1214,7 +1216,7 @@ class _SharedAccessState extends State<SharedAccess>
                   disableSharedAccess(
                     context,
                     appState,
-                    appState.userInfo!.getWallet(walletPublicKey),
+                    appState.userInfo!.getWallet(walletAddress),
                     viewOnly: true,
                   );
                 });
@@ -1494,9 +1496,9 @@ class _SharedAccessState extends State<SharedAccess>
     //   Account account =
     //       TrovoWalletSDK().parseSecretKey(appState.backupSecrets.last);
     //   activeWallet = shareableWallets!
-    //       .where((wallet) => wallet.publicKey == account.publicKey)
+    //       .where((wallet) => wallet.address == account.address)
     //       .first;
-    //   selectedWallet = account.publicKey;
+    //   selectedWallet = account.address;
     //   popup(context, title: 'Important', message: "addsharedtodistwallet".tr());
     //   return;
     // }
@@ -2680,7 +2682,7 @@ class _SharedAccessState extends State<SharedAccess>
                         setState(() {
                           selectedWallet = newValue?.toString() ?? '';
                           activeWallet = shareableWallets.firstWhere(
-                            (wallet) => wallet.publicKey == newValue,
+                            (wallet) => wallet.address == newValue,
                           );
                           addApprovers = false;
                           var user = appState.userInfo!;
@@ -2709,7 +2711,7 @@ class _SharedAccessState extends State<SharedAccess>
         uri: '/v1/users/$username',
         signer: activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.publicKey!,
+        address: activeWallet!.address!,
       );
 
       hideLoader(context);
@@ -2891,16 +2893,16 @@ class _SharedAccessState extends State<SharedAccess>
           },
         );
         break;
-      case ApprovalsListFilterType.WalletPublicKey:
+      case ApprovalsListFilterType.WalletAddress:
         approvalTextFieldPopup(
           context,
           label: "enterwalletpublickey".tr(),
-          value: appState.filterWalletPublicKey,
+          value: appState.filterWalletAddress,
           placeholder: "publickey".tr(),
           onDone: (value) async {
             if (value != null && value.toString().isNotEmpty) {
-              appState.setFilterWalletPublicKey = value;
-              appState.setFilterQuery = "&walletPublicKey=$value";
+              appState.setFilterWalletAddress = value;
+              appState.setFilterQuery = "&walletAddress=$value";
               await appState.getApprovals();
             }
           },
@@ -3030,24 +3032,24 @@ class _SharedAccessState extends State<SharedAccess>
               : truncate(appState.filterDescription, length: 30),
         );
 
-      case ApprovalsListFilterType.WalletPublicKey:
+      case ApprovalsListFilterType.WalletAddress:
         return content(
           onPressed: () {
             approvalTextFieldPopup(
               context,
               label: "enterwalletpublickey".tr(),
-              value: appState.filterWalletPublicKey,
+              value: appState.filterWalletAddress,
               placeholder: "publickey".tr(),
               onDone: (value) async {
                 if (value != null && value.toString().isNotEmpty) {
-                  appState.setFilterWalletPublicKey = value;
-                  appState.setFilterQuery = "&walletPublicKey=$value";
+                  appState.setFilterWalletAddress = value;
+                  appState.setFilterQuery = "&walletAddress=$value";
                   await appState.getApprovals();
                 }
               },
             );
           },
-          label: getTruncatedPublicKey(appState.filterWalletPublicKey),
+          label: getTruncatedAddress(appState.filterWalletAddress),
         );
       case ApprovalsListFilterType.TransactionId:
         return content(
@@ -3134,11 +3136,10 @@ class _SharedAccessState extends State<SharedAccess>
     return "enterrange".tr();
   }
 
-  getTruncatedPublicKey(String publicKey) {
-    if (publicKey.isEmpty) return "enterpublickey".tr();
-    if (publicKey.length <= 7) return publicKey;
-    return truncate(publicKey, length: 7) +
-        publicKey.substring(publicKey.length - 7);
+  getTruncatedAddress(String address) {
+    if (address.isEmpty) return "enterpublickey".tr();
+    if (address.length <= 7) return address;
+    return truncate(address, length: 7) + address.substring(address.length - 7);
   }
 
   loadMore() async {
@@ -3175,7 +3176,7 @@ enum ApprovalsListFilterType {
   DateRange,
   Initiator,
   Description,
-  WalletPublicKey,
+  WalletAddress,
   WalletAlias,
 }
 

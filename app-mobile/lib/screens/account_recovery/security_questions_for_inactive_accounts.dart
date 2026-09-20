@@ -10,6 +10,7 @@ import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
 import '../../storage/state.dart';
@@ -33,7 +34,7 @@ class _SecurityQuestionsForInactiveAccounts
   String password = '';
   // late var primaryWallet;
   late String? username;
-  late String? publicKey;
+  late String? address;
   late String? signer;
   late String? secretKey;
   var questionsMap = {
@@ -59,9 +60,9 @@ class _SecurityQuestionsForInactiveAccounts
     appState = Provider.of<DataProvider>(context, listen: false);
     // primaryWallet = appState.userInfo!.wallets!
     //     .firstWhere((wallet) => wallet.primaryWallet == 1);
-    publicKey =
+    address =
         appState.viewData![SecurityQuestionsForInactiveAccountsViewPageConfig
-            .key]['publicKey'];
+            .key]['address'];
     signer =
         appState.viewData![SecurityQuestionsForInactiveAccountsViewPageConfig
             .key]['signer'];
@@ -71,7 +72,7 @@ class _SecurityQuestionsForInactiveAccounts
     username =
         appState.viewData![SecurityQuestionsForInactiveAccountsViewPageConfig
             .key]['username'];
-    questions = fetchQuestions(signer, secretKey, publicKey, username);
+    questions = fetchQuestions(signer, secretKey, address, username);
   }
 
   @override
@@ -188,9 +189,9 @@ class _SecurityQuestionsForInactiveAccounts
                                 onPressed: () {
                                   setState(() {
                                     questions = fetchQuestions(
-                                      publicKey,
+                                      address,
                                       secretKey,
-                                      publicKey,
+                                      address,
                                       username,
                                     );
                                   });
@@ -411,17 +412,12 @@ class _SecurityQuestionsForInactiveAccounts
     );
   }
 
-  Future<List<Map>> fetchQuestions(
-    signer,
-    secretKey,
-    publicKey,
-    username,
-  ) async {
+  Future<List<Map>> fetchQuestions(signer, secretKey, address, username) async {
     Map responseData = await makeGetRequest(
       uri: '/v1/security-questions/$username',
       signer: signer,
       secretKey: secretKey, // the primary wallet secret key
-      publicKey: publicKey!,
+      address: address!,
     );
 
     var questionsList = <Map>[];

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,6 +16,7 @@ import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -2684,15 +2686,12 @@ class _CommercialPapersAssetInformationView
       showLoader(context);
       var newData = {...data as Map};
 
-      newData['issueDate'] = DateFormat(
-        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
-      ).format(issueDate!);
-      newData['maturityDate'] = DateFormat(
-        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
-      ).format(maturityDate!);
-      newData['incorporationDate'] = DateFormat(
-        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
-      ).format(incorporationDate!);
+      newData['issueDate'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
+          .format(issueDate!);
+      newData['maturityDate'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
+          .format(maturityDate!);
+      newData['incorporationDate'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
+          .format(incorporationDate!);
       newData['tenure'] = tenure;
       newData['totalIssueSize'] = totalIssueSize;
       newData['pricingYield'] = pricingYield;
@@ -2743,7 +2742,7 @@ class _CommercialPapersAssetInformationView
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       if (responseData['statusCode'] == 200) {
@@ -2771,7 +2770,7 @@ class _CommercialPapersAssetInformationView
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       if (responseData['statusCode'] == 200) {

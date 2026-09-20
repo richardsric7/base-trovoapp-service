@@ -16,6 +16,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
 import '../../storage/state.dart';
@@ -63,7 +64,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
     securityQuestionsMap = fetchQuestions(
       primaryWallet.signer,
       appState.secretKeys[0],
-      primaryWallet.publicKey,
+      primaryWallet.address,
       appState.userInfo!.username,
     );
   }
@@ -185,7 +186,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                                     securityQuestionsMap = fetchQuestions(
                                       primaryWallet.signer,
                                       appState.secretKeys[0],
-                                      primaryWallet.publicKey,
+                                      primaryWallet.address,
                                       appState.userInfo!.username,
                                     );
                                   });
@@ -384,7 +385,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
         body: requestBody,
         signer: primaryWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: primaryWallet!.publicKey!,
+        address: primaryWallet!.address!,
       );
 
       hideLoader(context);
@@ -427,14 +428,14 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
         body: requestBody,
         signer: primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: primaryWallet.publicKey!,
+        address: primaryWallet.address!,
       );
 
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(
           primaryWallet.signer!,
           appState.secretKeys[0],
-          primaryWallet.publicKey!,
+          primaryWallet.address!,
           appState.userInfo!.username,
           appState,
         );
@@ -467,12 +468,12 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
     }
   }
 
-  Future<Map> fetchQuestions(signer, secretKey, publicKey, username) async {
+  Future<Map> fetchQuestions(signer, secretKey, address, username) async {
     Map responseData = await makeGetRequest(
       uri: '/v1/security-questions/$username',
       signer: signer,
       secretKey: secretKey, // the primary wallet secret key
-      publicKey: publicKey!,
+      address: address!,
     );
 
     return responseData['data'];

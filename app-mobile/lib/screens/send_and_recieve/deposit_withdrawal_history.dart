@@ -18,6 +18,7 @@ import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 import 'package:timeago/timeago.dart' as timeago;
+
 import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -91,9 +92,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
     _refreshController = RefreshController(initialRefresh: false);
     appState = Provider.of<DataProvider>(context, listen: false);
     resetFilters();
-    wallet = appState.userInfo!.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = appState.userInfo!.getWallet(appState.viewData!['walletAddress']);
 
     if (appState.viewData!['historyMode'] != null) {
       historyMode = appState.viewData!['historyMode'];
@@ -160,7 +159,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                                 appState.limit = 20;
                                 appState.fetchWithdrawalHistory(
                                   context,
-                                  publicKey: wallet.publicKey!,
+                                  address: wallet.address!,
                                   currency: asset.assetCode,
                                   // onDone: () => adjustScrollPosition(),
                                 );
@@ -173,7 +172,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                                 resetFilters();
                                 appState.fetchDepositHistory(
                                   context,
-                                  publicKey: wallet.publicKey!,
+                                  address: wallet.address!,
                                   currency: asset.assetCode,
                                   // onDone: () => adjustScrollPosition(),
                                 );
@@ -302,12 +301,12 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
             historyMode == 'Deposit history'
                 ? await appState.fetchDepositHistory(
                     context,
-                    publicKey: wallet.publicKey!,
+                    address: wallet.address!,
                     currency: asset.assetCode!,
                   )
                 : await appState.fetchWithdrawalHistory(
                     context,
-                    publicKey: wallet.publicKey!,
+                    address: wallet.address!,
                     currency: asset.assetCode!,
                   );
             return depositHistory!.length <= appState.totalRecords;
@@ -361,7 +360,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
               onPressed: () async {
                 await appState.fetchDepositHistory(
                   context,
-                  publicKey: wallet.publicKey!,
+                  address: wallet.address!,
                   currency: asset.assetCode,
                   // onDone: () => adjustScrollPosition(),
                 );
@@ -391,7 +390,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
         appState.viewData = {
           'transaction': transaction,
           'transactionDirection': TransactionDirection.Deposit,
-          'walletPublicKey': wallet.publicKey,
+          'walletAddress': wallet.address,
         };
 
         appState.currentAction = PageAction(
@@ -460,7 +459,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                       Wrap(
                         children: [
                           Text(
-                            '${"fromaddress".tr()}: ${truncatePublicKey(transaction.fromAddress)}',
+                            '${"fromaddress".tr()}: ${truncateAddress(transaction.fromAddress)}',
                             overflow: TextOverflow.visible,
                             // textAlign: TextAlign.center,
                             style: TextStyle(
@@ -475,7 +474,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                       Wrap(
                         children: [
                           Text(
-                            '${"toaddress".tr()}: ${truncatePublicKey(transaction.toAddress)}',
+                            '${"toaddress".tr()}: ${truncateAddress(transaction.toAddress)}',
                             overflow: TextOverflow.visible,
                             // textAlign: TextAlign.center,
                             style: TextStyle(
@@ -504,7 +503,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
         appState.viewData = {
           'transaction': transaction,
           'transactionDirection': TransactionDirection.Withdraw,
-          'walletPublicKey': wallet.publicKey,
+          'walletAddress': wallet.address,
         };
 
         appState.currentAction = PageAction(
@@ -623,13 +622,13 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
       historyMode == 'Deposit history'
           ? await appState.fetchDepositHistory(
               context,
-              publicKey: wallet.publicKey!,
+              address: wallet.address!,
               currency: asset.assetCode!,
               // onDone: () => adjustScrollPosition(),
             )
           : await appState.fetchWithdrawalHistory(
               context,
-              publicKey: wallet.publicKey!,
+              address: wallet.address!,
               currency: asset.assetCode!,
               // onDone: () => adjustScrollPosition(),
             );
@@ -656,7 +655,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
         break;
       case FilterType.WithdrawalAddress:
         text = appState.filterQuery.contains('withdrawalAddress')
-            ? truncatePublicKey(appState.filterWithdrawalAddress)
+            ? truncateAddress(appState.filterWithdrawalAddress)
             : "choosestatus".tr();
         break;
       default:
@@ -716,7 +715,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
               appState.setFilterQuery = "&withdrawalAddress=${value}";
               await appState.fetchWithdrawalHistory(
                 context,
-                publicKey: wallet.publicKey!,
+                address: wallet.address!,
                 currency: asset.assetCode,
                 // onDone: () => adjustScrollPosition(),
               );
@@ -733,7 +732,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
             appState.setFilterQuery = "&withdrawalStatus=PENDING";
             appState.fetchWithdrawalHistory(
               context,
-              publicKey: wallet.publicKey!,
+              address: wallet.address!,
               currency: asset.assetCode,
               // onDone: () => adjustScrollPosition(),
             );
@@ -746,7 +745,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
             appState.setFilterQuery = "&withdrawalStatus=COMPLETED";
             appState.fetchWithdrawalHistory(
               context,
-              publicKey: wallet.publicKey!,
+              address: wallet.address!,
               currency: asset.assetCode,
               // onDone: () => adjustScrollPosition(),
             );
@@ -767,12 +766,12 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
               historyMode == 'Deposit history'
                   ? await appState.fetchDepositHistory(
                       context,
-                      publicKey: wallet.publicKey!,
+                      address: wallet.address!,
                       currency: asset.assetCode!,
                     )
                   : await appState.fetchWithdrawalHistory(
                       context,
-                      publicKey: wallet.publicKey!,
+                      address: wallet.address!,
                       currency: asset.assetCode!,
                     );
             }
@@ -789,12 +788,12 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
             historyMode == 'Deposit history'
                 ? await appState.fetchDepositHistory(
                     context,
-                    publicKey: wallet.publicKey!,
+                    address: wallet.address!,
                     currency: asset.assetCode!,
                   )
                 : await appState.fetchWithdrawalHistory(
                     context,
-                    publicKey: wallet.publicKey!,
+                    address: wallet.address!,
                     currency: asset.assetCode!,
                   );
           },

@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_utils/get_utils.dart' hide Trans;
@@ -18,6 +19,7 @@ import 'package:trovo_app/storage/cache.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class PendingAssetDetails extends StatefulWidget {
@@ -41,7 +43,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
 
     appState = Provider.of<DataProvider>(context, listen: false);
     userInfo = appState.userInfo!;
-    wallet = userInfo.getWallet(appState.viewData!['walletPublicKey']);
+    wallet = userInfo.getWallet(appState.viewData!['walletAddress']);
 
     asset = wallet.unClaimedAssets!.firstWhereOrNull(
       (asset) =>
@@ -217,7 +219,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: wallet.publicKey!,
+        address: wallet.address!,
       );
 
       if (responseData['statusCode'] == 202) {
@@ -261,14 +263,14 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: wallet.publicKey!,
+        address: wallet.address!,
       );
 
       if (responseData['statusCode'] == 200) {
         updateUserInfo(
           appState.primaryWallet.signer!,
           appState.secretKeys[0],
-          appState.primaryWallet.publicKey!,
+          appState.primaryWallet.address!,
           userInfo.username,
           appState,
         );
@@ -325,7 +327,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: wallet.publicKey!,
+        address: wallet.address!,
       );
 
       if (responseData['statusCode'] == 202) {
@@ -369,14 +371,14 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: wallet.publicKey!,
+        address: wallet.address!,
       );
 
       if (responseData['statusCode'] == 200) {
         updateUserInfo(
           appState.primaryWallet.signer!,
           appState.secretKeys[0],
-          appState.primaryWallet.publicKey!,
+          appState.primaryWallet.address!,
           userInfo.username,
           appState,
         );

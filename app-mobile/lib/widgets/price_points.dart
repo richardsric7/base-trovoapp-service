@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:collection/collection.dart';
 
 class PricePoint {
@@ -18,6 +19,7 @@ List<PricePoint> get pricePoints {
 
   return randomNumbers
       .mapIndexed(
-          (index, element) => PricePoint(x: index.toDouble(), y: element))
+        (index, element) => PricePoint(x: index.toDouble(), y: element),
+      )
       .toList();
 }

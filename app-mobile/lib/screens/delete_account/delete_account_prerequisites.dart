@@ -12,6 +12,7 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class DeleteAccountPrerequisites extends StatefulWidget {
@@ -72,9 +73,7 @@ class _DeleteAccountPrerequisitesState
                   fontSize: 24,
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
@@ -89,9 +88,7 @@ class _DeleteAccountPrerequisitesState
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -103,7 +100,9 @@ class _DeleteAccountPrerequisitesState
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 10.0),
+                      horizontal: 10.0,
+                      vertical: 10.0,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,9 +122,7 @@ class _DeleteAccountPrerequisitesState
                                     fontFamily: fontsemibold,
                                   ),
                                 ),
-                                SizedBox(
-                                  height: height / 90,
-                                ),
+                                SizedBox(height: height / 90),
                                 Container(
                                   width: width / 1.5,
                                   child: Text(
@@ -173,9 +170,7 @@ class _DeleteAccountPrerequisitesState
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -187,7 +182,9 @@ class _DeleteAccountPrerequisitesState
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 10.0),
+                      horizontal: 10.0,
+                      vertical: 10.0,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,9 +205,7 @@ class _DeleteAccountPrerequisitesState
                                         fontFamily: fontsemibold,
                                       ),
                                     ),
-                                    SizedBox(
-                                      height: height / 90,
-                                    ),
+                                    SizedBox(height: height / 90),
                                     Container(
                                       width: width / 1.5,
                                       child: Text(
@@ -242,7 +237,9 @@ class _DeleteAccountPrerequisitesState
                                   ),
                                   onPressed: () {
                                     if (appState
-                                            .userInfo!.sharedWallets!.length >
+                                            .userInfo!
+                                            .sharedWallets!
+                                            .length >
                                         0) {
                                       appState.currentAction = PageAction(
                                         state: PageState.addPage,
@@ -253,61 +250,57 @@ class _DeleteAccountPrerequisitesState
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: height / 50,
-                            ),
+                            SizedBox(height: height / 50),
                             Container(
-                                width: width / 1.2,
-                                child: Wrap(
-                                  alignment: WrapAlignment.center,
-                                  children: [
-                                    for (var wallet in appState
-                                        .userInfo!.sharedWallets!) ...[
-                                      if (wallet.isInitiator) ...[
-                                        Padding(
-                                          padding: const EdgeInsets.all(3.0),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                  color: notifier
-                                                      .getbluewhitecolor),
-                                              borderRadius:
-                                                  const BorderRadius.all(
-                                                      Radius.circular(10.0)),
+                              width: width / 1.2,
+                              child: Wrap(
+                                alignment: WrapAlignment.center,
+                                children: [
+                                  for (var wallet
+                                      in appState.userInfo!.sharedWallets!) ...[
+                                    if (wallet.isInitiator) ...[
+                                      Padding(
+                                        padding: const EdgeInsets.all(3.0),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: notifier.getbluewhitecolor,
                                             ),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(5.0),
-                                              child: Wrap(
-                                                alignment: WrapAlignment.center,
-                                                crossAxisAlignment:
-                                                    WrapCrossAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    wallet.alias!,
-                                                    textAlign: TextAlign.center,
-                                                    softWrap: true,
-                                                    style: TextStyle(
-                                                        color: notifier
-                                                            .getbluewhitecolor,
-                                                        fontFamily: fontbody,
-                                                        fontSize: 14),
+                                            borderRadius:
+                                                const BorderRadius.all(
+                                                  Radius.circular(10.0),
+                                                ),
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(5.0),
+                                            child: Wrap(
+                                              alignment: WrapAlignment.center,
+                                              crossAxisAlignment:
+                                                  WrapCrossAlignment.center,
+                                              children: [
+                                                Text(
+                                                  wallet.alias!,
+                                                  textAlign: TextAlign.center,
+                                                  softWrap: true,
+                                                  style: TextStyle(
+                                                    color: notifier
+                                                        .getbluewhitecolor,
+                                                    fontFamily: fontbody,
+                                                    fontSize: 14,
                                                   ),
-                                                  SizedBox(
-                                                    width: width / 70,
-                                                  ),
-                                                ],
-                                              ),
+                                                ),
+                                                SizedBox(width: width / 70),
+                                              ],
                                             ),
                                           ),
                                         ),
-                                      ],
+                                      ),
                                     ],
-                                    SizedBox(
-                                      height: height / 50,
-                                    ),
                                   ],
-                                )),
+                                  SizedBox(height: height / 50),
+                                ],
+                              ),
+                            ),
                             SizedBox(height: 2),
                           ],
                         ),
@@ -318,7 +311,9 @@ class _DeleteAccountPrerequisitesState
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 20.0, vertical: 20.0),
+                  horizontal: 20.0,
+                  vertical: 20.0,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,15 +327,11 @@ class _DeleteAccountPrerequisitesState
                         fontFamily: fontsemibold,
                       ),
                     ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                    SizedBox(height: height / 50),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Image.asset(
-                          "assets/images/jam_alert.png",
-                        ),
+                        Image.asset("assets/images/jam_alert.png"),
                         Spacer(),
                         Container(
                           width: width / 1.2,
@@ -356,15 +347,11 @@ class _DeleteAccountPrerequisitesState
                         ),
                       ],
                     ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                    SizedBox(height: height / 50),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Image.asset(
-                          "assets/images/jam_alert.png",
-                        ),
+                        Image.asset("assets/images/jam_alert.png"),
                         Spacer(),
                         Container(
                           width: width / 1.2,
@@ -380,15 +367,11 @@ class _DeleteAccountPrerequisitesState
                         ),
                       ],
                     ),
-                    SizedBox(
-                      height: height / 25,
-                    ),
+                    SizedBox(height: height / 25),
                   ],
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Button(
                 "deleteaccount".tr(),
                 appState.userInfo!.sharedWallets!.length > 0 ||
@@ -399,9 +382,11 @@ class _DeleteAccountPrerequisitesState
                 onTap: () {
                   if (appState.userInfo!.accountRecoveryEnabled! == 1 ||
                       appState.userInfo!.sharedWallets!.length > 0) {
-                    popup(context,
-                        title: "important".tr(),
-                        message: "pleasecompleteprerequisites".tr());
+                    popup(
+                      context,
+                      title: "important".tr(),
+                      message: "pleasecompleteprerequisites".tr(),
+                    );
                     return;
                   }
                   appState.currentAction = PageAction(
@@ -410,9 +395,7 @@ class _DeleteAccountPrerequisitesState
                   );
                 },
               ),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
             ],
           ),
         ),

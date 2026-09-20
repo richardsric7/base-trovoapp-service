@@ -4,6 +4,7 @@ import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -70,9 +71,7 @@ class _AssetSubscribersState extends State<AssetSubscribers>
                 child: Center(
                   child: Column(
                     children: [
-                      SizedBox(
-                        height: height / 70,
-                      ),
+                      SizedBox(height: height / 70),
                       Text(
                         'Total Subscribers',
                         textAlign: TextAlign.center,
@@ -82,9 +81,7 @@ class _AssetSubscribersState extends State<AssetSubscribers>
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
+                      SizedBox(height: height / 70),
                       Text(
                         '100',
                         textAlign: TextAlign.center,
@@ -94,9 +91,7 @@ class _AssetSubscribersState extends State<AssetSubscribers>
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
+                      SizedBox(height: height / 50),
                     ],
                   ),
                 ),

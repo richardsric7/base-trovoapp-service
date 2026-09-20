@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
@@ -20,6 +21,7 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class WithdrawAsset extends StatefulWidget {
@@ -69,9 +71,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
 
-    wallet = appState.userInfo!.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = appState.userInfo!.getWallet(appState.viewData!['walletAddress']);
 
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
@@ -472,7 +472,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
         uri: '/v1/crypto/withdrawal-networks/${asset!.assetCode}',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.publicKey!,
+        address: wallet.address!,
       );
 
       if (responseData['statusCode'] == 200) {
@@ -580,7 +580,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
         body: requestBody,
         signer: appState.activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.publicKey!,
+        address: wallet.address!,
       );
 
       hideLoader(context);
@@ -589,7 +589,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
         appState.viewData = {
           'transactionData': responseData['data'],
           'withdrawalNetworkName': networks[index]['name'],
-          'walletPublicKey': wallet.publicKey,
+          'walletAddress': wallet.address,
           'assetCode': asset!.assetCode,
           'assetIssuer': asset!.assetIssuer,
         };

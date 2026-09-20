@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,6 +26,7 @@ import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../custom_bloc_observer/fonts.dart';
 import '../../models/wallet.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -52,13 +54,16 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
   List<DropdownMenuItem<String>> get getAssetDropdownItems {
     List<DropdownMenuItem<String>> menuItems = [];
     for (var asset in paymentAssets) {
-      menuItems.add(DropdownMenuItem(
+      menuItems.add(
+        DropdownMenuItem(
           child: Text(
             getAssetCode(asset.assetCode),
             overflow: TextOverflow.visible,
           ),
           value:
-              '${getAssetCode(asset.assetCode)}|${getAssetIssuer(asset.assetIssuer)}'));
+              '${getAssetCode(asset.assetCode)}|${getAssetIssuer(asset.assetIssuer)}',
+        ),
+      );
     }
     return menuItems;
   }
@@ -112,9 +117,10 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                   Text(
                     "youhavechosen".tr(),
                     style: TextStyle(
-                        fontSize: 22,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontbody),
+                      fontSize: 22,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
                   ),
                 ],
               ),
@@ -124,39 +130,32 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                   Text(
                     '${patronInfo.patronPackage.capitalizeFirst} ${"patron".tr()}',
                     style: TextStyle(
-                        fontSize: 22,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 22,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
-                  Image.asset(
-                    patronInfo.logo,
-                    height: 30,
-                  ),
+                  Image.asset(patronInfo.logo, height: 30),
                 ],
               ),
-              SizedBox(
-                height: 20,
-              ),
+              SizedBox(height: 20),
               planItem(),
               if (patronTier.isExpirable) ...[
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Padding(
                   padding: const EdgeInsets.all(30.0),
                   child: Text(
                     "nobenefitsoncesubexpires".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        fontSize: 12,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontbody),
+                      fontSize: 12,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
                   ),
                 ),
               ],
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -168,7 +167,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                       color: notifier.getbluewhitecolor,
                       fontFamily: fontsemibold,
                     ),
-                  )
+                  ),
                 ],
               ),
               SizedBox(height: height / 50),
@@ -181,8 +180,10 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                       ? darktilewhitecolor
                       : notifier.getaddsubwalletgrey,
                   decoration: InputDecoration(
-                    contentPadding:
-                        EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 0,
+                      horizontal: 20,
+                    ),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide.none,
                       borderRadius: BorderRadius.circular(20),
@@ -218,10 +219,11 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                   ),
                   elevation: 0,
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      fontWeight: FontWeight.w500),
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 15,
+                    fontFamily: fontsemibold,
+                    fontWeight: FontWeight.w500,
+                  ),
                   onChanged: (newValue) {
                     selectedAsset = newValue;
                     setState(() {});
@@ -229,9 +231,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                   items: getAssetDropdownItems,
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Form(
                 key: formKey,
                 child: CustomPasswordFormField(
@@ -251,9 +251,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                   },
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
                   "authorizewithbiometrics".tr(),
@@ -269,12 +267,12 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                   onTap: handleAuthorization,
                 ),
               ],
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -299,14 +297,18 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                 Container(
                   height: 10,
                   decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(15.0),
-                          topRight: Radius.circular(15.0)),
-                      color: getColor(patronInfo.patronPackage)),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(15.0),
+                      topRight: Radius.circular(15.0),
+                    ),
+                    color: getColor(patronInfo.patronPackage),
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0, vertical: 15.0),
+                    horizontal: 10.0,
+                    vertical: 15.0,
+                  ),
                   child: Row(
                     children: [
                       Container(
@@ -315,9 +317,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            SizedBox(
-                              width: width / 50,
-                            ),
+                            SizedBox(width: width / 50),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -329,7 +329,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                                     color: notifier.getbluewhitecolor,
                                     fontFamily: fontsemibold,
                                   ),
-                                )
+                                ),
                               ],
                             ),
                             Row(
@@ -343,12 +343,10 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                                     color: notifier.getbluewhitecolor,
                                     fontFamily: fontbody,
                                   ),
-                                )
+                                ),
                               ],
                             ),
-                            SizedBox(
-                              height: 50,
-                            ),
+                            SizedBox(height: 50),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -360,7 +358,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                                     color: notifier.getbluewhitecolor,
                                     fontFamily: fontsemibold,
                                   ),
-                                )
+                                ),
                               ],
                             ),
                             if (patronTier.isExpirable) ...[
@@ -369,17 +367,19 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                                 children: [
                                   Text(
                                     DateFormat('MMMM dd, yyyy').format(
-                                        DateTime.now().add(
-                                            patronTier.tier == 'Annual'
-                                                ? Duration(days: 31)
-                                                : Duration(days: 365))),
+                                      DateTime.now().add(
+                                        patronTier.tier == 'Annual'
+                                            ? Duration(days: 31)
+                                            : Duration(days: 365),
+                                      ),
+                                    ),
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w400,
                                       color: notifier.getbluewhitecolor,
                                       fontFamily: fontbody,
                                     ),
-                                  )
+                                  ),
                                 ],
                               ),
                             ] else ...[
@@ -394,13 +394,11 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                                       color: notifier.getbluewhitecolor,
                                       fontFamily: fontbody,
                                     ),
-                                  )
+                                  ),
                                 ],
                               ),
                             ],
-                            SizedBox(
-                              height: 20,
-                            ),
+                            SizedBox(height: 20),
                           ],
                         ),
                       ),
@@ -482,14 +480,17 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: appState.primaryWallet.publicKey!,
+        address: appState.primaryWallet.address!,
       );
 
       if (responseData['statusCode'] == 202) {
         completeRequest(responseData['data']);
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {
@@ -517,14 +518,14 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: appState.primaryWallet.publicKey!,
+        address: appState.primaryWallet.address!,
       );
 
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(
           appState.primaryWallet.signer!,
           appState.secretKeys[0],
-          appState.primaryWallet.publicKey!,
+          appState.primaryWallet.address!,
           appState.userInfo!.username,
           appState,
         );
@@ -533,7 +534,8 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
           'message': 'Subscription successful!',
           'useOnDone': true,
           'onDone': () {
-            appState.currentAction = appState.returnView ??
+            appState.currentAction =
+                appState.returnView ??
                 PageAction(
                   state: PageState.addAll,
                   pages: [BottomHomePageConfig],
@@ -541,10 +543,15 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
           },
         };
         appState.currentAction = PageAction(
-            state: PageState.replaceAll, page: SuccessViewPageConfig);
+          state: PageState.replaceAll,
+          page: SuccessViewPageConfig,
+        );
       } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       popup(context, title: "error".tr(), message: e.toString());

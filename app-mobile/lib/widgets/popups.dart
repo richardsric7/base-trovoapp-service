@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:app_settings/app_settings.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
@@ -28,11 +29,13 @@ import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/utils/medeiaqury/medeiaqury.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../custom_bloc_observer/notifire_clor.dart';
 import '../router/page_actions.dart';
 import '../router/ui_pages.dart';
 import '../screens/shared_access/shared_access.dart';
 import '../storage/state.dart';
+
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 popup(
@@ -1890,9 +1893,8 @@ customDateRangePopup(context, {required void Function() onDone}) async {
                                     child: Wrap(
                                       children: [
                                         Text(
-                                          DateFormat(
-                                            'MMMM dd, yyyy',
-                                          ).format(startDate),
+                                          DateFormat('MMMM dd, yyyy')
+                                              .format(startDate),
                                           textAlign: TextAlign.start,
                                           style: TextStyle(
                                             color: notifier.getbluewhitecolor,
@@ -1960,9 +1962,8 @@ customDateRangePopup(context, {required void Function() onDone}) async {
                                           WrapCrossAlignment.center,
                                       children: [
                                         Text(
-                                          DateFormat(
-                                            'MMMM dd, yyyy',
-                                          ).format(endDate),
+                                          DateFormat('MMMM dd, yyyy')
+                                              .format(endDate),
                                           textAlign: TextAlign.start,
                                           style: TextStyle(
                                             color: notifier.getbluewhitecolor,
@@ -2238,17 +2239,17 @@ textFieldPopup(
               textController.text = appState.filterUsername ?? "";
               textValue = appState.filterUsername ?? "";
               break;
-            case HistoryFilterType.FromPublicKey:
-              textController.text = appState.filterFromPublicKey ?? "";
-              textValue = appState.filterFromPublicKey ?? "";
+            case HistoryFilterType.FromAddress:
+              textController.text = appState.filterFromAddress ?? "";
+              textValue = appState.filterFromAddress ?? "";
               break;
             case HistoryFilterType.Memo:
               textController.text = appState.filterMemo ?? "";
               textValue = appState.filterMemo ?? "";
               break;
-            default: // HistoryFilterType.ToPublicKey
-              textController.text = appState.filterToPublicKey ?? "";
-              textValue = appState.filterToPublicKey ?? "";
+            default: // HistoryFilterType.ToAddress
+              textController.text = appState.filterToAddress ?? "";
+              textValue = appState.filterToAddress ?? "";
               break;
           }
           return AlertDialog(
@@ -2603,9 +2604,9 @@ wrappedAssetTransactionStatusPopup(
 
 String getLabelText(HistoryFilterType rel) {
   switch (rel) {
-    case HistoryFilterType.FromPublicKey:
+    case HistoryFilterType.FromAddress:
       return "enterfrompublickey".tr();
-    case HistoryFilterType.ToPublicKey:
+    case HistoryFilterType.ToAddress:
       return "entertopublickey".tr();
     case HistoryFilterType.Memo:
       return "entermemotext".tr();
@@ -2616,9 +2617,9 @@ String getLabelText(HistoryFilterType rel) {
 
 String getPlaceholder(HistoryFilterType rel) {
   switch (rel) {
-    case HistoryFilterType.FromPublicKey:
+    case HistoryFilterType.FromAddress:
       return "frompublickey".tr();
-    case HistoryFilterType.ToPublicKey:
+    case HistoryFilterType.ToAddress:
       return "topublickey".tr();
     case HistoryFilterType.Memo:
       return "memo".tr();
@@ -4739,13 +4740,13 @@ showSubscribePopup(
 showUnSubscribePopup(
   context, {
   required String assetCode,
-  required void Function(String walletPublicKey) onDone,
+  required void Function(String walletAddress) onDone,
   required List<DropdownMenuItem<String>> dropdownItems,
 }) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
-  String selectedWalletPublicKey = '';
+  String selectedWalletAddress = '';
   bool showNoSelectedWalletError = false;
   return showDialog(
     context: context,
@@ -4790,7 +4791,7 @@ showUnSubscribePopup(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: dropdown(
                       (value) {
-                        selectedWalletPublicKey = value.toString();
+                        selectedWalletAddress = value.toString();
                       },
                       dropdownItems,
                       null,
@@ -4822,7 +4823,7 @@ showUnSubscribePopup(
                     padding: const EdgeInsets.all(10.0),
                     child: ElevatedButton(
                       onPressed: () {
-                        if (selectedWalletPublicKey.isEmpty) {
+                        if (selectedWalletAddress.isEmpty) {
                           setStateForDialog(() {
                             showNoSelectedWalletError = true;
                           });
@@ -4830,7 +4831,7 @@ showUnSubscribePopup(
                         }
 
                         Navigator.of(context).pop(); // dismiss dialog,
-                        onDone(selectedWalletPublicKey);
+                        onDone(selectedWalletAddress);
                       },
                       style: ButtonStyle(
                         fixedSize: WidgetStateProperty.all(
@@ -5008,8 +5009,7 @@ showBuyTokenPopup(
                           popup(
                             context,
                             title: 'Error',
-                            message:
-                                'You do not have any CNGN to perform this transaction! Please get CNGN into the selected wallet or select another wallet that has CNGN on it.',
+                            message: 'You do not have any CNGN to perform this transaction! Please get CNGN into the selected wallet or select another wallet that has CNGN on it.',
                           );
                           return;
                         }
@@ -5409,23 +5409,23 @@ List<DropdownMenuItem<String>> get walletTypeDropdownItems {
 }
 
 class SubwalletInfo {
-  String publicKey;
+  String address;
   String secretKey;
   String description;
   bool isImport;
   String tag;
   int walletType;
-  String? distributionWalletPublicKey;
+  String? distributionWalletAddress;
   String? distributionWalletSecretKey;
 
   SubwalletInfo({
-    required this.publicKey,
+    required this.address,
     required this.secretKey,
     required this.tag,
     this.isImport = false,
     required this.description,
     required this.walletType,
-    this.distributionWalletPublicKey,
+    this.distributionWalletAddress,
     this.distributionWalletSecretKey,
   });
 }
@@ -5473,9 +5473,9 @@ Future sendFullDataToServer(
     Map responseData = await makePostRequest(
       uri: '/v1/users/subwallet',
       body: requestBody,
-      signer: primaryWalletKeyPair.publicKey,
+      signer: primaryWalletKeyPair.address,
       secretKey: primaryWalletKeyPair.secretKey,
-      publicKey: primaryWalletKeyPair.publicKey,
+      address: primaryWalletKeyPair.address,
     );
 
     if (responseData['statusCode'] == 200) {
@@ -5494,7 +5494,7 @@ Future sendFullDataToServer(
       await updateUserInfo(
         appState.primaryWallet.signer,
         appState.secretKeys[0],
-        appState.primaryWallet.publicKey,
+        appState.primaryWallet.address,
         userInfo.username,
         appState,
         forceRefresh: true,
@@ -5502,7 +5502,7 @@ Future sendFullDataToServer(
       // add the new subwallet to appState and
       // set the newly created subwallet as the activeWallet
       appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
-        (wallet) => wallet.publicKey == subWallet.publicKey,
+        (wallet) => wallet.address == subWallet.address,
       );
 
       appState.activeWallet!.secretKey = subWallet.secretKey;
@@ -5538,20 +5538,20 @@ Future sendDataToServer(
     // make initial request to the server using the
     // following credentials
     Map map = {
-      "publickey": subWallet.publicKey,
+      "publickey": subWallet.address,
       "walletTag": subWallet.tag,
       "WalletDescription": subWallet.description,
       "walletType": subWallet.walletType,
-      "linkedWalletPublicKey": subWallet.distributionWalletPublicKey,
+      "linkedWalletAddress": subWallet.distributionWalletAddress,
     };
     String requestBody = jsonEncode(map);
 
     Map responseData = await makePostRequest(
       uri: '/v1/users/subwallet',
       body: requestBody,
-      signer: primaryWalletKeyPair.publicKey,
+      signer: primaryWalletKeyPair.address,
       secretKey: primaryWalletKeyPair.secretKey,
-      publicKey: primaryWalletKeyPair.publicKey,
+      address: primaryWalletKeyPair.address,
     );
 
     inspect(responseData);
@@ -5624,7 +5624,7 @@ addSubWalletPopup(context) async {
   final Authenticator _authenticator = Authenticator();
   late Account primaryWalletKeyPair;
   late SubwalletInfo newSubWalletKeyPair = SubwalletInfo(
-    publicKey: '',
+    address: '',
     secretKey: '',
     tag: '',
     description: '',
@@ -5827,7 +5827,7 @@ addSubWalletPopup(context) async {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15.0),
                 child: Text(
-                  newSubWalletKeyPair.publicKey,
+                  newSubWalletKeyPair.address,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
@@ -5837,7 +5837,7 @@ addSubWalletPopup(context) async {
                 ),
               ),
               SizedBox(height: 15),
-              if (newSubWalletKeyPair.distributionWalletPublicKey != null) ...[
+              if (newSubWalletKeyPair.distributionWalletAddress != null) ...[
                 Text(
                   "distributionwalletpublickey".tr(),
                   textAlign: TextAlign.center,
@@ -5850,7 +5850,7 @@ addSubWalletPopup(context) async {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15.0),
                   child: Text(
-                    newSubWalletKeyPair.distributionWalletPublicKey ?? "",
+                    newSubWalletKeyPair.distributionWalletAddress ?? "",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -6230,7 +6230,7 @@ addSubWalletPopup(context) async {
                           newSubWalletKeyPair.secretKey,
                         );
 
-                        newSubWalletKeyPair.publicKey = ac.publicKey;
+                        newSubWalletKeyPair.address = ac.address;
                         newSubWalletKeyPair.secretKey = ac.secretKey;
                         newSubWalletKeyPair.isImport = true;
                       } catch (e) {
@@ -6245,7 +6245,7 @@ addSubWalletPopup(context) async {
                       var ac = TrovoWalletSDK().createAccount();
 
                       newSubWalletKeyPair = SubwalletInfo(
-                        publicKey: ac.publicKey,
+                        address: ac.address,
                         secretKey: ac.secretKey,
                         tag: newSubWalletKeyPair.tag,
                         description: newSubWalletKeyPair.description,
@@ -6261,8 +6261,8 @@ addSubWalletPopup(context) async {
                             newSubWalletKeyPair.distributionWalletSecretKey,
                           );
 
-                          newSubWalletKeyPair.distributionWalletPublicKey =
-                              ac.publicKey;
+                          newSubWalletKeyPair.distributionWalletAddress =
+                              ac.address;
                           newSubWalletKeyPair.distributionWalletSecretKey =
                               ac.secretKey;
                         } catch (e) {
@@ -6277,8 +6277,8 @@ addSubWalletPopup(context) async {
                         // generate keypair for the new subwallet
                         var ac = TrovoWalletSDK().createAccount();
 
-                        newSubWalletKeyPair.distributionWalletPublicKey =
-                            ac.publicKey;
+                        newSubWalletKeyPair.distributionWalletAddress =
+                            ac.address;
                         newSubWalletKeyPair.distributionWalletSecretKey =
                             ac.secretKey;
                       }
@@ -7864,9 +7864,8 @@ tokenizationCustomDateRangePopup(
                                     child: Wrap(
                                       children: [
                                         Text(
-                                          DateFormat(
-                                            'MMMM dd, yyyy',
-                                          ).format(startDate ?? initialDate),
+                                          DateFormat('MMMM dd, yyyy')
+                                              .format(startDate ?? initialDate),
                                           textAlign: TextAlign.start,
                                           style: TextStyle(
                                             color: notifier.getbluewhitecolor,

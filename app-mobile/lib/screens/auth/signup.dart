@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -20,6 +21,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/models/user.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../functions/trovo-sdk.dart';
 import '../../router/page_actions.dart';
 import '../../storage/state.dart';
@@ -348,7 +350,8 @@ class _SignUpState extends State<SignUp> {
                               return null;
                             },
                             onChanged: (value) {
-                              if (value != null && (value.length == 64 || value.length == 66)) {
+                              if (value != null &&
+                                  (value.length == 64 || value.length == 66)) {
                                 try {
                                   setState(() {
                                     creds = parseKey(value)!;
@@ -400,7 +403,7 @@ class _SignUpState extends State<SignUp> {
                                           maxWidth: width / 1.4,
                                         ),
                                         child: Text(
-                                          creds?.publicKey ?? '',
+                                          creds?.address ?? '',
                                           overflow: TextOverflow.visible,
                                           style: TextStyle(
                                             color: notifier.getblck,
@@ -415,7 +418,7 @@ class _SignUpState extends State<SignUp> {
                                           onPressed: () => {
                                             Clipboard.setData(
                                               ClipboardData(
-                                                text: creds!.publicKey,
+                                                text: creds!.address,
                                               ),
                                             ),
                                             showSnackBar(
@@ -758,9 +761,7 @@ class _SignUpState extends State<SignUp> {
       width: w,
       child: IntlPhoneField(
         autovalidateMode: AutovalidateMode.disabled,
-        disableLengthCheck:
-            countryCode ==
-            'ID', // disable when user selects indonesia and let backend validate
+        disableLengthCheck: countryCode == 'ID', // disable when user selects indonesia and let backend validate
         style: TextStyle(color: textcolor, fontFamily: fontbody),
         cursorColor: lablecolor,
         initialCountryCode: countryCode,
@@ -1014,16 +1015,16 @@ class _SignUpState extends State<SignUp> {
       }
 
       if (creds != null) {
-        state.tempPublicKey = creds!.publicKey;
-        state.tempSigner = creds!.publicKey;
+        state.tempAddress = creds!.address;
+        state.tempSigner = creds!.address;
         state.tempSecretKey = creds!.secretKey;
       }
 
       Map responseData = await makePostRequest(
         uri: '/v1/users',
         body: jsonBody,
-        signer: state.tempPublicKey,
-        publicKey: state.tempPublicKey,
+        signer: state.tempAddress,
+        address: state.tempAddress,
         secretKey: state.tempSecretKey,
       );
 

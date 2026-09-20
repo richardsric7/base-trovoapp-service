@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class ProfileDetails extends StatefulWidget {
@@ -359,9 +360,9 @@ class _ProfileDetailsState extends State<ProfileDetails> {
       Map responseData = await makePutRequestForMultipartFile(
         uri: '/v1/users/upload-picture',
         multipartFilePath: croppedImage.path,
-        signer: primaryWalletKeyPair.publicKey,
+        signer: primaryWalletKeyPair.address,
         secretKey: primaryWalletKeyPair.secretKey,
-        publicKey: primaryWalletKeyPair.publicKey,
+        address: primaryWalletKeyPair.address,
       );
       if (responseData['statusCode'] == 200) {
         String imageUrl = responseData['data'].toString().replaceAll('"', '');

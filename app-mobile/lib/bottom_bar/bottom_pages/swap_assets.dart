@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,6 +20,7 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class SwapAssets extends StatefulWidget {
@@ -78,13 +80,13 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                   color: notifier.getbluecolor,
                 ),
               ],
-              if (!isSelected && wallet.publicKey == selectedWallet) ...[
+              if (!isSelected && wallet.address == selectedWallet) ...[
                 SizedBox(width: 2),
                 Icon(Icons.check, size: 18, color: notifier.getbluecolor),
               ],
             ],
           ),
-          value: wallet.publicKey,
+          value: wallet.address,
         ),
       );
     });
@@ -97,7 +99,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
     wallet = appState.primaryWallet;
-    selectedWallet = appState.primaryWallet.publicKey!;
+    selectedWallet = appState.primaryWallet.address!;
     claimedAssets = wallet.claimedAssets!;
     _refreshController = RefreshController(initialRefresh: false);
   }
@@ -556,7 +558,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.publicKey!,
+        address: wallet.address!,
       );
 
       hideLoader(context);
@@ -598,7 +600,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     // to learn more about viewData
     appState.viewData = {
       'transactionData': data,
-      'walletPublicKey': wallet.publicKey,
+      'walletAddress': wallet.address,
       'sourceUsdPrice': sourceAsset!.usdPrice,
       'destinationUsdPrice': destinationAsset!.usdPrice,
     };

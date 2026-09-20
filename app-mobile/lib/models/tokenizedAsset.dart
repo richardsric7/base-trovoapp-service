@@ -65,8 +65,7 @@ class TokenizedAsset {
   String? assetQuoteCurrency;
   String? additionalKYCRequirements;
   int? investorAccreditationRequired;
-  int?
-      tokenizationStatus; // 0 pending, 1 submitted (awaiting fee payment), 2 submitted (processing)
+  int? tokenizationStatus; // 0 pending, 1 submitted (awaiting fee payment), 2 submitted (processing)
   List<ProofOfPaymentDocument>? proofOfPaymentDocuments;
   String? lastUpdatedBy;
   DateTime? createdAt;
@@ -535,8 +534,8 @@ class TokenizedAsset {
       tokenizationApplicationFee: double.tryParse(
         m["tokenizationApplicationFee"].toString(),
       ),
-      tokenizationApplicationFeeAsset:
-          m["tokenizationApplicationFeeAsset"].toString(),
+      tokenizationApplicationFeeAsset: m["tokenizationApplicationFeeAsset"]
+          .toString(),
       vatPercent: double.tryParse(m["vatPercent"].toString()),
       vatValue: double.tryParse(m["vatValue"].toString()),
       vatFixed: double.tryParse(m["vatFixed"].toString()),
@@ -546,8 +545,8 @@ class TokenizedAsset {
       projectScope: m["projectScope"].toString(),
       projectEconomicBenefits: m["projectEconomicBenefits"].toString(),
       projectExpectedNoOfJobs: m["projectExpectedNoOfJobs"].toString(),
-      projectIntendedSocialBenefits:
-          m["projectIntendedSocialBenefits"].toString(),
+      projectIntendedSocialBenefits: m["projectIntendedSocialBenefits"]
+          .toString(),
       projectTechnicalPartners: m["projectTechnicalPartners"].toString(),
       projectFinancialPartners: m["projectFinancialPartners"].toString(),
       estimatedProjectIRR: double.tryParse(m["estimatedProjectIRR"].toString()),
@@ -557,12 +556,12 @@ class TokenizedAsset {
           m["estimatedProjectPaybackPeriodsInMonths"].toString(),
       keyAssumptionsList: m["keyAssumptionsList"].toString(),
       projectIdentifiedLegalRisks: m["projectIdentifiedLegalRisks"].toString(),
-      projectIdentifiedRegulatoryRisks:
-          m["projectIdentifiedRegulatoryRisks"].toString(),
+      projectIdentifiedRegulatoryRisks: m["projectIdentifiedRegulatoryRisks"]
+          .toString(),
       projectIdentifiedOperationalOrExecutionRisks:
           m["projectIdentifiedOperationalOrExecutionRisks"].toString(),
-      projectIdentifiedMarketRisks:
-          m["projectIdentifiedMarketRisks"].toString(),
+      projectIdentifiedMarketRisks: m["projectIdentifiedMarketRisks"]
+          .toString(),
       projectIdentifiedOtherRelevantRisks:
           m["projectIdentifiedOtherRelevantRisks"].toString(),
       feeInAsset: double.tryParse(m["feeInAsset"].toString()),
@@ -743,8 +742,9 @@ class ProofOfPaymentDocument {
   });
 
   ProofOfPaymentDocument deserializeJson(Map<String, dynamic> m) {
-    var info =
-        m["ProofOfPaymentDocument"] != null ? m["ProofOfPaymentDocument"] : m;
+    var info = m["ProofOfPaymentDocument"] != null
+        ? m["ProofOfPaymentDocument"]
+        : m;
     return ProofOfPaymentDocument(
       createdAt: DateTime.parse(m["CreatedAt"]),
       id: info["id"] != null ? info["id"] : null,

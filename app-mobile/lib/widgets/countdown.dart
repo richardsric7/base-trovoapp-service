@@ -33,11 +33,12 @@ class _CountdownState extends State<Countdown> {
                         margin: EdgeInsets.zero,
                         shadowColor: Colors.black,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5.0),
-                            side: BorderSide(
-                              color: notifier.getbluewhitecolor,
-                              width: 1,
-                            )),
+                          borderRadius: BorderRadius.circular(5.0),
+                          side: BorderSide(
+                            color: notifier.getbluewhitecolor,
+                            width: 1,
+                          ),
+                        ),
                         color: notifier.isDark
                             ? notifier.getbluecolor90
                             : notifier.getaddsubwalletgrey,
@@ -55,7 +56,7 @@ class _CountdownState extends State<Countdown> {
                           ),
                         ),
                       ),
-                      SizedBox(width: 2)
+                      SizedBox(width: 2),
                     ],
                   ],
                 ),
@@ -77,11 +78,12 @@ class _CountdownState extends State<Countdown> {
                     margin: EdgeInsets.zero,
                     shadowColor: Colors.black,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5.0),
-                        side: BorderSide(
-                          color: notifier.getbluewhitecolor,
-                          width: 1,
-                        )),
+                      borderRadius: BorderRadius.circular(5.0),
+                      side: BorderSide(
+                        color: notifier.getbluewhitecolor,
+                        width: 1,
+                      ),
+                    ),
                     color: notifier.isDark
                         ? notifier.getbluecolor90
                         : notifier.getaddsubwalletgrey,
@@ -117,7 +119,13 @@ class _CountdownState extends State<Countdown> {
         setState(() {
           DateTime now = DateTime.now();
           var endTime = DateTime(
-              now.year, now.month, now.day + 1, 0, 0, 0); // 12 AM tomorrow
+            now.year,
+            now.month,
+            now.day + 1,
+            0,
+            0,
+            0,
+          ); // 12 AM tomorrow
           var remainingTime = endTime.difference(now);
           if (remainingTime.isNegative) remainingTime = Duration.zero;
           var time = formatTime(remainingTime).split(':');
@@ -131,11 +139,12 @@ class _CountdownState extends State<Countdown> {
                             margin: EdgeInsets.zero,
                             shadowColor: Colors.black,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5.0),
-                                side: BorderSide(
-                                  color: notifier.getbluewhitecolor,
-                                  width: 1,
-                                )),
+                              borderRadius: BorderRadius.circular(5.0),
+                              side: BorderSide(
+                                color: notifier.getbluewhitecolor,
+                                width: 1,
+                              ),
+                            ),
                             color: notifier.isDark
                                 ? notifier.getbluecolor90
                                 : notifier.getaddsubwalletgrey,
@@ -186,11 +195,12 @@ class _CountdownState extends State<Countdown> {
                         margin: EdgeInsets.zero,
                         shadowColor: Colors.black,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5.0),
-                            side: BorderSide(
-                              color: notifier.getbluewhitecolor,
-                              width: 1,
-                            )),
+                          borderRadius: BorderRadius.circular(5.0),
+                          side: BorderSide(
+                            color: notifier.getbluewhitecolor,
+                            width: 1,
+                          ),
+                        ),
                         color: notifier.isDark
                             ? notifier.getbluecolor90
                             : notifier.getaddsubwalletgrey,

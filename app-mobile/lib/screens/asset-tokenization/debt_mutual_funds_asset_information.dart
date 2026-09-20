@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -2489,9 +2491,8 @@ class _DebtMutualFundsAssetInformationView
       showLoader(context);
       var newData = {...data as Map};
 
-      newData['fundLaunchDate'] = DateFormat(
-        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
-      ).format(fundLaunchDate!.toUtc());
+      newData['fundLaunchDate'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
+          .format(fundLaunchDate!.toUtc());
       newData['totalExpenseRatio'] = totalExpenseRatio;
       newData['exitLoadFee'] = exitLoadFee;
       newData['initialNetAssetValue'] = initialNetAssetValue;
@@ -2536,7 +2537,7 @@ class _DebtMutualFundsAssetInformationView
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       if (responseData['statusCode'] == 200) {
@@ -2564,7 +2565,7 @@ class _DebtMutualFundsAssetInformationView
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       if (responseData['statusCode'] == 200) {

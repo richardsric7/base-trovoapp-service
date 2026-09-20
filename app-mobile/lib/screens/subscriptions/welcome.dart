@@ -328,9 +328,8 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                             patronMembership?.patronTierId!.toLowerCase() ==
                                     'lifetime'
                                 ? "lifetimenobilling".tr()
-                                : DateFormat(
-                                    'dd MMM, y',
-                                  ).format(patronMembership!.validTill!),
+                                : DateFormat('dd MMM, y')
+                                      .format(patronMembership!.validTill!),
                             textAlign: TextAlign.start,
                             style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -466,7 +465,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
         uri: '/v1/patron',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.publicKey!,
+        address: appState.primaryWallet.address!,
       );
 
       if (responseData['statusCode'] == 200) {

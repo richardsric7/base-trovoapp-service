@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+
 import 'ui_pages.dart';
 
 class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
   @override
   Future<PageConfiguration> parseRouteInformation(
-      RouteInformation routeInformation) async {
+    RouteInformation routeInformation,
+  ) async {
     final uri = routeInformation.uri;
     if (uri.pathSegments.isEmpty) {
       return SplashPageConfig;
@@ -277,7 +279,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return RouteInformation(uri: Uri.parse(RequestSpecificPaymentViewPath));
       case Pages.RequestSpecificPaymentDetailsView:
         return RouteInformation(
-            uri: Uri.parse(RequestSpecificPaymentDetailsViewPath));
+          uri: Uri.parse(RequestSpecificPaymentDetailsViewPath),
+        );
       case Pages.SecurityQuestionsView:
         return RouteInformation(uri: Uri.parse(SecurityQuestionsViewPath));
       case Pages.RequestOtpView:
@@ -294,22 +297,26 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return RouteInformation(uri: Uri.parse(RecoverAccountViewPath));
       case Pages.AnswerSecurityQuestionsView:
         return RouteInformation(
-            uri: Uri.parse(AnswerSecurityQuestionsViewPath));
+          uri: Uri.parse(AnswerSecurityQuestionsViewPath),
+        );
       case Pages.RequestBackupView:
         return RouteInformation(uri: Uri.parse(RequestBackupViewPath));
       case Pages.BackupRecoverySecretView:
         return RouteInformation(uri: Uri.parse(BackupRecoverySecretViewPath));
       case Pages.CompleteAccountRecoveryView:
         return RouteInformation(
-            uri: Uri.parse(CompleteAccountRecoveryViewPath));
+          uri: Uri.parse(CompleteAccountRecoveryViewPath),
+        );
       case Pages.DisableAccountRecoveryInfoView:
         return RouteInformation(
-            uri: Uri.parse(DisableAccountRecoveryInfoViewPath));
+          uri: Uri.parse(DisableAccountRecoveryInfoViewPath),
+        );
       case Pages.SuccessView:
         return RouteInformation(uri: Uri.parse(SuccessViewPath));
       case Pages.SecurityQuestionsForInactiveAccountsView:
         return RouteInformation(
-            uri: Uri.parse(SecurityQuestionsForInactiveAccountsViewPath));
+          uri: Uri.parse(SecurityQuestionsForInactiveAccountsViewPath),
+        );
       case Pages.AddSharedAccessDetailsView:
         return RouteInformation(uri: Uri.parse(AddSharedAccessDetailsViewPath));
       case Pages.SharedWalletInfoView:
@@ -320,7 +327,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return RouteInformation(uri: Uri.parse(UpdateSharedAccessViewPath));
       case Pages.UpdateSharedAccessDetailsView:
         return RouteInformation(
-            uri: Uri.parse(UpdateSharedAccessDetailsViewPath));
+          uri: Uri.parse(UpdateSharedAccessDetailsViewPath),
+        );
       case Pages.WelcomeToSharedAccessView:
         return RouteInformation(uri: Uri.parse(WelcomeToSharedAccessViewPath));
       case Pages.GetStartedView:
@@ -351,7 +359,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return RouteInformation(uri: Uri.parse(SubscriptionPlansViewPath));
       case Pages.SubscriptionPlanBenefitsView:
         return RouteInformation(
-            uri: Uri.parse(SubscriptionPlanBenefitsViewPath));
+          uri: Uri.parse(SubscriptionPlanBenefitsViewPath),
+        );
       case Pages.AuthorizeSubscriptionView:
         return RouteInformation(uri: Uri.parse(AuthorizeSubscriptionViewPath));
       case Pages.OptInAssetView:
@@ -370,7 +379,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return RouteInformation(uri: Uri.parse(AssetInformationViewPath));
       case Pages.AssetVerificationDocumentsView:
         return RouteInformation(
-            uri: Uri.parse(AssetVerificationDocumentsViewPath));
+          uri: Uri.parse(AssetVerificationDocumentsViewPath),
+        );
       case Pages.TokenizedAssetDetailView:
         return RouteInformation(uri: Uri.parse(TokenizedAssetDetailViewPath));
       case Pages.BuyTokensView:
@@ -403,12 +413,14 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return RouteInformation(uri: Uri.parse(AllWalletsViewPath));
       case Pages.ConfirmTokenizationDetailsView:
         return RouteInformation(
-            uri: Uri.parse(ConfirmTokenizationDetailsViewPath));
+          uri: Uri.parse(ConfirmTokenizationDetailsViewPath),
+        );
       case Pages.TokenizationFeePaymentView:
         return RouteInformation(uri: Uri.parse(TokenizationFeePaymentViewPath));
       case Pages.DeleteAccountPrerequisitesView:
         return RouteInformation(
-            uri: Uri.parse(DeleteAccountPrerequisitesViewPath));
+          uri: Uri.parse(DeleteAccountPrerequisitesViewPath),
+        );
       case Pages.DeleteAccountView:
         return RouteInformation(uri: Uri.parse(DeleteAccountViewPath));
       default:

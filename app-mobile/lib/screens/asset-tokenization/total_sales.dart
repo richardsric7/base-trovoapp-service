@@ -4,6 +4,7 @@ import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -69,9 +70,7 @@ class _TotalSalesState extends State<TotalSales> with TickerProviderStateMixin {
                 child: Center(
                   child: Column(
                     children: [
-                      SizedBox(
-                        height: height / 70,
-                      ),
+                      SizedBox(height: height / 70),
                       Text(
                         'Total Sales',
                         textAlign: TextAlign.center,
@@ -81,9 +80,7 @@ class _TotalSalesState extends State<TotalSales> with TickerProviderStateMixin {
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
+                      SizedBox(height: height / 70),
                       Text(
                         '467,000 cNGN',
                         textAlign: TextAlign.center,
@@ -93,9 +90,7 @@ class _TotalSalesState extends State<TotalSales> with TickerProviderStateMixin {
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
+                      SizedBox(height: height / 50),
                       Text(
                         '4,670 ATLANTIS 1',
                         textAlign: TextAlign.center,
@@ -105,9 +100,7 @@ class _TotalSalesState extends State<TotalSales> with TickerProviderStateMixin {
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
+                      SizedBox(height: height / 50),
                     ],
                   ),
                 ),
@@ -129,15 +122,17 @@ class _TotalSalesState extends State<TotalSales> with TickerProviderStateMixin {
   }
 
   Widget assetTile(
-      String amount, String name, String timeago, String trovAmount) {
+    String amount,
+    String name,
+    String timeago,
+    String trovAmount,
+  ) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
       color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListTile(
@@ -154,9 +149,7 @@ class _TotalSalesState extends State<TotalSales> with TickerProviderStateMixin {
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
-                  SizedBox(
-                    height: height / 70,
-                  ),
+                  SizedBox(height: height / 70),
                   Row(
                     children: [
                       Text(
@@ -177,9 +170,7 @@ class _TotalSalesState extends State<TotalSales> with TickerProviderStateMixin {
                       ),
                     ],
                   ),
-                  SizedBox(
-                    height: height / 70,
-                  ),
+                  SizedBox(height: height / 70),
                   Text(
                     timeago,
                     style: TextStyle(

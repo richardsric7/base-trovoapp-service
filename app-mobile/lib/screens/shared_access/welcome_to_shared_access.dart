@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_app/storage/store.dart';
+
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
 import '../../custom_bloc_observer/notifire_clor.dart';
@@ -44,7 +45,9 @@ class _WelcomeToSharedAccess extends State<WelcomeToSharedAccess> {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(
-                    vertical: 15.0, horizontal: 25.0),
+                  vertical: 15.0,
+                  horizontal: 25.0,
+                ),
                 child: RichText(
                   text: TextSpan(
                     text: "welcometosharedaccess".tr(),
@@ -129,12 +132,15 @@ class _WelcomeToSharedAccess extends State<WelcomeToSharedAccess> {
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () async {
-                  await StoreData()
-                      .storeInsertData('introducedSharedAccess', true);
+                  await StoreData().storeInsertData(
+                    'introducedSharedAccess',
+                    true,
+                  );
                   appState.setIntroducedSharedAccess = true;
                   appState.currentAction = PageAction(
-                      state: PageState.replace,
-                      page: SharedAccessViewPageConfig);
+                    state: PageState.replace,
+                    page: SharedAccessViewPageConfig,
+                  );
                 },
               ),
               SizedBox(height: height / 15),

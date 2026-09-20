@@ -251,7 +251,7 @@ class _BuyETHWithFiat extends State<BuyETHWithFiat>
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
       hideLoader(context);
       if (responseData['statusCode'] == 200) {

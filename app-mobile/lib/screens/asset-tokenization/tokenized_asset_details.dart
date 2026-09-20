@@ -19,6 +19,7 @@ import 'package:trovo_app/widgets/countdown.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -992,8 +993,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                       Container(
                                         height: 10,
                                         child: LinearProgressIndicator(
-                                          value:
-                                              normalizedProgress, // Show progress (0 to 1)
+                                          value: normalizedProgress, // Show progress (0 to 1)
                                           minHeight: 10,
                                           borderRadius: BorderRadius.circular(
                                             10,
@@ -1055,8 +1055,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                             Container(
                                               height: 10,
                                               child: LinearProgressIndicator(
-                                                value:
-                                                    normalizedDaysProgress, // Show progress (0 to 1)
+                                                value: normalizedDaysProgress, // Show progress (0 to 1)
                                                 minHeight: 10,
                                                 borderRadius:
                                                     BorderRadius.circular(10),
@@ -1748,7 +1747,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.publicKey!,
+        address: appState.primaryWallet.address!,
       );
 
       if (responseData['statusCode'] == 200) {

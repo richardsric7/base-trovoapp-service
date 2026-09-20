@@ -6,7 +6,13 @@ import 'package:trovo_app/utils/medeiaqury/medeiaqury.dart';
 
 class Custompasswordtextfild {
   static Widget textField(
-      labletext, focuscolor, preicon, lablecolor, iconcolor, textcolor) {
+    labletext,
+    focuscolor,
+    preicon,
+    lablecolor,
+    iconcolor,
+    textcolor,
+  ) {
     bool hidePassword = true;
     return Container(
       color: Colors.transparent,
@@ -23,9 +29,7 @@ class Custompasswordtextfild {
           ),
           prefixIcon: Icon(preicon, color: iconcolor),
           labelStyle: TextStyle(color: lablecolor),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
           enabledBorder: OutlineInputBorder(
             borderSide: const BorderSide(color: Colors.grey, width: 1.0),
             borderRadius: BorderRadius.circular(15),
@@ -110,20 +114,19 @@ class _CustomPasswordFormFieldState extends State<CustomPasswordFormField> {
           ),
           prefixIcon: Icon(widget.preIcon, color: widget.iconColor),
           suffixIcon: IconButton(
-              onPressed: () {
-                setState(() {
-                  hidePassword = !hidePassword;
-                });
-              },
-              icon: Icon(
-                getSuffixIcon(),
-                color: widget.textColor,
-                size: height / 50,
-              )),
-          labelStyle: TextStyle(color: widget.labelColor),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
+            onPressed: () {
+              setState(() {
+                hidePassword = !hidePassword;
+              });
+            },
+            icon: Icon(
+              getSuffixIcon(),
+              color: widget.textColor,
+              size: height / 50,
+            ),
           ),
+          labelStyle: TextStyle(color: widget.labelColor),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
           enabledBorder: OutlineInputBorder(
             borderSide: const BorderSide(color: Colors.grey, width: 1.0),
             borderRadius: BorderRadius.circular(15),

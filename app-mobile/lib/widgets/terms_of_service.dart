@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+
 import '../custom_bloc_observer/constants.dart';
 import '../custom_bloc_observer/fonts.dart';
 import '../custom_bloc_observer/notifire_clor.dart';
@@ -47,9 +48,7 @@ class _TermsOfServiceState extends State<TermsOfService> {
               scale: 1.sp,
               child: Checkbox(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(5.sp),
-                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(5.sp)),
                 ),
                 activeColor: notifier.isDark
                     ? notifier.getbluecolor50
@@ -71,9 +70,10 @@ class _TermsOfServiceState extends State<TermsOfService> {
                     Text(
                       "iagreetothe".tr(),
                       style: TextStyle(
-                          fontSize: height / 55,
-                          color: notifier.getblck,
-                          fontFamily: fontbody),
+                        fontSize: height / 55,
+                        color: notifier.getblck,
+                        fontFamily: fontbody,
+                      ),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -97,13 +97,12 @@ class _TermsOfServiceState extends State<TermsOfService> {
                     Text(
                       "and".tr(),
                       style: TextStyle(
-                          fontFamily: fontbody,
-                          fontSize: height / 55,
-                          color: notifier.getblck),
+                        fontFamily: fontbody,
+                        fontSize: height / 55,
+                        color: notifier.getblck,
+                      ),
                     ),
-                    SizedBox(
-                      width: 5,
-                    ),
+                    SizedBox(width: 5),
                     GestureDetector(
                       onTap: () {
                         appState.goToWebView(privacyPolicyUrl);
@@ -122,7 +121,7 @@ class _TermsOfServiceState extends State<TermsOfService> {
                   ],
                 ),
               ],
-            )
+            ),
           ],
         ),
         // You need to accept terms
@@ -132,7 +131,10 @@ class _TermsOfServiceState extends State<TermsOfService> {
             child: Text(
               "termsofserviceerror".tr(),
               style: TextStyle(
-                  color: Colors.red, fontSize: 12, fontWeight: FontWeight.w400),
+                color: Colors.red,
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
         ],

@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:mime/mime.dart';
 import 'package:trovo_app/functions/helpers.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:trovo_app/storage/store.dart';
+
 import '../functions/trovo-sdk.dart';
 
 Future<String> getTrovoAppBaseURL() async {
@@ -26,12 +28,12 @@ Future<Map> makePostRequest({
   required String body,
   required String signer,
   required String secretKey,
-  required String publicKey,
+  required String address,
 }) async {
   Map<String, String> headers = await getRequestHeader(
     uri: uri,
     signer: signer,
-    publicKey: publicKey,
+    address: address,
     secretKey: secretKey,
   );
 
@@ -99,14 +101,14 @@ Future<Map> makePostRequest({
 Future<Map> makeGetRequest({
   required String uri,
   required String signer,
-  required String publicKey,
+  required String address,
   required String secretKey,
 }) async {
   Map<String, String> headers = await getRequestHeader(
     uri: uri,
     signer: signer,
     secretKey: secretKey,
-    publicKey: publicKey,
+    address: address,
   );
 
   try {
@@ -171,13 +173,13 @@ Future<Map> makePutRequest({
   required String signer,
   required String body,
   required String secretKey,
-  required String publicKey,
+  required String address,
 }) async {
   Map<String, String> headers = await getRequestHeader(
     uri: uri,
     signer: signer,
     secretKey: secretKey,
-    publicKey: publicKey,
+    address: address,
   );
 
   try {
@@ -369,13 +371,13 @@ Future<Map> makePutRequestForMultipartFile({
   required String signer,
   required String multipartFilePath,
   required String secretKey,
-  required String publicKey,
+  required String address,
 }) async {
   Map<String, String> headers = await getRequestHeader(
     uri: uri,
     signer: signer,
     secretKey: secretKey,
-    publicKey: publicKey,
+    address: address,
   );
 
   try {
@@ -449,7 +451,7 @@ Future<Map> makePutRequestForMultipartDocumentUpload({
   required String uri,
   required String signer,
   required String secretKey,
-  required String publicKey,
+  required String address,
   required PlatformFile file,
   required String tokenizedAssetId,
   required String documentType,
@@ -459,7 +461,7 @@ Future<Map> makePutRequestForMultipartDocumentUpload({
     uri: uri,
     signer: signer,
     secretKey: secretKey,
-    publicKey: publicKey,
+    address: address,
   );
 
   try {
@@ -539,7 +541,7 @@ Future<Map> makePutRequestForFeeRecieptUpload({
   required String uri,
   required String signer,
   required String secretKey,
-  required String publicKey,
+  required String address,
   required PlatformFile? file,
   required String tokenizationFeePaymentMethodID,
   required String transactionReference,
@@ -548,7 +550,7 @@ Future<Map> makePutRequestForFeeRecieptUpload({
     uri: uri,
     signer: signer,
     secretKey: secretKey,
-    publicKey: publicKey,
+    address: address,
   );
 
   try {
@@ -632,12 +634,12 @@ Future<Map> makeDeleteRequest({
   required String body,
   required String signer,
   required String secretKey,
-  required String publicKey,
+  required String address,
 }) async {
   Map<String, String> headers = await getRequestHeader(
     uri: uri,
     signer: signer,
-    publicKey: publicKey,
+    address: address,
     secretKey: secretKey,
   );
 
@@ -701,7 +703,7 @@ Future<Map> makeDeleteRequest({
   }
 }
 
-getRequestHeader({uri, signer, publicKey, secretKey}) async {
+getRequestHeader({uri, signer, address, secretKey}) async {
   var deviceID = await getDeviceDetails();
   var appVersion = await getAppVersion();
   var ms = (new DateTime.now().toUtc()).millisecondsSinceEpoch;
@@ -713,11 +715,11 @@ getRequestHeader({uri, signer, publicKey, secretKey}) async {
     secretKey: secretKey,
   );
 
-  print('pubkey: $publicKey uri: $uri');
+  print('pubkey: $address uri: $uri');
 
   Map<String, String> headers = {
     "X-TW-SIGNATURE": signHTTP,
-    "X-TW-PUBLIC-KEY": publicKey,
+    "X-TW-PUBLIC-KEY": address,
     "X-TW-SIGNER": signer,
     "X-TW-DEVICE-ID": deviceID,
     "X-TW-APP-VERSION": appVersion,

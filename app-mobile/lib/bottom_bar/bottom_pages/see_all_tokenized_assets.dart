@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -16,6 +17,7 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class SeeAllTokenizedAssets extends StatefulWidget {
@@ -240,7 +242,7 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
       wallets.add(
         DropdownMenuItem(
           child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
-          value: wallet.publicKey,
+          value: wallet.address,
         ),
       );
     });
@@ -259,7 +261,7 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
       if (responseData['statusCode'] == 200) {
         List<TokenizedAsset> tokenizedAssets = [];
@@ -299,7 +301,7 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
       if (responseData['statusCode'] == 200) {
         setState(() {
@@ -324,7 +326,7 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
       if (responseData['statusCode'] == 200) {
         subscriptions = {};
@@ -356,7 +358,7 @@ class _SeeAllTokenizedAssets extends State<SeeAllTokenizedAssets>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.publicKey!,
+        address: appState.primaryWallet.address!,
       );
 
       if (responseData['statusCode'] == 200) {

@@ -81,7 +81,7 @@ class _HomeState extends State<Home>
     sharedWallets = userInfo.sharedWallets!;
 
     if ((activeWallet == null && wallets.length > 0) || activateWallet) {
-      activeWallet = wallets[0].publicKey;
+      activeWallet = wallets[0].address;
       claimedAssets = wallets[0].claimedAssets;
       unclaimedAssets = wallets[0].unClaimedAssets;
       activateWallet =
@@ -183,7 +183,7 @@ class _HomeState extends State<Home>
                         appState.viewData = {
                           SecurityQuestionsViewPageConfig.key: {
                             'signer': primaryWallet.signer,
-                            'publicKey': primaryWallet.publicKey,
+                            'address': primaryWallet.address,
                             'secretKey': appState.secretKeys[0],
                             'username': appState.userInfo!.username,
                           },
@@ -1009,12 +1009,12 @@ class _HomeState extends State<Home>
     return wallets;
   }
 
-  void reOrderClaimedAssets(String publicKey) {
+  void reOrderClaimedAssets(String address) {
     // order asset according to user preference
-    if (appState.assetOrderings[publicKey] != null) {
+    if (appState.assetOrderings[address] != null) {
       claimedAssets!.forEach(
         (asset) => asset.userPreferredIndex =
-            appState.assetOrderings[publicKey]![asset.assetCode] ?? 0,
+            appState.assetOrderings[address]![asset.assetCode] ?? 0,
       );
       claimedAssets!.sort(
         (a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex),
@@ -1162,7 +1162,7 @@ class _HomeState extends State<Home>
                 appState.viewData = {
                   'assetCode': '',
                   'assetIssuer': '',
-                  'walletPublicKey': activeWallet,
+                  'walletAddress': activeWallet,
                 };
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
@@ -1180,7 +1180,7 @@ class _HomeState extends State<Home>
               height: 60,
               onTap: () {
                 Clipboard.setData(
-                  ClipboardData(text: appState.primaryWallet.publicKey!),
+                  ClipboardData(text: appState.primaryWallet.address!),
                 );
                 showSnackBar("publickey".tr(), context);
               },
@@ -1320,7 +1320,7 @@ class _HomeState extends State<Home>
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       if (responseData['statusCode'] == 200) {
@@ -1361,7 +1361,7 @@ class _HomeState extends State<Home>
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
       if (responseData['statusCode'] == 200) {
         setState(() {
@@ -1387,7 +1387,7 @@ class _HomeState extends State<Home>
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
       if (responseData['statusCode'] == 200) {
         appState.subscriptions = {};
@@ -1418,7 +1418,7 @@ class _HomeState extends State<Home>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.publicKey!,
+        address: appState.primaryWallet.address!,
       );
 
       if (responseData['statusCode'] == 200) {
@@ -1447,7 +1447,7 @@ class _HomeState extends State<Home>
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
       hideLoader(context);
       if (responseData['statusCode'] == 200) {

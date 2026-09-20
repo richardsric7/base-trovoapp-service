@@ -23,6 +23,7 @@ import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -292,7 +293,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
         body: requestBody,
         signer: appState.activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.activeWallet!.publicKey!,
+        address: appState.activeWallet!.address!,
       );
 
       hideLoader(context);
@@ -364,7 +365,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
         body: requestBody,
         signer: appState.activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.activeWallet!.publicKey!,
+        address: appState.activeWallet!.address!,
       );
 
       hideLoader(context);
@@ -394,7 +395,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
           updateUserInfo(
             appState.primaryWallet.signer!,
             appState.secretKeys[0],
-            appState.primaryWallet.publicKey,
+            appState.primaryWallet.address,
             appState.userInfo!.username,
             appState,
             forceRefresh: true,

@@ -15,6 +15,7 @@ import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 import 'package:timeago/timeago.dart' as timeago;
+
 import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -43,8 +44,8 @@ class Payment_HistoryState extends State<PaymentHistory>
     HistoryFilterType.DateRange: "Date range",
     HistoryFilterType.AmountRange: "Amount range",
     HistoryFilterType.Username: "Username",
-    HistoryFilterType.FromPublicKey: "From public key",
-    HistoryFilterType.ToPublicKey: "To public key",
+    HistoryFilterType.FromAddress: "From public key",
+    HistoryFilterType.ToAddress: "To public key",
     HistoryFilterType.Memo: "Memo",
   };
 
@@ -82,13 +83,13 @@ class Payment_HistoryState extends State<PaymentHistory>
                   color: notifier.getbluewhitecolor,
                 ),
               ],
-              if (!isSelected && wallet.publicKey == selectedWallet) ...[
+              if (!isSelected && wallet.address == selectedWallet) ...[
                 SizedBox(width: 2),
                 Icon(Icons.check, size: 18, color: notifier.getbluecolor),
               ],
             ],
           ),
-          value: wallet.publicKey,
+          value: wallet.address,
         ),
       );
     });
@@ -160,9 +161,9 @@ class Payment_HistoryState extends State<PaymentHistory>
 
     selectedWallet =
         (appState.viewData != null &&
-            appState.viewData!['walletPublicKey'] != null)
-        ? appState.viewData!['walletPublicKey']
-        : appState.primaryWallet.publicKey!;
+            appState.viewData!['walletAddress'] != null)
+        ? appState.viewData!['walletAddress']
+        : appState.primaryWallet.address!;
 
     wallets = appState.userInfo!.allWallets;
     wallet = appState.userInfo!.getWallet(selectedWallet);
@@ -484,14 +485,14 @@ class Payment_HistoryState extends State<PaymentHistory>
     var assetCode = transaction.assetCode;
     var date = transaction.transactionDate;
     var name =
-        '${"receivedfrom".tr()} ${extractUsername(transaction.from!) ?? truncate(transaction.fromPublicKey!)}';
+        '${"receivedfrom".tr()} ${extractUsername(transaction.from!) ?? truncate(transaction.fromAddress!)}';
 
     // if record.from is same as the current active wallet public key
     // then it was a send transaction
-    if (transaction.fromPublicKey == selectedWallet) {
+    if (transaction.fromAddress == selectedWallet) {
       transaction.transactionDirection = TransactionDirection.Send;
       name =
-          '${"sentto".tr()} ${extractUsername(transaction.to!) ?? truncate(transaction.toPublicKey!)}';
+          '${"sentto".tr()} ${extractUsername(transaction.to!) ?? truncate(transaction.toAddress!)}';
     }
 
     if (transaction.transactionType!.contains('SWAP')) {
@@ -754,7 +755,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
           ),
         );
-      case HistoryFilterType.FromPublicKey:
+      case HistoryFilterType.FromAddress:
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
           child: Container(
@@ -768,11 +769,11 @@ class Payment_HistoryState extends State<PaymentHistory>
               onPressed: () {
                 textFieldPopup(
                   context,
-                  rel: HistoryFilterType.FromPublicKey,
+                  rel: HistoryFilterType.FromAddress,
                   onDone: (value) async {
                     if (value != null && value.toString().isNotEmpty) {
-                      appState.setFilterFromPublicKey = value;
-                      appState.setFilterQuery = "&fromPublicKey=$value";
+                      appState.setFilterFromAddress = value;
+                      appState.setFilterQuery = "&fromAddress=$value";
                       await appState.getHistory(
                         context,
                         selectedWallet,
@@ -788,14 +789,12 @@ class Payment_HistoryState extends State<PaymentHistory>
                   Container(
                     constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
-                      getTruncatedPublicKey(appState.filterFromPublicKey),
+                      getTruncatedAddress(appState.filterFromAddress),
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: notifier.getbluewhitecolor,
-                        fontSize: appState.filterFromPublicKey != null
-                            ? 12
-                            : 15,
+                        fontSize: appState.filterFromAddress != null ? 12 : 15,
                         fontFamily: fontsemibold,
                       ),
                     ),
@@ -809,7 +808,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
           ),
         );
-      case HistoryFilterType.ToPublicKey:
+      case HistoryFilterType.ToAddress:
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
           child: Container(
@@ -823,11 +822,11 @@ class Payment_HistoryState extends State<PaymentHistory>
               onPressed: () {
                 textFieldPopup(
                   context,
-                  rel: HistoryFilterType.ToPublicKey,
+                  rel: HistoryFilterType.ToAddress,
                   onDone: (value) async {
                     if (value != null && value.toString().isNotEmpty) {
-                      appState.setFilterToPublicKey = value;
-                      appState.setFilterQuery = "&toPublicKey=$value";
+                      appState.setFilterToAddress = value;
+                      appState.setFilterQuery = "&toAddress=$value";
                       await appState.getHistory(
                         context,
                         selectedWallet,
@@ -843,12 +842,12 @@ class Payment_HistoryState extends State<PaymentHistory>
                   Container(
                     constraints: BoxConstraints(maxWidth: width / 2.9),
                     child: Text(
-                      getTruncatedPublicKey(appState.filterToPublicKey),
+                      getTruncatedAddress(appState.filterToAddress),
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.visible,
                       style: TextStyle(
                         color: notifier.getbluewhitecolor,
-                        fontSize: appState.filterToPublicKey != null ? 12 : 15,
+                        fontSize: appState.filterToAddress != null ? 12 : 15,
                         fontFamily: fontsemibold,
                       ),
                     ),
@@ -1062,11 +1061,10 @@ class Payment_HistoryState extends State<PaymentHistory>
     return "enterrange".tr();
   }
 
-  getTruncatedPublicKey(String? publicKey) {
-    if (publicKey == null) return "enterpublickey".tr();
-    if (publicKey.length <= 7) return publicKey;
-    return truncate(publicKey, length: 7) +
-        publicKey.substring(publicKey.length - 7);
+  getTruncatedAddress(String? address) {
+    if (address == null) return "enterpublickey".tr();
+    if (address.length <= 7) return address;
+    return truncate(address, length: 7) + address.substring(address.length - 7);
   }
 
   getTransactionDirectionValue() {
@@ -1097,14 +1095,14 @@ class Payment_HistoryState extends State<PaymentHistory>
           },
         );
         break;
-      case HistoryFilterType.FromPublicKey:
+      case HistoryFilterType.FromAddress:
         textFieldPopup(
           context,
-          rel: HistoryFilterType.FromPublicKey,
+          rel: HistoryFilterType.FromAddress,
           onDone: (value) async {
             if (value != null && value.toString().isNotEmpty) {
-              appState.setFilterFromPublicKey = value;
-              appState.setFilterQuery = "&fromPublicKey=$value";
+              appState.setFilterFromAddress = value;
+              appState.setFilterQuery = "&fromAddress=$value";
               await appState.getHistory(
                 context,
                 selectedWallet,
@@ -1114,14 +1112,14 @@ class Payment_HistoryState extends State<PaymentHistory>
           },
         );
         break;
-      case HistoryFilterType.ToPublicKey:
+      case HistoryFilterType.ToAddress:
         textFieldPopup(
           context,
-          rel: HistoryFilterType.ToPublicKey,
+          rel: HistoryFilterType.ToAddress,
           onDone: (value) async {
             if (value != null && value.toString().isNotEmpty) {
-              appState.setFilterToPublicKey = value;
-              appState.setFilterQuery = "&toPublicKey=$value";
+              appState.setFilterToAddress = value;
+              appState.setFilterQuery = "&toAddress=$value";
               await appState.getHistory(
                 context,
                 selectedWallet,
@@ -1221,8 +1219,8 @@ class Payment_HistoryState extends State<PaymentHistory>
     appState.filterAsset = "*|*";
     appState.filterEndDate = null;
     appState.filterStartDate = null;
-    appState.filterFromPublicKey = null;
-    appState.filterToPublicKey = null;
+    appState.filterFromAddress = null;
+    appState.filterToAddress = null;
     appState.filterUsername = null;
     appState.filterQuery = "";
     appState.filterMaxAmount = null;
@@ -1245,7 +1243,7 @@ enum HistoryFilterType {
   DateRange,
   AmountRange,
   Username,
-  FromPublicKey,
-  ToPublicKey,
+  FromAddress,
+  ToAddress,
   Memo,
 }

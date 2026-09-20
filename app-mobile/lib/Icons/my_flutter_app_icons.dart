@@ -26,8 +26,14 @@ class CustomIcon {
   static const _kFontFam2 = 'WorldIconOutlined';
   static const String? _kFontPkg = null;
 
-  static const IconData globe =
-      IconData(0xf0ac, fontFamily: _kFontFam, fontPackage: _kFontPkg);
-  static const IconData globeOutlined =
-      IconData(0xe800, fontFamily: _kFontFam2, fontPackage: _kFontPkg);
+  static const IconData globe = IconData(
+    0xf0ac,
+    fontFamily: _kFontFam,
+    fontPackage: _kFontPkg,
+  );
+  static const IconData globeOutlined = IconData(
+    0xe800,
+    fontFamily: _kFontFam2,
+    fontPackage: _kFontPkg,
+  );
 }

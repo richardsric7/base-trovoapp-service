@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
@@ -22,6 +23,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -156,7 +158,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       wallets.add(
         DropdownMenuItem(
           child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
-          value: wallet.publicKey,
+          value: wallet.address,
         ),
       );
     });
@@ -721,9 +723,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     });
                   },
                   getFeeItems(false),
-                  getFeeItems(
-                        false,
-                      ).where((item) => item.value == tokenizationFeeId).isEmpty
+                  getFeeItems(false)
+                          .where((item) => item.value == tokenizationFeeId)
+                          .isEmpty
                       ? null
                       : tokenizationFeeId,
                   'selectfee'.tr(),
@@ -1753,8 +1755,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   Container(
                     width: width / 1.09,
                     child: checkBoxItem(
-                      text:
-                          "I acknowledge that I have reviewed the suitability criteria",
+                      text: "I acknowledge that I have reviewed the suitability criteria",
                       value: acknowledgedSuitabilityCriteria,
                       onChanged: (bool? value) {
                         setState(() {
@@ -1968,8 +1969,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         width: width / 1.2,
                         child: RichText(
                           text: TextSpan(
-                            text:
-                                "I attest that the information provided is accurate and verifiable",
+                            text: "I attest that the information provided is accurate and verifiable",
                             style: TextStyle(
                               fontSize: 13.sp,
                               fontFamily: fontbody,
@@ -2060,12 +2060,10 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       newData['accountNumber'] = accountNumber;
       newData['beneficiaryName'] = beneficiaryName;
       newData['bankId'] = bankId;
-      newData['salesStart'] = DateFormat(
-        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
-      ).format(salesStart!.toUtc());
-      newData['salesEnd'] = DateFormat(
-        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
-      ).format(salesEnd!);
+      newData['salesStart'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
+          .format(salesStart!.toUtc());
+      newData['salesEnd'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
+          .format(salesEnd!);
       newData['capOnPurchase'] = capOnPurchase ? 1 : 0;
       newData['capQuantity'] = capQuantity;
       newData['capAmountInFiat'] = capAmountInFiat;
@@ -2106,7 +2104,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       hideLoader(context);
@@ -2135,7 +2133,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       if (responseData['statusCode'] == 200) {
@@ -2156,7 +2154,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         uri: '/v1/tokenization/logo',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
         file: file,
         tokenizedAssetId: appState.viewData!['id'],
         documentTitle: "",

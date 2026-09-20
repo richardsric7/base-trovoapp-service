@@ -54,7 +54,7 @@
 //     width = MediaQuery.of(context).size.width;
 //     wallets = appState.userInfo!.wallets!;
 //     activeWallet = appState.activeWallet;
-//     selectedWallet = activeWallet!.publicKey;
+//     selectedWallet = activeWallet!.address;
 //     return ScreenUtilInit(
 //       builder: (context, child) => Scaffold(
 //         resizeToAvoidBottomInset: false,

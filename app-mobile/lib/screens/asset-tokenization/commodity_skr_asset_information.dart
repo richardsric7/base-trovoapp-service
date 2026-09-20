@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,6 +16,7 @@ import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -3123,18 +3125,14 @@ class _CommoditySKRAssetInformationView
       showLoader(context);
       var newData = {...data as Map};
 
-      newData['issuerDate'] = DateFormat(
-        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
-      ).format(issueDate!.toUtc());
-      newData['expiryDate'] = DateFormat(
-        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
-      ).format(expiryDate!.toUtc());
-      newData['maturityDate'] = DateFormat(
-        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
-      ).format(maturityDate!.toUtc());
-      newData['valuationDate'] = DateFormat(
-        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
-      ).format(valuationDate!.toUtc());
+      newData['issuerDate'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
+          .format(issueDate!.toUtc());
+      newData['expiryDate'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
+          .format(expiryDate!.toUtc());
+      newData['maturityDate'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
+          .format(maturityDate!.toUtc());
+      newData['valuationDate'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
+          .format(valuationDate!.toUtc());
       newData['assetType'] = assetType;
       newData['assetDescription'] = assetDescription;
       newData['quantity'] = quantity;
@@ -3191,7 +3189,7 @@ class _CommoditySKRAssetInformationView
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       if (responseData['statusCode'] == 200) {
@@ -3219,7 +3217,7 @@ class _CommoditySKRAssetInformationView
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       if (responseData['statusCode'] == 200) {

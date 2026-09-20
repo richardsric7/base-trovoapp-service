@@ -10,6 +10,7 @@ import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -60,9 +61,7 @@ class _LiquidateAsset extends State<LiquidateAsset>
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
-            SizedBox(
-              height: height / 30,
-            ),
+            SizedBox(height: height / 30),
             Row(
               children: [
                 Padding(
@@ -78,9 +77,7 @@ class _LiquidateAsset extends State<LiquidateAsset>
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Row(
               children: [
                 Padding(
@@ -102,9 +99,7 @@ class _LiquidateAsset extends State<LiquidateAsset>
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Row(
               children: [
                 Padding(
@@ -123,9 +118,7 @@ class _LiquidateAsset extends State<LiquidateAsset>
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 10,
-            ),
+            SizedBox(height: height / 10),
             Button(
               'Request for Votes',
               notifier.getbluecolor,
@@ -133,16 +126,15 @@ class _LiquidateAsset extends State<LiquidateAsset>
               onTap: () {
                 appState.viewData![SuccessViewPageConfig.key] = {
                   'title': '',
-                  'message':
-                      'Your request to liquidate [Atlantis Asset] has been submitted for voting procedure. You\'ll be notified when all votes have been collated.',
+                  'message': 'Your request to liquidate [Atlantis Asset] has been submitted for voting procedure. You\'ll be notified when all votes have been collated.',
                 };
                 appState.currentAction = PageAction(
-                    state: PageState.replace, page: SuccessViewPageConfig);
+                  state: PageState.replace,
+                  page: SuccessViewPageConfig,
+                );
               },
             ),
-            SizedBox(
-              height: height / 10,
-            ),
+            SizedBox(height: height / 10),
           ],
         ),
       ),

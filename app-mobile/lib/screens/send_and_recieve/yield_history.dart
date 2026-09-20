@@ -9,6 +9,7 @@ import 'package:trovo_app/models/asset.dart';
 import 'package:trovo_app/models/wallet.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class YieldHistoryView extends StatefulWidget {
@@ -29,9 +30,9 @@ class _YieldHistoryView extends State<YieldHistoryView>
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    if (appState.viewData!['walletPublicKey'] != null) {
+    if (appState.viewData!['walletAddress'] != null) {
       wallet = appState.userInfo!.getWallet(
-        appState.viewData!['walletPublicKey'],
+        appState.viewData!['walletAddress'],
       );
       asset = wallet.claimedAssets!.firstWhere(
         (asset) =>

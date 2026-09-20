@@ -21,6 +21,7 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class TokenizationFeePayment extends StatefulWidget {
@@ -669,7 +670,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
         body: "",
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       hideLoader(context);
@@ -681,8 +682,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': '',
           'buttonText': 'Go to Home',
-          'message':
-              'Your Proof of Payment has been submitted successfully and is awaiting confirmation. Your asset tokenization application will be processed once payment has been confirmed.',
+          'message': 'Your Proof of Payment has been submitted successfully and is awaiting confirmation. Your asset tokenization application will be processed once payment has been confirmed.',
         };
         appState.currentAction = PageAction(
           state: PageState.addPage,
@@ -821,7 +821,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
         uri: '/v1/tokenization/fee/${tokenizedAsset.id}',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
         file: file,
         transactionReference: transactionReference ?? '',
         tokenizationFeePaymentMethodID: preferredPaymentMethod,
@@ -857,7 +857,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
         uri: '/v1/tokenization/fee/$documentId',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
         body: jsonEncode(requestBody),
       );
 
@@ -889,7 +889,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
       inspect(responseData);
       if (responseData['statusCode'] == 200) {

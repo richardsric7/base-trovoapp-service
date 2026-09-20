@@ -8,6 +8,7 @@ import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/functions/trovo-sdk.dart';
 import 'package:trovo_app/models/user.dart';
 import 'package:trovo_app/models/wallet.dart';
+
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
 import '../../custom_bloc_observer/notifire_clor.dart';
@@ -89,7 +90,7 @@ class _BackupState extends State<Backup> {
               ],
               SizedBox(height: height / 20),
               for (var wallet in getUserWallets()) ...[
-                Secret(wallet.alias!, wallet.secretKey!, wallet.publicKey!),
+                Secret(wallet.alias!, wallet.secretKey!, wallet.address!),
               ],
               SizedBox(height: height / 20),
               Button(
@@ -119,7 +120,7 @@ class _BackupState extends State<Backup> {
       print('=========> secret $secret');
       Account account = TrovoWalletSDK().parseSecretKey(secret);
       var wlt = user.wallets!.firstWhereOrNull(
-        (wallet) => wallet.publicKey == account.publicKey,
+        (wallet) => wallet.address == account.address,
       );
       if (wlt != null) {
         wlt.secretKey = secret;

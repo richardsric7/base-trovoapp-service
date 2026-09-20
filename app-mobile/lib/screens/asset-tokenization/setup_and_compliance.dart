@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
@@ -19,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -989,8 +991,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     popup(
                       context,
                       title: "info".tr(),
-                      message:
-                          'You must select an asset sector before you can view the requirements.',
+                      message: 'You must select an asset sector before you can view the requirements.',
                     );
                     return;
                   }
@@ -1254,8 +1255,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     if (!form!.validate() || formHasError) return;
 
     if (!hasAllRequiredManagerDocuments) {
-      message +=
-          "You need to acquire all the documents listed in the tokenization requirements document before you can proceed.\n\n";
+      message += "You need to acquire all the documents listed in the tokenization requirements document before you can proceed.\n\n";
     }
 
     if (message.isNotEmpty) {
@@ -1298,7 +1298,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       if (responseData['statusCode'] == 200) {
@@ -1330,7 +1330,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       uri: Uri.encodeFull(uri),
       signer: appState.primaryWallet.signer!,
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.primaryWallet.signer!,
+      address: appState.primaryWallet.signer!,
     );
     if (responseData['statusCode'] == 200) {
       appState.tokenizationData['banks'] = responseData['data'];
@@ -1504,7 +1504,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         body: "",
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       hideLoader(context);

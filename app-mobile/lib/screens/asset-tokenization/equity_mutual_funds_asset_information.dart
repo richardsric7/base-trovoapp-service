@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -425,9 +427,8 @@ class _EquityMutualFundsAssetInformationView
           children: [
             ButtonOutlined(
               item.value['value'] != null
-                  ? DateFormat(
-                      'MMMM dd, yyyy',
-                    ).format(DateTime.parse(item.value['value'].toString()))
+                  ? DateFormat('MMMM dd, yyyy')
+                        .format(DateTime.parse(item.value['value'].toString()))
                   : "Select date",
               notifier.getwihitecolor,
               notifier.getgrey,
@@ -761,9 +762,8 @@ class _EquityMutualFundsAssetInformationView
         for (var item in section.value['body'].entries) {
           if (item.value['widgetType'] == 'datetime') {
             print('doing date time ===> ${item.value['value']}');
-            newData[item.key] = DateFormat(
-              "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
-            ).format(item.value['value']!.toUtc());
+            newData[item.key] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
+                .format(item.value['value']!.toUtc());
             print(
               'got here ===> ${newData[item.key]} ===> ${DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'").format(item.value['value']!.toUtc())}',
             );
@@ -782,7 +782,7 @@ class _EquityMutualFundsAssetInformationView
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       if (responseData['statusCode'] == 200) {

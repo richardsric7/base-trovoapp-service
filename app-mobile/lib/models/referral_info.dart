@@ -5,8 +5,5 @@ class ReferralInfoObject {
   ReferralInfoObject({required this.downlines, required this.uplines});
 
   ReferralInfoObject.deserializeJson(Map<String, dynamic> m)
-      : this(
-          downlines: m['downlines'],
-          uplines: m['uplines'],
-        );
+    : this(downlines: m['downlines'], uplines: m['uplines']);
 }

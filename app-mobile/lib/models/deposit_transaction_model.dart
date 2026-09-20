@@ -2,7 +2,7 @@ class DepositTransactionModel {
   late DateTime createdAt;
   late DateTime updatedAt;
   late String currency;
-  late String trovoWalletPublicKey;
+  late String trovoWalletAddress;
   late String transactionId;
   late String fromAddress;
   late String toAddress;
@@ -15,7 +15,7 @@ class DepositTransactionModel {
     required this.createdAt,
     required this.updatedAt,
     required this.currency,
-    required this.trovoWalletPublicKey,
+    required this.trovoWalletAddress,
     required this.transactionId,
     required this.fromAddress,
     required this.toAddress,
@@ -26,17 +26,17 @@ class DepositTransactionModel {
   });
 
   DepositTransactionModel.deserializeJson(m)
-      : this(
-          createdAt: DateTime.parse(m["createdAt"]),
-          updatedAt: DateTime.parse(m["updatedAt"]),
-          currency: m["currency"],
-          trovoWalletPublicKey: m["trovoWalletPublicKey"],
-          transactionId: m["txId"],
-          fromAddress: m["fromAddress"],
-          toAddress: m["toAddress"],
-          isCompleted: m["isCompleted"],
-          isVerified: m["isVerified"],
-          isValid: m["isValid"],
-          amount: double.parse(m["amount"]),
-        );
+    : this(
+        createdAt: DateTime.parse(m["createdAt"]),
+        updatedAt: DateTime.parse(m["updatedAt"]),
+        currency: m["currency"],
+        trovoWalletAddress: m["trovoWalletAddress"],
+        transactionId: m["txId"],
+        fromAddress: m["fromAddress"],
+        toAddress: m["toAddress"],
+        isCompleted: m["isCompleted"],
+        isVerified: m["isVerified"],
+        isValid: m["isValid"],
+        amount: double.parse(m["amount"]),
+      );
 }

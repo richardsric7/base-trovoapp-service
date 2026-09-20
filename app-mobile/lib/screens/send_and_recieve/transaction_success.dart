@@ -16,6 +16,7 @@ import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class TransactionSuccess extends StatefulWidget {
@@ -36,9 +37,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    wallet = appState.userInfo!.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = appState.userInfo!.getWallet(appState.viewData!['walletAddress']);
   }
 
   @override
@@ -59,29 +58,31 @@ class _TransactionSuccess extends State<TransactionSuccess>
             children: [
               SizedBox(height: height / 20),
               Center(
-                child: Image.asset("assets/images/success.gif",
-                    height: height / 10),
+                child: Image.asset(
+                  "assets/images/success.gif",
+                  height: height / 10,
+                ),
               ),
               SizedBox(height: height / 50),
               Text(
                 "yourtransactionwassuccessful".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 22.sp),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 22.sp,
+                ),
               ),
               SizedBox(height: height / 30),
               Text(
                 '- ${viewData['amount']} ${viewData['assetCode'].toString().isEmpty ? 'ETH' : viewData['assetCode']}',
                 style: TextStyle(
-                    color: Colors.red,
-                    fontFamily: fontsemibold,
-                    fontSize: 20.sp),
+                  color: Colors.red,
+                  fontFamily: fontsemibold,
+                  fontSize: 20.sp,
+                ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -106,23 +107,17 @@ class _TransactionSuccess extends State<TransactionSuccess>
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: 5,
-                      ),
+                      SizedBox(height: 5),
                       showUserInfo(),
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                      Divider(
-                        height: 5,
-                      ),
-                      SizedBox(
-                        height: height / 90,
-                      ),
+                      SizedBox(height: height / 50),
+                      Divider(height: 5),
+                      SizedBox(height: height / 90),
                       if (viewData['memo'].toString().isNotEmpty) ...[
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0, vertical: 10),
+                            horizontal: 20.0,
+                            vertical: 10,
+                          ),
                           child: Text(
                             "formemo".tr(),
                             style: TextStyle(
@@ -133,9 +128,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: 5,
-                        ),
+                        SizedBox(height: 5),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: Text(
@@ -148,19 +141,15 @@ class _TransactionSuccess extends State<TransactionSuccess>
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: height / 50,
-                        ),
-                        Divider(
-                          height: 5,
-                        ),
+                        SizedBox(height: height / 50),
+                        Divider(height: 5),
                       ],
-                      SizedBox(
-                        height: height / 90,
-                      ),
+                      SizedBox(height: height / 90),
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 10),
+                          horizontal: 20.0,
+                          vertical: 10,
+                        ),
                         child: Text(
                           "blockchainproof".tr(),
                           style: TextStyle(
@@ -171,9 +160,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: 5,
-                      ),
+                      SizedBox(height: 5),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Row(
@@ -182,8 +169,9 @@ class _TransactionSuccess extends State<TransactionSuccess>
                               flex: 5,
                               child: GestureDetector(
                                 onTap: () => appState.goToWebView(
-                                    getExplorerBaseUrl(appState.walletMode) +
-                                        viewData['transactionId']),
+                                  getExplorerBaseUrl(appState.walletMode) +
+                                      viewData['transactionId'],
+                                ),
                                 child: Text(
                                   viewData['transactionId'],
                                   style: TextStyle(
@@ -214,16 +202,12 @@ class _TransactionSuccess extends State<TransactionSuccess>
                           ],
                         ),
                       ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
+                      SizedBox(height: height / 50),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Button(
                 "generatereceipt".tr(),
                 notifier.getbluecolor,
@@ -233,9 +217,9 @@ class _TransactionSuccess extends State<TransactionSuccess>
                     transactionDate: DateTime.now(),
                     transactionType: 'Payment',
                     from: '${appState.userInfo!.fullName}[${wallet.alias}]',
-                    fromPublicKey: wallet.publicKey,
+                    fromAddress: wallet.address,
                     to: '${viewData['destinationFirstName']} ${viewData['destinationLastName']}[${viewData['destination']}]',
-                    toPublicKey: viewData['destinationPublicKey'],
+                    toAddress: viewData['destinationAddress'],
                     transactionDirection: TransactionDirection.Send,
                     assetCode: getAssetCode(viewData['assetCode']),
                     assetIssuer: viewData['assetIssuer'].toString(),
@@ -252,9 +236,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                       transaction;
                 },
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               ButtonOutlined(
                 "dashboard".tr(),
                 notifier.getwihitecolor,
@@ -266,9 +248,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                   );
                 },
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
             ],
           ),
         ),
@@ -327,9 +307,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                   ),
                 ),
         ),
-        SizedBox(
-          width: width / 70,
-        ),
+        SizedBox(width: width / 70),
         Container(
           width: width / 1.8,
           child: Column(
@@ -344,9 +322,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                   fontFamily: fontbody,
                 ),
               ),
-              SizedBox(
-                height: 5,
-              ),
+              SizedBox(height: 5),
               Text(
                 '${viewData['destinationFirstName']} ${viewData['destinationLastName']}',
                 style: TextStyle(
@@ -358,7 +334,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
               ),
             ],
           ),
-        )
+        ),
       ],
     );
   }

@@ -36,24 +36,28 @@ class _CreateSubWalletSuccessViewState
             children: [
               SizedBox(height: height / 6),
               Center(
-                child: Image.asset("assets/images/success.gif",
-                    height: height / 3.3),
+                child: Image.asset(
+                  "assets/images/success.gif",
+                  height: height / 3.3,
+                ),
               ),
               SizedBox(height: height / 11),
               Text(
                 "createsuccess".tr(),
                 style: TextStyle(
-                    color: notifier.getblck,
-                    fontFamily: fontsemibold,
-                    fontSize: 27),
+                  color: notifier.getblck,
+                  fontFamily: fontsemibold,
+                  fontSize: 27,
+                ),
               ),
               SizedBox(height: height / 50),
               Text(
                 "youhavecreatedsuccessfully".tr(),
                 style: TextStyle(
-                    color: notifier.getgrey,
-                    fontSize: 15,
-                    fontFamily: fontbody),
+                  color: notifier.getgrey,
+                  fontSize: 15,
+                  fontFamily: fontbody,
+                ),
               ),
               SizedBox(height: height / 4.3),
               Button(
@@ -62,9 +66,11 @@ class _CreateSubWalletSuccessViewState
                 notifier.getwihitecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
-                      state: PageState.replaceAll, page: BottomHomePageConfig);
+                    state: PageState.replaceAll,
+                    page: BottomHomePageConfig,
+                  );
                 },
-              )
+              ),
             ],
           ),
         ),

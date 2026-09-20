@@ -18,7 +18,9 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
+
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 class EarlyExitSummaryView extends StatefulWidget {
@@ -43,9 +45,9 @@ class _EarlyExitSummaryView extends State<EarlyExitSummaryView>
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    if (appState.viewData!['walletPublicKey'] != null) {
+    if (appState.viewData!['walletAddress'] != null) {
       wallet = appState.userInfo!.getWallet(
-        appState.viewData!['walletPublicKey'],
+        appState.viewData!['walletAddress'],
       );
       asset = wallet.claimedAssets!.firstWhere(
         (asset) =>

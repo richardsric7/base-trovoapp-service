@@ -17,8 +17,10 @@ import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/top_drop_downs.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 class MyAssetTokenDetails extends StatefulWidget {
@@ -53,12 +55,12 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
   List<DropdownMenuItem<String>> get getStandardWallets {
     List<DropdownMenuItem<String>> wallets = [];
     appState.userInfo!.getStandardWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
+      wallets.add(
+        DropdownMenuItem(
+          child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
+          value: wallet.address,
+        ),
+      );
     });
     return wallets;
   }
@@ -88,67 +90,71 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(height / 15),
         child: AppBar(
-            centerTitle: true,
-            elevation: 0,
-            backgroundColor: notifier.getwihitecolor,
-            leading: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: Image.asset("assets/images/back.png", scale: 5),
-            ),
-            actions: [
-              Container(
-                width: width / 1.2,
-                child: Row(
-                  children: [
-                    TopDropdowns(
-                        onWalletChanged: (newValue) {
-                          selectedWallet = newValue;
-                          this.wallet =
-                              appState.userInfo!.getWallet(selectedWallet);
+          centerTitle: true,
+          elevation: 0,
+          backgroundColor: notifier.getwihitecolor,
+          leading: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+            },
+            child: Image.asset("assets/images/back.png", scale: 5),
+          ),
+          actions: [
+            Container(
+              width: width / 1.2,
+              child: Row(
+                children: [
+                  TopDropdowns(
+                    onWalletChanged: (newValue) {
+                      selectedWallet = newValue;
+                      this.wallet = appState.userInfo!.getWallet(
+                        selectedWallet,
+                      );
 
-                          this.asset = wallet.claimedAssets!.firstWhereOrNull((x) =>
-                              "${getAssetCode(x.assetCode)}|${getAssetIssuer(x.assetIssuer)}" ==
-                              selectedAsset);
+                      this.asset = wallet.claimedAssets!.firstWhereOrNull(
+                        (x) =>
+                            "${getAssetCode(x.assetCode)}|${getAssetIssuer(x.assetIssuer)}" ==
+                            selectedAsset,
+                      );
 
-                          setState(() {});
-                        },
-                        onAssetChanged: (newValue) {
-                          setState(() {
-                            selectedAsset = newValue;
-                            newValue = newValue.toString().contains('ETH')
-                                ? '|'
-                                : newValue;
-                            for (var asset in wallet.claimedAssets!) {
-                              var splitNewValue =
-                                  newValue.toString().split('|');
-                              if (asset.assetCode == splitNewValue[0] &&
-                                  asset.assetIssuer == splitNewValue[1]) {
-                                this.asset = asset;
-                              }
-                            }
-                          });
-                        },
-                        claimedAssets: wallet.claimedAssets!,
-                        selectedAsset: selectedAsset,
-                        selectedWallet: wallet.publicKey),
-                  ],
-                ),
+                      setState(() {});
+                    },
+                    onAssetChanged: (newValue) {
+                      setState(() {
+                        selectedAsset = newValue;
+                        newValue = newValue.toString().contains('ETH')
+                            ? '|'
+                            : newValue;
+                        for (var asset in wallet.claimedAssets!) {
+                          var splitNewValue = newValue.toString().split('|');
+                          if (asset.assetCode == splitNewValue[0] &&
+                              asset.assetIssuer == splitNewValue[1]) {
+                            this.asset = asset;
+                          }
+                        }
+                      });
+                    },
+                    claimedAssets: wallet.claimedAssets!,
+                    selectedAsset: selectedAsset,
+                    selectedWallet: wallet.address,
+                  ),
+                ],
               ),
-              if (appState.walletMode == "Testnet") ...[
-                Visibility(
-                  visible: true,
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 5),
-                    child: Banner(
-                      location: BannerLocation.topEnd,
-                      message: "Testnet",
-                    ),
+            ),
+            if (appState.walletMode == "Testnet") ...[
+              Visibility(
+                visible: true,
+                child: Padding(
+                  padding: EdgeInsets.only(top: 5),
+                  child: Banner(
+                    location: BannerLocation.topEnd,
+                    message: "Testnet",
                   ),
                 ),
-              ]
-            ]),
+              ),
+            ],
+          ],
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -167,9 +173,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
               notifier.getbluewhitecolor,
               wihitecolor,
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             // SizedBox(height: height / 50),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -217,9 +221,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                             size: 25,
                             color: notifier.getbluewhitecolor,
                           ),
-                          SizedBox(
-                            width: width / 20,
-                          ),
+                          SizedBox(width: width / 20),
                           Text(
                             'Sell Asset',
                             style: TextStyle(
@@ -243,9 +245,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                             "assets/images/swap.png",
                             height: height / 40,
                           ),
-                          SizedBox(
-                            width: width / 20,
-                          ),
+                          SizedBox(width: width / 20),
                           Text(
                             'Transfer Asset',
                             style: TextStyle(
@@ -258,7 +258,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                       ),
                     ),
                   ],
-                )
+                ),
               ],
             ),
             Padding(
@@ -272,140 +272,98 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                   fontFamily: fontsemibold,
                 ),
                 tabs: [
-                  Tab(
-                    height: 20,
-                    text: 'Details of Asset',
-                  ),
-                  Tab(
-                    height: 20,
-                    text: 'Proceeds History',
-                  ),
+                  Tab(height: 20, text: 'Details of Asset'),
+                  Tab(height: 20, text: 'Proceeds History'),
                 ],
               ),
             ),
             Container(
               height: height / 2.0,
-              child: TabBarView(controller: tabController, children: [
-                SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      infoTile(
-                        notifier,
-                        'Asset Code',
-                        'ANMF',
-                      ),
-                      infoTile(
-                        notifier,
-                        'Asset Category',
-                        'Agriculture',
-                      ),
-                      infoTile(
-                        notifier,
-                        'Asset Country',
-                        'Nigeria',
-                      ),
-                      infoTile(
-                        notifier,
-                        'Asset Location Address',
-                        'No. 10 Maitama, Abuja',
-                      ),
-                      infoTile(
-                        notifier,
-                        'Asset Issuer',
-                        'Atlantis Developers',
-                      ),
-                      infoTile(
-                        notifier,
-                        'Asset Issuer Website',
-                        'www.anmf.com',
-                      ),
-                      infoTile(
-                        notifier,
-                        'Asset Token Total Supply',
-                        '1000',
-                      ),
-                      infoTile(
-                        notifier,
-                        'Proceed Payout Cycle',
-                        'Monthly',
-                      ),
-                      infoTile(
-                        notifier,
-                        'Payout Method',
-                        'cNGN',
-                      ),
-                      SizedBox(height: height / 20),
-                    ],
+              child: TabBarView(
+                controller: tabController,
+                children: [
+                  SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        infoTile(notifier, 'Asset Code', 'ANMF'),
+                        infoTile(notifier, 'Asset Category', 'Agriculture'),
+                        infoTile(notifier, 'Asset Country', 'Nigeria'),
+                        infoTile(
+                          notifier,
+                          'Asset Location Address',
+                          'No. 10 Maitama, Abuja',
+                        ),
+                        infoTile(
+                          notifier,
+                          'Asset Issuer',
+                          'Atlantis Developers',
+                        ),
+                        infoTile(
+                          notifier,
+                          'Asset Issuer Website',
+                          'www.anmf.com',
+                        ),
+                        infoTile(notifier, 'Asset Token Total Supply', '1000'),
+                        infoTile(notifier, 'Proceed Payout Cycle', 'Monthly'),
+                        infoTile(notifier, 'Payout Method', 'cNGN'),
+                        SizedBox(height: height / 20),
+                      ],
+                    ),
                   ),
-                ),
-                SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: AssetDashboardViewPageConfig,
-                          );
-                        },
-                        child: assetTile(
-                          '35 cNGN',
-                          'Paid on 02/03/2022',
+                  SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: AssetDashboardViewPageConfig,
+                            );
+                          },
+                          child: assetTile('35 cNGN', 'Paid on 02/03/2022'),
                         ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: AssetDashboardViewPageConfig,
-                          );
-                        },
-                        child: assetTile(
-                          '35 cNGN',
-                          'Paid on 02/02/2022',
+                        GestureDetector(
+                          onTap: () {
+                            appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: AssetDashboardViewPageConfig,
+                            );
+                          },
+                          child: assetTile('35 cNGN', 'Paid on 02/02/2022'),
                         ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: AssetDashboardViewPageConfig,
-                          );
-                        },
-                        child: assetTile(
-                          '35 cNGN',
-                          'Paid on 02/01/2022',
+                        GestureDetector(
+                          onTap: () {
+                            appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: AssetDashboardViewPageConfig,
+                            );
+                          },
+                          child: assetTile('35 cNGN', 'Paid on 02/01/2022'),
                         ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: AssetDashboardViewPageConfig,
-                          );
-                        },
-                        child: assetTile(
-                          '35 cNGN',
-                          'Paid on 02/12/2021',
+                        GestureDetector(
+                          onTap: () {
+                            appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: AssetDashboardViewPageConfig,
+                            );
+                          },
+                          child: assetTile('35 cNGN', 'Paid on 02/12/2021'),
                         ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: AssetDashboardViewPageConfig,
-                          );
-                        },
-                        child: assetTile(
-                          '35 cNGN',
-                          'Paid on 02/11/2021',
+                        GestureDetector(
+                          onTap: () {
+                            appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: AssetDashboardViewPageConfig,
+                            );
+                          },
+                          child: assetTile('35 cNGN', 'Paid on 02/11/2021'),
                         ),
-                      ),
-                      SizedBox(height: height / 20),
-                    ],
+                        SizedBox(height: height / 20),
+                      ],
+                    ),
                   ),
-                ),
-              ]),
+                ],
+              ),
             ),
           ],
         ),
@@ -419,9 +377,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
       shadowColor: Colors.black,
       color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListTile(
@@ -480,7 +436,9 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      vertical: 25.0, horizontal: 15),
+                    vertical: 25.0,
+                    horizontal: 15,
+                  ),
                   child: Image.asset(
                     'assets/images/trovo_white.png',
                     height: height / 20,
@@ -489,8 +447,10 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
               ],
             ),
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -500,15 +460,14 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                     child: Text(
                       walletAlias,
                       style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: foreColor,
-                          fontFamily: fontsemibold),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: foreColor,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                   ),
-                  SizedBox(
-                    height: height / 90,
-                  ),
+                  SizedBox(height: height / 90),
                   Row(
                     children: [
                       Text(
@@ -520,9 +479,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                           fontFamily: fontsemibold,
                         ),
                       ),
-                      SizedBox(
-                        width: 15,
-                      ),
+                      SizedBox(width: 15),
                       GestureDetector(
                         onTap: () {
                           if (localHideBalance) {
@@ -530,17 +487,11 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                           } else
                             toggleHideBalance();
                         },
-                        child: Icon(
-                          getIcon(),
-                          size: 20,
-                          color: foreColor,
-                        ),
+                        child: Icon(getIcon(), size: 20, color: foreColor),
                       ),
                     ],
                   ),
-                  SizedBox(
-                    height: height / 98.0,
-                  ),
+                  SizedBox(height: height / 98.0),
                   Container(
                     width: width / 1.8,
                     child: Text(

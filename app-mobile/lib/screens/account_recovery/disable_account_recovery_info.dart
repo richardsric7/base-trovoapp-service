@@ -7,6 +7,7 @@ import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_app/models/wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../router/page_actions.dart';
@@ -44,8 +45,9 @@ class _DisableAccountRecoveryInfoState
     super.initState();
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
-    primaryWallet = appState.userInfo!.wallets!
-        .firstWhere((wallet) => wallet.primaryWallet == 1);
+    primaryWallet = appState.userInfo!.wallets!.firstWhere(
+      (wallet) => wallet.primaryWallet == 1,
+    );
   }
 
   @override
@@ -59,9 +61,12 @@ class _DisableAccountRecoveryInfoState
         backgroundColor: notifier.getwihitecolor,
         resizeToAvoidBottomInset: false,
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 15)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             // crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,17 +75,19 @@ class _DisableAccountRecoveryInfoState
                 "disable".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontSize: 30,
-                    fontFamily: fontsemibold),
+                  color: notifier.getbluewhitecolor,
+                  fontSize: 30,
+                  fontFamily: fontsemibold,
+                ),
               ),
               Text(
                 "accountrecovery".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontSize: 30,
-                    fontFamily: fontsemibold),
+                  color: notifier.getbluewhitecolor,
+                  fontSize: 30,
+                  fontFamily: fontsemibold,
+                ),
               ),
               SizedBox(height: height / 45),
               Padding(
@@ -97,7 +104,9 @@ class _DisableAccountRecoveryInfoState
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 15.0),
+                          horizontal: 20.0,
+                          vertical: 15.0,
+                        ),
                         child: Column(
                           children: [
                             Container(
@@ -106,9 +115,10 @@ class _DisableAccountRecoveryInfoState
                                 "disableaccountrecoverydescription".tr(),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: 16,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody),
+                                  fontSize: 16,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                ),
                               ),
                             ),
                             SizedBox(height: 2),
@@ -125,9 +135,10 @@ class _DisableAccountRecoveryInfoState
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () => appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: DisableAccountRecoveryViewPageConfig),
-              )
+                  state: PageState.addPage,
+                  page: DisableAccountRecoveryViewPageConfig,
+                ),
+              ),
             ],
           ),
         ),

@@ -9,6 +9,7 @@ import 'package:trovo_app/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/loader.dart';
+
 import '../../router/page_actions.dart';
 import '../../storage/state.dart';
 import '../button/custtom_button.dart';
@@ -108,7 +109,9 @@ class _SwiperState extends State<Swiper> {
                 notifier.getbluewhitecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
-                      state: PageState.addPage, page: GetStartedViewPageConfig);
+                    state: PageState.addPage,
+                    page: GetStartedViewPageConfig,
+                  );
                 },
               ),
               SizedBox(height: height / 50),

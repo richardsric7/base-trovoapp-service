@@ -20,6 +20,7 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/wallet_slides.dart';
 import 'package:trovo_app/widgets/top_drop_downs.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class AssetDetails extends StatefulWidget {
@@ -45,7 +46,7 @@ class _AssetDetailsState extends State<AssetDetails>
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
     userInfo = appState.userInfo!;
-    wallet = userInfo.getWallet(appState.viewData!['walletPublicKey']);
+    wallet = userInfo.getWallet(appState.viewData!['walletAddress']);
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
@@ -71,7 +72,7 @@ class _AssetDetailsState extends State<AssetDetails>
     appState = Provider.of<DataProvider>(context, listen: true);
 
     if (selectedWallet.isEmpty) {
-      selectedWallet = wallet.publicKey!;
+      selectedWallet = wallet.address!;
     }
 
     if (asset == null) {
@@ -125,7 +126,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   wihitecolor,
                   onTap: () {
                     appState.viewData = {
-                      'walletPublicKey': wallet.publicKey,
+                      'walletAddress': wallet.address,
                       'assetCode': asset!.assetCode,
                       'assetIssuer': asset!.assetIssuer,
                     };
@@ -284,7 +285,7 @@ class _AssetDetailsState extends State<AssetDetails>
                 ),
                 onTap: () {
                   appState.viewData = {
-                    'walletPublicKey': wallet.publicKey,
+                    'walletAddress': wallet.address,
                     'assetCode': asset!.assetCode,
                     'assetIssuer': asset!.assetIssuer,
                   };
@@ -307,7 +308,7 @@ class _AssetDetailsState extends State<AssetDetails>
                 ),
                 onTap: () {
                   appState.viewData = {
-                    'walletPublicKey': wallet.publicKey,
+                    'walletAddress': wallet.address,
                     'assetCode': asset!.assetCode,
                     'assetIssuer': asset!.assetIssuer,
                   };
@@ -331,7 +332,7 @@ class _AssetDetailsState extends State<AssetDetails>
                 ),
                 onTap: () {
                   appState.viewData = {
-                    'walletPublicKey': wallet.publicKey,
+                    'walletAddress': wallet.address,
                     'assetCode': asset!.assetCode,
                     'assetIssuer': asset!.assetIssuer,
                   };
@@ -351,7 +352,7 @@ class _AssetDetailsState extends State<AssetDetails>
               children: [
                 actionButton("assets/images/send.png", 'Send', () {
                   appState.viewData = {
-                    'walletPublicKey': wallet.publicKey,
+                    'walletAddress': wallet.address,
                     'assetCode': asset!.assetCode,
                     'assetIssuer': asset!.assetIssuer,
                   };
@@ -369,7 +370,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     'Deposit/Withdraw',
                     () {
                       appState.viewData = {
-                        'walletPublicKey': wallet.publicKey,
+                        'walletAddress': wallet.address,
                         'assetCode': asset!.assetCode,
                         'assetIssuer': asset!.assetIssuer,
                       };
@@ -383,7 +384,7 @@ class _AssetDetailsState extends State<AssetDetails>
                 ],
                 actionButton("assets/images/receive.png", 'Receive', () {
                   appState.viewData = {
-                    'walletPublicKey': wallet.publicKey,
+                    'walletAddress': wallet.address,
                     'assetCode': asset!.assetCode,
                     'assetIssuer': asset!.assetIssuer,
                   };

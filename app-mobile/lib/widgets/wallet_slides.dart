@@ -5,11 +5,13 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../custom_bloc_observer/constants.dart';
 import '../custom_bloc_observer/fonts.dart';
 import '../custom_bloc_observer/notifire_clor.dart';
 import '../storage/state.dart';
 import '../utils/medeiaqury/medeiaqury.dart';
+
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 import 'popups.dart';

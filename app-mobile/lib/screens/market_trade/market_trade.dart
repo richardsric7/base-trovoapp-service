@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
@@ -10,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -177,9 +179,7 @@ class _MarketTradeState extends State<MarketTrade>
                           child: Center(
                             child: Column(
                               children: [
-                                SizedBox(
-                                  height: height / 70,
-                                ),
+                                SizedBox(height: height / 70),
                                 Text(
                                   "welcometoassettokenization2".tr(),
                                   textAlign: TextAlign.center,
@@ -189,9 +189,7 @@ class _MarketTradeState extends State<MarketTrade>
                                     color: notifier.getbluewhitecolor,
                                   ),
                                 ),
-                                SizedBox(
-                                  height: height / 70,
-                                ),
+                                SizedBox(height: height / 70),
                                 Text(
                                   "welcometoassettokenization3".tr(),
                                   textAlign: TextAlign.center,
@@ -202,17 +200,13 @@ class _MarketTradeState extends State<MarketTrade>
                                     color: notifier.getbluewhitecolor,
                                   ),
                                 ),
-                                SizedBox(
-                                  height: height / 50,
-                                ),
+                                SizedBox(height: height / 50),
                               ],
                             ),
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: height / 20,
-                      ),
+                      SizedBox(height: height / 20),
                       Text(
                         'Coming Soon ...',
                         overflow: TextOverflow.ellipsis,
@@ -221,13 +215,11 @@ class _MarketTradeState extends State<MarketTrade>
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
-                      SizedBox(
-                        height: height / 90,
-                      ),
+                      SizedBox(height: height / 90),
                     ],
                   ),
                 ),
-              )
+              ),
             ] else ...[
               CustomAppBar(
                 context,
@@ -254,14 +246,15 @@ class _MarketTradeState extends State<MarketTrade>
                 children: [
                   for (var i = 0; i < marketPairs.length; i++) ...[
                     chartCard(
-                        Image.asset(
-                          'assets/images/trovo.png',
-                          height: height / 50,
-                        ),
-                        marketPairs[i]['pair'],
-                        marketPairs[i]['price'],
-                        '8.46%',
-                        marketPairs[i]['isGreen']),
+                      Image.asset(
+                        'assets/images/trovo.png',
+                        height: height / 50,
+                      ),
+                      marketPairs[i]['pair'],
+                      marketPairs[i]['price'],
+                      '8.46%',
+                      marketPairs[i]['isGreen'],
+                    ),
                   ],
                 ],
               ),
@@ -300,15 +293,11 @@ class _MarketTradeState extends State<MarketTrade>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Row(
                 children: [
                   assetLogo,
-                  SizedBox(
-                    width: width / 70,
-                  ),
+                  SizedBox(width: width / 70),
                   Text(
                     currency,
                     textAlign: TextAlign.center,
@@ -320,9 +309,7 @@ class _MarketTradeState extends State<MarketTrade>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Text(
                 amount,
                 textAlign: TextAlign.center,
@@ -332,9 +319,7 @@ class _MarketTradeState extends State<MarketTrade>
                   color: notifier.getbluewhitecolor,
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -355,9 +340,7 @@ class _MarketTradeState extends State<MarketTrade>
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
             ],
           ),
         ),

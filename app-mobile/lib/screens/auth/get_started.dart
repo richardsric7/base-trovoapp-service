@@ -73,34 +73,39 @@ class _GetStartedState extends State<GetStarted> {
                                   ? darktilewhitecolor
                                   : notifier.getaddsubwalletgrey,
                               value: appState.walletMode,
-                              icon: Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                              ),
+                              icon: Icon(Icons.keyboard_arrow_down_rounded),
                               decoration: InputDecoration(
                                 contentPadding: EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 10),
+                                  vertical: 8.0,
+                                  horizontal: 10,
+                                ),
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide.lerp(
-                                      BorderSide(color: notifier.getgrey),
-                                      BorderSide(color: notifier.getgrey),
-                                      1.0),
+                                    BorderSide(color: notifier.getgrey),
+                                    BorderSide(color: notifier.getgrey),
+                                    1.0,
+                                  ),
                                   borderRadius: const BorderRadius.all(
-                                      Radius.circular(20.0)),
+                                    Radius.circular(20.0),
+                                  ),
                                 ),
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide.lerp(
-                                      BorderSide(color: notifier.getgrey),
-                                      BorderSide(color: notifier.getgrey),
-                                      1.0),
+                                    BorderSide(color: notifier.getgrey),
+                                    BorderSide(color: notifier.getgrey),
+                                    1.0,
+                                  ),
                                   borderRadius: const BorderRadius.all(
-                                      Radius.circular(20.0)),
+                                    Radius.circular(20.0),
+                                  ),
                                 ),
                               ),
                               elevation: 0,
                               style: TextStyle(
-                                  color: notifier.getdarkgrey,
-                                  fontSize: 13.5.sp,
-                                  fontFamily: fontbody),
+                                color: notifier.getdarkgrey,
+                                fontSize: 13.5.sp,
+                                fontFamily: fontbody,
+                              ),
                               onChanged: handleEnvironmentSwitch,
                               items: <DropdownMenuItem<String>>[
                                 DropdownMenuItem(
@@ -111,9 +116,7 @@ class _GetStartedState extends State<GetStarted> {
                                         size: 18,
                                         color: notifier.getbluewhitecolor,
                                       ),
-                                      SizedBox(
-                                        width: 6,
-                                      ),
+                                      SizedBox(width: 6),
                                       Text(
                                         "testnet".tr(),
                                         overflow: TextOverflow.ellipsis,
@@ -133,9 +136,7 @@ class _GetStartedState extends State<GetStarted> {
                                         size: 18,
                                         color: notifier.getbluewhitecolor,
                                       ),
-                                      SizedBox(
-                                        width: 6,
-                                      ),
+                                      SizedBox(width: 6),
                                       Text(
                                         "mainnet".tr(),
                                         overflow: TextOverflow.ellipsis,
@@ -156,24 +157,28 @@ class _GetStartedState extends State<GetStarted> {
                   ],
                 ),
               ),
-              Image.asset("assets/images/palm-recognition.png",
-                  height: height / 2.3),
+              Image.asset(
+                "assets/images/palm-recognition.png",
+                height: height / 2.3,
+              ),
               SizedBox(height: height / 30),
               Text(
                 "whatwouldyou".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getblck,
-                    fontSize: 25.sp,
-                    fontFamily: fontsemibold),
+                  color: notifier.getblck,
+                  fontSize: 25.sp,
+                  fontFamily: fontsemibold,
+                ),
               ),
               Text(
                 "liketodo".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getblck,
-                    fontSize: 25.sp,
-                    fontFamily: fontsemibold),
+                  color: notifier.getblck,
+                  fontSize: 25.sp,
+                  fontFamily: fontsemibold,
+                ),
               ),
               SizedBox(height: height / 30.5),
               Button(
@@ -182,7 +187,9 @@ class _GetStartedState extends State<GetStarted> {
                 wihitecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
-                      state: PageState.addPage, page: CreatePasswordPageConfig);
+                    state: PageState.addPage,
+                    page: CreatePasswordPageConfig,
+                  );
                 },
               ),
               SizedBox(height: height / 50.5),
@@ -192,7 +199,9 @@ class _GetStartedState extends State<GetStarted> {
                 notifier.isDark ? wihitecolor : notifier.getbluecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
-                      state: PageState.addPage, page: ImportWalletPageConfig);
+                    state: PageState.addPage,
+                    page: ImportWalletPageConfig,
+                  );
                 },
               ),
               SizedBox(height: height / 50),
@@ -202,11 +211,12 @@ class _GetStartedState extends State<GetStarted> {
                 wihitecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: RecoverAccountViewPageConfig);
+                    state: PageState.addPage,
+                    page: RecoverAccountViewPageConfig,
+                  );
                 },
               ),
-              SizedBox(height: height / 50)
+              SizedBox(height: height / 50),
             ],
           ),
         ),
@@ -216,11 +226,16 @@ class _GetStartedState extends State<GetStarted> {
 
   void handleEnvironmentSwitch(String? newValue) async {
     if (newValue != appState.walletMode) {
-      showSwitchEnvironmentPopup(context, onProceed: () async {
-        await appState.changeWalletMode(newValue.toString());
-      }, onCancel: () {
-        _dropDownKey.currentState!.reset();
-      }, toEnvironment: newValue!);
+      showSwitchEnvironmentPopup(
+        context,
+        onProceed: () async {
+          await appState.changeWalletMode(newValue.toString());
+        },
+        onCancel: () {
+          _dropDownKey.currentState!.reset();
+        },
+        toEnvironment: newValue!,
+      );
     }
   }
 }

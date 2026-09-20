@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,6 +16,7 @@ import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -2969,12 +2971,10 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
       showLoader(context);
       var newData = {...data as Map};
 
-      newData['issueDate'] = DateFormat(
-        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
-      ).format(issueDate!.toUtc());
-      newData['maturityDate'] = DateFormat(
-        "yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'",
-      ).format(maturityDate!.toUtc());
+      newData['issueDate'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
+          .format(issueDate!.toUtc());
+      newData['maturityDate'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
+          .format(maturityDate!.toUtc());
       newData['weightedAverageLife'] = weightedAverageLife;
       newData['underlyingAssetPoolSize'] = underlyingAssetPoolSize;
       newData['totalIssueSize'] = totalIssueSize;
@@ -3033,7 +3033,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       if (responseData['statusCode'] == 200) {
@@ -3061,7 +3061,7 @@ class _MBSAssetInformationView extends State<MBSAssetInformationView>
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       if (responseData['statusCode'] == 200) {

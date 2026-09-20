@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,8 +28,10 @@ import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 import 'package:trovo_app/widgets/wallet_slides.dart';
+
 import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 class AllWalletsView extends StatefulWidget {
@@ -977,7 +980,7 @@ class _AllWalletsView extends State<AllWalletsView>
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 15.0),
                       child: Text(
-                        newSubWalletKeyPair.publicKey,
+                        newSubWalletKeyPair.address,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 15,
@@ -1056,9 +1059,7 @@ class _AllWalletsView extends State<AllWalletsView>
         for (var i = 0; i < filteredWallets.length; i++) ...[
           GestureDetector(
             onTap: () {
-              appState.viewData = {
-                'walletPublicKey': filteredWallets[i].publicKey,
-              };
+              appState.viewData = {'walletAddress': filteredWallets[i].address};
               appState.currentAction = PageAction(
                 state: PageState.addPage,
                 page: WalletDetailsViewPageConfig,
@@ -1200,7 +1201,7 @@ class _AllWalletsView extends State<AllWalletsView>
       // make initial request to the server using the
       // following credentials
       Map map = {
-        "publickey": newSubWalletKeyPair.publicKey,
+        "publickey": newSubWalletKeyPair.address,
         "walletTag": tag,
         "WalletDescription": description,
         "walletType": selectedWalletType,
@@ -1210,9 +1211,9 @@ class _AllWalletsView extends State<AllWalletsView>
       Map responseData = await makePostRequest(
         uri: '/v1/users/subwallet',
         body: requestBody,
-        signer: primaryWalletKeyPair.publicKey,
+        signer: primaryWalletKeyPair.address,
         secretKey: primaryWalletKeyPair.secretKey,
-        publicKey: primaryWalletKeyPair.publicKey,
+        address: primaryWalletKeyPair.address,
       );
 
       if (responseData['statusCode'] == 200) {
@@ -1283,9 +1284,9 @@ class _AllWalletsView extends State<AllWalletsView>
       Map responseData = await makePostRequest(
         uri: '/v1/users/subwallet',
         body: requestBody,
-        signer: primaryWalletKeyPair.publicKey,
+        signer: primaryWalletKeyPair.address,
         secretKey: primaryWalletKeyPair.secretKey,
-        publicKey: primaryWalletKeyPair.publicKey,
+        address: primaryWalletKeyPair.address,
       );
 
       if (responseData['statusCode'] == 200) {
@@ -1296,9 +1297,9 @@ class _AllWalletsView extends State<AllWalletsView>
         // contains the secret key of the newly created subwallet
         await StoreData().storeInsertData('secretKey', appState.secretKeys);
         await updateUserInfo(
-          appState.primaryWallet.publicKey,
+          appState.primaryWallet.address,
           appState.secretKeys[0],
-          appState.primaryWallet.publicKey,
+          appState.primaryWallet.address,
           userInfo.username,
           appState,
           forceRefresh: true,
@@ -1306,7 +1307,7 @@ class _AllWalletsView extends State<AllWalletsView>
         // add the new subwallet to appState and
         // set the newly created subwallet as the activeWallet
         appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
-          (wallet) => wallet.publicKey == newSubWalletKeyPair.publicKey,
+          (wallet) => wallet.address == newSubWalletKeyPair.address,
         );
         appState.activeWallet!.secretKey = newSubWalletKeyPair.secretKey;
         // move to next page

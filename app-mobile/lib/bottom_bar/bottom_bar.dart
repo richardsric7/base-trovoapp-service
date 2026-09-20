@@ -12,6 +12,7 @@ import 'package:trovo_app/screens/asset-tokenization/tokenization.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/utils/medeiaqury/medeiaqury.dart';
 import 'package:upgrader/upgrader.dart';
+
 import 'bottom_pages/swap_assets.dart';
 import 'bottom_pages/wallets.dart';
 
@@ -186,7 +187,7 @@ class _BottomHomeState extends State<BottomHome> {
           index == ButtomTabPage.TransactionHistory.index) {
         appState.setFilterQuery = "";
 
-        appState.getHistory(context, appState.activeWallet!.publicKey!);
+        appState.getHistory(context, appState.activeWallet!.address!);
       }
       _selectedIndex = index;
       appState.currentBottomTabIndex = _selectedIndex;

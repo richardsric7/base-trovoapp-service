@@ -18,7 +18,7 @@ class UserInfo {
   String? referrer;
   String? referralLink;
   String? referralQRCode;
-  String? publicKey;
+  String? address;
   int? corporate;
   String? pushNotificationToken;
   String? imageThumbnailURL;
@@ -38,7 +38,7 @@ class UserInfo {
     this.lastName,
     this.email,
     this.mobile,
-    this.publicKey,
+    this.address,
     this.mobileVerified,
     this.countryCode,
     this.currency,
@@ -75,7 +75,7 @@ class UserInfo {
       "referrer": referrer,
       "referralLink": referralLink,
       "referralQRCode": referralQRCode,
-      "publicKey": publicKey,
+      "address": address,
       "corporate": corporate,
       "pushNotificationToken": pushNotificationToken,
       "imageThumbnailURL": imageThumbnailURL,
@@ -102,7 +102,7 @@ class UserInfo {
       referrer: m['referrer'],
       referralLink: m['referralLink'],
       referralQRCode: m['referralQRCode'],
-      publicKey: m['publicKey'],
+      address: m['address'],
       corporate: m['corporate'],
       pushNotificationToken: m['pushNotificationToken'],
       imageThumbnailURL: m['imageThumbnailURL'],
@@ -173,9 +173,9 @@ class UserInfo {
     return myWallets;
   }
 
-  Wallet getWallet(String publicKey) {
+  Wallet getWallet(String address) {
     var combinedList = [...wallets!, ...sharedWallets!];
-    return combinedList.firstWhere((wallet) => wallet.publicKey == publicKey);
+    return combinedList.firstWhere((wallet) => wallet.address == address);
   }
 
   Wallet? getWalletByAlias(String alias) {

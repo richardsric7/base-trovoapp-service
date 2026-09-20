@@ -75,59 +75,61 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
                       fontFamily: fontsemibold,
                     ),
                   ),
-                  Image.asset(
-                    patronInfo.logo,
-                    height: 30,
-                  ),
+                  Image.asset(patronInfo.logo, height: 30),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Html(data: patronInfo.description, style: {
-                  "*": Style(
+                child: Html(
+                  data: patronInfo.description,
+                  style: {
+                    "*": Style(
                       color: notifier.getbluewhitecolor,
                       fontSize: FontSize.large,
                       lineHeight: LineHeight.number(1.2),
                       wordSpacing: 1.2,
-                      textAlign: TextAlign.justify),
-                  "h1, h2, h3, h4": Style(
-                    fontFamily: fontbody,
-                    fontSize: FontSize.large,
-                    fontWeight: FontWeight.w800,
-                  ),
-                }),
+                      textAlign: TextAlign.justify,
+                    ),
+                    "h1, h2, h3, h4": Style(
+                      fontFamily: fontbody,
+                      fontSize: FontSize.large,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  },
+                ),
               ),
               SizedBox(height: height / 30),
               tile(
-                  '\$${patronInfo.patronTiers[0].price} per month',
-                  'Billed per month',
-                  (appState.userInfo?.patronMembership?.patronTierId!
-                              .toLowerCase() ==
-                          patronInfo.patronTiers[0].tier.toLowerCase() &&
-                      appState.userInfo?.patronMembership?.patronPackageId!
-                              .toLowerCase() ==
-                          patronInfo.patronPackage.toLowerCase())),
+                '\$${patronInfo.patronTiers[0].price} per month',
+                'Billed per month',
+                (appState.userInfo?.patronMembership?.patronTierId!
+                            .toLowerCase() ==
+                        patronInfo.patronTiers[0].tier.toLowerCase() &&
+                    appState.userInfo?.patronMembership?.patronPackageId!
+                            .toLowerCase() ==
+                        patronInfo.patronPackage.toLowerCase()),
+              ),
               tile(
-                  '\$${patronInfo.patronTiers[1].price} per year',
-                  'Billed annually',
-                  (appState.userInfo?.patronMembership?.patronTierId!
-                              .toLowerCase() ==
-                          patronInfo.patronTiers[1].tier.toLowerCase() &&
-                      appState.userInfo?.patronMembership?.patronPackageId!
-                              .toLowerCase() ==
-                          patronInfo.patronPackage.toLowerCase())),
+                '\$${patronInfo.patronTiers[1].price} per year',
+                'Billed annually',
+                (appState.userInfo?.patronMembership?.patronTierId!
+                            .toLowerCase() ==
+                        patronInfo.patronTiers[1].tier.toLowerCase() &&
+                    appState.userInfo?.patronMembership?.patronPackageId!
+                            .toLowerCase() ==
+                        patronInfo.patronPackage.toLowerCase()),
+              ),
               tile(
-                  '\$${patronInfo.patronTiers[2].price} per lifetime',
-                  'Billed once',
-                  (appState.userInfo?.patronMembership?.patronTierId!
-                              .toLowerCase() ==
-                          patronInfo.patronTiers[2].tier.toLowerCase() &&
-                      appState.userInfo?.patronMembership?.patronPackageId!
-                              .toLowerCase() ==
-                          patronInfo.patronPackage.toLowerCase())),
+                '\$${patronInfo.patronTiers[2].price} per lifetime',
+                'Billed once',
+                (appState.userInfo?.patronMembership?.patronTierId!
+                            .toLowerCase() ==
+                        patronInfo.patronTiers[2].tier.toLowerCase() &&
+                    appState.userInfo?.patronMembership?.patronPackageId!
+                            .toLowerCase() ==
+                        patronInfo.patronPackage.toLowerCase()),
+              ),
               SizedBox(height: height / 10),
             ],
           ),
@@ -149,8 +151,10 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
                   : notifier.getaddsubwalletgrey,
             ),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10.0,
+                vertical: 12.0,
+              ),
               child: Row(
                 children: [
                   Container(
@@ -159,9 +163,7 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(
-                          width: width / 50,
-                        ),
+                        SizedBox(width: width / 50),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [

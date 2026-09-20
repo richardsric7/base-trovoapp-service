@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,7 +23,9 @@ import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
+
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 class ApprovalDetails extends StatefulWidget {
@@ -453,7 +456,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
         body: requestBody,
         signer: appState.primaryWallet.signer ?? "",
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer ?? "",
+        address: appState.primaryWallet.signer ?? "",
       );
 
       if (responseData['statusCode'] == 200 ||
@@ -492,7 +495,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
         body: requestBody,
         signer: appState.primaryWallet.signer ?? "",
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer ?? "",
+        address: appState.primaryWallet.signer ?? "",
       );
 
       if (responseData['statusCode'] == 200 ||
@@ -539,7 +542,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
         body: requestBody,
         signer: appState.primaryWallet.signer ?? "",
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer ?? "",
+        address: appState.primaryWallet.signer ?? "",
       );
 
       if (responseData['statusCode'] == 200 ||
@@ -581,7 +584,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
           '/v1/users/${appState.userInfo?.username?.trim().replaceAll(' ', '')}',
       signer: appState.primaryWallet.signer ?? "",
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: wallet?.publicKey ?? "",
+      address: wallet?.address ?? "",
     );
 
     if (responseData['statusCode'] == 200) {

@@ -16,6 +16,7 @@ import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
+
 import '../../custom_bloc_observer/fonts.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -563,7 +564,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
         uri: '/v1/patron',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.publicKey!,
+        address: appState.primaryWallet.address!,
       );
 
       if (responseData['statusCode'] == 200) {

@@ -17,6 +17,7 @@ import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class SelectDepositAddress extends StatefulWidget {
@@ -41,11 +42,12 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
     return networks
         .mapIndexed<DropdownMenuItem<String>>(
           (index, item) => DropdownMenuItem(
-              child: Text(
-                item.network.toString(),
-                overflow: TextOverflow.ellipsis,
-              ),
-              value: '${item.depositAddress}|$index'),
+            child: Text(
+              item.network.toString(),
+              overflow: TextOverflow.ellipsis,
+            ),
+            value: '${item.depositAddress}|$index',
+          ),
         )
         .toList();
   }
@@ -53,9 +55,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
   @override
   void initState() {
     appState = Provider.of<DataProvider>(context, listen: false);
-    wallet = appState.userInfo!.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = appState.userInfo!.getWallet(appState.viewData!['walletAddress']);
 
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
@@ -95,53 +95,46 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
-                  SizedBox(
-                    width: 20,
-                  ),
+                  SizedBox(width: 20),
                   Text(
                     '${"deposit".tr()} ${getAssetCode(asset!.assetCode)}',
                     style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
                 child: Text(
                   "deposittoaddress".tr(),
                   style: TextStyle(
-                      fontSize: 15,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody),
+                    fontSize: 15,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
-              SizedBox(
-                height: 20,
-              ),
+              SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
                 child: Text(
                   "network".tr(),
                   style: TextStyle(
-                      fontSize: 15,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontsemibold),
+                    fontSize: 15,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontsemibold,
+                  ),
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15.0),
                 child: Row(
@@ -153,8 +146,10 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                             ? darktilewhitecolor
                             : notifier.getaddsubwalletgrey,
                         decoration: InputDecoration(
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 0,
+                            horizontal: 20,
+                          ),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide.none,
                             borderRadius: BorderRadius.circular(10),
@@ -183,10 +178,11 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                         ),
                         elevation: 0,
                         style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 15,
-                            fontFamily: fontbody,
-                            fontWeight: FontWeight.w500),
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontbody,
+                          fontWeight: FontWeight.w500,
+                        ),
                         onChanged: (newValue) {
                           setState(() {
                             selectedNetwork = newValue!;
@@ -199,28 +195,26 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                 ),
               ),
               if (selectedNetwork.toString().isNotEmpty) ...[
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
                   child: Text(
                     "depositaddress".tr(),
                     style: TextStyle(
-                        fontSize: 15,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 15,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(15.0)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(15.0),
+                      ),
                       color: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -230,7 +224,9 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10.0),
+                            horizontal: 20,
+                            vertical: 10.0,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.start,
@@ -243,24 +239,27 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                                       selectedNetwork.toString().split('|')[0],
                                       overflow: TextOverflow.visible,
                                       style: TextStyle(
-                                          fontSize: 15,
-                                          color: notifier.getbluewhitecolor,
-                                          fontFamily: fontbody),
+                                        fontSize: 15,
+                                        color: notifier.getbluewhitecolor,
+                                        fontFamily: fontbody,
+                                      ),
                                     ),
                                   ),
                                   IconButton(
                                     onPressed: () {
                                       Clipboard.setData(
-                                        ClipboardData(
-                                          text: selectedNetwork,
-                                        ),
+                                        ClipboardData(text: selectedNetwork),
                                       );
                                       showSnackBar(
-                                          "depositaddress".tr(), context);
+                                        "depositaddress".tr(),
+                                        context,
+                                      );
                                     },
-                                    icon: Icon(Icons.copy,
-                                        size: 20,
-                                        color: notifier.getbluewhitecolor),
+                                    icon: Icon(
+                                      Icons.copy,
+                                      size: 20,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -271,55 +270,53 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       "oR".tr(),
                       style: TextStyle(
-                          fontSize: 15,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold),
+                        fontSize: 15,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
                   child: Text(
                     "scanqrcode".tr(),
                     style: TextStyle(
-                        fontSize: 15,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 15,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ),
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
-                        color: notifier.isDark
-                            ? darktilewhitecolor
-                            : notifier.getaddsubwalletgrey,
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(15.0),
                       ),
-                      child: Image.network(networks[int.parse(
-                        selectedNetwork.toString().split('|')[1],
-                      )]
-                          .qrCode!)),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Image.network(
+                      networks[int.parse(
+                            selectedNetwork.toString().split('|')[1],
+                          )]
+                          .qrCode!,
+                    ),
+                  ),
                 ),
-                SizedBox(
-                  height: height / 10,
-                ),
+                SizedBox(height: height / 10),
                 Button(
                   "done".tr(),
                   notifier.getbluecolor,
@@ -332,15 +329,14 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                   },
                 ),
               ] else ...[
-                SizedBox(
-                  height: height / 50,
-                ),
+                SizedBox(height: height / 50),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(15.0)),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(15.0),
+                      ),
                       color: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -350,7 +346,9 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10.0),
+                            horizontal: 20,
+                            vertical: 10.0,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.start,
@@ -363,9 +361,10 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                                       "selectdepositnetwork".tr(),
                                       textAlign: TextAlign.justify,
                                       style: TextStyle(
-                                          fontSize: 15,
-                                          color: notifier.getbluewhitecolor,
-                                          fontFamily: fontbody),
+                                        fontSize: 15,
+                                        color: notifier.getbluewhitecolor,
+                                        fontFamily: fontbody,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -378,9 +377,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                   ),
                 ),
               ],
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
             ],
           ),
         ),

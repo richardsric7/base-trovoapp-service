@@ -38,18 +38,18 @@ class _TopDropdownsState extends State<TopDropdowns> {
   List<DropdownMenuItem<String>> assetDropdownItems(bool isSelected) {
     List<DropdownMenuItem<String>> menuItems = [];
     for (var asset in widget.claimedAssets) {
-      menuItems.add(DropdownMenuItem(
+      menuItems.add(
+        DropdownMenuItem(
           child: Text(
             isSelected
-                ? truncate(
-                    getAssetCode(asset.assetCode),
-                    length: 3,
-                  )
+                ? truncate(getAssetCode(asset.assetCode), length: 3)
                 : getAssetCode(asset.assetCode),
             overflow: TextOverflow.visible,
           ),
           value:
-              '${getAssetCode(asset.assetCode)}|${getAssetIssuer(asset.assetIssuer)}'));
+              '${getAssetCode(asset.assetCode)}|${getAssetIssuer(asset.assetIssuer)}',
+        ),
+      );
     }
     return menuItems;
   }
@@ -67,33 +67,26 @@ class _TopDropdownsState extends State<TopDropdowns> {
                     : BoxConstraints(maxWidth: width / 3),
                 child: Text(
                   wallet.alias!,
-                  overflow:
-                      isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
+                  overflow: isSelected
+                      ? TextOverflow.ellipsis
+                      : TextOverflow.visible,
                 ),
               ),
               if (wallet.isSharedWallet) ...[
-                SizedBox(
-                  width: 2,
-                ),
+                SizedBox(width: 2),
                 Icon(
                   Icons.people_outline,
                   size: 17,
                   color: notifier.getbluecolor,
-                )
-              ],
-              if (!isSelected && wallet.publicKey == selectedWallet) ...[
-                SizedBox(
-                  width: 2,
                 ),
-                Icon(
-                  Icons.check,
-                  size: 18,
-                  color: notifier.getbluecolor,
-                )
+              ],
+              if (!isSelected && wallet.address == selectedWallet) ...[
+                SizedBox(width: 2),
+                Icon(Icons.check, size: 18, color: notifier.getbluecolor),
               ],
             ],
           ),
-          value: wallet.publicKey,
+          value: wallet.address,
         ),
       );
     });
@@ -115,23 +108,22 @@ class _TopDropdownsState extends State<TopDropdowns> {
       child: Row(
         children: [
           Expanded(
-              flex: 5,
-              child: dropdown(
-                (newValue) {
-                  widget.onWalletChanged(newValue.toString());
-                },
-                walletDropdownItems(false),
-                selectedWallet.toString().isEmpty ? null : selectedWallet,
-                null,
-                context,
-                (context) {
-                  return walletDropdownItems(true);
-                },
-              )),
-          if (widget.claimedAssets.isNotEmpty) ...[
-            SizedBox(
-              width: width / 70,
+            flex: 5,
+            child: dropdown(
+              (newValue) {
+                widget.onWalletChanged(newValue.toString());
+              },
+              walletDropdownItems(false),
+              selectedWallet.toString().isEmpty ? null : selectedWallet,
+              null,
+              context,
+              (context) {
+                return walletDropdownItems(true);
+              },
             ),
+          ),
+          if (widget.claimedAssets.isNotEmpty) ...[
+            SizedBox(width: width / 70),
             Expanded(
               flex: 3,
               child: DropdownButtonFormField(
@@ -139,8 +131,10 @@ class _TopDropdownsState extends State<TopDropdowns> {
                     ? darktilewhitecolor
                     : notifier.getaddsubwalletgrey,
                 decoration: InputDecoration(
-                  contentPadding:
-                      EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 0,
+                    horizontal: 20,
+                  ),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide.none,
                     borderRadius: BorderRadius.circular(10),
@@ -167,19 +161,15 @@ class _TopDropdownsState extends State<TopDropdowns> {
                 onChanged: (newValue) {
                   widget.onAssetChanged!(newValue.toString());
                 },
-                borderRadius: BorderRadius.all(
-                  Radius.circular(15),
-                ),
+                borderRadius: BorderRadius.all(Radius.circular(15)),
                 items: assetDropdownItems(false),
                 selectedItemBuilder: (context) {
                   return assetDropdownItems(true);
                 },
               ),
             ),
-            SizedBox(
-              width: width / 30,
-            ),
-          ]
+            SizedBox(width: width / 30),
+          ],
         ],
       ),
     );

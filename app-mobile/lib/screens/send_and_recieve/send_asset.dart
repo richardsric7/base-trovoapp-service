@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,6 +21,7 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class SendAsset extends StatefulWidget {
@@ -52,9 +54,9 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     appState = Provider.of<DataProvider>(context, listen: false);
     if (appState.viewData![SendAssetViewPageConfig.key]?['deepLinkInfo'] ==
             null &&
-        appState.viewData!['walletPublicKey'] != null) {
+        appState.viewData!['walletAddress'] != null) {
       wallet = appState.userInfo!.getWallet(
-        appState.viewData!['walletPublicKey'],
+        appState.viewData!['walletAddress'],
       );
       asset = wallet.claimedAssets!.firstWhere(
         (asset) =>
@@ -394,7 +396,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.publicKey!,
+        address: wallet.address!,
       );
 
       hideLoader(context);
@@ -434,7 +436,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     }
 
     appState.viewData = {
-      'walletPublicKey': wallet.publicKey,
+      'walletAddress': wallet.address,
       'assetCode': asset!.assetCode,
       'assetIssuer': asset!.assetIssuer,
       'rel': 'dashboard',

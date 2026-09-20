@@ -10,6 +10,7 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/storage/store.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../../utils/medeiaqury/medeiaqury.dart';
 
 class AnnouncementsView extends StatefulWidget {
@@ -55,9 +56,10 @@ class _AnnouncementsViewState extends State<AnnouncementsView> {
             title: Text(
               "announcements".tr(),
               style: TextStyle(
-                  fontSize: 20.sp,
-                  color: notifier.getblck,
-                  fontFamily: 'Gilroy_Bold'),
+                fontSize: 20.sp,
+                color: notifier.getblck,
+                fontFamily: 'Gilroy_Bold',
+              ),
             ),
           ),
         ),
@@ -98,27 +100,31 @@ class _AnnouncementsViewState extends State<AnnouncementsView> {
                                 "somethingwentwrong".tr(),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: 16,
-                                    color: notifier.getblck,
-                                    fontFamily: fontbody),
+                                  fontSize: 16,
+                                  color: notifier.getblck,
+                                  fontFamily: fontbody,
+                                ),
                               ),
                             ],
                           ),
                         ),
                       );
                     } else if (snapshot.hasData) {
-                      var announcements =
-                          Announcement().deserializeJsonList(snapshot.data);
+                      var announcements = Announcement().deserializeJsonList(
+                        snapshot.data,
+                      );
                       return Column(
                         children: [
                           for (var announcement in announcements) ...[
                             GestureDetector(
                               onTap: () {
                                 appState.viewData![AnnouncementViewPageConfig
-                                    .key] = announcement;
+                                        .key] =
+                                    announcement;
                                 appState.currentAction = PageAction(
-                                    state: PageState.addPage,
-                                    page: AnnouncementViewPageConfig);
+                                  state: PageState.addPage,
+                                  page: AnnouncementViewPageConfig,
+                                );
 
                                 announcement.isViewed = true;
                                 StoreData().storeInsertData(
@@ -127,8 +133,9 @@ class _AnnouncementsViewState extends State<AnnouncementsView> {
                                 );
                                 StoreData().storeInsertData(
                                   'announcements',
-                                  Announcement()
-                                      .toJSONEncodableList(announcements),
+                                  Announcement().toJSONEncodableList(
+                                    announcements,
+                                  ),
                                 );
                               },
                               child: Card(
@@ -136,13 +143,16 @@ class _AnnouncementsViewState extends State<AnnouncementsView> {
                                 shadowColor: Colors.black,
                                 color: notifier.gettilewihitecolor,
                                 margin: EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 20),
+                                  vertical: 10,
+                                  horizontal: 20,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(15.0),
                                 ),
                                 child: Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8.0),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8.0,
+                                  ),
                                   child: ListTile(
                                     title: Row(
                                       children: [
@@ -169,19 +179,22 @@ class _AnnouncementsViewState extends State<AnnouncementsView> {
                                                 ),
                                               ),
                                             ),
-                                            SizedBox(
-                                              height: height / 90,
-                                            ),
+                                            SizedBox(height: height / 90),
                                             Padding(
                                               padding:
                                                   const EdgeInsets.fromLTRB(
-                                                      0, 3.0, 0, 0),
+                                                    0,
+                                                    3.0,
+                                                    0,
+                                                    0,
+                                                  ),
                                               child: Container(
                                                 width: width / 1.4,
                                                 child: Text(
                                                   truncate(
-                                                      announcement.message!,
-                                                      length: 60),
+                                                    announcement.message!,
+                                                    length: 60,
+                                                  ),
                                                   style: TextStyle(
                                                     fontSize: 9,
                                                     fontFamily: fontbody,
@@ -190,19 +203,21 @@ class _AnnouncementsViewState extends State<AnnouncementsView> {
                                                 ),
                                               ),
                                             ),
-                                            SizedBox(
-                                              height: height / 90,
-                                            ),
+                                            SizedBox(height: height / 90),
                                             Padding(
                                               padding:
                                                   const EdgeInsets.fromLTRB(
-                                                      0, 3.0, 0, 0),
+                                                    0,
+                                                    3.0,
+                                                    0,
+                                                    0,
+                                                  ),
                                               child: Container(
                                                 width: width / 1.4,
                                                 child: Text(
                                                   DateFormat(
-                                                          'MMMM dd, yyyy hh:mm a')
-                                                      .format(
+                                                    'MMMM dd, yyyy hh:mm a',
+                                                  ).format(
                                                     announcement.createdAt!,
                                                   ),
                                                   style: TextStyle(
@@ -214,7 +229,7 @@ class _AnnouncementsViewState extends State<AnnouncementsView> {
                                               ),
                                             ),
                                           ],
-                                        )
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -222,9 +237,7 @@ class _AnnouncementsViewState extends State<AnnouncementsView> {
                               ),
                             ),
                           ],
-                          SizedBox(
-                            height: height / 10,
-                          ),
+                          SizedBox(height: height / 10),
                         ],
                       );
                     }
@@ -268,26 +281,29 @@ class _AnnouncementsViewState extends State<AnnouncementsView> {
         Text(
           txt,
           style: TextStyle(
-              color: notifier.getgrey,
-              fontFamily: 'Gilroy_Medium',
-              fontSize: 13.sp),
+            color: notifier.getgrey,
+            fontFamily: 'Gilroy_Medium',
+            fontSize: 13.sp,
+          ),
         ),
         SizedBox(height: height / 200),
         Text(
           rate,
           style: TextStyle(
-              color: notifier.getblck,
-              fontFamily: 'Gilroy_Bold',
-              fontSize: 14.sp),
+            color: notifier.getblck,
+            fontFamily: 'Gilroy_Bold',
+            fontSize: 14.sp,
+          ),
         ),
         SizedBox(height: height / 200),
         Text(
           updown,
           style: TextStyle(
-              color: const Color(0xff22C36B),
-              fontFamily: 'Gilroy_Bold',
-              fontSize: 14.sp),
-        )
+            color: const Color(0xff22C36B),
+            fontFamily: 'Gilroy_Bold',
+            fontSize: 14.sp,
+          ),
+        ),
       ],
     );
   }

@@ -14,6 +14,7 @@ import 'package:trovo_app/models/wallet.dart';
 import 'package:trovo_app/models/withdrawal_transaction_model.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class DepositWithdrawDetails extends StatefulWidget {
@@ -36,8 +37,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    wallet =
-        appState.userInfo!.getWallet(appState.viewData!['walletPublicKey']);
+    wallet = appState.userInfo!.getWallet(appState.viewData!['walletAddress']);
     transactionDirection =
         appState.viewData!['transactionDirection'] as TransactionDirection;
 
@@ -73,9 +73,10 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                 '${transactionDirection == TransactionDirection.Deposit ? 'Deposit' : 'Withdrawal'} ${"details".tr()}',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 22.sp),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 22.sp,
+                ),
               ),
               SizedBox(height: height / 30),
               Text(
@@ -92,13 +93,12 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                       ),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getgreencolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 20.sp),
+                  color: notifier.getgreencolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 20.sp,
+                ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Stack(
                 alignment: AlignmentDirectional.center,
                 children: [
@@ -106,23 +106,22 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                     padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15.0)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
                         color: notifier.isDark
                             ? darktilewhitecolor
                             : notifier.getaddsubwalletgrey,
                       ),
                       child:
                           transactionDirection == TransactionDirection.Deposit
-                              ? showDepositInfo()
-                              : showWithdrawalInfo(),
+                          ? showDepositInfo()
+                          : showWithdrawalInfo(),
                     ),
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Button(
                 "done".tr(),
                 notifier.getbluecolor,
@@ -131,9 +130,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                   Navigator.of(context).pop(context);
                 },
               ),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
             ],
           ),
         ),
@@ -145,9 +142,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          height: height / 90,
-        ),
+        SizedBox(height: height / 90),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
@@ -171,7 +166,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
-                        truncatePublicKey(depositInfo.toAddress),
+                        truncateAddress(depositInfo.toAddress),
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           color: notifier.getbluewhitecolor,
@@ -187,16 +182,11 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                       padding: EdgeInsets.zero,
                       onPressed: () => {
                         Clipboard.setData(
-                          ClipboardData(
-                            text: depositInfo.toAddress,
-                          ),
+                          ClipboardData(text: depositInfo.toAddress),
                         ),
                         showSnackBar("toaddress".tr(), context),
                       },
-                      icon: Icon(
-                        Icons.copy,
-                        size: 20,
-                      ),
+                      icon: Icon(Icons.copy, size: 20),
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
@@ -205,9 +195,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             ],
           ),
         ),
-        Divider(
-          height: 5,
-        ),
+        Divider(height: 5),
         Padding(
           padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
           child: Text(
@@ -231,7 +219,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
-                        truncatePublicKey(depositInfo.fromAddress),
+                        truncateAddress(depositInfo.fromAddress),
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           color: notifier.getbluewhitecolor,
@@ -247,16 +235,11 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                       padding: EdgeInsets.zero,
                       onPressed: () => {
                         Clipboard.setData(
-                          ClipboardData(
-                            text: depositInfo.fromAddress,
-                          ),
+                          ClipboardData(text: depositInfo.fromAddress),
                         ),
                         showSnackBar("fromaddress".tr(), context),
                       },
-                      icon: Icon(
-                        Icons.copy,
-                        size: 20,
-                      ),
+                      icon: Icon(Icons.copy, size: 20),
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
@@ -265,9 +248,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             ],
           ),
         ),
-        Divider(
-          height: 5,
-        ),
+        Divider(height: 5),
         Padding(
           padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
           child: Text(
@@ -307,16 +288,11 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                       padding: EdgeInsets.zero,
                       onPressed: () => {
                         Clipboard.setData(
-                          ClipboardData(
-                            text: depositInfo.fromAddress,
-                          ),
+                          ClipboardData(text: depositInfo.fromAddress),
                         ),
                         showSnackBar("walletalias".tr(), context),
                       },
-                      icon: Icon(
-                        Icons.copy,
-                        size: 20,
-                      ),
+                      icon: Icon(Icons.copy, size: 20),
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
@@ -329,7 +305,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
-                        truncatePublicKey(depositInfo.trovoWalletPublicKey),
+                        truncateAddress(depositInfo.trovoWalletAddress),
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           color: notifier.getbluewhitecolor,
@@ -345,16 +321,11 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                       padding: EdgeInsets.zero,
                       onPressed: () => {
                         Clipboard.setData(
-                          ClipboardData(
-                            text: depositInfo.fromAddress,
-                          ),
+                          ClipboardData(text: depositInfo.fromAddress),
                         ),
                         showSnackBar("publickey".tr(), context),
                       },
-                      icon: Icon(
-                        Icons.copy,
-                        size: 20,
-                      ),
+                      icon: Icon(Icons.copy, size: 20),
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
@@ -363,9 +334,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             ],
           ),
         ),
-        Divider(
-          height: 5,
-        ),
+        Divider(height: 5),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
@@ -378,9 +347,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             ),
           ),
         ),
-        SizedBox(
-          height: 5,
-        ),
+        SizedBox(height: 5),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Row(
@@ -389,8 +356,9 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                 flex: 5,
                 child: GestureDetector(
                   onTap: () => appState.goToWebView(
-                      getExplorerBaseUrl(appState.walletMode) +
-                          depositInfo.transactionId),
+                    getExplorerBaseUrl(appState.walletMode) +
+                        depositInfo.transactionId,
+                  ),
                   child: Text(
                     depositInfo.transactionId,
                     style: TextStyle(
@@ -408,25 +376,18 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                 child: IconButton(
                   onPressed: () => {
                     Clipboard.setData(
-                      ClipboardData(
-                        text: depositInfo.transactionId,
-                      ),
+                      ClipboardData(text: depositInfo.transactionId),
                     ),
                     showSnackBar("transactionid".tr(), context),
                   },
-                  icon: Icon(
-                    Icons.copy,
-                    size: 20,
-                  ),
+                  icon: Icon(Icons.copy, size: 20),
                   color: notifier.getbluewhitecolor,
                 ),
               ),
             ],
           ),
         ),
-        Divider(
-          height: 5,
-        ),
+        Divider(height: 5),
         Padding(
           padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
           child: Text(
@@ -439,9 +400,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
@@ -454,12 +413,8 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             ),
           ),
         ),
-        Divider(
-          height: 5,
-        ),
-        SizedBox(
-          height: height / 50,
-        ),
+        Divider(height: 5),
+        SizedBox(height: height / 50),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
@@ -472,9 +427,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
@@ -487,9 +440,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
       ],
     );
   }
@@ -498,9 +449,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          height: height / 90,
-        ),
+        SizedBox(height: height / 90),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
@@ -540,16 +489,11 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                       padding: EdgeInsets.zero,
                       onPressed: () => {
                         Clipboard.setData(
-                          ClipboardData(
-                            text: withdrawalInfo.walletAlias,
-                          ),
+                          ClipboardData(text: withdrawalInfo.walletAlias),
                         ),
                         showSnackBar('', context),
                       },
-                      icon: Icon(
-                        Icons.copy,
-                        size: 20,
-                      ),
+                      icon: Icon(Icons.copy, size: 20),
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
@@ -562,7 +506,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
-                        truncatePublicKey(withdrawalInfo.walletPublicKey),
+                        truncateAddress(withdrawalInfo.walletAddress),
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           color: notifier.getbluewhitecolor,
@@ -578,16 +522,11 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                       padding: EdgeInsets.zero,
                       onPressed: () => {
                         Clipboard.setData(
-                          ClipboardData(
-                            text: withdrawalInfo.walletPublicKey,
-                          ),
+                          ClipboardData(text: withdrawalInfo.walletAddress),
                         ),
                         showSnackBar("publickey".tr(), context),
                       },
-                      icon: Icon(
-                        Icons.copy,
-                        size: 20,
-                      ),
+                      icon: Icon(Icons.copy, size: 20),
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
@@ -596,9 +535,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             ],
           ),
         ),
-        Divider(
-          height: 5,
-        ),
+        Divider(height: 5),
         Padding(
           padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
           child: Text(
@@ -617,20 +554,18 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             children: [
               keyValuePair(
                 '${"network".tr()}:',
-                truncatePublicKey(withdrawalInfo.withdrawalNetwork),
+                truncateAddress(withdrawalInfo.withdrawalNetwork),
               ),
               keyValuePair(
                 '${"address".tr()}:',
-                truncatePublicKey(withdrawalInfo.withdrawalAddress),
+                truncateAddress(withdrawalInfo.withdrawalAddress),
                 copy: true,
                 copyText: withdrawalInfo.withdrawalAddress,
               ),
             ],
           ),
         ),
-        Divider(
-          height: 5,
-        ),
+        Divider(height: 5),
         Padding(
           padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
           child: Text(
@@ -651,9 +586,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                 '${"networkfee".tr()}:',
                 '${withdrawalInfo.withdrawalNetworkFee} ${withdrawalInfo.currency}',
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               keyValuePair(
                 '${"servicefee".tr()}:',
                 '${withdrawalInfo.withdrawalServiceFee} ETH',
@@ -661,9 +594,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             ],
           ),
         ),
-        Divider(
-          height: 5,
-        ),
+        Divider(height: 5),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
@@ -676,9 +607,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             ),
           ),
         ),
-        SizedBox(
-          height: 5,
-        ),
+        SizedBox(height: 5),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Row(
@@ -687,8 +616,9 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                 flex: 5,
                 child: GestureDetector(
                   onTap: () => appState.goToWebView(
-                      getExplorerBaseUrl(appState.walletMode) +
-                          withdrawalInfo.transactionId),
+                    getExplorerBaseUrl(appState.walletMode) +
+                        withdrawalInfo.transactionId,
+                  ),
                   child: Text(
                     withdrawalInfo.transactionId,
                     style: TextStyle(
@@ -706,28 +636,19 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                 child: IconButton(
                   onPressed: () => {
                     Clipboard.setData(
-                      ClipboardData(
-                        text: withdrawalInfo.transactionId,
-                      ),
+                      ClipboardData(text: withdrawalInfo.transactionId),
                     ),
                     showSnackBar("transactionid".tr(), context),
                   },
-                  icon: Icon(
-                    Icons.copy,
-                    size: 20,
-                  ),
+                  icon: Icon(Icons.copy, size: 20),
                   color: notifier.getbluewhitecolor,
                 ),
               ),
             ],
           ),
         ),
-        Divider(
-          height: 5,
-        ),
-        SizedBox(
-          height: height / 50,
-        ),
+        Divider(height: 5),
+        SizedBox(height: height / 50),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
@@ -740,9 +661,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
@@ -755,9 +674,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             ),
           ),
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
       ],
     );
   }
@@ -769,8 +686,12 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
         : '+ $am $assetCode';
   }
 
-  Widget keyValuePair(String key, String value,
-      {bool copy = false, String copyText = ''}) {
+  Widget keyValuePair(
+    String key,
+    String value, {
+    bool copy = false,
+    String copyText = '',
+  }) {
     return Row(
       children: [
         Expanded(
@@ -806,17 +727,10 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                   flex: 1,
                   child: IconButton(
                     onPressed: () => {
-                      Clipboard.setData(
-                        ClipboardData(
-                          text: copyText,
-                        ),
-                      ),
+                      Clipboard.setData(ClipboardData(text: copyText)),
                       showSnackBar('', context),
                     },
-                    icon: Icon(
-                      Icons.copy,
-                      size: 20,
-                    ),
+                    icon: Icon(Icons.copy, size: 20),
                     color: notifier.getbluewhitecolor,
                   ),
                 ),

@@ -5,9 +5,9 @@ class TransactionInfo {
   String? transactionType;
   TransactionDirection? transactionDirection;
   String? from;
-  String? fromPublicKey;
+  String? fromAddress;
   String? to;
-  String? toPublicKey;
+  String? toAddress;
   String? memo;
   String? assetCode;
   String? assetIssuer;
@@ -19,9 +19,9 @@ class TransactionInfo {
     this.transactionType,
     this.transactionDirection,
     this.from,
-    this.fromPublicKey,
+    this.fromAddress,
     this.to,
-    this.toPublicKey,
+    this.toAddress,
     this.memo,
     this.assetCode,
     this.assetIssuer,
@@ -34,14 +34,14 @@ class TransactionInfo {
       "transactionDate": transactionDate!.toIso8601String(),
       "transactionType": transactionType,
       "from": from,
-      "fromPublicKey": fromPublicKey,
+      "fromAddress": fromAddress,
       "to": to,
-      "toPublicKey": toPublicKey,
+      "toAddress": toAddress,
       "memo": memo,
       "assetCode": assetCode,
       "assetIssuer": assetIssuer,
       "amount": amount,
-      "transactionId": transactionId
+      "transactionId": transactionId,
     };
   }
 
@@ -50,9 +50,9 @@ class TransactionInfo {
       transactionDate: DateTime.parse(m["transactionDate"]),
       transactionType: m["transactionType"],
       from: m["from"],
-      fromPublicKey: m["fromPublicKey"],
+      fromAddress: m["fromAddress"],
       to: m["to"],
-      toPublicKey: m["toPublicKey"],
+      toAddress: m["toAddress"],
       memo: m["memo"],
       assetCode: m["assetCode"],
       assetIssuer: m["assetIssuer"],

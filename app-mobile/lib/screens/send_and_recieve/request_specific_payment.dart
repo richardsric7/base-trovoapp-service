@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,6 +22,7 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class RequestSpecificPayment extends StatefulWidget {
@@ -53,7 +55,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
 
     appState = Provider.of<DataProvider>(context, listen: false);
     userInfo = appState.userInfo!;
-    wallet = userInfo.getWallet(appState.viewData!['walletPublicKey']);
+    wallet = userInfo.getWallet(appState.viewData!['walletAddress']);
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
@@ -258,10 +260,10 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
       showLoader(context);
       Map responseData = await makeGetRequest(
         uri:
-            '/v1/users/payment/generate/${wallet.alias}?paymentDestination=${wallet.publicKey}&assetCode=${asset!.assetCode}&assetIssuer=${asset!.assetIssuer}&amount=${amount.toString()}&memo=${memo != null ? Uri.encodeComponent(memo!) : ''}',
+            '/v1/users/payment/generate/${wallet.alias}?paymentDestination=${wallet.address}&assetCode=${asset!.assetCode}&assetIssuer=${asset!.assetIssuer}&amount=${amount.toString()}&memo=${memo != null ? Uri.encodeComponent(memo!) : ''}',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.publicKey!,
+        address: wallet.address!,
       );
 
       hideLoader(context);

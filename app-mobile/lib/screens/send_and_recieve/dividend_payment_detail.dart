@@ -15,6 +15,7 @@ import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class DividendPaymentDetailsView extends StatefulWidget {
@@ -38,7 +39,7 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
   int tabLength = 2;
   int touchedIndex = -1;
   String password = '';
-  String? publicKey;
+  String? address;
   double? amount;
   String? assetCode;
   String memo = '';
@@ -161,7 +162,7 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
                                         onPressed: () => {
                                           Clipboard.setData(
                                             ClipboardData(
-                                              text: 'viewData.toPublicKey',
+                                              text: 'viewData.toAddress',
                                             ),
                                           ),
                                           showSnackBar(
@@ -185,11 +186,11 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
                                         ),
                                         child: Text(
                                           truncate(
-                                                'viewData.toPublicKey!',
+                                                'viewData.toAddress!',
                                                 length: 5,
                                               ) +
-                                              'viewData.toPublicKey!'.substring(
-                                                'viewData.toPublicKey!'.length -
+                                              'viewData.toAddress!'.substring(
+                                                'viewData.toAddress!'.length -
                                                     5,
                                               ),
                                           style: TextStyle(
@@ -208,7 +209,7 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
                                         onPressed: () => {
                                           Clipboard.setData(
                                             ClipboardData(
-                                              text: 'viewData.toPublicKey!',
+                                              text: 'viewData.toAddress!',
                                             ),
                                           ),
                                           showSnackBar(

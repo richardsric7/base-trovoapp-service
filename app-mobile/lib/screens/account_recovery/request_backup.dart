@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
 import '../../custom_bloc_observer/notifire_clor.dart';
@@ -40,9 +41,10 @@ class _RequestBackup extends State<RequestBackup> {
                 child: Text(
                   '${"congratulations".tr()}',
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontsemibold,
-                      fontSize: 27),
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontsemibold,
+                    fontSize: 27,
+                  ),
                 ),
               ),
               Padding(
@@ -51,9 +53,10 @@ class _RequestBackup extends State<RequestBackup> {
                   '${appState.tempUsername}!',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontsemibold,
-                      fontSize: 27),
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontsemibold,
+                    fontSize: 27,
+                  ),
                 ),
               ),
               SizedBox(height: height / 50),
@@ -63,10 +66,11 @@ class _RequestBackup extends State<RequestBackup> {
                   "backupnewsecretkeygenerated".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 20,
-                      wordSpacing: 3,
-                      fontFamily: fontbody),
+                    color: notifier.getgrey,
+                    fontSize: 20,
+                    wordSpacing: 3,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
               SizedBox(height: height / 20),
@@ -75,15 +79,13 @@ class _RequestBackup extends State<RequestBackup> {
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
-                  ensureBackupPrivacyDialog(
-                    context,
-                    () {
-                      Navigator.of(context).pop();
-                      appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: EnsurePrivacyPageConfig);
-                    },
-                  );
+                  ensureBackupPrivacyDialog(context, () {
+                    Navigator.of(context).pop();
+                    appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: EnsurePrivacyPageConfig,
+                    );
+                  });
                 },
               ),
               SizedBox(height: height / 7.3),

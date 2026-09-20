@@ -31,24 +31,28 @@ class _ComplateerificationState extends State<Complateerification> {
             children: [
               SizedBox(height: height / 6),
               Center(
-                child: Image.asset("assets/images/vrfcomplate.png",
-                    height: height / 3.3),
+                child: Image.asset(
+                  "assets/images/vrfcomplate.png",
+                  height: height / 3.3,
+                ),
               ),
               SizedBox(height: height / 11),
               Text(
                 "youreverified".tr(),
                 style: TextStyle(
-                    color: notifier.getblck,
-                    fontFamily: fontsemibold,
-                    fontSize: 27.sp),
+                  color: notifier.getblck,
+                  fontFamily: fontsemibold,
+                  fontSize: 27.sp,
+                ),
               ),
               SizedBox(height: height / 50),
               Text(
                 "youhavebeensucces".tr(),
                 style: TextStyle(
-                    color: notifier.getgrey,
-                    fontSize: 15.sp,
-                    fontFamily: fontbody),
+                  color: notifier.getgrey,
+                  fontSize: 15.sp,
+                  fontFamily: fontbody,
+                ),
               ),
               SizedBox(height: height / 4.3),
               Button(
@@ -58,12 +62,10 @@ class _ComplateerificationState extends State<Complateerification> {
                 onTap: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => Congratulations(),
-                    ),
+                    MaterialPageRoute(builder: (context) => Congratulations()),
                   );
                 },
-              )
+              ),
             ],
           ),
         ),

@@ -1,4 +1,5 @@
 import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,6 +14,7 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class ConfirmQuickBuyView extends StatefulWidget {

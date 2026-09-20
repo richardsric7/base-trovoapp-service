@@ -82,16 +82,16 @@ class TrovoWalletSDK {
 }
 
 class Account {
-  late String publicKey;
+  late String address;
   late String secretKey;
 
   Account(String p, String s) {
-    this.publicKey = p;
+    this.address = p;
     this.secretKey = s;
   }
 
   @override
   String toString() {
-    return "Public-Key: " + this.publicKey + " Secret-Key: " + this.secretKey;
+    return "Public-Key: " + this.address + " Secret-Key: " + this.secretKey;
   }
 }

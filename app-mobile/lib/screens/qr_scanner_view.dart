@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -169,7 +170,7 @@ class _QrScannerState extends State<QrScanner> {
       uri: Uri.encodeFull(uri),
       signer: appState!.primaryWallet.signer!,
       secretKey: appState!.secretKeys[0], // the primary wallet secret key
-      publicKey: appState!.primaryWallet.signer!,
+      address: appState!.primaryWallet.signer!,
     );
     if (responseData['statusCode'] == 200) {
       appState!.processDeepLink(

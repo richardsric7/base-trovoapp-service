@@ -31,8 +31,8 @@ class PatronMembership {
     return patronPackageId!.toLowerCase() == 'gold'
         ? "assets/images/gold.png"
         : patronPackageId!.toLowerCase() == 'diamond'
-            ? "assets/images/diamond.png"
-            : "assets/images/platinum.png";
+        ? "assets/images/diamond.png"
+        : "assets/images/platinum.png";
   }
 
   PatronMembership deserializeJson(Map<String, dynamic> m) {

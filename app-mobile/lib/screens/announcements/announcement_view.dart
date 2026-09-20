@@ -48,18 +48,22 @@ class _AnnouncementView extends State<AnnouncementView> {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                child: Html(data: announcement.message!, style: {
-                  "*": Style(
+                child: Html(
+                  data: announcement.message!,
+                  style: {
+                    "*": Style(
                       color: notifier.getbluewhitecolor,
                       fontSize: FontSize.large,
                       lineHeight: LineHeight.number(1.2),
                       wordSpacing: 1.2,
-                      textAlign: TextAlign.justify),
-                  "h1, h2, h3, h4": Style(
-                    fontFamily: fontsemibold,
-                    fontSize: FontSize.large,
-                  ),
-                }),
+                      textAlign: TextAlign.justify,
+                    ),
+                    "h1, h2, h3, h4": Style(
+                      fontFamily: fontsemibold,
+                      fontSize: FontSize.large,
+                    ),
+                  },
+                ),
               ),
               SizedBox(height: height / 20),
             ],

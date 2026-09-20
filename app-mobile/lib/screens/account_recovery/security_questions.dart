@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
 import '../../storage/state.dart';
@@ -35,7 +36,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
   String password = '';
   // late var primaryWallet;
   late String? username;
-  late String? publicKey;
+  late String? address;
   late String? signer;
   late String? secretKey;
   var questionsMap = {
@@ -61,14 +62,14 @@ class _SecurityQuestions extends State<SecurityQuestions> {
     appState = Provider.of<DataProvider>(context, listen: false);
     // primaryWallet = appState.userInfo!.wallets!
     //     .firstWhere((wallet) => wallet.primaryWallet == 1);
-    publicKey =
-        appState.viewData![SecurityQuestionsViewPageConfig.key]['publicKey'];
+    address =
+        appState.viewData![SecurityQuestionsViewPageConfig.key]['address'];
     signer = appState.viewData![SecurityQuestionsViewPageConfig.key]['signer'];
     secretKey =
         appState.viewData![SecurityQuestionsViewPageConfig.key]['secretKey'];
     username =
         appState.viewData![SecurityQuestionsViewPageConfig.key]['username'];
-    questions = fetchQuestions(signer, secretKey, publicKey, username);
+    questions = fetchQuestions(signer, secretKey, address, username);
   }
 
   @override
@@ -191,9 +192,9 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                                 onPressed: () {
                                   setState(() {
                                     questions = fetchQuestions(
-                                      publicKey,
+                                      address,
                                       secretKey,
-                                      publicKey,
+                                      address,
                                       username,
                                     );
                                   });
@@ -418,11 +419,11 @@ class _SecurityQuestions extends State<SecurityQuestions> {
         body: requestBody,
         signer: signer!,
         secretKey: secretKey!, // the primary wallet secret key
-        publicKey: publicKey!,
+        address: address!,
       );
 
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo(signer, secretKey, publicKey, username, appState);
+        await updateUserInfo(signer, secretKey, address, username, appState);
         appState.viewData = {
           SuccessViewPageConfig.key: {
             'title': "success".tr(),
@@ -456,17 +457,12 @@ class _SecurityQuestions extends State<SecurityQuestions> {
     }
   }
 
-  Future<List<Map>> fetchQuestions(
-    signer,
-    secretKey,
-    publicKey,
-    username,
-  ) async {
+  Future<List<Map>> fetchQuestions(signer, secretKey, address, username) async {
     Map responseData = await makeGetRequest(
       uri: '/v1/security-questions/$username',
       signer: signer,
       secretKey: secretKey, // the primary wallet secret key
-      publicKey: publicKey!,
+      address: address!,
     );
     var questionsList = <Map>[];
 

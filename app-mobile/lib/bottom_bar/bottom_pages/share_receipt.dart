@@ -15,6 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'payment_history.dart';
 
@@ -39,7 +40,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
   String password = '';
   late TransactionInfo viewData;
   String? name;
-  String? publicKey;
+  String? address;
   double? amount;
   String? assetCode;
   String? date;
@@ -60,14 +61,14 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![ShareReceiptViewPageConfig.key];
     name = viewData.from;
-    publicKey = viewData.fromPublicKey;
+    address = viewData.fromAddress;
     memo = viewData.memo!;
 
     // if record.from is same as the current active wallet public key
     // then it was a send transaction
     if (viewData.transactionDirection == TransactionDirection.Send) {
       name = viewData.to;
-      publicKey = viewData.toPublicKey;
+      address = viewData.toAddress;
     }
 
     if (viewData.transactionType!.contains('SWAP') &&
@@ -79,8 +80,8 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
     amount = viewData.amount;
 
     assetCode = viewData.assetCode;
-    date =
-        DateFormat('MMMM dd, yyyy hh:mm a').format(viewData.transactionDate!);
+    date = DateFormat('MMMM dd, yyyy hh:mm a')
+        .format(viewData.transactionDate!);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -113,23 +114,27 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                         '${viewData.transactionType!.capitalizeFirst!} ${"details".tr()}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontsemibold,
-                            fontSize: 22),
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold,
+                          fontSize: 22,
+                        ),
                       ),
                       SizedBox(height: 3),
                       Container(
                         width: width / 1.5,
                         child: Text(
-                          "generatedon".tr(args: [
-                            DateFormat('MMMM dd, yyyy hh:mm a')
-                                .format(DateTime.now())
-                          ]),
+                          "generatedon".tr(
+                            args: [
+                              DateFormat('MMMM dd, yyyy hh:mm a')
+                                  .format(DateTime.now()),
+                            ],
+                          ),
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody,
-                              fontSize: 12),
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                       SizedBox(height: height / 50),
@@ -137,8 +142,9 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                         padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                         child: Container(
                           decoration: BoxDecoration(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(15.0)),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(15.0),
+                            ),
                             color: notifier.isDark
                                 ? darktilewhitecolor
                                 : notifier.getaddsubwalletgrey,
@@ -158,12 +164,11 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                 children: [
                                   if (TransactionDirection.Swap !=
                                       viewData.transactionDirection!) ...[
-                                    SizedBox(
-                                      height: height / 90,
-                                    ),
+                                    SizedBox(height: height / 90),
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 20.0),
+                                        horizontal: 20.0,
+                                      ),
                                       child: Text(
                                         viewData.transactionDirection! ==
                                                 TransactionDirection.Send
@@ -186,7 +191,8 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                               Padding(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                        horizontal: 20.0),
+                                                      horizontal: 20.0,
+                                                    ),
                                                 child: Text(
                                                   viewData.transactionDirection! ==
                                                           TransactionDirection
@@ -194,14 +200,14 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                                       ? viewData.from!
                                                       : viewData.to!,
                                                   style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      color: notifier
-                                                          .getbluewhitecolor,
-                                                      fontSize: 16.sp,
-                                                      fontFamily: fontbody,
-                                                      overflow:
-                                                          TextOverflow.visible),
+                                                    fontWeight: FontWeight.w500,
+                                                    color: notifier
+                                                        .getbluewhitecolor,
+                                                    fontSize: 16.sp,
+                                                    fontFamily: fontbody,
+                                                    overflow:
+                                                        TextOverflow.visible,
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -211,34 +217,41 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                               Expanded(
                                                 flex: 3,
                                                 child: Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 20.0,
-                                                      vertical: 5),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 20.0,
+                                                        vertical: 5,
+                                                      ),
                                                   child: Text(
                                                     viewData.transactionDirection! ==
                                                             TransactionDirection
                                                                 .Send
                                                         ? truncate(
                                                                 viewData
-                                                                    .fromPublicKey!,
-                                                                length: 5) +
-                                                            viewData
-                                                                .fromPublicKey!
-                                                                .substring(viewData
-                                                                        .fromPublicKey!
-                                                                        .length -
-                                                                    5)
+                                                                    .fromAddress!,
+                                                                length: 5,
+                                                              ) +
+                                                              viewData
+                                                                  .fromAddress!
+                                                                  .substring(
+                                                                    viewData
+                                                                            .fromAddress!
+                                                                            .length -
+                                                                        5,
+                                                                  )
                                                         : truncate(
                                                                 viewData
-                                                                    .toPublicKey!,
-                                                                length: 5) +
-                                                            viewData
-                                                                .toPublicKey!
-                                                                .substring(viewData
-                                                                        .toPublicKey!
-                                                                        .length -
-                                                                    5),
+                                                                    .toAddress!,
+                                                                length: 5,
+                                                              ) +
+                                                              viewData
+                                                                  .toAddress!
+                                                                  .substring(
+                                                                    viewData
+                                                                            .toAddress!
+                                                                            .length -
+                                                                        5,
+                                                                  ),
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.w500,
@@ -255,15 +268,17 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                         ],
                                       ),
                                     ),
-                                    Divider(
-                                      height: 5,
-                                    ),
+                                    Divider(height: 5),
                                   ],
                                   if (TransactionDirection.Swap !=
                                       viewData.transactionDirection!) ...[
                                     Padding(
                                       padding: const EdgeInsets.fromLTRB(
-                                          20.0, 10, 0, 0),
+                                        20.0,
+                                        10,
+                                        0,
+                                        0,
+                                      ),
                                       child: Text(
                                         viewData.transactionDirection! ==
                                                 TransactionDirection.Send
@@ -277,20 +292,15 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                         ),
                                       ),
                                     ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
+                                    SizedBox(height: 5),
                                     showUserInfo(),
-                                    Divider(
-                                      height: 5,
-                                    ),
+                                    Divider(height: 5),
                                   ],
-                                  SizedBox(
-                                    height: height / 90,
-                                  ),
+                                  SizedBox(height: height / 90),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0),
+                                      horizontal: 20.0,
+                                    ),
                                     child: Text(
                                       "amount".tr(),
                                       style: TextStyle(
@@ -301,17 +311,17 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       ),
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: 5,
-                                  ),
+                                  SizedBox(height: 5),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0),
+                                      horizontal: 20.0,
+                                    ),
                                     child: Text(
                                       formatAmount(
-                                          viewData.transactionDirection!,
-                                          viewData.amount,
-                                          viewData.assetCode),
+                                        viewData.transactionDirection!,
+                                        viewData.amount,
+                                        viewData.assetCode,
+                                      ),
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,
@@ -320,16 +330,13 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       ),
                                     ),
                                   ),
-                                  Divider(
-                                    height: 5,
-                                  ),
+                                  Divider(height: 5),
                                   if (viewData.memo!.isNotEmpty) ...[
-                                    SizedBox(
-                                      height: height / 90,
-                                    ),
+                                    SizedBox(height: height / 90),
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 20.0),
+                                        horizontal: 20.0,
+                                      ),
                                       child: Text(
                                         "formemo".tr(),
                                         style: TextStyle(
@@ -340,12 +347,11 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                         ),
                                       ),
                                     ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
+                                    SizedBox(height: 5),
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 20.0),
+                                        horizontal: 20.0,
+                                      ),
                                       child: Text(
                                         memo,
                                         style: TextStyle(
@@ -356,16 +362,13 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                         ),
                                       ),
                                     ),
-                                    Divider(
-                                      height: 5,
-                                    ),
+                                    Divider(height: 5),
                                   ],
-                                  SizedBox(
-                                    height: height / 90,
-                                  ),
+                                  SizedBox(height: height / 90),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0),
+                                      horizontal: 20.0,
+                                    ),
                                     child: Text(
                                       "blockchainproof".tr(),
                                       style: TextStyle(
@@ -376,21 +379,22 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       ),
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: 5,
-                                  ),
+                                  SizedBox(height: 5),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0),
+                                      horizontal: 20.0,
+                                    ),
                                     child: Row(
                                       children: [
                                         Expanded(
                                           flex: 5,
                                           child: GestureDetector(
                                             onTap: () => appState.goToWebView(
-                                                getExplorerBaseUrl(
-                                                        appState.walletMode) +
-                                                    viewData.transactionId!),
+                                              getExplorerBaseUrl(
+                                                    appState.walletMode,
+                                                  ) +
+                                                  viewData.transactionId!,
+                                            ),
                                             child: Text(
                                               viewData.transactionId!,
                                               style: TextStyle(
@@ -408,15 +412,12 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       ],
                                     ),
                                   ),
-                                  Divider(
-                                    height: 5,
-                                  ),
-                                  SizedBox(
-                                    height: height / 50,
-                                  ),
+                                  Divider(height: 5),
+                                  SizedBox(height: height / 50),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0),
+                                      horizontal: 20.0,
+                                    ),
                                     child: Text(
                                       "date".tr(),
                                       style: TextStyle(
@@ -429,7 +430,9 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0, vertical: 5),
+                                      horizontal: 20.0,
+                                      vertical: 5,
+                                    ),
                                     child: Text(
                                       '$date',
                                       style: TextStyle(
@@ -440,51 +443,43 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       ),
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: height / 50,
-                                  ),
+                                  SizedBox(height: height / 50),
                                 ],
                               ),
                             ],
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
+                      SizedBox(height: height / 50),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               Button(
                 "shareimage".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
                   share(
-                      'Blockchain proof\n${getExplorerBaseUrl(appState.walletMode)}${viewData.transactionId!}',
-                      shareArea);
+                    'Blockchain proof\n${getExplorerBaseUrl(appState.walletMode)}${viewData.transactionId!}',
+                    shareArea,
+                  );
                 },
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Button(
                 "sharepdf".tr(),
                 notifier.getbluecolor70,
                 wihitecolor,
                 onTap: () {
                   sharePDF(
-                      '${"blockchainproof".tr()}\n${getExplorerBaseUrl(appState.walletMode)}${viewData.transactionId!}',
-                      shareArea);
+                    '${"blockchainproof".tr()}\n${getExplorerBaseUrl(appState.walletMode)}${viewData.transactionId!}',
+                    shareArea,
+                  );
                 },
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               ButtonOutlined(
                 "sharetext".tr(),
                 notifier.getwihitecolor,
@@ -493,9 +488,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                   shareText();
                 },
               ),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
             ],
           ),
         ),
@@ -506,9 +499,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
   Widget showUserInfo() {
     return Row(
       children: [
-        SizedBox(
-          width: width / 20,
-        ),
+        SizedBox(width: width / 20),
         SizedBox(
           width: width / 1.2,
           child: Column(
@@ -518,8 +509,8 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                 width: width / 1.3,
                 child: Text(
                   name.toString().isEmpty
-                      ? truncate(publicKey!, length: 5) +
-                          publicKey!.substring(publicKey!.length - 5)
+                      ? truncate(address!, length: 5) +
+                            address!.substring(address!.length - 5)
                       : name!,
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
@@ -535,9 +526,9 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                   children: [
                     Text(
                       name.toString().isNotEmpty &&
-                              (publicKey != null && publicKey!.isNotEmpty)
-                          ? truncate(publicKey!, length: 5) +
-                              publicKey!.substring(publicKey!.length - 5)
+                              (address != null && address!.isNotEmpty)
+                          ? truncate(address!, length: 5) +
+                                address!.substring(address!.length - 5)
                           : '',
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
@@ -551,7 +542,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
               ),
             ],
           ),
-        )
+        ),
       ],
     );
   }
@@ -565,26 +556,30 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
     String? shareString;
     switch (viewData.transactionDirection) {
       case TransactionDirection.Send:
-        shareString = "sharestringsend".tr(args: [
-          amount.toString(),
-          assetCode!,
-          name.toString().isEmpty ? publicKey! : name!,
-          viewData.memo!,
-          viewData.transactionId!.toLowerCase(),
-          date!,
-          getExplorerBaseUrl(appState.walletMode) + viewData.transactionId!
-        ]);
+        shareString = "sharestringsend".tr(
+          args: [
+            amount.toString(),
+            assetCode!,
+            name.toString().isEmpty ? address! : name!,
+            viewData.memo!,
+            viewData.transactionId!.toLowerCase(),
+            date!,
+            getExplorerBaseUrl(appState.walletMode) + viewData.transactionId!,
+          ],
+        );
         break;
       default:
-        shareString = "sharestringreceive".tr(args: [
-          amount.toString(),
-          assetCode!,
-          name.toString().isEmpty ? publicKey! : name!,
-          viewData.memo!,
-          viewData.transactionId!.toLowerCase(),
-          date!,
-          getExplorerBaseUrl(appState.walletMode) + viewData.transactionId!
-        ]);
+        shareString = "sharestringreceive".tr(
+          args: [
+            amount.toString(),
+            assetCode!,
+            name.toString().isEmpty ? address! : name!,
+            viewData.memo!,
+            viewData.transactionId!.toLowerCase(),
+            date!,
+            getExplorerBaseUrl(appState.walletMode) + viewData.transactionId!,
+          ],
+        );
     }
 
     Share.share(shareString);

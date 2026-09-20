@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'dart:ui';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -28,6 +29,7 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/countdown.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 // import 'package:flutter_idensic_mobile_sdk_plugin/flutter_idensic_mobile_sdk_plugin.dart';
 import '../utils/medeiaqury/medeiaqury.dart';
 
@@ -174,11 +176,10 @@ formatHistoryNumber(double number, double trimNum, {bool isShort = false}) {
   return isShort ? formatNumberShort(number) : formatNumber(number);
 }
 
-truncatePublicKey(String? publicKey) {
-  if (publicKey == null) return "enterpublickey".tr();
-  if (publicKey.length <= 7) return publicKey;
-  return truncate(publicKey, length: 7) +
-      publicKey.substring(publicKey.length - 7);
+truncateAddress(String? address) {
+  if (address == null) return "enterpublickey".tr();
+  if (address.length <= 7) return address;
+  return truncate(address, length: 7) + address.substring(address.length - 7);
 }
 
 truncateString(String? text) {
@@ -661,7 +662,7 @@ void disableSharedAccess(
       body: '{}',
       signer: appState.primaryWallet.signer!,
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: wallet.publicKey!,
+      address: wallet.address!,
     );
 
     if (responseData['statusCode'] == 200 ||
@@ -731,7 +732,7 @@ void signAndCommitTransaction(
       body: requestBody,
       signer: appState.primaryWallet.signer!,
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: wallet.publicKey!,
+      address: wallet.address!,
     );
 
     if (responseData['statusCode'] == 200 ||
@@ -739,7 +740,7 @@ void signAndCommitTransaction(
       updateUserInfo(
         appState.primaryWallet.signer!,
         appState.secretKeys[0],
-        appState.primaryWallet.publicKey,
+        appState.primaryWallet.address,
         appState.userInfo!.username,
         appState,
         forceRefresh: true,
@@ -1317,7 +1318,7 @@ Future<dynamic> fetchFormJson(String formId, DataProvider appState) async {
     uri: Uri.encodeFull(uri),
     signer: appState.primaryWallet.signer!,
     secretKey: appState.secretKeys[0], // the primary wallet secret key
-    publicKey: appState.primaryWallet.signer!,
+    address: appState.primaryWallet.signer!,
   );
   inspect(responseData);
   if (responseData['statusCode'] == 200) {
@@ -1346,7 +1347,7 @@ Future<void> refreshCurrentTokenizationInfo(DataProvider appState) async {
       uri: Uri.encodeFull(uri),
       signer: appState.primaryWallet.signer!,
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.primaryWallet.signer!,
+      address: appState.primaryWallet.signer!,
     );
 
     if (responseData['statusCode'] == 200) {
@@ -1369,7 +1370,7 @@ fetchKycConfig(DataProvider appState) async {
       uri: Uri.encodeFull(uri),
       signer: appState.primaryWallet.signer!,
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.primaryWallet.signer!,
+      address: appState.primaryWallet.signer!,
     );
     if (responseData['statusCode'] == 200) {
       return responseData['data'];
@@ -1390,7 +1391,7 @@ initiateKyc(context, DataProvider appState, String kycLevel) async {
       body: '{}',
       signer: appState.primaryWallet.signer!,
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.primaryWallet.publicKey!,
+      address: appState.primaryWallet.address!,
     );
 
     if (responseData['statusCode'] == 200 ||
@@ -1420,7 +1421,7 @@ completeKyc(context, DataProvider appState, String kycLevel) async {
       body: '{}',
       signer: appState.primaryWallet.signer!,
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.primaryWallet.publicKey!,
+      address: appState.primaryWallet.address!,
     );
 
     if (responseData['statusCode'] == 200 ||
@@ -1838,7 +1839,7 @@ Widget getDrawer(
               appState.viewData = {
                 SecurityQuestionsViewPageConfig.key: {
                   'signer': primaryWallet.signer,
-                  'publicKey': primaryWallet.publicKey,
+                  'address': primaryWallet.address,
                   'secretKey': appState.secretKeys[0],
                   'username': appState.userInfo!.username,
                 },

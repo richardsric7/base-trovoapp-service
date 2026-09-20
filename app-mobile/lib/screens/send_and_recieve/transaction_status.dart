@@ -11,6 +11,7 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
 import '../../storage/state.dart';
@@ -46,9 +47,7 @@ class _TransactionStatus extends State<TransactionStatus> {
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
 
-    wallet = appState.userInfo!.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = appState.userInfo!.getWallet(appState.viewData!['walletAddress']);
 
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
@@ -81,48 +80,44 @@ class _TransactionStatus extends State<TransactionStatus> {
                 "transactionstatus".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontSize: 25.sp,
-                    fontFamily: fontsemibold),
+                  color: notifier.getbluewhitecolor,
+                  fontSize: 25.sp,
+                  fontFamily: fontsemibold,
+                ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Image.asset('assets/images/trovo.png', height: height / 8.5),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 50),
                 child: Text(
-                  "transactionprocessing"
-                      .tr(args: [transactionInfo['currency']]),
+                  "transactionprocessing".tr(
+                    args: [transactionInfo['currency']],
+                  ),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      fontSize: 20,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontsemibold),
+                    fontSize: 20,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontsemibold,
+                  ),
                 ),
               ),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30),
                 child: Text(
                   "accountwillbedebited".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      fontSize: 16,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody),
+                    fontSize: 16,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
               SizedBox(height: height / 30),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 30,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 30),
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.all(Radius.circular(15.0)),
@@ -135,29 +130,28 @@ class _TransactionStatus extends State<TransactionStatus> {
                     child: Column(
                       children: [
                         keyValuePair("wallet".tr(), wallet.alias!),
-                        SizedBox(
-                          height: height / 90,
-                        ),
+                        SizedBox(height: height / 90),
                         keyValuePair(
-                            "walletaddress".tr(),
-                            truncate(transactionInfo['withdrawalAddress'],
-                                    length: 5) +
-                                transactionInfo['withdrawalAddress'].substring(
-                                    transactionInfo['withdrawalAddress']
-                                            .length -
-                                        5)),
-                        SizedBox(
-                          height: height / 90,
+                          "walletaddress".tr(),
+                          truncate(
+                                transactionInfo['withdrawalAddress'],
+                                length: 5,
+                              ) +
+                              transactionInfo['withdrawalAddress'].substring(
+                                transactionInfo['withdrawalAddress'].length - 5,
+                              ),
                         ),
+                        SizedBox(height: height / 90),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               "asset".tr(),
                               style: TextStyle(
-                                  fontSize: 15,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontbody),
+                                fontSize: 15,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontbody,
+                              ),
                             ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -165,10 +159,11 @@ class _TransactionStatus extends State<TransactionStatus> {
                                 Text(
                                   transactionInfo['currency'],
                                   style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontsemibold),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontsemibold,
+                                  ),
                                 ),
                               ],
                             ),
@@ -226,9 +221,7 @@ class _TransactionStatus extends State<TransactionStatus> {
               //     ),
               //   ],
               // ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Button(
                 "viewinhistory".tr(),
                 notifier.getbluecolor,
@@ -236,11 +229,11 @@ class _TransactionStatus extends State<TransactionStatus> {
                 onTap: () {
                   appState.fetchWithdrawalHistory(
                     context,
-                    publicKey: wallet.publicKey!,
+                    address: wallet.address!,
                     currency: asset!.assetCode,
                   );
                   appState.viewData = {
-                    'walletPublicKey': wallet.publicKey,
+                    'walletAddress': wallet.address,
                     'assetCode': asset!.assetCode,
                     'assetIssuer': asset!.assetIssuer,
                     'historyMode': 'Withdrawal history',
@@ -251,9 +244,7 @@ class _TransactionStatus extends State<TransactionStatus> {
                   );
                 },
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               ButtonOutlined(
                 "dashboard".tr(),
                 notifier.getwihitecolor,
@@ -267,8 +258,10 @@ class _TransactionStatus extends State<TransactionStatus> {
               ),
               SizedBox(height: height / 10),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -283,16 +276,18 @@ class _TransactionStatus extends State<TransactionStatus> {
         Text(
           key,
           style: TextStyle(
-              fontSize: 15,
-              color: notifier.getbluewhitecolor,
-              fontFamily: fontbody),
+            fontSize: 15,
+            color: notifier.getbluewhitecolor,
+            fontFamily: fontbody,
+          ),
         ),
         Text(
           value,
           style: TextStyle(
-              fontSize: 15,
-              color: notifier.getbluewhitecolor,
-              fontFamily: fontsemibold),
+            fontSize: 15,
+            color: notifier.getbluewhitecolor,
+            fontFamily: fontsemibold,
+          ),
         ),
       ],
     );

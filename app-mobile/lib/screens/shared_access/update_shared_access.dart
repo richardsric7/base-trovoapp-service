@@ -90,9 +90,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
     _tabController = TabController(length: 3, vsync: this);
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
-    wallet = appState.userInfo!.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = appState.userInfo!.getWallet(appState.viewData!['walletAddress']);
     noOfApprovalsNeeded = wallet.numberOfApprovalsNeeded!;
 
     // since you can only pass around objects by reference in dart
@@ -1089,7 +1087,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
 
   void updateSharedAccess() {
     appState.viewData = {
-      'walletPublicKey': wallet.publicKey,
+      'walletAddress': wallet.address,
       'walletAlias': wallet.alias,
       'viewers': viewers,
       'addApprovers': addApprovers,
@@ -1115,7 +1113,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
         uri: '/v1/users/$username',
         signer: appState.activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.activeWallet!.publicKey!,
+        address: appState.activeWallet!.address!,
       );
 
       hideLoader(context);

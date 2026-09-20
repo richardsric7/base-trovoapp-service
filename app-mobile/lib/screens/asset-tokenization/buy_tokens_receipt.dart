@@ -13,6 +13,7 @@ import 'package:trovo_app/models/user.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class BuyTokensReceipt extends StatefulWidget {
@@ -83,23 +84,27 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                         'Tokenized Asset Purchase Receipt',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontsemibold,
-                            fontSize: 22),
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold,
+                          fontSize: 22,
+                        ),
                       ),
                       SizedBox(height: 3),
                       Container(
                         width: width / 1.5,
                         child: Text(
-                          "generatedon".tr(args: [
-                            DateFormat('MMMM dd, yyyy hh:mm a')
-                                .format(DateTime.now())
-                          ]),
+                          "generatedon".tr(
+                            args: [
+                              DateFormat('MMMM dd, yyyy hh:mm a')
+                                  .format(DateTime.now()),
+                            ],
+                          ),
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontbody,
-                              fontSize: 12),
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                       SizedBox(height: height / 50),
@@ -107,8 +112,9 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                         padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                         child: Container(
                           decoration: BoxDecoration(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(15.0)),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(15.0),
+                            ),
                             color: notifier.isDark
                                 ? darktilewhitecolor
                                 : notifier.getaddsubwalletgrey,
@@ -126,12 +132,11 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  SizedBox(
-                                    height: height / 90,
-                                  ),
+                                  SizedBox(height: height / 90),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0),
+                                      horizontal: 20.0,
+                                    ),
                                     child: Text(
                                       'Receiving Wallet',
                                       style: TextStyle(
@@ -151,17 +156,19 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                                             Padding(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                      horizontal: 20.0),
+                                                    horizontal: 20.0,
+                                                  ),
                                               child: Text(
                                                 appState.activeWallet!.alias!,
                                                 style: TextStyle(
-                                                    fontWeight: FontWeight.w500,
-                                                    color: notifier
-                                                        .getbluewhitecolor,
-                                                    fontSize: 16.sp,
-                                                    fontFamily: fontbody,
-                                                    overflow:
-                                                        TextOverflow.visible),
+                                                  fontWeight: FontWeight.w500,
+                                                  color: notifier
+                                                      .getbluewhitecolor,
+                                                  fontSize: 16.sp,
+                                                  fontFamily: fontbody,
+                                                  overflow:
+                                                      TextOverflow.visible,
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -173,12 +180,15 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                                               child: Padding(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                        horizontal: 20.0,
-                                                        vertical: 5),
+                                                      horizontal: 20.0,
+                                                      vertical: 5,
+                                                    ),
                                                 child: Text(
-                                                  truncatePublicKey(appState
-                                                      .activeWallet!
-                                                      .publicKey!),
+                                                  truncateAddress(
+                                                    appState
+                                                        .activeWallet!
+                                                        .address!,
+                                                  ),
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.w500,
                                                     color: notifier
@@ -194,15 +204,12 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                                       ],
                                     ),
                                   ),
-                                  Divider(
-                                    height: 5,
-                                  ),
-                                  SizedBox(
-                                    height: height / 90,
-                                  ),
+                                  Divider(height: 5),
+                                  SizedBox(height: height / 90),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0),
+                                      horizontal: 20.0,
+                                    ),
                                     child: Text(
                                       "amount".tr(),
                                       style: TextStyle(
@@ -213,17 +220,17 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                                       ),
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: 5,
-                                  ),
+                                  SizedBox(height: 5),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0),
+                                      horizontal: 20.0,
+                                    ),
                                     child: Text(
                                       formatAmount(
-                                          TransactionDirection.Receive,
-                                          amount,
-                                          tokenizedAsset.assetQuoteCurrency),
+                                        TransactionDirection.Receive,
+                                        amount,
+                                        tokenizedAsset.assetQuoteCurrency,
+                                      ),
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,
@@ -232,15 +239,12 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                                       ),
                                     ),
                                   ),
-                                  Divider(
-                                    height: 5,
-                                  ),
-                                  SizedBox(
-                                    height: height / 90,
-                                  ),
+                                  Divider(height: 5),
+                                  SizedBox(height: height / 90),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0),
+                                      horizontal: 20.0,
+                                    ),
                                     child: Text(
                                       "quantity".tr(),
                                       style: TextStyle(
@@ -251,15 +255,17 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                                       ),
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: 5,
-                                  ),
+                                  SizedBox(height: 5),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0),
+                                      horizontal: 20.0,
+                                    ),
                                     child: Text(
-                                      formatAmount(TransactionDirection.Receive,
-                                          quantity, tokenizedAsset.assetCode),
+                                      formatAmount(
+                                        TransactionDirection.Receive,
+                                        quantity,
+                                        tokenizedAsset.assetCode,
+                                      ),
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,
@@ -268,15 +274,12 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                                       ),
                                     ),
                                   ),
-                                  Divider(
-                                    height: 5,
-                                  ),
-                                  SizedBox(
-                                    height: height / 90,
-                                  ),
+                                  Divider(height: 5),
+                                  SizedBox(height: height / 90),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0),
+                                      horizontal: 20.0,
+                                    ),
                                     child: Text(
                                       "blockchainproof".tr(),
                                       style: TextStyle(
@@ -287,21 +290,22 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                                       ),
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: 5,
-                                  ),
+                                  SizedBox(height: 5),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0),
+                                      horizontal: 20.0,
+                                    ),
                                     child: Row(
                                       children: [
                                         Expanded(
                                           flex: 5,
                                           child: GestureDetector(
                                             onTap: () => appState.goToWebView(
-                                                getExplorerBaseUrl(
-                                                        appState.walletMode) +
-                                                    transactionId),
+                                              getExplorerBaseUrl(
+                                                    appState.walletMode,
+                                                  ) +
+                                                  transactionId,
+                                            ),
                                             child: Text(
                                               transactionId,
                                               style: TextStyle(
@@ -319,15 +323,12 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                                       ],
                                     ),
                                   ),
-                                  Divider(
-                                    height: 5,
-                                  ),
-                                  SizedBox(
-                                    height: height / 50,
-                                  ),
+                                  Divider(height: 5),
+                                  SizedBox(height: height / 50),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0),
+                                      horizontal: 20.0,
+                                    ),
                                     child: Text(
                                       "date".tr(),
                                       style: TextStyle(
@@ -340,7 +341,9 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0, vertical: 5),
+                                      horizontal: 20.0,
+                                      vertical: 5,
+                                    ),
                                     child: Text(
                                       DateFormat('MMMM dd, yyyy hh:mm a')
                                           .format(date),
@@ -352,51 +355,43 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                                       ),
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: height / 50,
-                                  ),
+                                  SizedBox(height: height / 50),
                                 ],
                               ),
                             ],
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
+                      SizedBox(height: height / 50),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               Button(
                 "shareimage".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
                   share(
-                      'Blockchain proof\n${getExplorerBaseUrl(appState.walletMode)}$transactionId',
-                      shareArea);
+                    'Blockchain proof\n${getExplorerBaseUrl(appState.walletMode)}$transactionId',
+                    shareArea,
+                  );
                 },
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Button(
                 "sharepdf".tr(),
                 notifier.getbluecolor70,
                 wihitecolor,
                 onTap: () {
                   sharePDF(
-                      '${"blockchainproof".tr()}\n${getExplorerBaseUrl(appState.walletMode)}$transactionId',
-                      shareArea);
+                    '${"blockchainproof".tr()}\n${getExplorerBaseUrl(appState.walletMode)}$transactionId',
+                    shareArea,
+                  );
                 },
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               ButtonOutlined(
                 "sharetext".tr(),
                 notifier.getwihitecolor,
@@ -405,9 +400,7 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
                   shareText();
                 },
               ),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
             ],
           ),
         ),
@@ -421,13 +414,15 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
   }
 
   void shareText() {
-    String? shareString = "sharestringpurchase".tr(args: [
-      '${amount.toString()} ${tokenizedAsset.assetCode!}',
-      appState.activeWallet!.alias!,
-      transactionId.toLowerCase(),
-      date.toString(),
-      getExplorerBaseUrl(appState.walletMode) + transactionId,
-    ]);
+    String? shareString = "sharestringpurchase".tr(
+      args: [
+        '${amount.toString()} ${tokenizedAsset.assetCode!}',
+        appState.activeWallet!.alias!,
+        transactionId.toLowerCase(),
+        date.toString(),
+        getExplorerBaseUrl(appState.walletMode) + transactionId,
+      ],
+    );
 
     Share.share(shareString);
   }

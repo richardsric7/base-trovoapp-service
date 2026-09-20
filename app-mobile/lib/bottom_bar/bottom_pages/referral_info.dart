@@ -9,6 +9,7 @@ import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class ReferralInfo extends StatefulWidget {

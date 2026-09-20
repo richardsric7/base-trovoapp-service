@@ -14,6 +14,7 @@ import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class BuyTokensSuccess extends StatefulWidget {
@@ -131,8 +132,8 @@ class _BuyTokensSuccess extends State<BuyTokensSuccess>
                                   ),
                                   SizedBox(height: 5),
                                   Text(
-                                    truncatePublicKey(
-                                      appState.activeWallet!.publicKey,
+                                    truncateAddress(
+                                      appState.activeWallet!.address,
                                     ),
                                     style: TextStyle(
                                       color: notifier.getbluewhitecolor,

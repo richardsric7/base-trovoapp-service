@@ -9,6 +9,7 @@ import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_app/functions/trovo-sdk.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
@@ -266,9 +267,9 @@ class _RecoverAccountState extends State<RecoverAccount> {
         uri:
             '/v1/account/recovery/verify-email-otp/${appState.tempUsername}/${appState.tempEmailOtp}',
         body: "",
-        signer: appState.tempPublicKey,
+        signer: appState.tempAddress,
         secretKey: appState.tempSecretKey, // the primary wallet secret key
-        publicKey: appState.tempPublicKey,
+        address: appState.tempAddress,
       );
 
       hideLoader(context);
@@ -288,8 +289,8 @@ class _RecoverAccountState extends State<RecoverAccount> {
             setState(() {
               appState.viewData = {
                 SecurityQuestionsForInactiveAccountsViewPageConfig.key: {
-                  'signer': appState.tempPublicKey,
-                  'publicKey': appState.tempPublicKey,
+                  'signer': appState.tempAddress,
+                  'address': appState.tempAddress,
                   'secretKey': appState.tempSecretKey,
                   'username': appState.tempUsername,
                 },
@@ -448,7 +449,7 @@ class _RecoverAccountState extends State<RecoverAccount> {
     // to create new user account if the provided user account does not exist
     var account = TrovoWalletSDK().createAccount();
     appState.setTempUsername = username;
-    appState.setTempPublicKey = account.publicKey;
+    appState.setTempAddress = account.address;
     appState.setTempSecretKey = account.secretKey;
 
     sendOTPRequest();
@@ -461,9 +462,9 @@ class _RecoverAccountState extends State<RecoverAccount> {
       Map responseData = await makePostRequest(
         uri: '/v1/account/recovery/request-email-otp/${username}',
         body: "",
-        signer: appState.tempPublicKey,
+        signer: appState.tempAddress,
         secretKey: appState.tempSecretKey, // the primary wallet secret key
-        publicKey: appState.tempPublicKey,
+        address: appState.tempAddress,
       );
 
       hideLoader(context);

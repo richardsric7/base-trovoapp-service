@@ -16,6 +16,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -105,7 +106,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       wallets.add(
         DropdownMenuItem(
           child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
-          value: wallet.publicKey,
+          value: wallet.address,
         ),
       );
     });
@@ -162,13 +163,13 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   color: notifier.getbluewhitecolor,
                 ),
               ],
-              if (!isSelected && wallet.publicKey == selectedWallet) ...[
+              if (!isSelected && wallet.address == selectedWallet) ...[
                 SizedBox(width: 2),
                 Icon(Icons.check, size: 18, color: notifier.getbluecolor),
               ],
             ],
           ),
-          value: wallet.publicKey,
+          value: wallet.address,
         ),
       );
     });
@@ -215,8 +216,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       popup(
         context,
         title: "error".tr(),
-        message:
-            "Cannot initiate this process at the moment. Please check your network, refresh this view and try again.",
+        message: "Cannot initiate this process at the moment. Please check your network, refresh this view and try again.",
       );
       return;
     }
@@ -225,8 +225,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       popup(
         context,
         title: "error".tr(),
-        message:
-            "You must complete the active tokenization process before starting a new one.",
+        message: "You must complete the active tokenization process before starting a new one.",
       );
       return;
     }
@@ -839,7 +838,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       uri: Uri.encodeFull(uri),
       signer: appState.primaryWallet.signer!,
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.primaryWallet.signer!,
+      address: appState.primaryWallet.signer!,
     );
     inspect(responseData['data']);
     if (responseData['statusCode'] == 200) {
@@ -878,7 +877,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
       inspect(responseData);
       if (responseData['statusCode'] == 200) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:math';
+
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,8 +15,11 @@ import 'package:trovo_app/storage/cache.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../custom_bloc_observer/notifire_clor.dart';
+
 import 'package:trovo_app/models/user.dart';
+
 import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
 import '../../storage/store.dart';
@@ -174,7 +178,7 @@ class _SplashScreenState extends State<SplashScreen>
                 updateUserInfo(
                   primaryWallet.signer,
                   appState.secretKeys[0],
-                  primaryWallet.publicKey,
+                  primaryWallet.address,
                   appState.userInfo!.username!,
                   appState,
                   pnt: dateDifference.inDays > 10 ? token : null,
@@ -270,7 +274,7 @@ class _SplashScreenState extends State<SplashScreen>
   ) async {
     var username = appState.userInfo!.username;
     var signer = appState.primaryWallet.signer!;
-    var publicKey = appState.primaryWallet.publicKey!;
+    var address = appState.primaryWallet.address!;
     var secretKey = appState.secretKeys[0];
 
     String result = await FCM().getPushNotificationToken();
@@ -279,12 +283,12 @@ class _SplashScreenState extends State<SplashScreen>
     Map responseData = await makeGetRequest(
       uri: '/v1/users/${username}?type=import&pnt=$token',
       signer: signer,
-      publicKey: publicKey,
+      address: address,
       secretKey: secretKey,
     );
 
     if (responseData['statusCode'] == 200) {
-      appState.tempPublicKey = publicKey;
+      appState.tempAddress = address;
       appState.tempSecretKey = secretKey;
       appState.tempSigner = signer;
       appState.tempPassword = appState.password!;
@@ -307,9 +311,9 @@ class _SplashScreenState extends State<SplashScreen>
         onCreateNewAccount: () {
           var account = TrovoWalletSDK().createAccount();
           appState.setTempPassword = appState.password;
-          appState.setTempPublicKey = account.publicKey;
+          appState.setTempAddress = account.address;
           appState.setTempSecretKey = account.secretKey;
-          appState.setTempSigner = account.publicKey;
+          appState.setTempSigner = account.address;
           appState.currentAction = PageAction(
             state: PageState.addPage,
             page: SignupPageConfig,
@@ -338,9 +342,9 @@ class _SplashScreenState extends State<SplashScreen>
         onCreateNewAccount: () {
           var account = TrovoWalletSDK().createAccount();
           appState.setTempPassword = appState.password;
-          appState.setTempPublicKey = account.publicKey;
+          appState.setTempAddress = account.address;
           appState.setTempSecretKey = account.secretKey;
-          appState.setTempSigner = account.publicKey;
+          appState.setTempSigner = account.address;
           appState.currentAction = PageAction(
             state: PageState.addPage,
             page: SignupPageConfig,
@@ -392,17 +396,17 @@ class _SplashScreenState extends State<SplashScreen>
   //     Map responseData = await makePostRequest(
   //       uri: '/v1/users',
   //       body: jsonBody,
-  //       signer: creds.publicKey,
-  //       publicKey: creds.publicKey,
+  //       signer: creds.address,
+  //       address: creds.address,
   //       secretKey: creds.secretKey,
   //     );
 
   //     hideLoader(context);
 
   //     if (responseData['statusCode'] == 202) {
-  //       appState.tempPublicKey = creds.publicKey;
+  //       appState.tempAddress = creds.address;
   //       appState.tempSecretKey = creds.secretKey;
-  //       appState.tempSigner = creds.publicKey;
+  //       appState.tempSigner = creds.address;
   //       appState.tempPassword = appState.password!;
 
   //       appState.currentAction = PageAction(
@@ -435,7 +439,7 @@ class _SplashScreenState extends State<SplashScreen>
       uri: Uri.encodeFull(uri),
       signer: appState.primaryWallet.signer!,
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.primaryWallet.signer!,
+      address: appState.primaryWallet.signer!,
     );
     inspect(responseData);
     if (responseData['statusCode'] == 200) {

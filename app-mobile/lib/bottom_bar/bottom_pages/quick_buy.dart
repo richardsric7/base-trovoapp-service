@@ -12,6 +12,7 @@ import 'package:trovo_app/models/asset.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class QuickBuyView extends StatefulWidget {

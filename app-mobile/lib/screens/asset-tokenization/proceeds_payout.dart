@@ -12,6 +12,7 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -62,9 +63,7 @@ class _ProceedsPayOut extends State<ProceedsPayOut>
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
-            SizedBox(
-              height: height / 30,
-            ),
+            SizedBox(height: height / 30),
             Row(
               children: [
                 Padding(
@@ -80,9 +79,7 @@ class _ProceedsPayOut extends State<ProceedsPayOut>
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Row(
               children: [
                 Padding(
@@ -104,9 +101,7 @@ class _ProceedsPayOut extends State<ProceedsPayOut>
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Row(
               children: [
                 Padding(
@@ -122,9 +117,7 @@ class _ProceedsPayOut extends State<ProceedsPayOut>
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Row(
               children: [
                 Padding(
@@ -150,9 +143,7 @@ class _ProceedsPayOut extends State<ProceedsPayOut>
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 50,
-            ),
+            SizedBox(height: height / 50),
             Row(
               children: [
                 Padding(
@@ -171,9 +162,7 @@ class _ProceedsPayOut extends State<ProceedsPayOut>
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 70,
-            ),
+            SizedBox(height: height / 70),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: Card(
@@ -219,9 +208,7 @@ class _ProceedsPayOut extends State<ProceedsPayOut>
                 ),
               ),
             ),
-            SizedBox(
-              height: height / 20,
-            ),
+            SizedBox(height: height / 20),
             Button(
               'Request Approval',
               notifier.getbluecolor,
@@ -229,16 +216,15 @@ class _ProceedsPayOut extends State<ProceedsPayOut>
               onTap: () {
                 appState.viewData![SuccessViewPageConfig.key] = {
                   'title': '',
-                  'message':
-                      'Your Payout proceed Requests for [Atlantis Asset] have been submitted and are awaiting approval. You’ll be notified when all requests have been approved.',
+                  'message': 'Your Payout proceed Requests for [Atlantis Asset] have been submitted and are awaiting approval. You’ll be notified when all requests have been approved.',
                 };
                 appState.currentAction = PageAction(
-                    state: PageState.replace, page: SuccessViewPageConfig);
+                  state: PageState.replace,
+                  page: SuccessViewPageConfig,
+                );
               },
             ),
-            SizedBox(
-              height: height / 10,
-            ),
+            SizedBox(height: height / 10),
           ],
         ),
       ),

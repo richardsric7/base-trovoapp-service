@@ -21,6 +21,7 @@ import 'package:trovo_app/utils/local_auth.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -964,8 +965,7 @@ class _SettingsState extends State<Settings> {
           popup(
             context,
             title: 'Invalid Operation',
-            message:
-                'You cannot enable bometrics unless you do biometrics enrollment on your device',
+            message: 'You cannot enable bometrics unless you do biometrics enrollment on your device',
           );
           return;
         }

@@ -44,14 +44,12 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
     super.initState();
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
-    wallet = appState.userInfo!.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = appState.userInfo!.getWallet(appState.viewData!['walletAddress']);
 
     responseData = fetchWalletBalance(
       signer: appState.activeWallet!.signer!,
       secretKey: appState.secretKeys[0],
-      publicKey: wallet.publicKey!,
+      address: wallet.address!,
     );
   }
 
@@ -242,7 +240,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                               responseData = fetchWalletBalance(
                                 signer: appState.activeWallet!.signer!,
                                 secretKey: appState.secretKeys[0],
-                                publicKey: wallet.publicKey!,
+                                address: wallet.address!,
                               );
                             });
                           },
@@ -272,7 +270,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                         onTap: () {
                           appState.viewData = {
                             'rel': 'sharedWalletView',
-                            'walletPublicKey': wallet.publicKey,
+                            'walletAddress': wallet.address,
                           };
 
                           appState.currentAction = PageAction(
@@ -289,7 +287,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                         onTap: () {
                           appState.viewData = {
                             'rel': 'sharedWalletView',
-                            'walletPublicKey': wallet.publicKey,
+                            'walletAddress': wallet.address,
                           };
 
                           appState.currentAction = PageAction(
@@ -299,7 +297,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
 
                           appState.setFilterQuery = "";
 
-                          appState.getHistory(context, wallet.publicKey!);
+                          appState.getHistory(context, wallet.address!);
                         },
                       ),
                       if (wallet.isInitiator) ...[
@@ -310,7 +308,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                           notifier.getbluewhitecolor,
                           onTap: () {
                             appState.viewData = {
-                              'walletPublicKey': wallet.publicKey,
+                              'walletAddress': wallet.address,
                             };
                             appState.currentAction = PageAction(
                               state: PageState.addPage,
@@ -348,14 +346,14 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
   Future<Map> fetchWalletBalance({
     required String signer,
     required String secretKey,
-    required String publicKey,
+    required String address,
   }) async {
     try {
       Map responseData = await makeGetRequest(
         uri: '/v1/shared-access/wallet-balances',
         signer: signer,
         secretKey: secretKey, // the primary wallet secret key
-        publicKey: publicKey,
+        address: address,
       );
 
       if (responseData['statusCode'] == 200) {

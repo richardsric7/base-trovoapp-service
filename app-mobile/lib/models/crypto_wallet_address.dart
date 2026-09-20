@@ -1,7 +1,7 @@
 class CryptoWalletDepositAddress {
   String? id;
   DateTime? createdAt;
-  String? trovoWalletPublicKey;
+  String? trovoWalletAddress;
   String? currency;
   String? depositAddress;
   String? network;
@@ -9,7 +9,7 @@ class CryptoWalletDepositAddress {
   CryptoWalletDepositAddress({
     this.id,
     this.createdAt,
-    this.trovoWalletPublicKey,
+    this.trovoWalletAddress,
     this.currency,
     this.depositAddress,
     this.network,
@@ -20,7 +20,7 @@ class CryptoWalletDepositAddress {
     return CryptoWalletDepositAddress(
       id: m["id"],
       createdAt: DateTime.tryParse(m["createdAt"]),
-      trovoWalletPublicKey: m["trovoWalletPublicKey"],
+      trovoWalletAddress: m["trovoWalletAddress"],
       qrCode: m["qrCode"],
       currency: m["currency"],
       depositAddress: m["depositAddress"],

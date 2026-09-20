@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -281,8 +282,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                                 popup(
                                   context,
                                   title: "formincomplete".tr(),
-                                  message:
-                                      "Please upload all required documents to proceed.",
+                                  message: "Please upload all required documents to proceed.",
                                 );
                                 return;
                               }
@@ -511,7 +511,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
       uri: Uri.encodeFull(uri),
       signer: appState.primaryWallet.signer!,
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.primaryWallet.signer!,
+      address: appState.primaryWallet.signer!,
     );
     // inspect(responseData['data']);
     if (responseData['statusCode'] == 200) {
@@ -539,7 +539,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
         body: "",
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
 
       hideLoader(context);

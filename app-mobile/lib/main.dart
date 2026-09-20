@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+
 import 'package:app_links/app_links.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -19,9 +20,11 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/screens/notifications/firebase_notifications.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import 'custom_bloc_observer/notifire_clor.dart';
 import 'firebase_options.dart';
 import 'storage/store.dart';
+
 import 'package:easy_localization/easy_localization.dart';
 
 void main() async {

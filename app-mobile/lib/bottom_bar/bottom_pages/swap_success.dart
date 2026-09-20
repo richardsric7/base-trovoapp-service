@@ -13,6 +13,7 @@ import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class SwapSuccess extends StatefulWidget {
@@ -43,9 +44,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    wallet = appState.userInfo!.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = appState.userInfo!.getWallet(appState.viewData!['walletAddress']);
     viewData = appState.viewData!;
     transactionData = viewData['transactionData'];
   }
@@ -56,10 +55,10 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
 
-    sourceAmount =
-        double.parse(transactionData['sourceAmount']).toStringAsFixed(4);
-    swappedEstimate =
-        double.parse(transactionData['swappedEstimate']).toStringAsFixed(4);
+    sourceAmount = double.parse(transactionData['sourceAmount'])
+        .toStringAsFixed(4);
+    swappedEstimate = double.parse(transactionData['swappedEstimate'])
+        .toStringAsFixed(4);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -70,17 +69,20 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
             children: [
               SizedBox(height: height / 18),
               Center(
-                child: Image.asset("assets/images/success.gif",
-                    height: height / 10),
+                child: Image.asset(
+                  "assets/images/success.gif",
+                  height: height / 10,
+                ),
               ),
               SizedBox(height: height / 50),
               Text(
                 "yourtransactionwassuccessful".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 22),
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 22,
+                ),
               ),
               SizedBox(height: height / 30),
               Padding(
@@ -107,19 +109,13 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: 5,
-                      ),
+                      SizedBox(height: 5),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
                         child: showUserInfo(),
                       ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                      Divider(
-                        height: 5,
-                      ),
+                      SizedBox(height: height / 50),
+                      Divider(height: 5),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
                         child: Column(
@@ -134,9 +130,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                                 fontFamily: fontsemibold,
                               ),
                             ),
-                            SizedBox(
-                              height: 20,
-                            ),
+                            SizedBox(height: 20),
                             Text(
                               '${transactionData['feeAmount']} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'ETH' : transactionData['sourceAssetCode']} (${transactionData['fee']}%)',
                               style: TextStyle(
@@ -149,15 +143,13 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                           ],
                         ),
                       ),
-                      SizedBox(
-                        height: height / 90,
-                      ),
-                      Divider(
-                        height: 5,
-                      ),
+                      SizedBox(height: height / 90),
+                      Divider(height: 5),
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 10),
+                          horizontal: 20.0,
+                          vertical: 10,
+                        ),
                         child: Text(
                           "blockchainproof".tr(),
                           style: TextStyle(
@@ -168,9 +160,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: 5,
-                      ),
+                      SizedBox(height: 5),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Row(
@@ -179,8 +169,9 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                               flex: 5,
                               child: GestureDetector(
                                 onTap: () => appState.goToWebView(
-                                    getExplorerBaseUrl(appState.walletMode) +
-                                        transactionData['transactionId']),
+                                  getExplorerBaseUrl(appState.walletMode) +
+                                      transactionData['transactionId'],
+                                ),
                                 child: Text(
                                   transactionData['transactionId'],
                                   style: TextStyle(
@@ -211,16 +202,12 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                           ],
                         ),
                       ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
+                      SizedBox(height: height / 50),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Button(
                 "dashboard".tr(),
                 notifier.getbluecolor,
@@ -232,9 +219,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                   );
                 },
               ),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
             ],
           ),
         ),
@@ -257,9 +242,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                 fontFamily: fontbody,
               ),
             ),
-            SizedBox(
-              height: 5,
-            ),
+            SizedBox(height: 5),
             Text(
               '- ${calculateFiatValue(sourceAmount, viewData["sourceUsdPrice"].toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
               style: TextStyle(
@@ -269,12 +252,8 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                 fontFamily: fontbody,
               ),
             ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Divider(
-              height: 5,
-            ),
+            SizedBox(height: height / 50),
+            Divider(height: 5),
             Text(
               "to".tr(),
               style: TextStyle(
@@ -284,9 +263,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                 fontFamily: fontsemibold,
               ),
             ),
-            SizedBox(
-              height: 20,
-            ),
+            SizedBox(height: 20),
             Text(
               '${swappedEstimate} ${transactionData['destinationAssetCode'].toString().isEmpty ? 'ETH' : transactionData['destinationAssetCode']}',
               style: TextStyle(
@@ -296,9 +273,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                 fontFamily: fontbody,
               ),
             ),
-            SizedBox(
-              height: 5,
-            ),
+            SizedBox(height: 5),
             if (viewData["destinationUsdPrice"] != null) ...[
               Text(
                 '+ ${calculateFiatValue(swappedEstimate, viewData["destinationUsdPrice"].toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
@@ -309,9 +284,9 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                   fontFamily: fontbody,
                 ),
               ),
-            ]
+            ],
           ],
-        )
+        ),
       ],
     );
   }

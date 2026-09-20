@@ -10,6 +10,7 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/utils/local_auth.dart';
+
 import '../../custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/custtom_textfild/custtom_password.dart';
@@ -17,6 +18,7 @@ import '../../storage/state.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/popups.dart';
+
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 class PasswordMgtView extends StatefulWidget {

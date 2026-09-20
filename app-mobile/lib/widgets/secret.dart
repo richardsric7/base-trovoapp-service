@@ -16,8 +16,8 @@ import '../custom_bloc_observer/fonts.dart';
 class Secret extends StatefulWidget {
   late final String alias;
   late final String secret;
-  late final String publicKey;
-  Secret(this.alias, this.secret, this.publicKey, {Key? key}) : super(key: key);
+  late final String address;
+  Secret(this.alias, this.secret, this.address, {Key? key}) : super(key: key);
 
   @override
   State<Secret> createState() => _SecretState();
@@ -90,7 +90,7 @@ class _SecretState extends State<Secret> {
                   Container(
                     width: 200,
                     child: Text(
-                      widget.publicKey,
+                      widget.address,
                       style: TextStyle(
                         fontFamily: fontbody,
                         color: notifier.getblck,
@@ -99,7 +99,7 @@ class _SecretState extends State<Secret> {
                   ),
                   IconButton(
                     onPressed: () => {
-                      Clipboard.setData(ClipboardData(text: widget.publicKey)),
+                      Clipboard.setData(ClipboardData(text: widget.address)),
                       showSnackBar('Public Key', context),
                     },
                     icon: Icon(Icons.copy),
@@ -156,7 +156,7 @@ class _SecretState extends State<Secret> {
                   Clipboard.setData(
                     ClipboardData(
                       text:
-                          'Alias:  ${widget.alias}\n\nPublic Key:  ${widget.publicKey}\n\nSecretKey:  ${widget.secret}',
+                          'Alias:  ${widget.alias}\n\nPublic Key:  ${widget.address}\n\nSecretKey:  ${widget.secret}',
                     ),
                   ),
                   showSnackBar('Wallet Details', context),
@@ -195,10 +195,10 @@ class _SecretState extends State<Secret> {
 
                   if (fileContent == null ||
                       !fileContent.contains(
-                        "${widget.alias}|${widget.secret}|${widget.publicKey}",
+                        "${widget.alias}|${widget.secret}|${widget.address}",
                       )) {
                     client.uploadFile(
-                      '${fileContent ?? ''}\n${widget.alias}|${widget.secret}|${widget.publicKey}',
+                      '${fileContent ?? ''}\n${widget.alias}|${widget.secret}|${widget.address}',
                     );
                   } else {}
 

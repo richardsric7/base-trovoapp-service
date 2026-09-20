@@ -17,6 +17,7 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/storage/store.dart';
 import 'package:trovo_app/widgets/wallet_slides.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class WalletDetails extends StatefulWidget {
@@ -65,7 +66,7 @@ class _WalletDetailsState extends State<WalletDetails>
       wallets.add(
         DropdownMenuItem(
           child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
-          value: wallet.publicKey,
+          value: wallet.address,
         ),
       );
     });
@@ -79,9 +80,7 @@ class _WalletDetailsState extends State<WalletDetails>
     appState = Provider.of<DataProvider>(context, listen: false);
     localHideBalance = appState.hideBalances;
 
-    wallet = appState.userInfo!.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = appState.userInfo!.getWallet(appState.viewData!['walletAddress']);
 
     gas = wallet.claimedAssets!.where((asset) => asset.assetCode == '').first;
 
@@ -96,8 +95,8 @@ class _WalletDetailsState extends State<WalletDetails>
       listMode = DashboardAssetListMode.OtherAssets;
     }
 
-    reOrderClaimedAssets(wallet.publicKey!);
-    reOrderTokenizedAssets(wallet.publicKey!);
+    reOrderClaimedAssets(wallet.address!);
+    reOrderTokenizedAssets(wallet.address!);
   }
 
   void tabListener() {
@@ -200,7 +199,7 @@ class _WalletDetailsState extends State<WalletDetails>
                                 appState.viewData = {
                                   'assetCode': '',
                                   'assetIssuer': '',
-                                  'walletPublicKey': wallet.publicKey,
+                                  'walletAddress': wallet.address,
                                 };
                                 appState.currentAction = PageAction(
                                   state: PageState.addPage,
@@ -274,12 +273,12 @@ class _WalletDetailsState extends State<WalletDetails>
     );
   }
 
-  void reOrderClaimedAssets(String publicKey) {
+  void reOrderClaimedAssets(String address) {
     // order asset according to user preference
-    if (appState.assetOrderings[publicKey] != null) {
+    if (appState.assetOrderings[address] != null) {
       otherTokens.forEach(
         (asset) => asset.userPreferredIndex =
-            appState.assetOrderings[publicKey]![asset.assetCode] ?? 0,
+            appState.assetOrderings[address]![asset.assetCode] ?? 0,
       );
       otherTokens.sort(
         (a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex),
@@ -287,12 +286,12 @@ class _WalletDetailsState extends State<WalletDetails>
     }
   }
 
-  void reOrderTokenizedAssets(String publicKey) {
+  void reOrderTokenizedAssets(String address) {
     // order asset according to user preference
-    if (appState.assetOrderings[publicKey] != null) {
+    if (appState.assetOrderings[address] != null) {
       tokenizedAssets.forEach(
         (asset) => asset.userPreferredIndex =
-            appState.assetOrderings[publicKey]![asset.assetCode] ?? 0,
+            appState.assetOrderings[address]![asset.assetCode] ?? 0,
       );
       tokenizedAssets.sort(
         (a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex),
@@ -389,7 +388,7 @@ class _WalletDetailsState extends State<WalletDetails>
                               appState.viewData = {
                                 'assetCode': tokenizedAssets[i].assetCode,
                                 'assetIssuer': tokenizedAssets[i].assetIssuer,
-                                'walletPublicKey': wallet.publicKey,
+                                'walletAddress': wallet.address,
                               };
                               appState.currentAction = PageAction(
                                 state: PageState.addPage,
@@ -594,7 +593,7 @@ class _WalletDetailsState extends State<WalletDetails>
                                           'assetCode': otherTokens[i].assetCode,
                                           'assetIssuer':
                                               otherTokens[i].assetIssuer,
-                                          'walletPublicKey': wallet.publicKey,
+                                          'walletAddress': wallet.address,
                                         };
                                         appState.currentAction = PageAction(
                                           state: PageState.addPage,
@@ -674,7 +673,7 @@ class _WalletDetailsState extends State<WalletDetails>
                                         appState.viewData = {
                                           'assetCode': asset.assetCode,
                                           'assetIssuer': asset.assetIssuer,
-                                          'walletPublicKey': wallet.publicKey,
+                                          'walletAddress': wallet.address,
                                         };
                                         appState.currentAction = PageAction(
                                           state: PageState.addPage,
@@ -728,12 +727,12 @@ class _WalletDetailsState extends State<WalletDetails>
 
   Widget tiles(Asset asset, int? indexOfAsset) {
     if (indexOfAsset != null) {
-      if (appState.assetOrderings[wallet.publicKey!] == null) {
-        appState.assetOrderings[wallet.publicKey!] = {
+      if (appState.assetOrderings[wallet.address!] == null) {
+        appState.assetOrderings[wallet.address!] = {
           asset.assetCode!: indexOfAsset,
         };
       }
-      appState.assetOrderings[wallet.publicKey!]![asset.assetCode!] =
+      appState.assetOrderings[wallet.address!]![asset.assetCode!] =
           indexOfAsset;
     }
     return Card(

@@ -9,6 +9,7 @@ import 'package:trovo_app/models/user.dart';
 import 'package:trovo_app/models/wallet.dart';
 import 'package:trovo_app/functions/trovo-sdk.dart';
 import 'package:trovo_app/storage/store.dart';
+
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
 import '../../custom_bloc_observer/notifire_clor.dart';
@@ -100,7 +101,7 @@ class _BackupAllState extends State<BackupAll> {
               ),
               SizedBox(height: height / 20),
               for (var wallet in getUserWallets()) ...[
-                Secret(wallet.alias!, wallet.secretKey!, wallet.publicKey!),
+                Secret(wallet.alias!, wallet.secretKey!, wallet.address!),
               ],
               SizedBox(height: height / 20),
               Button(
@@ -129,7 +130,7 @@ class _BackupAllState extends State<BackupAll> {
     secrets.forEach((secret) {
       Account account = TrovoWalletSDK().parseSecretKey(secret);
       var wlt = user.wallets!.firstWhereOrNull(
-        (wallet) => wallet.publicKey == account.publicKey,
+        (wallet) => wallet.address == account.address,
       );
       if (wlt != null) {
         wlt.secretKey = secret;

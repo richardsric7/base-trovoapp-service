@@ -22,6 +22,7 @@ import 'package:provider/provider.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 import 'package:trovo_app/widgets/wallet_slides.dart';
+
 import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -67,7 +68,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
       wallets.add(
         DropdownMenuItem(
           child: Text(wallet.alias!, overflow: TextOverflow.ellipsis),
-          value: wallet.publicKey,
+          value: wallet.address,
         ),
       );
     });
@@ -154,11 +155,11 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
         : wallets;
 
     // if ((activeWallet == null && wallets.length > 0)) {
-    //   activeWallet = wallets[0].publicKey;
+    //   activeWallet = wallets[0].address;
     // }
 
     if ((activeWallet == null && wallets.length > 0) || noXbnBalance) {
-      activeWallet = wallets[0].publicKey;
+      activeWallet = wallets[0].address;
       otherTokens = wallets[0]
           .getOtherTokens(appState)
           .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
@@ -369,7 +370,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                                 appState.viewData = {
                                   'assetCode': '',
                                   'assetIssuer': '',
-                                  'walletPublicKey': activeWallet,
+                                  'walletAddress': activeWallet,
                                 };
                                 appState.currentAction = PageAction(
                                   state: PageState.addPage,
@@ -581,13 +582,13 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                               key: Key(i.toString()),
                               onTap: () {
                                 appState.setActiveWallet = wallets.firstWhere(
-                                  (wallet) => wallet.publicKey == activeWallet,
+                                  (wallet) => wallet.address == activeWallet,
                                 );
 
                                 appState.viewData = {
                                   'assetCode': tokenizedAssets[i].assetCode,
                                   'assetIssuer': tokenizedAssets[i].assetIssuer,
-                                  'walletPublicKey': activeWallet,
+                                  'walletAddress': activeWallet,
                                 };
                                 appState.currentAction = PageAction(
                                   state: PageState.addPage,
@@ -649,7 +650,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
         onPageChanged: ((index, reason) => {
           setState(() {
             activeWalletIndex = index == 5 ? index - 1 : index;
-            activeWallet = wallets[activeWalletIndex].publicKey;
+            activeWallet = wallets[activeWalletIndex].address;
             otherTokens = wallets[activeWalletIndex]
                 .getOtherTokens(appState)
                 .where(
@@ -678,7 +679,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
               return GestureDetector(
                 onTap: () {
                   appState.viewData = {
-                    'walletPublicKey': wallets[indexOfWallet].publicKey,
+                    'walletAddress': wallets[indexOfWallet].address,
                   };
                   appState.currentAction = PageAction(
                     state: PageState.addPage,
@@ -804,13 +805,13 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                         GestureDetector(
                           onTap: () {
                             appState.setActiveWallet = wallets.firstWhere(
-                              (wallet) => wallet.publicKey == activeWallet,
+                              (wallet) => wallet.address == activeWallet,
                             );
 
                             appState.viewData = {
                               'assetCode': unclaimedAssets![i].assetCode,
                               'assetIssuer': unclaimedAssets![i].assetIssuer,
-                              'walletPublicKey': activeWallet,
+                              'walletAddress': activeWallet,
                             };
                             appState.currentAction = PageAction(
                               state: PageState.addPage,
@@ -856,12 +857,12 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
 
   Widget tiles(Asset asset, int? indexOfAsset, int indexOfWallet) {
     if (indexOfAsset != null) {
-      if (appState.assetOrderings[wallets[indexOfWallet].publicKey!] == null) {
-        appState.assetOrderings[wallets[indexOfWallet].publicKey!] = {
+      if (appState.assetOrderings[wallets[indexOfWallet].address!] == null) {
+        appState.assetOrderings[wallets[indexOfWallet].address!] = {
           asset.assetCode!: indexOfAsset,
         };
       }
-      appState.assetOrderings[wallets[indexOfWallet].publicKey!]![asset
+      appState.assetOrderings[wallets[indexOfWallet].address!]![asset
               .assetCode!] =
           indexOfAsset;
     }
@@ -992,13 +993,13 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                         key: Key(i.toString()),
                         onTap: () {
                           appState.setActiveWallet = wallets.firstWhere(
-                            (wallet) => wallet.publicKey == activeWallet,
+                            (wallet) => wallet.address == activeWallet,
                           );
 
                           appState.viewData = {
                             'assetCode': otherTokens[i].assetCode,
                             'assetIssuer': otherTokens[i].assetIssuer,
-                            'walletPublicKey': activeWallet,
+                            'walletAddress': activeWallet,
                           };
                           appState.currentAction = PageAction(
                             state: PageState.addPage,
@@ -1051,12 +1052,12 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
     return text;
   }
 
-  void reOrderClaimedAssets(String publicKey) {
+  void reOrderClaimedAssets(String address) {
     // order asset according to user preference
-    if (appState.assetOrderings[publicKey] != null) {
+    if (appState.assetOrderings[address] != null) {
       otherTokens.forEach(
         (asset) => asset.userPreferredIndex =
-            appState.assetOrderings[publicKey]![asset.assetCode] ?? 0,
+            appState.assetOrderings[address]![asset.assetCode] ?? 0,
       );
       otherTokens.sort(
         (a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex),

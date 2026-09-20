@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,6 +15,7 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class CompleteAccountRecovery extends StatefulWidget {
@@ -212,9 +214,9 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
       Map responseData = await makePostRequest(
         uri: '/v1/users/account/recover',
         body: requestBody,
-        signer: appState.tempPublicKey,
+        signer: appState.tempAddress,
         secretKey: appState.tempSecretKey, // the primary wallet secret key
-        publicKey: appState.tempPublicKey,
+        address: appState.tempAddress,
       );
 
       hideLoader(context);

@@ -9,7 +9,7 @@ import 'package:trovo_app/storage/store.dart';
 Future<void> updateUserInfo(
   signer,
   secretKey,
-  publicKey,
+  address,
   username,
   appState, {
   bool forceRefresh = false,
@@ -24,7 +24,7 @@ Future<void> updateUserInfo(
     uri: uri,
     signer: signer,
     secretKey: secretKey, // the primary wallet secret key
-    publicKey: publicKey!,
+    address: address!,
   );
   inspect(responseData['data']);
   if (responseData['statusCode'] == 200) {
@@ -40,7 +40,7 @@ Future<void> fetchCuratedSwapList(DataProvider appState) async {
     uri: uri,
     signer: appState.primaryWallet.signer ?? "",
     secretKey: appState.secretKeys[0], // the primary wallet secret key
-    publicKey: appState.primaryWallet.publicKey ?? "",
+    address: appState.primaryWallet.address ?? "",
   );
   if (responseData['statusCode'] == 200) {
     if (responseData['data'].length > 0) {

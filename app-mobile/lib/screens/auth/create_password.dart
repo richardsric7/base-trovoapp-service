@@ -6,6 +6,7 @@ import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import '../../custom_bloc_observer/fonts.dart';
@@ -198,9 +199,9 @@ class _CreatePassword extends State<CreatePassword> {
         showLoader(context);
         var account = TrovoWalletSDK().createAccount();
         appState.setTempPassword = password;
-        appState.setTempPublicKey = account.publicKey;
+        appState.setTempAddress = account.address;
         appState.setTempSecretKey = account.secretKey;
-        appState.setTempSigner = account.publicKey;
+        appState.setTempSigner = account.address;
 
         hideLoader(context);
         appState.currentAction = PageAction(

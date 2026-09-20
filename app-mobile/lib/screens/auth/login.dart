@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import '../../router/page_actions.dart';
@@ -21,6 +23,7 @@ import '../../router/ui_pages.dart';
 import '../../utils/local_auth.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/popups.dart';
+
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 class Login extends StatefulWidget {

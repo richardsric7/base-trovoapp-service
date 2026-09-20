@@ -47,9 +47,11 @@ class _BarChartWidgetState extends State<BarChartWidget> {
         BarChartData(
           barGroups: _chartGroups(),
           borderData: FlBorderData(
-              border: Border(
-                  bottom: BorderSide(color: notifier.getbluewhitecolor),
-                  left: BorderSide(color: notifier.getbluewhitecolor))),
+            border: Border(
+              bottom: BorderSide(color: notifier.getbluewhitecolor),
+              left: BorderSide(color: notifier.getbluewhitecolor),
+            ),
+          ),
           gridData: FlGridData(show: false),
           titlesData: FlTitlesData(
             bottomTitles: AxisTitles(sideTitles: _bottomTitles),
@@ -64,73 +66,78 @@ class _BarChartWidgetState extends State<BarChartWidget> {
 
   List<BarChartGroupData> _chartGroups() {
     return points
-        .map((point) => BarChartGroupData(x: point.x.toInt(), barRods: [
+        .map(
+          (point) => BarChartGroupData(
+            x: point.x.toInt(),
+            barRods: [
               BarChartRodData(toY: point.y, color: Colors.blueAccent),
-              BarChartRodData(toY: point.y, color: Colors.green)
-            ]))
+              BarChartRodData(toY: point.y, color: Colors.green),
+            ],
+          ),
+        )
         .toList();
   }
 
   SideTitles get _bottomTitles => SideTitles(
-        showTitles: true,
-        getTitlesWidget: (value, meta) {
-          String text = '';
-          switch (value.toInt()) {
-            case 0:
-              text = 'Sun';
-              break;
-            case 2:
-              text = 'Mon';
-              break;
-            case 4:
-              text = 'Tue';
-              break;
-            case 6:
-              text = 'Wed';
-              break;
-            case 8:
-              text = 'Thur';
-              break;
-            case 10:
-              text = 'Fri';
-              break;
-            case 12:
-              text = 'Sat';
-              break;
-          }
+    showTitles: true,
+    getTitlesWidget: (value, meta) {
+      String text = '';
+      switch (value.toInt()) {
+        case 0:
+          text = 'Sun';
+          break;
+        case 2:
+          text = 'Mon';
+          break;
+        case 4:
+          text = 'Tue';
+          break;
+        case 6:
+          text = 'Wed';
+          break;
+        case 8:
+          text = 'Thur';
+          break;
+        case 10:
+          text = 'Fri';
+          break;
+        case 12:
+          text = 'Sat';
+          break;
+      }
 
-          return Text(
-            text,
-            style: TextStyle(
-              fontSize: 13,
-              fontFamily: fontbody,
-              color: notifier.getbluewhitecolor,
-            ),
-          );
-        },
+      return Text(
+        text,
+        style: TextStyle(
+          fontSize: 13,
+          fontFamily: fontbody,
+          color: notifier.getbluewhitecolor,
+        ),
       );
+    },
+  );
   SideTitles get _leftTitles => SideTitles(
-        showTitles: true,
-        getTitlesWidget: (value, meta) {
-          String text = '';
-          if (value > 0.1) text = '0.1';
-          if (value > 0.2) text = '0.2';
-          if (value > 0.3) text = '0.3';
-          if (value > 0.4) text = '0.4';
-          if (value > 0.5) text = '0.5';
-          if (value > 0.6) text = '0.6';
-          if (value > 0.7) text = '0.7';
-          if (value > 0.8) text = '0.8';
-          if (value > 0.9) text = '0.9';
+    showTitles: true,
+    getTitlesWidget: (value, meta) {
+      String text = '';
+      if (value > 0.1) text = '0.1';
+      if (value > 0.2) text = '0.2';
+      if (value > 0.3) text = '0.3';
+      if (value > 0.4) text = '0.4';
+      if (value > 0.5) text = '0.5';
+      if (value > 0.6) text = '0.6';
+      if (value > 0.7) text = '0.7';
+      if (value > 0.8) text = '0.8';
+      if (value > 0.9) text = '0.9';
 
-          return Text(
-            text,
-            style: TextStyle(
-              fontSize: 13,
-              fontFamily: fontbody,
-              color: notifier.getbluewhitecolor,
-            ),
-          );
-        },
+      return Text(
+        text,
+        style: TextStyle(
+          fontSize: 13,
+          fontFamily: fontbody,
+          color: notifier.getbluewhitecolor,
+        ),
       );
+    },
+  );
 }

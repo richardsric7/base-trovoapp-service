@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
 import '../../storage/state.dart';
@@ -54,9 +56,9 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
     securityQuestionsMap = fetchQuestions(
-      appState.tempPublicKey,
+      appState.tempAddress,
       appState.tempSecretKey,
-      appState.tempPublicKey,
+      appState.tempAddress,
       appState.tempUsername,
     );
   }
@@ -175,9 +177,9 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
                                 onPressed: () {
                                   setState(() {
                                     securityQuestionsMap = fetchQuestions(
-                                      appState.tempPublicKey,
+                                      appState.tempAddress,
                                       appState.tempSecretKey,
-                                      appState.tempPublicKey,
+                                      appState.tempAddress,
                                       appState.tempUsername,
                                     );
                                   });
@@ -271,9 +273,9 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
                             SizedBox(height: height / 10),
                             Padding(
                               padding: EdgeInsets.only(
-                                bottom: MediaQuery.of(
-                                  context,
-                                ).viewInsets.bottom,
+                                bottom: MediaQuery.of(context)
+                                    .viewInsets
+                                    .bottom,
                               ),
                             ),
                           ],
@@ -374,9 +376,9 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
       Map responseData = await makePostRequest(
         uri: '/v1/verify-answers/${appState.tempUsername}',
         body: requestBody,
-        signer: appState.tempPublicKey,
+        signer: appState.tempAddress,
         secretKey: appState.tempSecretKey, // the primary wallet secret key
-        publicKey: appState.tempPublicKey,
+        address: appState.tempAddress,
       );
 
       hideLoader(context);
@@ -404,12 +406,12 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
     }
   }
 
-  Future<Map> fetchQuestions(signer, secretKey, publicKey, username) async {
+  Future<Map> fetchQuestions(signer, secretKey, address, username) async {
     Map responseData = await makeGetRequest(
       uri: '/v1/security-questions/$username',
       signer: signer,
       secretKey: secretKey, // the primary wallet secret key
-      publicKey: publicKey!,
+      address: address!,
     );
 
     return responseData['data'];

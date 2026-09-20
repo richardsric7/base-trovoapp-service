@@ -14,8 +14,10 @@ import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+
 import 'package:http/http.dart' as http;
 
 class MarketTradeInfo extends StatefulWidget {
@@ -33,23 +35,17 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
   bool themeIsDark = false;
   late TabController tabController;
 
-  List<String> options = [
-    'Hour',
-    'Day',
-    'Week',
-    'Month',
-    'Year',
-  ];
+  List<String> options = ['Hour', 'Day', 'Week', 'Month', 'Year'];
 
   List<DropdownMenuItem<String>> get getOptions {
     List<DropdownMenuItem<String>> myOptions = [];
     options.forEach((value) {
-      myOptions.add(DropdownMenuItem(
-          child: Text(
-            value,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: value));
+      myOptions.add(
+        DropdownMenuItem(
+          child: Text(value, overflow: TextOverflow.ellipsis),
+          value: value,
+        ),
+      );
     });
     return myOptions;
   }
@@ -75,7 +71,8 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
 
   Future<List<Candle>> fetchCandles() async {
     final uri = Uri.parse(
-        "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h");
+      "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h",
+    );
     final res = await http.get(uri);
     return (jsonDecode(res.body) as List<dynamic>)
         .map((e) => Candle.fromJson(e))
@@ -121,39 +118,15 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
               controller: tabController,
               labelColor: notifier.getbluewhitecolor,
               indicatorColor: notifier.getbluewhitecolor,
-              labelStyle: TextStyle(
-                fontSize: 12.sp,
-                fontFamily: fontsemibold,
-              ),
+              labelStyle: TextStyle(fontSize: 12.sp, fontFamily: fontsemibold),
               tabs: [
-                Tab(
-                  height: 20,
-                  text: 'Buy',
-                ),
-                Tab(
-                  height: 20,
-                  text: 'Sell',
-                ),
-                Tab(
-                  height: 20,
-                  text: 'Chart',
-                ),
-                Tab(
-                  height: 20,
-                  text: 'Order Book',
-                ),
-                Tab(
-                  height: 20,
-                  text: 'Last Trades',
-                ),
-                Tab(
-                  height: 20,
-                  text: 'Trades',
-                ),
-                Tab(
-                  height: 20,
-                  text: 'Orders',
-                ),
+                Tab(height: 20, text: 'Buy'),
+                Tab(height: 20, text: 'Sell'),
+                Tab(height: 20, text: 'Chart'),
+                Tab(height: 20, text: 'Order Book'),
+                Tab(height: 20, text: 'Last Trades'),
+                Tab(height: 20, text: 'Trades'),
+                Tab(height: 20, text: 'Orders'),
               ],
             ),
             SizedBox(height: height / 70),
@@ -182,14 +155,8 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
     return SingleChildScrollView(
       child: Column(
         children: [
-          Table(
-            children: getOrderBookTableRows(
-              Colors.red[400]!,
-            ),
-          ),
-          SizedBox(
-            height: height / 70,
-          ),
+          Table(children: getOrderBookTableRows(Colors.red[400]!)),
+          SizedBox(height: height / 70),
           Divider(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -203,9 +170,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
                     color: notifier.getbluewhitecolor,
                   ),
                 ),
-                SizedBox(
-                  width: width / 5,
-                ),
+                SizedBox(width: width / 5),
                 Text(
                   '956,800.00 NGN',
                   style: TextStyle(
@@ -218,12 +183,12 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
             ),
           ),
           Divider(),
-          SizedBox(
-            height: height / 70,
-          ),
+          SizedBox(height: height / 70),
           Table(
-            children: getOrderBookTableRows(notifier.getgreencolor,
-                showHeaderRow: false),
+            children: getOrderBookTableRows(
+              notifier.getgreencolor,
+              showHeaderRow: false,
+            ),
           ),
         ],
       ),
@@ -233,9 +198,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
   Widget buyAndSell(bool isBuy) {
     return Column(
       children: [
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Row(
           children: [
             Padding(
@@ -251,9 +214,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
             ),
           ],
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Row(
           children: [
             Padding(
@@ -275,9 +236,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
             ),
           ],
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Row(
           children: [
             Padding(
@@ -293,9 +252,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
             ),
           ],
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Row(
           children: [
             Padding(
@@ -317,9 +274,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
             ),
           ],
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Card(
@@ -333,9 +288,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
             child: Center(
               child: Column(
                 children: [
-                  SizedBox(
-                    height: height / 70,
-                  ),
+                  SizedBox(height: height / 70),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Row(
@@ -362,9 +315,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
                       ],
                     ),
                   ),
-                  SizedBox(
-                    height: height / 70,
-                  ),
+                  SizedBox(height: height / 70),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Row(
@@ -391,17 +342,13 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
                       ],
                     ),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 50),
                 ],
               ),
             ),
           ),
         ),
-        SizedBox(
-          height: height / 30,
-        ),
+        SizedBox(height: height / 30),
         Button(
           '${isBuy ? 'Buy' : 'Sell'} TROV',
           isBuy ? notifier.getbluecolor : Colors.red[400],
@@ -485,54 +432,61 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
         SizedBox(height: height / 50),
         Container(
           height: height / 1.4,
-          child: Candlesticks(
-            candles: candles,
-          ),
+          child: Candlesticks(candles: candles),
         ),
       ],
     );
   }
 
-  List<TableRow> getOrderBookTableRows(Color color,
-      {bool showHeaderRow = true}) {
+  List<TableRow> getOrderBookTableRows(
+    Color color, {
+    bool showHeaderRow = true,
+  }) {
     List<TableRow> tableRows = [];
 
     if (showHeaderRow) {
-      tableRows.add(TableRow(children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-          child: Text(
-            'Price NGN',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontFamily: fontsemibold,
-                color: notifier.getsplashgrey,
-                fontSize: 13),
-          ),
+      tableRows.add(
+        TableRow(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child: Text(
+                'Price NGN',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                  color: notifier.getsplashgrey,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child: Text(
+                'Amount TROV',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                  color: notifier.getsplashgrey,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child: Text(
+                'Total NGN',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                  color: notifier.getsplashgrey,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-          child: Text(
-            'Amount TROV',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontFamily: fontsemibold,
-                color: notifier.getsplashgrey,
-                fontSize: 13),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-          child: Text(
-            'Total NGN',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontFamily: fontsemibold,
-                color: notifier.getsplashgrey,
-                fontSize: 13),
-          ),
-        ),
-      ]));
+      );
     }
 
     for (var i = 0; i <= 10; i++) {
@@ -585,13 +539,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
   Widget lastTrades() {
     return SingleChildScrollView(
       child: Column(
-        children: [
-          Table(
-            children: getLastTradesRows(
-              Colors.red[400]!,
-            ),
-          ),
-        ],
+        children: [Table(children: getLastTradesRows(Colors.red[400]!))],
       ),
     );
   }
@@ -600,52 +548,60 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
     List<TableRow> tableRows = [];
 
     if (showHeaderRow) {
-      tableRows.add(TableRow(children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-          child: Text(
-            'Time',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontFamily: fontsemibold,
-                color: notifier.getsplashgrey,
-                fontSize: 13),
-          ),
+      tableRows.add(
+        TableRow(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child: Text(
+                'Time',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                  color: notifier.getsplashgrey,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child: Text(
+                'Price NGN',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                  color: notifier.getsplashgrey,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child: Text(
+                'Amount TROV',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                  color: notifier.getsplashgrey,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child: Text(
+                'Total TROV',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                  color: notifier.getsplashgrey,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-          child: Text(
-            'Price NGN',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontFamily: fontsemibold,
-                color: notifier.getsplashgrey,
-                fontSize: 13),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-          child: Text(
-            'Amount TROV',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontFamily: fontsemibold,
-                color: notifier.getsplashgrey,
-                fontSize: 13),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-          child: Text(
-            'Total TROV',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontFamily: fontsemibold,
-                color: notifier.getsplashgrey,
-                fontSize: 13),
-          ),
-        ),
-      ]));
+      );
     }
 
     for (var i = 0; i <= 10; i++) {
@@ -656,7 +612,8 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
               padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
               child: Text(
                 DateFormat.Hms().format(
-                    DateTime.now().add(Duration(hours: Random().nextInt(100)))),
+                  DateTime.now().add(Duration(hours: Random().nextInt(100))),
+                ),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: fontbody,
@@ -711,9 +668,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
   Widget trades() {
     return Column(
       children: [
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Row(
           children: [
             Padding(
@@ -729,9 +684,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
             ),
           ],
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         tradeItemCard(
           'TROV/NGN',
           '0.02962',
@@ -748,9 +701,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
           '14:08',
           false,
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Row(
           children: [
             Padding(
@@ -766,9 +717,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
             ),
           ],
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         tradeItemCard(
           'TROV/NGN',
           '0.02962',
@@ -785,9 +734,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
           '14:08',
           false,
         ),
-        SizedBox(
-          height: height / 30,
-        ),
+        SizedBox(height: height / 30),
       ],
     );
   }
@@ -795,9 +742,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
   Widget orders() {
     return Column(
       children: [
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Row(
           children: [
             Padding(
@@ -813,9 +758,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
             ),
           ],
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         tradeItemCard(
           'TROV/NGN',
           '0.02962',
@@ -834,9 +777,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
           false,
           showMore: true,
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         Row(
           children: [
             Padding(
@@ -852,9 +793,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
             ),
           ],
         ),
-        SizedBox(
-          height: height / 50,
-        ),
+        SizedBox(height: height / 50),
         tradeItemCard(
           'TROV/NGN',
           '0.02962',
@@ -873,9 +812,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
           false,
           showMore: true,
         ),
-        SizedBox(
-          height: height / 30,
-        ),
+        SizedBox(height: height / 30),
       ],
     );
   }
@@ -902,9 +839,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
         child: Center(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Row(
@@ -923,8 +858,9 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
                       children: [
                         pill(
                           isBuy ? 'Buy' : 'Sell',
-                          backColor:
-                              isBuy ? notifier.getgreencolor : Colors.red[400],
+                          backColor: isBuy
+                              ? notifier.getgreencolor
+                              : Colors.red[400],
                           foreColor: wihitecolor,
                         ),
                         if (showMore)
@@ -954,9 +890,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
                         color: isBuy ? notifier.getgreencolor : Colors.red[400],
                       ),
                     ),
-                    SizedBox(
-                      width: 5,
-                    ),
+                    SizedBox(width: 5),
                     Text(
                       rateAmountText2,
                       textAlign: TextAlign.center,
@@ -969,9 +903,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
                   ],
                 ),
               ),
-              SizedBox(
-                height: height / 70,
-              ),
+              SizedBox(height: height / 70),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Row(
@@ -998,9 +930,7 @@ class _MarketTradeInfoState extends State<MarketTradeInfo>
                   ],
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
             ],
           ),
         ),

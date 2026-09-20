@@ -8,6 +8,7 @@ import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -22,115 +23,38 @@ class _MarketPairsState extends State<MarketPairs>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  List<String> options = [
-    'TROV',
-    'USDC',
-    'USDT',
-    'ETH',
-  ];
+  List<String> options = ['TROV', 'USDC', 'USDT', 'ETH'];
 
   List<Map> marketPairs = <Map>[
-    {
-      'pair': 'TROV/CNGN',
-      'price': '450 CNGN',
-      'isChecked': true,
-    },
-    {
-      'pair': 'TROV/USDC',
-      'price': '0.5 USDC',
-      'isChecked': false,
-    },
-    {
-      'pair': 'TROV/USDT',
-      'price': '0.49 USDT',
-      'isChecked': true,
-    },
-    {
-      'pair': 'TROV/ETH',
-      'price': '1000 ETH',
-      'isChecked': false,
-    },
-    {
-      'pair': 'ETH/CNGN',
-      'price': '0.5 CNGN',
-      'isChecked': false,
-    },
-    {
-      'pair': 'ETH/USDC',
-      'price': '0.0003 USDC',
-      'isChecked': true,
-    },
-    {
-      'pair': 'ETH/USDT',
-      'price': '0.0003 USDT',
-      'isChecked': false,
-    },
-    {
-      'pair': 'TROV/CNGN',
-      'price': '200 CNGN',
-      'isChecked': false,
-    },
-    {
-      'pair': 'TROV/USDC',
-      'price': '0.24 USDC',
-      'isChecked': true,
-    },
-    {
-      'pair': 'TROV/USDT',
-      'price': '1.5 USDT',
-      'isChecked': false,
-    },
-    {
-      'pair': 'TROV/ETH',
-      'price': '1000 ETH',
-      'isChecked': true,
-    },
-    {
-      'pair': 'ETH/CNGN',
-      'price': '0.5 CNGN',
-      'isChecked': false,
-    },
-    {
-      'pair': 'ETH/USDC',
-      'price': '0.49 USDC',
-      'isChecked': false,
-    },
-    {
-      'pair': 'ETH/USDT',
-      'price': '0.5 USDT',
-      'isChecked': true,
-    },
-    {
-      'pair': 'TROV/USDT',
-      'price': '0.4 USDT',
-      'isChecked': false,
-    },
-    {
-      'pair': 'TROV/USDC',
-      'price': '0.82 USDT',
-      'isChecked': false,
-    },
-    {
-      'pair': 'TROV/CNGN',
-      'price': '30 CNGN',
-      'isChecked': true,
-    },
-    {
-      'pair': 'TROV/ETH',
-      'price': '1.4 ETH',
-      'isChecked': false,
-    },
+    {'pair': 'TROV/CNGN', 'price': '450 CNGN', 'isChecked': true},
+    {'pair': 'TROV/USDC', 'price': '0.5 USDC', 'isChecked': false},
+    {'pair': 'TROV/USDT', 'price': '0.49 USDT', 'isChecked': true},
+    {'pair': 'TROV/ETH', 'price': '1000 ETH', 'isChecked': false},
+    {'pair': 'ETH/CNGN', 'price': '0.5 CNGN', 'isChecked': false},
+    {'pair': 'ETH/USDC', 'price': '0.0003 USDC', 'isChecked': true},
+    {'pair': 'ETH/USDT', 'price': '0.0003 USDT', 'isChecked': false},
+    {'pair': 'TROV/CNGN', 'price': '200 CNGN', 'isChecked': false},
+    {'pair': 'TROV/USDC', 'price': '0.24 USDC', 'isChecked': true},
+    {'pair': 'TROV/USDT', 'price': '1.5 USDT', 'isChecked': false},
+    {'pair': 'TROV/ETH', 'price': '1000 ETH', 'isChecked': true},
+    {'pair': 'ETH/CNGN', 'price': '0.5 CNGN', 'isChecked': false},
+    {'pair': 'ETH/USDC', 'price': '0.49 USDC', 'isChecked': false},
+    {'pair': 'ETH/USDT', 'price': '0.5 USDT', 'isChecked': true},
+    {'pair': 'TROV/USDT', 'price': '0.4 USDT', 'isChecked': false},
+    {'pair': 'TROV/USDC', 'price': '0.82 USDT', 'isChecked': false},
+    {'pair': 'TROV/CNGN', 'price': '30 CNGN', 'isChecked': true},
+    {'pair': 'TROV/ETH', 'price': '1.4 ETH', 'isChecked': false},
   ];
 
   List<DropdownMenuItem<String>> get getOptions {
     List<DropdownMenuItem<String>> myOptions = [];
     options.forEach((value) {
-      myOptions.add(DropdownMenuItem(
-          child: Text(
-            value,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: value));
+      myOptions.add(
+        DropdownMenuItem(
+          child: Text(value, overflow: TextOverflow.ellipsis),
+          value: value,
+        ),
+      );
     });
     return myOptions;
   }
@@ -215,13 +139,7 @@ class _MarketPairsState extends State<MarketPairs>
     return SingleChildScrollView(
       child: Column(
         children: [
-          Table(
-            children: getTableRows(
-              'TROV/CNGN',
-              '450 CNGN',
-              true,
-            ),
-          ),
+          Table(children: getTableRows('TROV/CNGN', '450 CNGN', true)),
         ],
       ),
     );
@@ -231,52 +149,60 @@ class _MarketPairsState extends State<MarketPairs>
     List<TableRow> tableRows = [];
     // bool checked = isChecked;
 
-    tableRows.add(TableRow(children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-        child: Text(
-          'Favorites',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              fontFamily: fontsemibold,
-              color: notifier.getsplashgrey,
-              fontSize: 13),
-        ),
+    tableRows.add(
+      TableRow(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            child: Text(
+              'Favorites',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: fontsemibold,
+                color: notifier.getsplashgrey,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            child: Text(
+              'Pairs',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: fontsemibold,
+                color: notifier.getsplashgrey,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            child: Text(
+              'Price',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: fontsemibold,
+                color: notifier.getsplashgrey,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            child: Text(
+              'Chart',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: fontsemibold,
+                color: notifier.getsplashgrey,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
       ),
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-        child: Text(
-          'Pairs',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              fontFamily: fontsemibold,
-              color: notifier.getsplashgrey,
-              fontSize: 13),
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-        child: Text(
-          'Price',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              fontFamily: fontsemibold,
-              color: notifier.getsplashgrey,
-              fontSize: 13),
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-        child: Text(
-          'Chart',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              fontFamily: fontsemibold,
-              color: notifier.getsplashgrey,
-              fontSize: 13),
-        ),
-      ),
-    ]));
+    );
 
     for (var i = 0; i < marketPairs.length; i++) {
       tableRows.add(
@@ -286,9 +212,7 @@ class _MarketPairsState extends State<MarketPairs>
               scale: 0.9.sp,
               child: Checkbox(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(5.sp),
-                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(5.sp)),
                 ),
                 activeColor: notifier.isDark
                     ? notifier.getbluecolor50

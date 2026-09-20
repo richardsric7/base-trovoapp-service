@@ -8,6 +8,7 @@ import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -63,9 +64,8 @@ class _FlutterwaveWebViewState extends State<FlutterwaveWebView> {
       ..addJavaScriptChannel(
         'Toaster',
         onMessageReceived: (JavaScriptMessage message) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(message.message)));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(message.message)));
         },
       )
       // ..loadRequest(Uri.parse('https://flutter.dev'))
@@ -107,7 +107,7 @@ class _FlutterwaveWebViewState extends State<FlutterwaveWebView> {
                           user_id: '${userInfo.username}',
                           transaction_type: 'ACTIVATION',                      
                           product: 'ACTIVATION',
-                          destination_wallet_id: '${appState.primaryWallet.publicKey}',
+                          destination_wallet_id: '${appState.primaryWallet.address}',
                         },
                         customer: {
                           email: '${userInfo.email}',

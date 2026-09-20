@@ -17,6 +17,7 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class GenerateDepositAddress extends StatefulWidget {
@@ -37,9 +38,7 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    wallet = appState.userInfo!.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = appState.userInfo!.getWallet(appState.viewData!['walletAddress']);
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
@@ -68,31 +67,24 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
-                  SizedBox(
-                    width: 20,
-                  ),
+                  SizedBox(width: 20),
                   Text(
                     '${"deposit".tr()} ${getAssetCode(asset.assetCode!)}',
                     style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ],
               ),
-              SizedBox(
-                height: 20,
-              ),
+              SizedBox(height: 20),
               depositInfo(),
-              SizedBox(
-                height: height / 10,
-              ),
+              SizedBox(height: height / 10),
               Button(
                 "generatedepositaddress".tr(),
                 notifier.getbluecolor,
@@ -123,8 +115,10 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 35.0,
+              ),
               child: Container(
                 width: width / 1.3,
                 child: Column(
@@ -134,16 +128,15 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
                       "assets/images/deposit-pin.png",
                       height: height / 7,
                     ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
+                    SizedBox(height: height / 50),
                     Text(
                       "nodepositaddressyet".tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          fontSize: 15,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontbody),
+                        fontSize: 15,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontbody,
+                      ),
                     ),
                   ],
                 ),
@@ -164,20 +157,20 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
         body: "",
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.publicKey!,
+        address: wallet.address!,
       );
 
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(
           appState.primaryWallet.signer!,
           appState.secretKeys[0],
-          wallet.publicKey,
+          wallet.address,
           appState.userInfo!.username,
           appState,
         );
         hideLoader(context);
         appState.viewData = {
-          'walletPublicKey': wallet.publicKey,
+          'walletAddress': wallet.address,
           'assetCode': asset.assetCode,
           'assetIssuer': asset.assetIssuer,
         };
@@ -188,8 +181,11 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
         );
       } else {
         hideLoader(context);
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
+        popup(
+          context,
+          title: "error".tr(),
+          message: responseData['data']['message'],
+        );
       }
     } catch (e) {
       hideLoader(context);

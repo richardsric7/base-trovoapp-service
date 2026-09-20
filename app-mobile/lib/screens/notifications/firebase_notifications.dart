@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -39,23 +40,31 @@ Future<void> initAppNotification(context, appState) async {
 
   final DarwinInitializationSettings initializationSettingsIOS =
       DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true);
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
 
   final InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
+    android: initializationSettingsAndroid,
+    iOS: initializationSettingsIOS,
+  );
 
   requestPermissions();
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings,
-      onDidReceiveNotificationResponse: onDidReceiveLocalNotification);
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: onDidReceiveLocalNotification,
+  );
   //requestPermissions();
   initMyNotification(context);
 }
 
 initMyNotification(BuildContext context) {
   FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-      alert: true, badge: true, sound: true);
+    alert: true,
+    badge: true,
+    sound: true,
+  );
 
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     print('Got a message whilst in the foreground! ${message.toMap()}');
@@ -94,25 +103,35 @@ void selectNotification(String? route) async {
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message");
   await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform(_appState.walletMode));
+    options: DefaultFirebaseOptions.currentPlatform(_appState.walletMode),
+  );
   print(
-      '-----------------------------------------------this is the initialized app from backgroundMessagingHandler:  ${DefaultFirebaseOptions.currentPlatform(_appState.walletMode)}');
+    '-----------------------------------------------this is the initialized app from backgroundMessagingHandler:  ${DefaultFirebaseOptions.currentPlatform(_appState.walletMode)}',
+  );
 }
 
 Future<void> showNotification(RemoteMessage payload) async {
   const AndroidNotificationDetails androidPlatformChannelSpecifics =
-      AndroidNotificationDetails('Trovo Wallet', 'Trovo Technologies',
-          channelDescription:
-              'Trovo Wallet is an app to manage all your crypto assets',
-          importance: Importance.max,
-          priority: Priority.high,
-          ticker: 'ticker');
-  const NotificationDetails platformChannelSpecifics =
-      NotificationDetails(android: androidPlatformChannelSpecifics);
+      AndroidNotificationDetails(
+        'Trovo Wallet',
+        'Trovo Technologies',
+        channelDescription:
+            'Trovo Wallet is an app to manage all your crypto assets',
+        importance: Importance.max,
+        priority: Priority.high,
+        ticker: 'ticker',
+      );
+  const NotificationDetails platformChannelSpecifics = NotificationDetails(
+    android: androidPlatformChannelSpecifics,
+  );
   var rand = Random().nextInt(999999);
-  await flutterLocalNotificationsPlugin.show(rand, payload.notification!.title!,
-      payload.notification!.body!, platformChannelSpecifics,
-      payload: '${payload.data['route']}');
+  await flutterLocalNotificationsPlugin.show(
+    rand,
+    payload.notification!.title!,
+    payload.notification!.body!,
+    platformChannelSpecifics,
+    payload: '${payload.data['route']}',
+  );
 }
 
 void onDidReceiveLocalNotification(NotificationResponse response) async {
@@ -129,7 +148,7 @@ void onDidReceiveLocalNotification(NotificationResponse response) async {
           onPressed: () async {
             Navigator.of(context, rootNavigator: true).pop();
           },
-        )
+        ),
       ],
     ),
   );
@@ -138,28 +157,24 @@ void onDidReceiveLocalNotification(NotificationResponse response) async {
 void requestPermissions() {
   flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>()
-      ?.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+        IOSFlutterLocalNotificationsPlugin
+      >()
+      ?.requestPermissions(alert: true, badge: true, sound: true);
   flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
-          MacOSFlutterLocalNotificationsPlugin>()
-      ?.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+        MacOSFlutterLocalNotificationsPlugin
+      >()
+      ?.requestPermissions(alert: true, badge: true, sound: true);
 }
 
 void goToPageRoute(String route) {
   if (_appState.isLoggedIn) {
     switch (route) {
       case 'basicTransactionHistory':
-        _appState.currentAction =
-            PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+        _appState.currentAction = PageAction(
+          state: PageState.replaceAll,
+          page: BottomHomePageConfig,
+        );
         changeTabPage(_appState, ButtomTabPage.TransactionHistory.index);
         break;
       case 'pendingApproval':
@@ -169,17 +184,24 @@ void goToPageRoute(String route) {
         );
         // take the user to the pending approvals tab on the shared access view
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          _appState.sharedAccesstabController.animateTo(1,
-              duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+          _appState.sharedAccesstabController.animateTo(
+            1,
+            duration: Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
         });
         break;
       default:
-        _appState.currentAction =
-            PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+        _appState.currentAction = PageAction(
+          state: PageState.replaceAll,
+          page: BottomHomePageConfig,
+        );
         changeTabPage(_appState, ButtomTabPage.Dashboard.index);
     }
   } else {
-    _appState.currentAction =
-        PageAction(state: PageState.replaceAll, page: LoginPageConfig);
+    _appState.currentAction = PageAction(
+      state: PageState.replaceAll,
+      page: LoginPageConfig,
+    );
   }
 }

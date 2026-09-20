@@ -9,6 +9,7 @@ import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../router/page_actions.dart';
@@ -17,6 +18,7 @@ import '../../storage/state.dart';
 import '../../storage/store.dart';
 import '../../utils/local_auth.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 class FingerPrint extends StatefulWidget {

@@ -12,6 +12,7 @@ import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class RequestSpecificPaymentDetails extends StatefulWidget {
@@ -23,7 +24,8 @@ class RequestSpecificPaymentDetails extends StatefulWidget {
 }
 
 class RequestSpecificPaymentDetailsState
-    extends State<RequestSpecificPaymentDetails> with TickerProviderStateMixin {
+    extends State<RequestSpecificPaymentDetails>
+    with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
   GlobalKey shareArea = GlobalKey();
@@ -59,40 +61,29 @@ class RequestSpecificPaymentDetailsState
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 children: [
-                  SizedBox(
-                    width: 20,
-                  ),
+                  SizedBox(width: 20),
                   Text(
                     "${"receive".tr()} ${formatNumber(double.parse(viewData['amount']))} ${getAssetCode(viewData['assetCode'])}",
                     style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 30,
-              ),
+              SizedBox(height: height / 30),
               Column(
                 children: [
                   showReceivingWallet(),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  if (viewData['memo'].toString().isNotEmpty) ...[
-                    showMemo(),
-                  ],
+                  SizedBox(height: height / 50),
+                  if (viewData['memo'].toString().isNotEmpty) ...[showMemo()],
                   showQrCode(),
-                  SizedBox(
-                    height: height / 20,
-                  ),
+                  SizedBox(height: height / 20),
                 ],
               ),
               Button(
@@ -101,12 +92,14 @@ class RequestSpecificPaymentDetailsState
                 wihitecolor,
                 onTap: () {
                   share(
-                    "sharemessage".tr(args: [
-                      viewData['amount'],
-                      getAssetCode(viewData['assetCode']),
-                      viewData['walletAlias'],
-                      viewData['dynamicLink']
-                    ]),
+                    "sharemessage".tr(
+                      args: [
+                        viewData['amount'],
+                        getAssetCode(viewData['assetCode']),
+                        viewData['walletAlias'],
+                        viewData['dynamicLink'],
+                      ],
+                    ),
                     // 'Scan Qrcode or tap link to pay ${viewData['amount']} ${getAssetCode(viewData['assetCode'])} to [${viewData['walletAlias']}] => ${viewData['dynamicLink']}',
                     shareArea,
                   );
@@ -119,13 +112,17 @@ class RequestSpecificPaymentDetailsState
                 notifier.getbluewhitecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
-                      state: PageState.replaceAll, page: BottomHomePageConfig);
+                    state: PageState.replaceAll,
+                    page: BottomHomePageConfig,
+                  );
                 },
               ),
               SizedBox(height: height / 20),
               Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+              ),
             ],
           ),
         ),
@@ -147,8 +144,10 @@ class RequestSpecificPaymentDetailsState
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 10.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -156,10 +155,11 @@ class RequestSpecificPaymentDetailsState
                   Text(
                     "receivingwallet".tr(),
                     style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                   SizedBox(height: height / 90),
                   Row(
@@ -170,23 +170,25 @@ class RequestSpecificPaymentDetailsState
                           viewData['walletAlias'],
                           overflow: TextOverflow.visible,
                           style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontsemibold),
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontsemibold,
+                          ),
                         ),
                       ),
                       IconButton(
                         onPressed: () {
                           Clipboard.setData(
-                            ClipboardData(
-                              text: viewData['walletAlias'],
-                            ),
+                            ClipboardData(text: viewData['walletAlias']),
                           );
                           showSnackBar("walletalias".tr(), context);
                         },
-                        icon: Icon(Icons.copy,
-                            size: 20, color: notifier.getbluewhitecolor),
+                        icon: Icon(
+                          Icons.copy,
+                          size: 20,
+                          color: notifier.getbluewhitecolor,
+                        ),
                       ),
                     ],
                   ),
@@ -213,8 +215,10 @@ class RequestSpecificPaymentDetailsState
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 10.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -222,10 +226,11 @@ class RequestSpecificPaymentDetailsState
                   Text(
                     "formemo".tr(),
                     style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                   SizedBox(height: height / 90),
                   Row(
@@ -235,10 +240,11 @@ class RequestSpecificPaymentDetailsState
                         child: Text(
                           viewData['memo'],
                           style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: notifier.getbluewhitecolor,
-                              fontFamily: fontsemibold),
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontsemibold,
+                          ),
                         ),
                       ),
                     ],
@@ -258,13 +264,14 @@ class RequestSpecificPaymentDetailsState
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
         child: Container(
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
-            ),
-            child: Image.network(viewData['qrCode'])),
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+            color: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
+          ),
+          child: Image.network(viewData['qrCode']),
+        ),
       ),
     );
   }

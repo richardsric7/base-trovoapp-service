@@ -10,6 +10,7 @@ import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.da
 import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../custom_bloc_observer/fonts.dart';
 import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../router/page_actions.dart';
@@ -71,7 +72,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
               Secret(
                 state.tempUsername,
                 state.tempSecretKey,
-                state.tempPublicKey,
+                state.tempAddress,
               ),
               if (data != null &&
                   data['rel'] != 'restoreUnactivatedAccount') ...[
@@ -140,7 +141,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
       // make initial request to the server using the
       // following credentials
       Map map = {
-        "newSignerPublicKey": state.tempPublicKey,
+        "newSignerAddress": state.tempAddress,
         "emailOtp": state.tempEmailOtp,
         "username": state.tempUsername,
         "securityAnswers": state.tempSecurityQuestionsAndAnswers,
@@ -150,9 +151,9 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
       Map responseData = await makePostRequest(
         uri: '/v1/users/inactive-account/recover',
         body: requestBody,
-        signer: state.tempPublicKey,
+        signer: state.tempAddress,
         secretKey: state.tempSecretKey, // the primary wallet secret key
-        publicKey: state.tempPublicKey,
+        address: state.tempAddress,
       );
 
       hideLoader(context);
@@ -180,7 +181,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
       // make initial request to the server using the
       // following credentials
       Map map = {
-        "newSignerPublicKey": state.tempPublicKey,
+        "newSignerAddress": state.tempAddress,
         "disableOldSignerFromPrimaryWallet": state.tempInvalidateOldSigner
             ? 1
             : 0,
@@ -195,9 +196,9 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
       Map responseData = await makePostRequest(
         uri: '/v1/users/account/recover',
         body: requestBody,
-        signer: state.tempPublicKey,
+        signer: state.tempAddress,
         secretKey: state.tempSecretKey, // the primary wallet secret key
-        publicKey: state.tempPublicKey,
+        address: state.tempAddress,
       );
 
       hideLoader(context);

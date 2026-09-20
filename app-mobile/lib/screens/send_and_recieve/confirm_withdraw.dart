@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,7 +22,9 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
+
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 class ConfirmWithdrawal extends StatefulWidget {
@@ -48,9 +51,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
 
-    wallet = appState.userInfo!.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = appState.userInfo!.getWallet(appState.viewData!['walletAddress']);
 
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
@@ -456,14 +457,14 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.publicKey!,
+        address: wallet.address!,
       );
 
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(
           appState.primaryWallet.signer!,
           appState.secretKeys[0], // the primary wallet secret key
-          appState.primaryWallet.publicKey!,
+          appState.primaryWallet.address!,
           appState.userInfo!.username!,
           appState,
         );
@@ -489,7 +490,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
         } else {
           appState.viewData = {
             'transactionData': responseData['data'],
-            'walletPublicKey': wallet.publicKey,
+            'walletAddress': wallet.address,
             'assetCode': asset!.assetCode,
             'assetIssuer': asset!.assetIssuer,
           };

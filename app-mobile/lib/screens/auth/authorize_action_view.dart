@@ -11,6 +11,7 @@ import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
 import '../../custom_bloc_observer/notifire_clor.dart';
@@ -18,6 +19,7 @@ import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 class AuthorizeActionView extends StatefulWidget {
@@ -178,7 +180,7 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
         body: "",
         signer: activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.publicKey!,
+        address: activeWallet!.address!,
       );
 
       if (responseData['statusCode'] == 200) {

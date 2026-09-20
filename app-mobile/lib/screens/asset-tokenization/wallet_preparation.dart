@@ -11,6 +11,7 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -73,7 +74,7 @@ class _WalletPreparationState extends State<WalletPreparation>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     issuingWallets = appState.userInfo!.getMintingWallets
-        .where((wallet) => !excludedWallets.contains(wallet.publicKey))
+        .where((wallet) => !excludedWallets.contains(wallet.address))
         .toList();
 
     return Scaffold(
@@ -97,14 +98,14 @@ class _WalletPreparationState extends State<WalletPreparation>
               notifier.getbluecolor,
               wihitecolor,
               onTap: () {
-                // if (appState.activeTokenizationWalletPublicKey == null) {
+                // if (appState.activeTokenizationWalletAddress == null) {
                 //   popup(context,
                 //       title: 'Error',
                 //       message: 'Please select your asset tokenization wallet');
                 //   return;
                 // }
 
-                // if (appState.activeDistributionWalletPublicKey == null) {
+                // if (appState.activeDistributionWalletAddress == null) {
                 //   popup(context,
                 //       title: 'Error',
                 //       message: 'Please select your asset distribution wallet');
@@ -174,10 +175,10 @@ class _WalletPreparationState extends State<WalletPreparation>
           //   child: dropdown(
           //     (value) {
           //       var wallet = value as Wallet;
-          //       // appState.setActiveTokenizationWalletPublicKey =
-          //       //     wallet.publicKey;
-          //       // appState.setActiveDistributionWalletPublicKey =
-          //       //     wallet.linkedWalletPublicKey;
+          //       // appState.setActiveTokenizationWalletAddress =
+          //       //     wallet.address;
+          //       // appState.setActiveDistributionWalletAddress =
+          //       //     wallet.linkedWalletAddress;
           //     },
           //     getIssuingWallets,
           //     null,
@@ -232,7 +233,7 @@ class _WalletPreparationState extends State<WalletPreparation>
 
   // String getHintTextForMintingWallet() {
   //   var wallet = appState.userInfo!.getMintingWallets.where(
-  //       (w) => w.publicKey == appState.activeTokenizationWalletPublicKey);
+  //       (w) => w.address == appState.activeTokenizationWalletAddress);
 
   //   return wallet.length > 0
   //       ? wallet.first.alias!

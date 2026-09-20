@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
 import '../../custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../router/page_actions.dart';
@@ -174,7 +176,7 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
         body: requestBody,
         signer: primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: primaryWallet.publicKey!,
+        address: primaryWallet.address!,
       );
 
       hideLoader(context);
@@ -234,14 +236,14 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
         body: requestBody,
         signer: primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: primaryWallet.publicKey!,
+        address: primaryWallet.address!,
       );
 
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(
           primaryWallet.signer!,
           appState.secretKeys[0],
-          primaryWallet.publicKey!,
+          primaryWallet.address!,
           appState.userInfo!.username,
           appState,
         );

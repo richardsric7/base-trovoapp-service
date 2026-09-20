@@ -36,8 +36,7 @@ class _KYCScreenState extends State<KYCScreen> {
   late DataProvider appState;
   late Future<dynamic> kycConfigFuture;
   late int activeLevel;
-  String demoText =
-      '''This is a demo process. Your data will not be stored or retained by Dojah and will only be used
+  String demoText = '''This is a demo process. Your data will not be stored or retained by Dojah and will only be used
         for the purpose of demonstrating this process flow.''';
   var deniedList = [];
   bool locationServiceEnabled = false;
@@ -68,7 +67,7 @@ class _KYCScreenState extends State<KYCScreen> {
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
       if (responseData['statusCode'] == 200) {
         return responseData['data'];
@@ -103,7 +102,7 @@ class _KYCScreenState extends State<KYCScreen> {
 
   // the various parameters that are submitted and are fetched from .env variables
   final appID = '67e69361a7d4138770eac9e2';
-  final publicKey = 'test_pk_MNldwKATpyKxLjJoEfjkgH8hK';
+  final address = 'test_pk_MNldwKATpyKxLjJoEfjkgH8hK';
 
   InAppWebViewController? _webViewController;
 
@@ -495,7 +494,7 @@ class _KYCScreenState extends State<KYCScreen> {
                           <script>
                             const customOptions = {
                               app_id: '$appID',
-                              p_key: '$publicKey',
+                              p_key: '$address',
                               type: 'custom',
                               metadata: {
                               user_id: '${userID}',
@@ -545,15 +544,14 @@ class _KYCScreenState extends State<KYCScreen> {
                             },
                           );
                         },
-                        onGeolocationPermissionsShowPrompt:
-                            (controller, origin) async {
-                              return GeolocationPermissionShowPromptResponse(
-                                origin: origin,
-                                allow: true, // Grant permission
-                                retain:
-                                    true, // Retain permission for future requests
-                              );
-                            },
+                        onGeolocationPermissionsShowPrompt: (controller, origin) async {
+                          return GeolocationPermissionShowPromptResponse(
+                            origin: origin,
+                            allow: true, // Grant permission
+                            retain:
+                                true, // Retain permission for future requests
+                          );
+                        },
                         onPermissionRequest: (controller, request) async {
                           return PermissionResponse(
                             resources: request.resources,
@@ -588,8 +586,7 @@ class _KYCScreenState extends State<KYCScreen> {
     Navigator.of(context).pop();
     showSuccessAlert(
       context,
-      text:
-          'Your KYC procedure has been recorded successfully. Please wait for a few minutes for your information to be confirmed. Please refresh at intervals by pulling down on the home screen.',
+      text: 'Your KYC procedure has been recorded successfully. Please wait for a few minutes for your information to be confirmed. Please refresh at intervals by pulling down on the home screen.',
       onTap: () async {
         await appState.refreshData();
       },

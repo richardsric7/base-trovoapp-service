@@ -78,12 +78,10 @@ class GoogleDriveClient {
 
   // Download the wanted file to the device in the specified folder
   Future<String?> _downloadFileToDevice(String fileId) async {
-    gApi.Media? file =
-        (await _driveApi.files.get(
-              fileId,
-              downloadOptions: gApi.DownloadOptions.fullMedia,
-            ))
-            as gApi.Media?;
+    gApi.Media? file = (await _driveApi.files.get(
+      fileId,
+      downloadOptions: gApi.DownloadOptions.fullMedia,
+    )) as gApi.Media?;
     if (file != null) {
       final directory = await getApplicationDocumentsDirectory();
       final saveFile = io.File('${directory.path}/$fileName');

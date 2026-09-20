@@ -20,6 +20,7 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -505,7 +506,7 @@ class _AssetVerificationDocumentOptionsView
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
       );
       inspect(responseData['data']);
       if (responseData['statusCode'] == 200) {
@@ -534,7 +535,7 @@ class _AssetVerificationDocumentOptionsView
         uri: '/v1/tokenization/document',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
         file: file,
         tokenizedAssetId: appState.viewData!['id'],
         documentTitle: documentTitle,
@@ -572,7 +573,7 @@ class _AssetVerificationDocumentOptionsView
         uri: '/v1/tokenization/document/$documentId',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: appState.primaryWallet.signer!,
+        address: appState.primaryWallet.signer!,
         body: jsonEncode(requestBody),
       );
 

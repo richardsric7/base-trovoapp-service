@@ -64,8 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '572371578875',
     projectId: 'trovotech-website',
     storageBucket: 'trovotech-website.appspot.com',
-    iosClientId:
-        '572371578875-uqpeb4pagtfm3leaobcjovfhri4eoc16.apps.googleusercontent.com',
+    iosClientId: '572371578875-uqpeb4pagtfm3leaobcjovfhri4eoc16.apps.googleusercontent.com',
     iosBundleId: 'com.trovo.wallet',
   );
 
@@ -83,8 +82,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '883904669467',
     projectId: 'trovo-infra-mainnet',
     storageBucket: 'trovo-infra-mainnet.appspot.com',
-    iosClientId:
-        '883904669467-jfe5mukot91a3285td32v3k9f9e5950r.apps.googleusercontent.com',
+    iosClientId: '883904669467-jfe5mukot91a3285td32v3k9f9e5950r.apps.googleusercontent.com',
     iosBundleId: 'com.trovo.wallet',
   );
 }

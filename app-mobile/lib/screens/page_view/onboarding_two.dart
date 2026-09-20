@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../custom_bloc_observer/fonts.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -52,9 +53,10 @@ class _OnbondingtwoState extends State<Onbondingtwo> {
                   "managetrovowallet".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getblck,
-                      fontSize: 25.sp,
-                      fontFamily: fontsemibold),
+                    color: notifier.getblck,
+                    fontSize: 25.sp,
+                    fontFamily: fontsemibold,
+                  ),
                 ),
               ),
             ],

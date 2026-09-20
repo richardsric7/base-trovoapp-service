@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,6 +13,7 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/models/user.dart';
+
 import '../../custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
@@ -187,14 +189,14 @@ class _VeryficationState extends State<Veryfication> {
 
       String jsonBody = jsonEncode(map);
 
-      var publicKey = state.tempPublicKey;
+      var address = state.tempAddress;
       var secretKey = state.tempSecretKey;
 
       Map responseData = await makePostRequest(
         uri: '/v1/users',
         body: jsonBody,
-        signer: publicKey,
-        publicKey: publicKey,
+        signer: address,
+        address: address,
         secretKey: secretKey,
       );
 
@@ -229,15 +231,15 @@ class _VeryficationState extends State<Veryfication> {
   getUserInfo() async {
     showLoader(context);
 
-    var publicKey = state.tempPublicKey;
+    var address = state.tempAddress;
     var secretKey = state.tempSecretKey;
     state.backupSecrets.clear();
     state.backupSecrets.add(secretKey);
 
     Map responseData = await makeGetRequest(
       uri: '/v1/users/${state.userInfo!.username!.trim().replaceAll(' ', '')}',
-      signer: publicKey,
-      publicKey: publicKey,
+      signer: address,
+      address: address,
       secretKey: secretKey,
     );
 
@@ -292,7 +294,7 @@ class _VeryficationState extends State<Veryfication> {
     await StoreData().storeInsertData('isFirstTime', false);
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
     await StoreData().storeInsertData('password', state.tempPassword);
-    await StoreData().storeInsertData('publicKey', state.tempPublicKey);
+    await StoreData().storeInsertData('address', state.tempAddress);
     await StoreData().storeInsertData('secretKey', <String>[
       state.tempSecretKey,
     ]);
@@ -314,7 +316,7 @@ class _VeryficationState extends State<Veryfication> {
     state.setSharedWallets = walletsSharedWithUser;
     state.setassetBalances = assetBalances;
     state.activeWallet = state.userInfo!.wallets!.firstWhere(
-      (wallet) => wallet.publicKey == state.tempPublicKey,
+      (wallet) => wallet.address == state.tempAddress,
     );
     state.activeWallet!.secretKey = state.tempSecretKey;
     // save secrets to appstate

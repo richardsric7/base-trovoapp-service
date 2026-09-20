@@ -13,6 +13,7 @@ import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class WrappedAsset extends StatefulWidget {
@@ -34,9 +35,7 @@ class _WrappedAssetState extends State<WrappedAsset>
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    wallet = appState.userInfo!.getWallet(
-      appState.viewData!['walletPublicKey'],
-    );
+    wallet = appState.userInfo!.getWallet(appState.viewData!['walletAddress']);
 
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
@@ -72,9 +71,7 @@ class _WrappedAssetState extends State<WrappedAsset>
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
+              SizedBox(height: height / 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -94,16 +91,15 @@ class _WrappedAssetState extends State<WrappedAsset>
                       },
                     ),
                   ],
-                  SizedBox(
-                    width: width / 50.0,
-                  ),
+                  SizedBox(width: width / 50.0),
                   Text(
                     getAssetCode(curatedAsset!.assetCode),
                     style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ],
               ),
@@ -111,7 +107,9 @@ class _WrappedAssetState extends State<WrappedAsset>
               Image.asset("assets/images/rafiki.png", height: height / 4),
               Padding(
                 padding: const EdgeInsets.symmetric(
-                    vertical: 15.0, horizontal: 25.0),
+                  vertical: 15.0,
+                  horizontal: 25.0,
+                ),
                 child: RichText(
                   text: TextSpan(
                     text: '${"welcometothe".tr(args: [asset!.assetCode!])} ',
@@ -175,22 +173,24 @@ class _WrappedAssetState extends State<WrappedAsset>
                               Text(
                                 "depositandwithdraw".tr(),
                                 style: TextStyle(
-                                    fontSize: 15,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
+                                  fontSize: 15,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
                               SizedBox(height: height / 90),
                               Text(
                                 curatedAsset!.assetRedemptionInstructions!,
                                 textAlign: TextAlign.justify,
                                 style: TextStyle(
-                                    fontSize: 15,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody),
+                                  fontSize: 15,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                ),
                               ),
                             ],
                           ),
-                        )
+                        ),
                       ],
                     ),
                     SizedBox(height: height / 50),
@@ -207,22 +207,24 @@ class _WrappedAssetState extends State<WrappedAsset>
                               Text(
                                 "depositwithdrawhistory".tr(),
                                 style: TextStyle(
-                                    fontSize: 15,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
+                                  fontSize: 15,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
                               SizedBox(height: height / 90),
                               Text(
                                 "viewdepositwithdrawhistory".tr(),
                                 textAlign: TextAlign.justify,
                                 style: TextStyle(
-                                    fontSize: 15,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody),
+                                  fontSize: 15,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody,
+                                ),
                               ),
                             ],
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ],
@@ -245,7 +247,7 @@ class _WrappedAssetState extends State<WrappedAsset>
         children: [
           actionButton("assets/images/deposit.png", 'Deposit', () {
             appState.viewData = {
-              'walletPublicKey': wallet.publicKey,
+              'walletAddress': wallet.address,
               'assetCode': asset!.assetCode,
               'assetIssuer': asset!.assetIssuer,
             };
@@ -264,7 +266,7 @@ class _WrappedAssetState extends State<WrappedAsset>
           }),
           actionButton("assets/images/withdraw.png", 'Withdraw', () {
             appState.viewData = {
-              'walletPublicKey': wallet.publicKey,
+              'walletAddress': wallet.address,
               'assetCode': asset!.assetCode,
               'assetIssuer': asset!.assetIssuer,
             };
@@ -277,11 +279,11 @@ class _WrappedAssetState extends State<WrappedAsset>
           actionButton("assets/images/history-btn.png", 'History', () {
             appState.fetchDepositHistory(
               context,
-              publicKey: wallet.publicKey!,
+              address: wallet.address!,
               currency: asset!.assetCode,
             );
             appState.viewData = {
-              'walletPublicKey': wallet.publicKey,
+              'walletAddress': wallet.address,
               'assetCode': asset!.assetCode,
               'assetIssuer': asset!.assetIssuer,
             };
@@ -303,9 +305,7 @@ class _WrappedAssetState extends State<WrappedAsset>
         width: width / 3.9,
         height: height / 10,
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 8.0,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Column(
             children: [
               Image.asset(

@@ -15,7 +15,9 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../utils/medeiaqury/medeiaqury.dart';
+
 import 'package:collection/src/list_extensions.dart';
 
 class OptInOutAsset extends StatefulWidget {
@@ -131,7 +133,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
           assets['${asset.assetCode!}|${asset.assetIssuer}'] = {
             'isRemovable': true,
             'imageUrl': asset.imageUrl,
-            'assetName': truncatePublicKey(asset.assetIssuer),
+            'assetName': truncateAddress(asset.assetIssuer),
             'assetIssuer': asset.assetIssuer,
             'assetCode': asset.assetCode,
           };
@@ -275,7 +277,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                 appState.viewData = {
                   'assetCode': assetCode,
                   'assetIssuer': assetIssuer,
-                  'walletPublicKey': wallet!.publicKey,
+                  'walletAddress': wallet!.address,
                 };
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
@@ -367,7 +369,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                 appState.viewData = {
                   'assetCode': entry.value['assetCode']!,
                   'assetIssuer': entry.value['assetIssuer']!,
-                  'walletPublicKey': wallet!.publicKey,
+                  'walletAddress': wallet!.address,
                 };
 
                 appState.currentAction = PageAction(

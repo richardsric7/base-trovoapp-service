@@ -13,6 +13,7 @@ import 'package:trovo_app/models/tokenizedAsset.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/widgets/utilities.dart';
+
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -593,8 +594,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                                     Container(
                                       height: 10,
                                       child: LinearProgressIndicator(
-                                        value:
-                                            normalizedProgress, // Show progress (0 to 1)
+                                        value: normalizedProgress, // Show progress (0 to 1)
                                         minHeight: 10,
                                         borderRadius: BorderRadius.circular(10),
                                         backgroundColor: Colors.grey[300],
@@ -656,8 +656,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                                             Container(
                                               height: 10,
                                               child: LinearProgressIndicator(
-                                                value:
-                                                    normalizedDaysProgress, // Show progress (0 to 1)
+                                                value: normalizedDaysProgress, // Show progress (0 to 1)
                                                 minHeight: 10,
                                                 borderRadius:
                                                     BorderRadius.circular(10),
