@@ -9,5 +9,5 @@ export const WALLETMODE = 'WALLETMODE';
 export const ACTIVEWALLET = 'ACTIVEWALLET';
 export const ANNOUNCEMENTS = 'ANNOUNCEMENTS';
 export const IGODO = 'IGODO';
-export const BANTUBLOCKCHAINEXPLORERTESTNETBASEURL = 'https://explorer-testnet.bantu.network/tx/';
-export const BANTUBLOCKCHAINEXPLORERBASEURL = 'https://explorer.bantu.network/tx/';
+export const BANTUBLOCKCHAINEXPLORERTESTNETBASEURL = 'https://sepolia.basescan.org/tx/';
+export const BANTUBLOCKCHAINEXPLORERBASEURL = 'https://basescan.org/tx/';
