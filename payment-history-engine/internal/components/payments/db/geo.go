@@ -10,7 +10,7 @@ import (
 	tErrors "trovo-wallet-payment-history-engine/internal/errors"
 )
 
-// GetGeoInfo gives the Geo Information
+//GetGeoInfo gives the Geo Information
 func GetGeoInfo(ip string) (fetchedGeoIP IPAPI, err error) {
 	if ip == "" {
 		log.Println("[GetGeoIP] no ip address supplied")

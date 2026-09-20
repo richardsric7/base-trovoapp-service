@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// Announcement model
+//Announcement model
 type Announcement struct {
 	ID             uint64    `gorm:"primaryKey" json:"id"`
 	CreatedAt      time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"createdAt"`

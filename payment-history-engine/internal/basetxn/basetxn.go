@@ -31,9 +31,9 @@ type Asset interface {
 
 type NativeAsset struct{}
 
-func (NativeAsset) IsNative() bool    { return true }
-func (NativeAsset) GetCode() string   { return "" }
-func (NativeAsset) GetIssuer() string { return "" }
+func (NativeAsset) IsNative() bool     { return true }
+func (NativeAsset) GetCode() string    { return "" }
+func (NativeAsset) GetIssuer() string  { return "" }
 
 // CreditAsset is a B20 (ERC-20-shaped) token - the Base equivalent of a
 // Stellar issued asset. Issuer is the token contract address.
