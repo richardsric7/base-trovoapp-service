@@ -105,7 +105,7 @@ type AssetClassOutput struct {
 	AssetClass string `json:"assetClass"`
 }
 
-type XbnDollarPrice struct {
+type GasDollarPrice struct {
 	ID            string `gorm:"primaryKey"`
 	Asset         string `gorm:"index:idx_dollar_price_unique_asset,unique"`
 	Source        string `gorm:"size:100;index:idx_dollar_price_unique_asset,unique"`
@@ -114,10 +114,10 @@ type XbnDollarPrice struct {
 	LastTradeRate string `gorm:"size:100"`
 	LastUpdated   time.Time
 }
-type XbnMarketChart struct {
+type GasMarketChart struct {
 	ID          string `gorm:"primaryKey"`
-	Asset       string `gorm:"index:idx_xbn_chart_unique_asset,unique"`
-	Source      string `gorm:"size:100;index:idx_xbn_chart_unique_asset,unique"`
+	Asset       string `gorm:"index:idx_gas_chart_unique_asset,unique"`
+	Source      string `gorm:"size:100;index:idx_gas_chart_unique_asset,unique"`
 	ChartString string
 	LastUpdated time.Time
 }

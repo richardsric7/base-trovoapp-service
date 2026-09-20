@@ -616,7 +616,7 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 	sourceAccountExists, sourceAccountTrustsAsset, nativeAccountBalance, _, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
 	if !sourceAccountExists {
-		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3XBN to it to activate it before you can perform this task", Code: http.StatusBadRequest}
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3GAS to it to activate it before you can perform this task", Code: http.StatusBadRequest}
 
 	}
 	if nativeAccountBalance.LessThan(minBalance) {
@@ -764,7 +764,7 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 	sourceAccountExists, sourceAccountTrustsAsset, nativeAccountBalance, assetBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
 	if !sourceAccountExists {
-		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3XBN to it to activate it before you can perform this task", Code: http.StatusBadRequest}
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3GAS to it to activate it before you can perform this task", Code: http.StatusBadRequest}
 
 	}
 	if nativeAccountBalance.LessThan(minBalance) {

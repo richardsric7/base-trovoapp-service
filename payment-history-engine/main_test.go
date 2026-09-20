@@ -351,7 +351,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 
 	paymentPayload := PaymentInfo{
 		Destination: "kenmaddy",
-		Memo:        "Test XBN Payment",
+		Memo:        "Test GAS Payment",
 		Amount:      "500000",
 	}
 	errorResponse := new(ErrorResponse)

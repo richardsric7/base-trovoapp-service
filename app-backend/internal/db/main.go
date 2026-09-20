@@ -515,9 +515,9 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating CuratedAsset: ", errMigrate)
 		}
 
-		errMigrate = gormDB.AutoMigrate(&assetModels.XbnDollarPrice{})
+		errMigrate = gormDB.AutoMigrate(&assetModels.GasDollarPrice{})
 		if errMigrate != nil {
-			log.Fatalln("[OpenDb]Error Migrating XbnDollarPrice: ", errMigrate)
+			log.Fatalln("[OpenDb]Error Migrating GasDollarPrice: ", errMigrate)
 		}
 
 		errMigrate = gormDB.AutoMigrate(&announcementModels.Announcement{})

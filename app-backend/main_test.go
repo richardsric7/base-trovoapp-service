@@ -1718,7 +1718,7 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 
 	paymentPayload := PaymentInfo{
 		Destination: "uchemukolo",
-		Memo:        "Test XBN Payment",
+		Memo:        "Test GAS Payment",
 		Amount:      "51",
 	}
 	errorResponse := new(ErrorResponse)
@@ -1839,7 +1839,7 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 
 	paymentPayload := PaymentInfo{
 		Destination: "nechey",
-		Memo:        "Test XBN shared Payment",
+		Memo:        "Test GAS shared Payment",
 		Amount:      "55.2",
 	}
 	errorResponse := new(ErrorResponse)
@@ -3331,7 +3331,7 @@ func TestRejectTransaction(t *testing.T) {
 	}
 
 	payload := RejectPayload{
-		RejectionReason: "This is not what was approved. We approved 52 XBN",
+		RejectionReason: "This is not what was approved. We approved 52 GAS",
 	}
 
 	log.Printf("[DEBUG] Payload: %+v\n", payload)
@@ -3886,7 +3886,7 @@ func TestPatronSubscription(t *testing.T) {
 
 	payload := PatronSubscriptionInput{
 		PatronMembershipGradeID: 9,
-		PaymentAssetCode:        "XBN",
+		PaymentAssetCode:        "GAS",
 		PaymentAssetIssuer:      "",
 	}
 

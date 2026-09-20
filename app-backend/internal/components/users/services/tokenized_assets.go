@@ -4354,7 +4354,7 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 	sourceAccountExists, _, _, assetAccountFeeBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
 	if !sourceAccountExists {
-		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3XBN to it to activate it before you can perform this task", Code: http.StatusBadRequest}
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3GAS to it to activate it before you can perform this task", Code: http.StatusBadRequest}
 
 	}
 	if assetAccountFeeBalance.LessThan(feeAmount) {

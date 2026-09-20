@@ -51,8 +51,8 @@ import (
 // 	if assetCode == "BNR" {
 // 		asset = basetxn.NativeAsset{}
 // 		amountFloat, _ := decimal.NewFromString(amount)
-// 		xbnEquivalent := amountFloat.Div(decimal.NewFromInt(4))
-// 		amount = xbnEquivalent.Truncate(7).String()
+// 		gasEquivalent := amountFloat.Div(decimal.NewFromInt(4))
+// 		amount = gasEquivalent.Truncate(7).String()
 // 	}
 
 // 	var txnParams basetxn.TransactionParams
@@ -145,23 +145,23 @@ func AlertFaucetLowBalance(faucetKP *evmkeypair.Full) {
 		return
 	}
 
-	if faucetSecret == os.Getenv("XBN_FAUCET") {
-		xbnFaucetMin := "200000"
-		if os.Getenv("XBN_FAUCET_MIN_BALANCE") != "" && os.Getenv("XBN_FAUCET_MIN_BALANCE") != "0" {
-			xbnFaucetMin = os.Getenv("XBN_FAUCET_MIN_BALANCE")
+	if faucetSecret == os.Getenv("GAS_FAUCET") {
+		gasFaucetMin := "200000"
+		if os.Getenv("GAS_FAUCET_MIN_BALANCE") != "" && os.Getenv("GAS_FAUCET_MIN_BALANCE") != "0" {
+			gasFaucetMin = os.Getenv("GAS_FAUCET_MIN_BALANCE")
 		}
-		if nativeBalance.LessThan(decimal.RequireFromString(xbnFaucetMin)) {
-			LogDiscordFaucetLowBalance(fmt.Sprintf("XBN FAUCET: %v has gone below minimum  warning amount %v. the balance is: %v", faucetPK, xbnFaucetMin, nativeBalance.String()))
+		if nativeBalance.LessThan(decimal.RequireFromString(gasFaucetMin)) {
+			LogDiscordFaucetLowBalance(fmt.Sprintf("GAS FAUCET: %v has gone below minimum  warning amount %v. the balance is: %v", faucetPK, gasFaucetMin, nativeBalance.String()))
 		}
 	}
 
 	if faucetSecret == os.Getenv("REWARD_FAUCET") {
-		rewardFaucetXBNMin := "20000"
-		if os.Getenv("REWARD_FAUCET_XBN_MIN_BALANCE") != "" && os.Getenv("REWARD_FAUCET_XBN_MIN_BALANCE") != "0" {
-			rewardFaucetXBNMin = os.Getenv("REWARD_FAUCET_XBN_MIN_BALANCE")
+		rewardFaucetGASMin := "20000"
+		if os.Getenv("REWARD_FAUCET_GAS_MIN_BALANCE") != "" && os.Getenv("REWARD_FAUCET_GAS_MIN_BALANCE") != "0" {
+			rewardFaucetGASMin = os.Getenv("REWARD_FAUCET_GAS_MIN_BALANCE")
 		}
-		if nativeBalance.LessThan(decimal.RequireFromString(rewardFaucetXBNMin)) {
-			LogDiscordFaucetLowBalance(fmt.Sprintf("REWARD FAUCET: %v has low XBN minimum balance %v. the balance is: %v", faucetPK, rewardFaucetXBNMin, nativeBalance.String()))
+		if nativeBalance.LessThan(decimal.RequireFromString(rewardFaucetGASMin)) {
+			LogDiscordFaucetLowBalance(fmt.Sprintf("REWARD FAUCET: %v has low GAS minimum balance %v. the balance is: %v", faucetPK, rewardFaucetGASMin, nativeBalance.String()))
 		}
 
 		if os.Getenv("REWARD_ASSET_CODE") != "" && os.Getenv("REWARD_ASSET_ISSUER") != "" {

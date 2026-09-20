@@ -157,11 +157,11 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 		nativeIssuer = nv[1]
 	}
 
-	// get the ngn to usd rate. then get XBN naira price.
+	// get the ngn to usd rate. then get GAS naira price.
 	cngnPrice := gc.GetCngnUsdRate()
-	xbnUsdPrice, _ := blockchain.GetXBNDollarAskPrice(gc.DB)
-	xbnNativePrice := "1"
-	// log.Println("xbnUsdPrice", xbnUsdPrice)
+	gasUsdPrice, _ := blockchain.GetGASDollarAskPrice(gc.DB)
+	gasNativePrice := "1"
+	// log.Println("gasUsdPrice", gasUsdPrice)
 	cacheKey := fmt.Sprintf("GetBalance_%s", u.ID)
 	if temp {
 		if u.TempAddress != nil {
@@ -201,8 +201,8 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			Amount:      decimal.Zero,
 			QRCode:      qrCode,
 			ImageURL:    os.Getenv("NATIVE_ASSET_IMAGE_URL"),
-			UsdPrice:    xbnUsdPrice,
-			NativePrice: xbnNativePrice,
+			UsdPrice:    gasUsdPrice,
+			NativePrice: gasNativePrice,
 			InTrade: TradeLiabilties{
 				SellingLiabilities: "0",
 				BuyingLiabilities:  "0",
@@ -238,7 +238,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 
 		}
 	} else {
-		nativeUsdPrice = xbnUsdPrice
+		nativeUsdPrice = gasUsdPrice
 	}
 
 	var wg sync.WaitGroup
@@ -273,8 +273,8 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 
 			if bal.Issuer != nativeIssuer && bal.Code != nativeCode {
 				if len(bal.Code) == 0 {
-					assetUsdPrice = xbnUsdPrice
-					assetNativePrice = xbnNativePrice
+					assetUsdPrice = gasUsdPrice
+					assetNativePrice = gasNativePrice
 				} else {
 					checkCacheFirst := false
 					if nativeCode != "CNGN" {
@@ -314,8 +314,8 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			}
 			if bal.Issuer == nativeIssuer && bal.Code == nativeCode {
 				if len(nativeCode) == 0 {
-					assetUsdPrice = xbnUsdPrice
-					assetNativePrice = xbnNativePrice
+					assetUsdPrice = gasUsdPrice
+					assetNativePrice = gasNativePrice
 				} else {
 					assetUsdPrice = nativeUsdPrice
 					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer, gc, true, bantuAsset.IsEnabled(gc))
@@ -514,16 +514,16 @@ func (u *UserWallet) GetSortedUserBalance(temp bool, gc *sharedconfig.GlobalConf
 		// 	}
 
 		// }
-		// xbnUsdPrice, _ := blockchain.GetXBNDollarAskPrice(gc.DB)
-		// xbnNativePrice := "1"
+		// gasUsdPrice, _ := blockchain.GetGASDollarAskPrice(gc.DB)
+		// gasNativePrice := "1"
 		// unsortedBalances[":"] = Balance{
 		// 	AssetIssuer: "",
 		// 	AssetCode:   "",
 		// 	Amount:      decimal.Zero,
 		// 	QRCode:      qrCode,
 		// 	ImageURL:    os.Getenv("NATIVE_ASSET_IMAGE_URL"),
-		// 	UsdPrice:    xbnUsdPrice,
-		// 	NativePrice: xbnNativePrice,
+		// 	UsdPrice:    gasUsdPrice,
+		// 	NativePrice: gasNativePrice,
 		// 	InTrade: TradeLiabilties{
 		// 		SellingLiabilities: "0",
 		// 		BuyingLiabilities:  "0",
@@ -557,16 +557,16 @@ func (u *UserWallet) GetSortedUserBalance(temp bool, gc *sharedconfig.GlobalConf
 	// 		}
 
 	// 	}
-	// 	xbnUsdPrice, _ := blockchain.GetXBNDollarAskPrice(gc.DB)
-	// 	xbnNativePrice := "1"
+	// 	gasUsdPrice, _ := blockchain.GetGASDollarAskPrice(gc.DB)
+	// 	gasNativePrice := "1"
 	// 	balances = append(balances, Balance{
 	// 		AssetIssuer: "",
 	// 		AssetCode:   "",
 	// 		Amount:      decimal.Zero,
 	// 		QRCode:      qrCode,
 	// 		ImageURL:    os.Getenv("NATIVE_ASSET_IMAGE_URL"),
-	// 		UsdPrice:    xbnUsdPrice,
-	// 		NativePrice: xbnNativePrice,
+	// 		UsdPrice:    gasUsdPrice,
+	// 		NativePrice: gasNativePrice,
 	// 		InTrade: TradeLiabilties{
 	// 			SellingLiabilities: "0",
 	// 			BuyingLiabilities:  "0",

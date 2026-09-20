@@ -996,7 +996,7 @@ func (gc *GlobalConfig) GetCuratedAssets(includeInactive bool) (assets map[strin
 		log.Printf("[GetCuratedAssets]error getting assets: %v\n", dberr)
 		return assets
 	}
-	// usdPrice, _ := blockchain.GetXBNDollarAskPrice(db)
+	// usdPrice, _ := blockchain.GetGASDollarAskPrice(db)
 	var wg sync.WaitGroup
 	for _, v := range fetchedAssets {
 
@@ -1020,7 +1020,7 @@ func (gc *GlobalConfig) GetCuratedAssets(includeInactive bool) (assets map[strin
 	// tempAssets[":"] = models.CuratedAsset{
 	// 	ImageURL:     nativeLogo(),
 	// 	AssetName:    "Bantu Network Token",
-	// 	Description:  "XBN is the native network utility token issued by the Bantu Blockchain Foundation, it is used as gas to power transactions on the blockchain network.",
+	// 	Description:  "GAS is the native network utility token issued by the Bantu Blockchain Foundation, it is used as gas to power transactions on the blockchain network.",
 	// 	Website:      "www.bantufoundation.org",
 	// 	ContactEmail: "ops@bantufoundation.org",
 	// 	Priority:     1,

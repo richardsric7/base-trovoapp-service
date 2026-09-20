@@ -69,7 +69,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 				return paymentInfo, destinationUser, &tErrors.CustomError{
 					Param:      "memo",
 					Err:        "error invalid memo",
-					ErrMessage: "FMFW/Tradefada Deposits require 16 character memo. If you do not put exact memo, your funds will be lost. Please carefully provide the memo for your exchange's XBN wallet.",
+					ErrMessage: "FMFW/Tradefada Deposits require 16 character memo. If you do not put exact memo, your funds will be lost. Please carefully provide the memo for your exchange's GAS wallet.",
 				}
 
 			}
@@ -83,7 +83,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 				return paymentInfo, destinationUser, &tErrors.CustomError{
 					Param:      "memo",
 					Err:        "error invalid memo",
-					ErrMessage: "You are attempting to send to an exchange that requires memo for all deposits. If you do not put exact memo in the description field, your funds will be lost. Please carefully provide the memo for your exchange's XBN wallet.",
+					ErrMessage: "You are attempting to send to an exchange that requires memo for all deposits. If you do not put exact memo in the description field, your funds will be lost. Please carefully provide the memo for your exchange's GAS wallet.",
 				}
 
 			}
@@ -1389,8 +1389,8 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 	}
 
 	if channelSourceAccountNativeBalance.LessThan(decimal.NewFromFloat(6.1)) {
-		//min balance of 6XBN and fee of
-		return "", nil, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Channel account is underfunded[%v XBN usable]. Needs extra %v XBN", channelSourceAccountNativeBalance.String(), decimal.NewFromFloat(6.1).Sub(channelSourceAccountNativeBalance))}
+		//min balance of 6GAS and fee of
+		return "", nil, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Channel account is underfunded[%v GAS usable]. Needs extra %v GAS", channelSourceAccountNativeBalance.String(), decimal.NewFromFloat(6.1).Sub(channelSourceAccountNativeBalance))}
 	}
 
 	if sourceAccountErr != nil {

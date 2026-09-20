@@ -29,7 +29,7 @@ func (e *ErrorInsufficientAmountToFundAccount) Data() string {
 
 //Message returns tring message of error
 func (e *ErrorInsufficientAmountToFundAccount) Message() string {
-	return "Insufficient amount to fund new account. You need to send at least 3 XBN"
+	return "Insufficient amount to fund new account. You need to send at least 3 GAS"
 }
 
 //JSONError returns json of the error

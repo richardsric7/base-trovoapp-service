@@ -388,7 +388,7 @@ type ActivationAmount struct {
 	LastUpdatedBy string    `json:"lastUpdatedBy"`
 	ID            string    `json:"id"`
 	Amount        float64   `gorm:"default:0" json:"amount"`
-	AssetCode     string    `gorm:"default:'XBN'" json:"assetCode"`
-	AssetIssuer   string    `gorm:"default:'XBN'" json:"assetIssuer"`
+	AssetCode     string    `gorm:"default:'GAS'" json:"assetCode"`
+	AssetIssuer   string    `gorm:"default:'GAS'" json:"assetIssuer"`
 	Inactive      int       `gorm:"default:0" json:"inactive"`
 }

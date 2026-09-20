@@ -1726,7 +1726,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 			//since an operation now exists, wallet must sign
 			walletMustSign = true
-			// messages = append(messages, fmt.Sprintf("Important: %v XBN will be deducted from wallet %v to used to activate the sub-wallet.", activationAmount.String()))
+			// messages = append(messages, fmt.Sprintf("Important: %v GAS will be deducted from wallet %v to used to activate the sub-wallet.", activationAmount.String()))
 
 		}
 
@@ -2153,7 +2153,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 		err = &tErrors.CustomError{
 			Param:      "publicKey",
 			Err:        "error-wallet-underfunded",
-			ErrMessage: fmt.Sprintf("Wallet %v does not have enough XBN balance to perform this operation", wallet.Alias),
+			ErrMessage: fmt.Sprintf("Wallet %v does not have enough GAS balance to perform this operation", wallet.Alias),
 			Code:       404,
 		}
 		return "", "", messages, walletMustSign, multipartySign, err

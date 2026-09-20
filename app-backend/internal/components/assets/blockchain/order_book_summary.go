@@ -135,22 +135,22 @@ func GetBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary Ord
 	return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
 }
 
-// GetXBNDollarAskPrice dollar ask price using USDB
-func GetXBNDollarAskPrice(db *gorm.DB) (usdPrice string, err error) {
-	type XbnDollarPrice struct {
+// GetGASDollarAskPrice dollar ask price using USDB
+func GetGASDollarAskPrice(db *gorm.DB) (usdPrice string, err error) {
+	type GasDollarPrice struct {
 		ID            string `gorm:"primaryKey"`
 		AskRate       string `gorm:"size:100"`
 		BidRate       string `gorm:"size:100"`
 		LastTradeRate string `gorm:"size:100"`
 		Source        string `gorm:"size:100"`
 	}
-	var xbnPrice XbnDollarPrice
-	err = db.Where("source = ?", "METRICS").First(&xbnPrice).Error
+	var gasPrice GasDollarPrice
+	err = db.Where("source = ?", "METRICS").First(&gasPrice).Error
 	if err != nil {
 		return "0", err
 	}
 
-	return xbnPrice.LastTradeRate, nil
+	return gasPrice.LastTradeRate, nil
 	// return t.Ticker.LastTradeRate, nil
 
 }
@@ -319,7 +319,7 @@ func GetNairaPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig
 	return nairaPrice, priceType, nil
 }
 
-// GetNativeAskPrice native (XBN) ask price
+// GetNativeAskPrice native (GAS) ask price
 func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst, isEnabled bool) (nativePrice string, err error) {
 	var priceCache PriceCache
 	var nativeCode, nativeIssuer string

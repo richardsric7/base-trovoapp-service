@@ -88,6 +88,6 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('XBN'), findsOneWidget);
+    expect(find.text('GAS'), findsOneWidget);
   });
 }
