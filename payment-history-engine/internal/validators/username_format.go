@@ -5,7 +5,7 @@ import (
 	"trovo-wallet-payment-history-engine/internal/errors"
 )
 
-//ValidateUsernameFormat validates a username
+// ValidateUsernameFormat validates a username
 func ValidateUsernameFormat(username string) error {
 	var err errors.ErrorInvalidUsernameFormat
 

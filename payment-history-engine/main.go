@@ -34,11 +34,11 @@ import (
 	"gorm.io/gorm"
 )
 
-// startStreaming and trackPublicKey are read and written from multiple goroutines,
+// startStreaming and trackAddress are read and written from multiple goroutines,
 // so they're stored as int32s and accessed exclusively through atomic ops (0 = false, 1 = true)
 // instead of as plain bools, which would be a data race under concurrent access.
 var startStreaming int32
-var trackPublicKey int32
+var trackAddress int32
 
 func setStartStreaming(v bool) {
 	if v {
@@ -52,16 +52,16 @@ func isStartStreaming() bool {
 	return atomic.LoadInt32(&startStreaming) == 1
 }
 
-func setTrackPublicKey(v bool) {
+func setTrackAddress(v bool) {
 	if v {
-		atomic.StoreInt32(&trackPublicKey, 1)
+		atomic.StoreInt32(&trackAddress, 1)
 		return
 	}
-	atomic.StoreInt32(&trackPublicKey, 0)
+	atomic.StoreInt32(&trackAddress, 0)
 }
 
-func isTrackPublicKey() bool {
-	return atomic.LoadInt32(&trackPublicKey) == 1
+func isTrackAddress() bool {
+	return atomic.LoadInt32(&trackAddress) == 1
 }
 
 func main() {
@@ -135,7 +135,7 @@ func main() {
 			}
 		}
 
-		errMigrate = roachDB.Raw("DROP TABLE IF EXISTS tracked_public_keys").Error
+		errMigrate = roachDB.Raw("DROP TABLE IF EXISTS tracked_addresses").Error
 		if errMigrate != nil {
 			if !strings.Contains(errMigrate.Error(), "constraint") {
 				log.Fatalf("Error migrating TrackedWallet model, error: %v", errMigrate)
@@ -165,10 +165,10 @@ func main() {
 			log.Fatalf("Error migrating TrackedWallet model, error: %v", errMigrate)
 		}
 	}
-	errMigrate = roachDB.AutoMigrate(&paymentModels.TrackedPublicKey{})
+	errMigrate = roachDB.AutoMigrate(&paymentModels.TrackedAddress{})
 	if errMigrate != nil {
 		if !strings.Contains(errMigrate.Error(), "constraint") {
-			log.Fatalf("Error migrating TrackedPublicKey model, error: %v", errMigrate)
+			log.Fatalf("Error migrating TrackedAddress model, error: %v", errMigrate)
 		}
 	}
 	errMigrate = roachDB.AutoMigrate(&paymentModels.MonitoredCursor{})
@@ -253,7 +253,7 @@ func main() {
 					log.Println("[TRACKUserWallet] error getting user wallet:", e)
 					setStartStreaming(true)
 					if errors.Is(e, gorm.ErrRecordNotFound) {
-						setTrackPublicKey(true)
+						setTrackAddress(true)
 					}
 
 					time.Sleep(2 * time.Minute)
@@ -263,7 +263,7 @@ func main() {
 				result := database.Where("created_at >= ? AND tracked = 0", startTrackingFrom).FindInBatches(&userWallets, batchSize, func(tx *gorm.DB, batch int) error {
 					for i, u := range userWallets {
 						log.Printf("[TRACKUserWallet] processing user wallet %+v of %v\n", u, batch)
-						trackError := paymentServices.TrackUserWallet(u, roachDB, database, isTrackPublicKey(), &redisCache)
+						trackError := paymentServices.TrackUserWallet(u, roachDB, database, isTrackAddress(), &redisCache)
 						if trackError == nil {
 							userWallets[i].Tracked = 1
 						} else {
@@ -286,7 +286,7 @@ func main() {
 
 					}
 					if errors.Is(e, gorm.ErrRecordNotFound) {
-						setTrackPublicKey(true)
+						setTrackAddress(true)
 					}
 
 				}
@@ -303,46 +303,46 @@ func main() {
 
 		//monitor public keys
 		go func() {
-			log.Println("##[TRACKPublicKeys] started routine to generate payment history of public keys")
+			log.Println("##[TRACKAddresses] started routine to generate payment history of public keys")
 
 			batchSize := 100
-			var userPublicKeys []paymentModels.TrackedPublicKey
+			var userAddresses []paymentModels.TrackedAddress
 			for {
-				e := roachDB.First(&paymentModels.TrackedPublicKey{}).Error
+				e := roachDB.First(&paymentModels.TrackedAddress{}).Error
 				if e != nil {
-					log.Println("[TRACKPublicKeys] error getting public keys to process", e)
+					log.Println("[TRACKAddresses] error getting public keys to process", e)
 					if errors.Is(e, gorm.ErrRecordNotFound) {
-						setTrackPublicKey(true)
+						setTrackAddress(true)
 					}
 					time.Sleep(1 * time.Minute)
 					continue
 				}
 				var wg sync.WaitGroup
-				result := roachDB.FindInBatches(&userPublicKeys, batchSize, func(tx *gorm.DB, batch int) error {
-					for _, u := range userPublicKeys {
+				result := roachDB.FindInBatches(&userAddresses, batchSize, func(tx *gorm.DB, batch int) error {
+					for _, u := range userAddresses {
 						wg.Add(1)
-						log.Printf("[TRACKPublicKeys] processing user publicKey %v of %v\n", u.PublicKey, batch)
+						log.Printf("[TRACKAddresses] processing user publicKey %v of %v\n", u.Address, batch)
 						//spin off worker to process the payment history of the public key
-						go MonitorPublicKeyPaymentStream(u.PublicKey, database, roachDB, &wg)
+						go MonitorAddressPaymentStream(u.Address, database, roachDB, &wg)
 					}
 
 					return nil
 				})
 				if result.Error != nil {
 					if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-						log.Println("[TRACKPublicKeys]()()()()()()()()()()()()()error occurred during batch processing:", result.Error.Error())
+						log.Println("[TRACKAddresses]()()()()()()()()()()()()()error occurred during batch processing:", result.Error.Error())
 
 					}
 					if errors.Is(e, gorm.ErrRecordNotFound) {
-						setTrackPublicKey(true)
+						setTrackAddress(true)
 					}
 
 				}
 				//All waiting public keys finished. wait for them to complete generating their history
 				wg.Wait()
 				time.Sleep(1 * time.Minute)
-				log.Printf("[TRACKPublicKeys] Total: %v, Errors:%v restarting process...\n", result.RowsAffected, result.Error)
-				setTrackPublicKey(true)
+				log.Printf("[TRACKAddresses] Total: %v, Errors:%v restarting process...\n", result.RowsAffected, result.Error)
+				setTrackAddress(true)
 			}
 		}()
 
@@ -435,7 +435,7 @@ func SaveLastCursor(lastCursor string, roachDB *gorm.DB) (e error) {
 // genesis backfill, or "0" (start from genesis) if it has never been recorded.
 func GetAccountCursor(publicKey string, roachDB *gorm.DB) string {
 	var mAccount paymentModels.MonitoredAccountCursor
-	e := roachDB.Where("public_key = ?", publicKey).First(&mAccount).Error
+	e := roachDB.Where("address = ?", publicKey).First(&mAccount).Error
 	if e != nil {
 		return "0"
 	}
@@ -446,12 +446,12 @@ func GetAccountCursor(publicKey string, roachDB *gorm.DB) string {
 // so its backfill can resume from where it left off instead of always restarting at genesis.
 func SaveAccountCursor(publicKey, lastCursor string, roachDB *gorm.DB) error {
 	var mAccount paymentModels.MonitoredAccountCursor
-	e := roachDB.Where("public_key = ?", publicKey).First(&mAccount).Error
+	e := roachDB.Where("address = ?", publicKey).First(&mAccount).Error
 	if e != nil {
 		if !errors.Is(e, gorm.ErrRecordNotFound) {
 			return e
 		}
-		mAccount = paymentModels.MonitoredAccountCursor{PublicKey: publicKey, LastCursor: lastCursor}
+		mAccount = paymentModels.MonitoredAccountCursor{Address: publicKey, LastCursor: lastCursor}
 		return roachDB.Create(&mAccount).Error
 	}
 	if mAccount.LastCursor == lastCursor {
@@ -550,7 +550,7 @@ func swapTransactionType(from, sourceAssetIssuer, sourceAssetCode, to, destinati
 // original Horizon-operation processing applied before writing history.
 func lookupTrackedWallets(roachDB *gorm.DB, from, to string) (fromAlias, fromName, toAlias, toName string, found bool) {
 	var trackedWallets []paymentModels.TrackedWallet
-	dbFetchError := roachDB.Where("(public_key = ? OR temp_public_key = ?) OR (public_key = ? OR temp_public_key = ?)", from, from, to, to).Find(&trackedWallets).Error
+	dbFetchError := roachDB.Where("(address = ? OR temp_address = ?) OR (address = ? OR temp_address = ?)", from, from, to, to).Find(&trackedWallets).Error
 	if dbFetchError != nil {
 		log.Println("[lookupTrackedWallets] unable to find tracked wallets due to:", dbFetchError)
 		return "", "", "", "", false
@@ -559,10 +559,10 @@ func lookupTrackedWallets(roachDB *gorm.DB, from, to string) (fromAlias, fromNam
 		return "", "", "", "", false
 	}
 	for _, t := range trackedWallets {
-		if strings.EqualFold(t.PublicKey, from) {
+		if strings.EqualFold(t.Address, from) {
 			fromAlias, fromName = t.Alias, t.Name
 		}
-		if strings.EqualFold(t.PublicKey, to) {
+		if strings.EqualFold(t.Address, to) {
 			toAlias, toName = t.Alias, t.Name
 		}
 	}
@@ -737,7 +737,7 @@ func MonitorPaymentStream(db, roachDB *gorm.DB) {
 // providers cap how many blocks a single filter query may span.
 const backfillChunkBlocks = 5000
 
-// MonitorPublicKeyPaymentStream backfills one tracked public key's B20
+// MonitorAddressPaymentStream backfills one tracked public key's B20
 // token-transfer history from its last saved cursor (or genesis) up to the
 // current chain tip, using indexed Transfer-event topic filtering
 // (eth_getLogs with the address in the "from" or "to" topic position) so it
@@ -747,15 +747,15 @@ const backfillChunkBlocks = 5000
 // block-indexing service (e.g. an Etherscan/Blockscout-style API), tracked
 // as a follow-up out of scope for this alteration pass. This is the Base
 // equivalent of Horizon's per-account client.StreamPayments(ForAccount:...).
-func MonitorPublicKeyPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *sync.WaitGroup) {
+func MonitorAddressPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *sync.WaitGroup) {
 	defer wg.Done()
-	checkExists := roachDB.Where("public_key = ? OR temp_public_key = ?", publicKey, publicKey).First(&paymentModels.TrackedWallet{}).Error
+	checkExists := roachDB.Where("address = ? OR temp_address = ?", publicKey, publicKey).First(&paymentModels.TrackedWallet{}).Error
 	if checkExists != nil {
-		log.Printf("[MonitorPublicKeyPaymentStream] aborting because %v could not be found in tracked wallets table:", checkExists)
+		log.Printf("[MonitorAddressPaymentStream] aborting because %v could not be found in tracked wallets table:", checkExists)
 		return
 	}
 	if !common.IsHexAddress(publicKey) {
-		log.Printf("[MonitorPublicKeyPaymentStream] aborting, %v is not a valid Base address\n", publicKey)
+		log.Printf("[MonitorAddressPaymentStream] aborting, %v is not a valid Base address\n", publicKey)
 		return
 	}
 	client := network.GetBlockchainClient()
@@ -765,11 +765,11 @@ func MonitorPublicKeyPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *s
 	if n, err := strconv.ParseUint(lastAccountCursor, 10, 64); err == nil && lastAccountCursor != "0" {
 		startBlock = n + 1
 	}
-	log.Printf("[MonitorPublicKeyPaymentStream] Starting monitoring for %v from block[%v]\n", publicKey, startBlock)
+	log.Printf("[MonitorAddressPaymentStream] Starting monitoring for %v from block[%v]\n", publicKey, startBlock)
 
 	latest, err := client.BlockNumber(context.Background())
 	if err != nil {
-		log.Printf("[MonitorPublicKeyPaymentStream] error fetching latest block for %v: %v\n", publicKey, err)
+		log.Printf("[MonitorAddressPaymentStream] error fetching latest block for %v: %v\n", publicKey, err)
 		return
 	}
 
@@ -793,7 +793,7 @@ func MonitorPublicKeyPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *s
 		})
 		cancel()
 		if err1 != nil || err2 != nil {
-			log.Printf("[MonitorPublicKeyPaymentStream] error fetching logs for %v in range [%v,%v]: %v / %v\n", publicKey, from, to, err1, err2)
+			log.Printf("[MonitorAddressPaymentStream] error fetching logs for %v in range [%v,%v]: %v / %v\n", publicKey, from, to, err1, err2)
 			return
 		}
 
@@ -813,14 +813,14 @@ func MonitorPublicKeyPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *s
 			processB20TransferLog(client, lg, ts, db, roachDB)
 		}
 
-		//persist progress so the next periodic pass over tracked_public_keys resumes
+		//persist progress so the next periodic pass over tracked_addresses resumes
 		//here instead of re-scanning from genesis.
 		if e := SaveAccountCursor(publicKey, fmt.Sprintf("%d", to), roachDB); e != nil {
-			log.Printf("[MonitorPublicKeyPaymentStream] unable to save account cursor for %v: %v\n", publicKey, e)
+			log.Printf("[MonitorAddressPaymentStream] unable to save account cursor for %v: %v\n", publicKey, e)
 		}
 	}
 
-	log.Println("#####[MonitorPublicKeyPaymentStream]...finished backfill pass for", publicKey)
+	log.Println("#####[MonitorAddressPaymentStream]...finished backfill pass for", publicKey)
 }
 
 // MonitorTradeStream watched Horizon's global trade stream

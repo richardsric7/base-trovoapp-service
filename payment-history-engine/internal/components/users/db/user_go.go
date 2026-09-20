@@ -13,16 +13,16 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-//GetUser gets user data by either wallet id or signer or temporary public key
+// GetUser gets user data by either wallet id or signer or temporary public key
 func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
 
 	//e returns execution errors
 	var e error
-	if len(userInfo) == 56 {
-		//56 char public key is supplied
+	if len(userInfo) == 42 {
+		//42 char address is supplied
 
-		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("temp_public_key = ?", &userInfo).Or("signer = ?", userInfo).Select("user_id")
+		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("temp_address = ?", &userInfo).Or("signer = ?", userInfo).Select("user_id")
 		e = db.Preload(clause.Associations).Where("id = (?)", subQuery).First(&user).Error
 	} else if strings.Contains(userInfo, "_") {
 		//alias format is supplied
@@ -52,17 +52,17 @@ func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 
 }
 
-//GetWallet gets user wallet data by alias or public key or temp public key
+// GetWallet gets user wallet data by alias or public key or temp public key
 func GetWallet(identifier string, db *gorm.DB) (user userModels.UserWallet, temp bool, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
 
 	//e returns execution errors
 	var e error
-	if len(identifier) == 56 {
-		//56 char public key is supplied
-		e = db.Preload(clause.Associations).Where("id = ?", identifier).Or("temp_public_key = ?", &identifier).First(&user).Error
+	if len(identifier) == 42 {
+		//42 char address is supplied
+		e = db.Preload(clause.Associations).Where("id = ?", identifier).Or("temp_address = ?", &identifier).First(&user).Error
 		if e == nil {
-			if identifier == *user.TempPublicKey {
+			if identifier == *user.TempAddress {
 				temp = true
 			}
 			return

@@ -5,13 +5,13 @@ import (
 	"trovo-wallet-payment-history-engine/internal/evmkeypair"
 )
 
-//ValidatePublicKeyFormat validates a blockchain public key
-func ValidatePublicKeyFormat(publicKey string) error {
+// ValidateAddressFormat validates a blockchain public key
+func ValidateAddressFormat(publicKey string) error {
 	_, err := evmkeypair.ParseAddress(publicKey)
 
 	if err != nil {
-		var x errors.ErrorInvalidPublicKey
-		x.PublicKey = publicKey
+		var x errors.ErrorInvalidAddress
+		x.Address = publicKey
 		return &x
 	}
 	return nil

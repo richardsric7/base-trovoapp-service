@@ -6,38 +6,38 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const errorDestinationPublicKeyCannotReceiveAsset = "error-destination-public-key-cannot-receive-asset"
+const errorDestinationAddressCannotReceiveAsset = "error-destination-public-key-cannot-receive-asset"
 
-//ErrorDestinationPublicKeyCannotReceiveAsset gets thrown when payment destination public key does not trust asset
-type ErrorDestinationPublicKeyCannotReceiveAsset struct {
+// ErrorDestinationAddressCannotReceiveAsset gets thrown when payment destination public key does not trust asset
+type ErrorDestinationAddressCannotReceiveAsset struct {
 }
 
-//Error returns the error string
-func (e *ErrorDestinationPublicKeyCannotReceiveAsset) Error() string {
-	return errorDestinationPublicKeyCannotReceiveAsset
+// Error returns the error string
+func (e *ErrorDestinationAddressCannotReceiveAsset) Error() string {
+	return errorDestinationAddressCannotReceiveAsset
 }
 
-//ErrorType returns error type as string
-func (e *ErrorDestinationPublicKeyCannotReceiveAsset) ErrorType() string {
-	return errorDestinationPublicKeyCannotReceiveAsset
+// ErrorType returns error type as string
+func (e *ErrorDestinationAddressCannotReceiveAsset) ErrorType() string {
+	return errorDestinationAddressCannotReceiveAsset
 }
 
-//Data returns data of the error
-func (e *ErrorDestinationPublicKeyCannotReceiveAsset) Data() string {
+// Data returns data of the error
+func (e *ErrorDestinationAddressCannotReceiveAsset) Data() string {
 	return "destination"
 }
 
-//Message returns tring message of error
-func (e *ErrorDestinationPublicKeyCannotReceiveAsset) Message() string {
+// Message returns tring message of error
+func (e *ErrorDestinationAddressCannotReceiveAsset) Message() string {
 	return "destination public key/address cannot receive this asset"
 }
 
-//JSONError returns json of the error
-func (e *ErrorDestinationPublicKeyCannotReceiveAsset) JSONError() gin.H {
+// JSONError returns json of the error
+func (e *ErrorDestinationAddressCannotReceiveAsset) JSONError() gin.H {
 	return gin.H{"error": e.ErrorType(), "data": e.Data(), "message": e.Message()}
 }
 
-//HTTPCode returns http status code
-func (e *ErrorDestinationPublicKeyCannotReceiveAsset) HTTPCode() int {
+// HTTPCode returns http status code
+func (e *ErrorDestinationAddressCannotReceiveAsset) HTTPCode() int {
 	return http.StatusBadRequest
 }

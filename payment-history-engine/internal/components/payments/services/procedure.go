@@ -16,7 +16,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func TrackUserWallet(userWallet userModels.UserWallet, roachDB, db *gorm.DB, trackPublicKey bool, redisCache *cache.RedisCache) error {
+func TrackUserWallet(userWallet userModels.UserWallet, roachDB, db *gorm.DB, trackAddress bool, redisCache *cache.RedisCache) error {
 	//get names
 	type User struct {
 		ID        string  `json:"id"`
@@ -58,7 +58,7 @@ func TrackUserWallet(userWallet userModels.UserWallet, roachDB, db *gorm.DB, tra
 	// alias/name updated in place instead of always being deleted and re-created
 	// with a brand new ID on every re-track.
 	var existingWallet paymentModels.TrackedWallet
-	errMain := roachDB.Where("public_key = ?", userWallet.ID).First(&existingWallet).Error
+	errMain := roachDB.Where("address = ?", userWallet.ID).First(&existingWallet).Error
 
 	if errMain != nil {
 		if errors.Is(errMain, gorm.ErrRecordNotFound) {
@@ -66,28 +66,28 @@ func TrackUserWallet(userWallet userModels.UserWallet, roachDB, db *gorm.DB, tra
 			newID := uuid.NewString()
 
 			trackedWallet := paymentModels.TrackedWallet{
-				ID:            newID,
-				PublicKey:     userWallet.ID,
-				TempPublicKey: userWallet.TempPublicKey,
-				Alias:         userWallet.Alias,
-				Name:          name,
+				ID:          newID,
+				Address:     userWallet.ID,
+				TempAddress: userWallet.TempAddress,
+				Alias:       userWallet.Alias,
+				Name:        name,
 			}
 			errCreate := roachDB.Create(&trackedWallet).Error
 			if errCreate != nil {
 				log.Printf("[TrackUserWallet]Error while creating Main tracked wallet for %s, %v\n", userWallet.Alias, errCreate)
 				return errCreate
 			}
-			if trackPublicKey {
+			if trackAddress {
 				//track public key, first remove it if it exists
-				roachDB.Where("public_key = ?", userWallet.ID).Delete(&paymentModels.TrackedPublicKey{})
+				roachDB.Where("address = ?", userWallet.ID).Delete(&paymentModels.TrackedAddress{})
 
-				trackedPublicKey := paymentModels.TrackedPublicKey{
-					PublicKey: userWallet.ID,
+				trackedAddress := paymentModels.TrackedAddress{
+					Address: userWallet.ID,
 				}
-				errPublicKey := roachDB.Create(&trackedPublicKey).Error
-				if errPublicKey != nil {
-					if !strings.Contains(errPublicKey.Error(), "constraint") {
-						log.Printf("[TrackUserWallet]Error while creating tracked public key for %s, %v\n", userWallet.Alias, errPublicKey)
+				errAddress := roachDB.Create(&trackedAddress).Error
+				if errAddress != nil {
+					if !strings.Contains(errAddress.Error(), "constraint") {
+						log.Printf("[TrackUserWallet]Error while creating tracked public key for %s, %v\n", userWallet.Alias, errAddress)
 
 					}
 				}
@@ -107,22 +107,22 @@ func TrackUserWallet(userWallet userModels.UserWallet, roachDB, db *gorm.DB, tra
 		//already exists. record was fetched. update the name and save
 		existingWallet.Name = name
 		existingWallet.Alias = userWallet.Alias
-		existingWallet.TempPublicKey = userWallet.TempPublicKey
+		existingWallet.TempAddress = userWallet.TempAddress
 		eSave := roachDB.Save(&existingWallet).Error
 		if eSave != nil {
 			log.Printf("[TrackUserWallet]Error while saving existing tracked wallet for %s, %v\n", userWallet.Alias, eSave)
 			return eSave
 		}
 
-		if trackPublicKey {
+		if trackAddress {
 			//track public key
-			trackedPublicKey := paymentModels.TrackedPublicKey{
-				PublicKey: userWallet.ID,
+			trackedAddress := paymentModels.TrackedAddress{
+				Address: userWallet.ID,
 			}
-			errPublicKey := roachDB.Create(&trackedPublicKey).Error
-			if errPublicKey != nil {
-				if !strings.Contains(errPublicKey.Error(), "constraint") {
-					log.Printf("[TrackUserWallet]Error while creating tracked public key after saving existing wallet for %s, %v\n", userWallet.Alias, errPublicKey)
+			errAddress := roachDB.Create(&trackedAddress).Error
+			if errAddress != nil {
+				if !strings.Contains(errAddress.Error(), "constraint") {
+					log.Printf("[TrackUserWallet]Error while creating tracked public key after saving existing wallet for %s, %v\n", userWallet.Alias, errAddress)
 
 				}
 			}
@@ -158,9 +158,9 @@ func SavePaymentHistory(fromPK, fromAlias, fromName, toPK, toAlias, toName, memo
 		ID:                    ID,
 		TransactionDate:       transactionTime,
 		From:                  fromVal,
-		FromPublicKey:         fromPK,
+		FromAddress:           fromPK,
 		To:                    toVal,
-		ToPublicKey:           toPK,
+		ToAddress:             toPK,
 		Memo:                  memoVal,
 		AssetIssuer:           issuerVal,
 		AssetCode:             assetCode,
@@ -174,9 +174,9 @@ func SavePaymentHistory(fromPK, fromAlias, fromName, toPK, toAlias, toName, memo
 	// 	ID:              uuid.NewString(),
 	// 	TransactionDate: transactionTime,
 	// 	From:            fromVal,
-	// 	FromPublicKey:   fromPK,
+	// 	FromAddress:   fromPK,
 	// 	To:              toVal,
-	// 	ToPublicKey:     toPK,
+	// 	ToAddress:     toPK,
 	// 	Memo:            memoVal,
 	// 	AssetIssuer:     issuerVal,
 	// 	AssetCode:       assetCode,

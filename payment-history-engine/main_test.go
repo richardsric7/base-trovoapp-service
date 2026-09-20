@@ -25,7 +25,7 @@ type ErrorResponse struct {
 }
 
 type RegSuccessInfo struct {
-	PublicKey string `json:"message"`
+	Address string `json:"message"`
 }
 type UserRegistrationInfo struct {
 	Username              string `json:"username"`
@@ -34,7 +34,7 @@ type UserRegistrationInfo struct {
 	LastName              string `json:"lastName"`
 	Mobile                string `json:"mobile"`
 	MobileCountryCode     string `json:"mobileCountryCode,omitempty"`
-	PublicKey             string `json:"publicKey,omitempty"`
+	Address               string `json:"publicKey,omitempty"`
 	Referrer              string `json:"referrer,omitempty"`
 	PushNotificationToken string `json:"pushNotificationToken,omitempty"`
 	Corporate             uint   `json:"corporate"`
@@ -75,7 +75,7 @@ type UserJSON struct {
 	FirstName             string           `json:"firstName"`
 	LastName              string           `json:"lastName"`
 	Mobile                string           `json:"mobile"`
-	PublicKey             string           `json:"publicKey"`
+	Address               string           `json:"publicKey"`
 	Referrer              string           `json:"referrer"`
 	ReferralLink          string           `json:"referralLink"`
 	ReferralQrCode        string           `json:"referralQrCode"`
@@ -94,7 +94,7 @@ type UserJSON struct {
 type UserWalletJSON struct {
 	CreatedAt               time.Time                   `json:"createdAt"`
 	ID                      string                      `json:"publicKey"`
-	TempPublicKey           string                      `json:"-"`
+	TempAddress             string                      `json:"-"`
 	Tag                     string                      `json:"tag"`
 	Description             string                      `json:"description"`
 	Alias                   string                      `json:"alias"`  //primaryUsername_tag for sub wallets
@@ -123,13 +123,13 @@ type WalletAccessJSON struct {
 }
 type ThirdPartyWalletAccess struct {
 	Owner             string `json:"owner"`
-	PublicKey         string `json:"publicKey"`
+	Address           string `json:"publicKey"`
 	AccessLevel       string `json:"accessLevel"`
 	WalletAlias       string `json:"walletAlias"`
 	WalletDescription string `json:"walletDescription"`
 }
 
-//Balance model for user
+// Balance model for user
 type Balance struct {
 	AssetIssuer string          `json:"assetIssuer"`
 	AssetCode   string          `json:"assetCode"`
@@ -137,7 +137,7 @@ type Balance struct {
 	QRCode      string          `json:"qrCode"`
 }
 
-//Signer model for user
+// Signer model for user
 type Signer struct {
 	Weight  int    `json:"weight"`
 	Key     string `json:"key"`
@@ -145,20 +145,20 @@ type Signer struct {
 	Sponsor string `json:"sponsor"`
 }
 
-//Signer model for user
+// Signer model for user
 type Thresholds struct {
 	LowThreshold    string `json:"low_threshold"`
 	MediumThreshold string `json:"medium_threshold"`
 	HighThreshold   string `json:"high_threshold"`
 }
 
-//AssetBalances holds user balances
+// AssetBalances holds user balances
 type AssetBalances struct {
 	Claimed   []Balance `json:"claimed"`
 	Unclaimed []Balance `json:"unclaimed"`
 }
 
-//NFTBalances holds user NFT balances
+// NFTBalances holds user NFT balances
 type NFTBalances struct {
 	NFTs []NFT `json:"nfts"`
 }

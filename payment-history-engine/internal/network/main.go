@@ -124,13 +124,13 @@ func init() {
 // which owns the payment flow this engine only records history for), so a
 // plain B20/ERC20 token here has no on-chain "trust" step either - any
 // well-formed address can hold/receive one, so authorized is always true.
-func BlockchainAccountProperties(client *ethclient.Client, destinationPublicKey string, asset basetxn.Asset) (bool, bool, decimal.Decimal, decimal.Decimal, *AccountInfo, error) {
-	log.Printf("[BlockchainAccountProperties] obtaining blockchain account properties for  %v \n", destinationPublicKey)
+func BlockchainAccountProperties(client *ethclient.Client, destinationAddress string, asset basetxn.Asset) (bool, bool, decimal.Decimal, decimal.Decimal, *AccountInfo, error) {
+	log.Printf("[BlockchainAccountProperties] obtaining blockchain account properties for  %v \n", destinationAddress)
 
-	if !common.IsHexAddress(destinationPublicKey) {
-		return false, false, decimal.Zero, decimal.Zero, nil, &tErrors.ErrorInvalidPublicKey{PublicKey: destinationPublicKey}
+	if !common.IsHexAddress(destinationAddress) {
+		return false, false, decimal.Zero, decimal.Zero, nil, &tErrors.ErrorInvalidAddress{Address: destinationAddress}
 	}
-	addr := common.HexToAddress(destinationPublicKey)
+	addr := common.HexToAddress(destinationAddress)
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -139,9 +139,9 @@ func BlockchainAccountProperties(client *ethclient.Client, destinationPublicKey 
 	nonce, err := client.PendingNonceAt(ctx, addr)
 	if err != nil {
 		log.Print("[BlockchainAccountProperties] error fetching nonce: ", err)
-		return destinationAccountExists, false, decimal.Zero, decimal.Zero, &AccountInfo{Address: destinationPublicKey}, &tErrors.ErrorTemporaryServerError{}
+		return destinationAccountExists, false, decimal.Zero, decimal.Zero, &AccountInfo{Address: destinationAddress}, &tErrors.ErrorTemporaryServerError{}
 	}
-	account := &AccountInfo{Address: destinationPublicKey, Nonce: nonce}
+	account := &AccountInfo{Address: destinationAddress, Nonce: nonce}
 
 	weiBalance, err := client.BalanceAt(ctx, addr, nil)
 	if err != nil {
@@ -154,7 +154,7 @@ func BlockchainAccountProperties(client *ethclient.Client, destinationPublicKey 
 		return destinationAccountExists, true, nativeAccountBalance, decimal.Zero, account, nil
 	}
 
-	assetBalance, err := B20BalanceOf(client, asset.GetIssuer(), destinationPublicKey)
+	assetBalance, err := B20BalanceOf(client, asset.GetIssuer(), destinationAddress)
 	if err != nil {
 		log.Print("[BlockchainAccountProperties] error fetching B20 balance: ", err)
 		return destinationAccountExists, true, nativeAccountBalance, decimal.Zero, account, &tErrors.ErrorTemporaryServerError{}
@@ -284,7 +284,7 @@ func SubmitSignedRawTx(client *ethclient.Client, rawTxHex string) (txHash string
 // (xdrBase64 in, tx hash out) for call-site compatibility; xdrBase64 is now
 // a comma-joined list of signed raw txs (basetxn.Transaction.Base64's
 // shape) rather than an XDR envelope.
-func SubmitXdrWithSignature(client *ethclient.Client, ownerPublicKey string, xdrBase64 string, signature string) (string, error) {
+func SubmitXdrWithSignature(client *ethclient.Client, ownerAddress string, xdrBase64 string, signature string) (string, error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
 	if v := os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK"); len(v) > 50 {
 		discord.WebhookURL = v
@@ -301,7 +301,7 @@ func SubmitXdrWithSignature(client *ethclient.Client, ownerPublicKey string, xdr
 		}
 		hash, err := SubmitSignedRawTx(client, raw)
 		if err != nil {
-			logDiscordFailedPayment(fmt.Sprintf("[SubmitXdrWithSignature] error submitting tx: %v\nOwner publickey: %v\n", err, ownerPublicKey))
+			logDiscordFailedPayment(fmt.Sprintf("[SubmitXdrWithSignature] error submitting tx: %v\nOwner publickey: %v\n", err, ownerAddress))
 			return lastHash, &tErrors.CustomError{Param: "destination", Err: "error payment failed", ErrMessage: "Payment Failed", Code: 500}
 		}
 		lastHash = hash
@@ -312,7 +312,7 @@ func SubmitXdrWithSignature(client *ethclient.Client, ownerPublicKey string, xdr
 // SubmitXdrWithSignatureChannelAccounts submits a Transaction co-signed by
 // a channel account and the sending signer - the Base equivalent of a
 // Stellar transaction with a fee-sponsoring channel-account source.
-func SubmitXdrWithSignatureChannelAccounts(client *ethclient.Client, signerPublicKey, channelAccountPK string, xdrBase64 string, txSignature, chanSignature string) (string, error) {
+func SubmitXdrWithSignatureChannelAccounts(client *ethclient.Client, signerAddress, channelAccountPK string, xdrBase64 string, txSignature, chanSignature string) (string, error) {
 	rawTxs := strings.Split(xdrBase64, ",")
 	for _, sig := range []string{chanSignature, txSignature} {
 		sig = strings.TrimSpace(sig)
