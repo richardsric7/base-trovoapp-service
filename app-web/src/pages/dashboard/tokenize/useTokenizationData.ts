@@ -53,7 +53,7 @@ export function useTokenizationData() {
 
         const res = await fetchTokenizationData({
           signer: primaryWallet?.signer ?? '',
-          publicKey: primaryWallet?.publicKey ?? '',
+          address: primaryWallet?.address ?? '',
           secretKey: currentSecretKey,
           body: {},
         });

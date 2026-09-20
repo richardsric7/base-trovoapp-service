@@ -82,7 +82,7 @@ export function useActiveTokenizedAsset() {
 
         const res = await getTokenizationDetail({
           signer: appUser.primarySigner,
-          publicKey: appUser.publicKey,
+          address: appUser.address,
           secretKey: currentSecretKey,
           tokenizedAssetId: assetId,
         });

@@ -10,7 +10,7 @@ import { Asset } from '../../../types/asset';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/reduxStore';
 import { formatToDecimal, getAssetCode } from '../../../utils/utilities';
-import { truncatePublicKey } from '../../../utils/truncateValues';
+import { truncateAddress } from '../../../utils/truncateValues';
 import { showNotification } from '../../../utils/showToaster';
 import WalletOperations from '../../../components/walletOperations';
 import { Wallet } from '../../../types/wallet';
@@ -41,7 +41,7 @@ export default function AssetDetail() {
   const appUser = useSelector((state: RootState) => state.auth.user!);
 
   const [wallet, setWallet] = useState<Wallet>(
-    appUser.userWallets.find((w) => w.publicKey == searchParams.get('wallet'))!,
+    appUser.userWallets.find((w) => w.address == searchParams.get('wallet'))!,
   );
   const [asset, setAsset] = useState<Asset>(
     wallet?.claimedAssets.find(
@@ -86,7 +86,7 @@ export default function AssetDetail() {
                   additionalClasses="bg-primary-600 text-white font-montserratSemiBold"
                   onclick={() => {
                     navigate(
-                      `/dashboard/yield?wallet=${wallet.publicKey}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
+                      `/dashboard/yield?wallet=${wallet.address}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
                     );
                   }}
                 />
@@ -95,7 +95,7 @@ export default function AssetDetail() {
                   additionalClasses="font-montserratSemiBold"
                   onclick={() => {
                     navigate(
-                      `/dashboard/early-exit?wallet=${wallet.publicKey}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
+                      `/dashboard/early-exit?wallet=${wallet.address}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
                     );
                   }}
                 />
@@ -144,7 +144,7 @@ export default function AssetDetail() {
                   Issuer Public Key
                 </p>
                 <p className="flex items-center space-x-2">
-                  <span>{truncatePublicKey(asset?.assetIssuer ?? '')}</span>
+                  <span>{truncateAddress(asset?.assetIssuer ?? '')}</span>
                   <button
                     type="button"
                     onClick={() =>

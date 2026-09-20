@@ -27,7 +27,7 @@ await init();
 const createAccount = (): Account => {
   // create a completely new and unique pair of keys.
   const kp = generateKeypair();
-  return { publicKey: kp.address, secretKey: kp.privateKeyHex };
+  return { address: kp.address, secretKey: kp.privateKeyHex };
 };
 
 const signHTTP = (toSign: string, secretKey: string): string => {
@@ -72,13 +72,13 @@ const signBase64Txn = (
 
 const parseSecretKey = (secretKey: string): Account => {
   const kp = keypairFromPrivateKey(secretKey);
-  return { publicKey: kp.address, secretKey: kp.privateKeyHex };
+  return { address: kp.address, secretKey: kp.privateKeyHex };
 };
 
 const getCredsFromPassPhrase = (passphrase: string): Account | null => {
   try {
     const kp = keypairFromMnemonic(passphrase, 0);
-    return { publicKey: kp.address, secretKey: kp.privateKeyHex };
+    return { address: kp.address, secretKey: kp.privateKeyHex };
   } catch (error: any) {
     console.log(error);
     return null;

@@ -237,8 +237,8 @@ export default function ImportWallet() {
         const account = getAccountFromExistingInfo();
 
         const payload = {
-          signer: account.publicKey,
-          publicKey: account.publicKey,
+          signer: account.address,
+          address: account.address,
           secretKey: account.secretKey,
           body: { userId: tempData.userId, import: 1 },
         };
@@ -257,13 +257,13 @@ export default function ImportWallet() {
             const encryptedPassword = await encryptor.encryptData(
               tempData.password,
               passwordHash,
-              account.publicKey,
+              account.address,
             );
 
             const base64EncryptedSecretKey = await encryptor.encryptData(
               account.secretKey,
               tempData.password,
-              account.publicKey,
+              account.address,
             );
 
             const user = {
@@ -278,7 +278,7 @@ export default function ImportWallet() {
             const base64EncryptedUserData = await encryptor.encryptData(
               JSON.stringify(user),
               hash,
-              user.publicKey,
+              user.address,
             );
 
             dispatch(

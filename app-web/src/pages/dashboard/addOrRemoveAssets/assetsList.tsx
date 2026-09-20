@@ -7,7 +7,7 @@ import Header from '../../../components/header';
 import Modal from '../../../components/modal';
 import Button from '../../../components/button';
 import { CuratedAsset } from '../../../types/curatedAsset';
-import { truncatePublicKey } from '../../../utils/truncateValues';
+import { truncateAddress } from '../../../utils/truncateValues';
 import { showNotification, toggleLoader } from '../../../utils/showToaster';
 import { Asset } from '../../../types/asset';
 import { formatAmount } from '../../../utils/transactionUtils';
@@ -53,8 +53,8 @@ const AssetsList = () => {
 
   const importWallet = async () => {
     const importedPayload = {
-      signer: appUser.publicKey,
-      publicKey: appUser.publicKey,
+      signer: appUser.address,
+      address: appUser.address,
       secretKey: secretKey,
       body: { userId: appUser.username, import: 1 },
     };
@@ -117,14 +117,14 @@ const AssetsList = () => {
       const base64EncryptedSecretKey = await encryptor.encryptData(
         secretKey,
         tempData.password,
-        appUser.publicKey,
+        appUser.address,
       );
 
       const passwordHash = await encryptor.createHash(userData.username);
       const encryptedPassword = await encryptor.encryptData(
         tempData.password,
         passwordHash,
-        appUser.publicKey,
+        appUser.address,
       );
 
       const user = {
@@ -139,7 +139,7 @@ const AssetsList = () => {
       const base64EncryptedUserData = await encryptor.encryptData(
         JSON.stringify(user),
         hash,
-        user.publicKey,
+        user.address,
       );
 
       dispatch(
@@ -229,7 +229,7 @@ const AssetsList = () => {
 
                   setFilteredWallets(Object.values(filteredAssets));
                 }}
-                key={`${activeWallet?.publicKey}`}
+                key={`${activeWallet?.address}`}
               />
             </div>
           </div>
@@ -389,7 +389,7 @@ const CuratedAssetTile: React.FC<CuratedAssetTileProps> = ({
                   onclick={async () => {
                     const payload = {
                       signer: wallet.signer,
-                      publicKey: wallet.publicKey,
+                      address: wallet.address,
                       secretKey: secretKey,
                       body: {
                         isSharedWallet: wallet.sharedAccessEnabled,
@@ -418,7 +418,7 @@ const CuratedAssetTile: React.FC<CuratedAssetTileProps> = ({
 
                       const payload = {
                         signer: wallet.signer,
-                        publicKey: wallet.publicKey,
+                        address: wallet.address,
                         secretKey: secretKey,
                         body,
                       };
@@ -501,7 +501,7 @@ const CuratedAssetTile: React.FC<CuratedAssetTileProps> = ({
               </p>
               <p className="flex items-center space-x-2">
                 <span>
-                  {truncatePublicKey(assetTile.asset.assetIssuer ?? '')}
+                  {truncateAddress(assetTile.asset.assetIssuer ?? '')}
                 </span>
                 <button
                   type="button"
@@ -537,7 +537,7 @@ const CuratedAssetTile: React.FC<CuratedAssetTileProps> = ({
               onclick={async () => {
                 const payload = {
                   signer: wallet.signer,
-                  publicKey: wallet.publicKey,
+                  address: wallet.address,
                   secretKey: secretKey,
                   body: {
                     isSharedWallet: wallet.sharedAccessEnabled,
@@ -567,7 +567,7 @@ const CuratedAssetTile: React.FC<CuratedAssetTileProps> = ({
 
                   const payload = {
                     signer: wallet.signer,
-                    publicKey: wallet.publicKey,
+                    address: wallet.address,
                     secretKey: secretKey,
                     body,
                   };

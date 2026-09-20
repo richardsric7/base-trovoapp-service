@@ -12,7 +12,7 @@ type HistoryRow = {
   username: string;
   fromUsername?: string;
   toUsername?: string;
-  fromPublicKey: string;
-  toPublicKey: string;
+  fromAddress: string;
+  toAddress: string;
   memo: string;
 };

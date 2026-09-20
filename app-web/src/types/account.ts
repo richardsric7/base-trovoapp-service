@@ -1,4 +1,4 @@
 type Account = {
-    publicKey: string,
+    address: string,
     secretKey: string,
 }

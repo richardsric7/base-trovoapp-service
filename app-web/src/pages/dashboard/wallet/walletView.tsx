@@ -85,7 +85,7 @@ export default function WalletView() {
   type AddSubwalletType = {
     tag: string;
     description: string;
-    newPublicKey: string;
+    newAddress: string;
     newSecretKey: string;
     isImport: boolean;
     transactionData: any;
@@ -94,7 +94,7 @@ export default function WalletView() {
   const [formData, setFormData] = useState<AddSubwalletType>({
     tag: '',
     description: '',
-    newPublicKey: '',
+    newAddress: '',
     newSecretKey: '',
     isImport: false,
     transactionData: undefined,
@@ -114,7 +114,7 @@ export default function WalletView() {
     setFormData({
       tag: '',
       description: '',
-      newPublicKey: '',
+      newAddress: '',
       newSecretKey: '',
       isImport: false,
       transactionData: undefined,
@@ -163,14 +163,14 @@ export default function WalletView() {
       .sort((w) => (w.primaryWallet ? 0 : 1));
 
     if (isSharedRel && walletQueryParam) {
-      filtered = filtered.filter((w) => w.publicKey === walletQueryParam);
+      filtered = filtered.filter((w) => w.address === walletQueryParam);
     }
 
     setWallets(filtered);
 
     let targetIndex = 0;
     if (isSharedRel && walletQueryParam) {
-      const idx = filtered.findIndex((w) => w.publicKey === walletQueryParam);
+      const idx = filtered.findIndex((w) => w.address === walletQueryParam);
       if (idx !== -1) {
         targetIndex = idx;
       }
@@ -330,22 +330,22 @@ export default function WalletView() {
     }
 
     if (formData.isImport) {
-      var publicKey = importAccount(formData.newSecretKey);
-      if (publicKey.length == 0) {
+      var address = importAccount(formData.newSecretKey);
+      if (address.length == 0) {
         setErrorObj({ ...errorObj, newSecretKey: 'Invalid secret key' });
         return;
       }
 
       setFormData({
         ...formData,
-        newPublicKey: publicKey,
+        newAddress: address,
       });
     } else {
       // generate keypair for the new subwallet
       var ac = createAccount();
       setFormData({
         ...formData,
-        newPublicKey: ac.publicKey,
+        newAddress: ac.address,
         newSecretKey: ac.secretKey,
       });
     }
@@ -356,14 +356,14 @@ export default function WalletView() {
   const handleSend = async () => {
     const payload = {
       signer: activeWallet.signer,
-      publicKey: activeWallet.publicKey,
+      address: activeWallet.address,
       secretKey: secretKey,
       body: {
-        publickey: formData.newPublicKey,
+        publickey: formData.newAddress,
         walletTag: formData.tag,
         WalletDescription: formData.description,
         walletType: 0,
-        linkedWalletPublicKey: '',
+        linkedWalletAddress: '',
       },
     };
     toggleLoader();
@@ -553,7 +553,7 @@ export default function WalletView() {
                             currency={appUser.currency}
                             onclick={() => {
                               navigate(
-                                `/dashboard/asset-details?wallet=${activeWallet.publicKey}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
+                                `/dashboard/asset-details?wallet=${activeWallet.address}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
                               );
                             }}
                           />
@@ -573,7 +573,7 @@ export default function WalletView() {
                             currency={appUser.currency}
                             onclick={() => {
                               navigate(
-                                `/dashboard/asset-details?wallet=${activeWallet.publicKey}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
+                                `/dashboard/asset-details?wallet=${activeWallet.address}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
                               );
                             }}
                           />
@@ -835,7 +835,7 @@ export default function WalletView() {
                         Public Key
                       </p>
                       <p className="text-sm text-primary-800 ">
-                        {formData.newPublicKey}
+                        {formData.newAddress}
                       </p>
                       <p className="text-xs text-primary-800">
                         Please note that completing this process will attract
@@ -923,7 +923,7 @@ export default function WalletView() {
 
                         const payload = {
                           signer: activeWallet.signer,
-                          publicKey: activeWallet.publicKey,
+                          address: activeWallet.address,
                           secretKey: secretKey,
                           body,
                         };
@@ -932,8 +932,8 @@ export default function WalletView() {
                         const res = await addSubwallet(payload);
 
                         const importedPayload = {
-                          signer: appUser.publicKey,
-                          publicKey: appUser.publicKey,
+                          signer: appUser.address,
+                          address: appUser.address,
                           secretKey: appUser.secretKeys[0],
                           body: { userId: appUser.username, import: 1 },
                         };
@@ -959,7 +959,7 @@ export default function WalletView() {
                             await encryptor.encryptData(
                               formData.newSecretKey,
                               password,
-                              appUser.publicKey,
+                              appUser.address,
                             );
 
                           const passwordHash = await encryptor.createHash(
@@ -968,7 +968,7 @@ export default function WalletView() {
                           const encryptedPassword = await encryptor.encryptData(
                             password,
                             passwordHash,
-                            appUser.publicKey,
+                            appUser.address,
                           );
 
                           const user = {
@@ -989,7 +989,7 @@ export default function WalletView() {
                             await encryptor.encryptData(
                               JSON.stringify(user),
                               hash,
-                              user.publicKey,
+                              user.address,
                             );
 
                           dispatch(
@@ -1004,7 +1004,7 @@ export default function WalletView() {
                             setTempData({
                               ...tempData,
                               username: formData.tag,
-                              publicKey: formData.newPublicKey,
+                              address: formData.newAddress,
                               secretKey: base64EncryptedSecretKey,
                             }),
                           );

@@ -42,7 +42,7 @@ export default function SharedAccessUpdate() {
     try {
       const payload = {
         signer: appUser.primarySigner,
-        publicKey: appUser.publicKey,
+        address: appUser.address,
         secretKey: appUser.secretKeys[0],
         body: {
           numberOfApprovalsNeeded: Number(approvalsNeeded) || 2,

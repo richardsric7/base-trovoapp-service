@@ -52,7 +52,7 @@ export const Tokenize = () => {
   } = useFetchTokenizationDataQuery(
     {
       signer: primaryWallet?.signer ?? '',
-      publicKey: primaryWallet?.publicKey ?? '',
+      address: primaryWallet?.address ?? '',
       secretKey,
       body: {},
     },
@@ -78,7 +78,7 @@ export const Tokenize = () => {
   } = useFetchTokenizationAssetsQuery(
     {
       signer: primaryWallet?.signer ?? '',
-      publicKey: primaryWallet?.publicKey ?? '',
+      address: primaryWallet?.address ?? '',
       secretKey,
       body: {
         status: 0,

@@ -27,7 +27,7 @@ export default function SharedAccessApprovals() {
       try {
         const result = await fetchApprovals({
           signer: appUser.primarySigner,
-          publicKey: appUser.publicKey,
+          address: appUser.address,
           secretKey: appUser.secretKeys[0],
           body: {},
         });

@@ -22,7 +22,7 @@ export default function Backup() {
   var [data, setData] = useState<
     {
       alias: string;
-      publicKey: string;
+      address: string;
       secretKey: string;
     }[]
   >([]);
@@ -64,11 +64,11 @@ export default function Backup() {
                   Public Key:
                 </p>
                 <div className="flex w-full justify-between">
-                  <div className="w-4/5 h-full break-all">{d.publicKey}</div>
+                  <div className="w-4/5 h-full break-all">{d.address}</div>
                   <button
                     type="button"
                     onClick={() =>
-                      navigator.clipboard.writeText(d.publicKey).then(() => {
+                      navigator.clipboard.writeText(d.address).then(() => {
                         showNotification('info', 'Public key copied!');
                       })
                     }
@@ -117,7 +117,7 @@ export default function Backup() {
                   onClick={async () => {
                     navigator.clipboard
                       .writeText(
-                        `Wallet alias: ${d.alias}\nPublic key: ${d.publicKey}\nSecret key: ${d.secretKey}`,
+                        `Wallet alias: ${d.alias}\nPublic key: ${d.address}\nSecret key: ${d.secretKey}`,
                       )
                       .then(() => {
                         showNotification('info', 'Wallet info copied!');
@@ -138,7 +138,7 @@ export default function Backup() {
                 setTempData({
                   ...tempData,
                   username: '',
-                  publicKey: '',
+                  address: '',
                   secretKey: '',
                 }),
               );
@@ -206,7 +206,7 @@ export default function Backup() {
 
                 backupData.push({
                   alias: tempData.username,
-                  publicKey: tempData.publicKey,
+                  address: tempData.address,
                   secretKey: decryptedData,
                 });
 
@@ -228,8 +228,8 @@ export default function Backup() {
                     appUser.primarySigner,
                   );
 
-                  var publicKey = importAccount(decryptedData);
-                  if (publicKey.length == 0) {
+                  var address = importAccount(decryptedData);
+                  if (address.length == 0) {
                     showNotification(
                       'error',
                       'Error parsing credentials. Please contact site administrators.',
@@ -238,10 +238,10 @@ export default function Backup() {
                   }
 
                   var wallet = appUser.userWallets.find(
-                    (w) => w.publicKey == publicKey,
+                    (w) => w.address == address,
                   );
                   if (!wallet) {
-                    console.log('wallet...', k, publicKey);
+                    console.log('wallet...', k, address);
                     showNotification(
                       'error',
                       'Error parsing credentials. Please contact site administrators.',
@@ -251,7 +251,7 @@ export default function Backup() {
 
                   backupData.push({
                     alias: wallet.alias,
-                    publicKey: wallet.publicKey,
+                    address: wallet.address,
                     secretKey: decryptedData,
                   });
 

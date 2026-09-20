@@ -101,7 +101,7 @@ export default function TokenizedAssetDetailsView() {
   const { data } = useFetchTokenizedAssetsQuery(
     {
       signer: primaryWallet?.signer ?? '',
-      publicKey: primaryWallet.publicKey,
+      address: primaryWallet.address,
       secretKey,
       body: {
         status: searchParams.get('salesList'),
@@ -114,7 +114,7 @@ export default function TokenizedAssetDetailsView() {
   const { data: expressedInterests } = useFetchExpressedInterestsQuery(
     {
       signer: primaryWallet?.signer ?? '',
-      publicKey: primaryWallet.publicKey,
+      address: primaryWallet.address,
       secretKey,
       body: { status: 1 },
     },
@@ -140,7 +140,7 @@ export default function TokenizedAssetDetailsView() {
     const { data } = useFetchTokenizationDataQuery(
       {
         signer: primaryWallet?.signer ?? '',
-        publicKey: primaryWallet.publicKey,
+        address: primaryWallet.address,
         secretKey,
         body: { limit: 5 },
       },

@@ -424,7 +424,7 @@ export function TokenizationAssetTokenInformation() {
 
       const res = await uploadAssetLogo({
         signer: appUser.primarySigner,
-        publicKey: appUser.publicKey,
+        address: appUser.address,
         secretKey: currentSecretKey,
         tokenizedAssetId,
         file,
@@ -558,7 +558,7 @@ export function TokenizationAssetTokenInformation() {
 
       const res = await submitTokenization({
         signer: appUser.primarySigner,
-        publicKey: appUser.publicKey,
+        address: appUser.address,
         secretKey: currentSecretKey,
         body: payload,
       });
@@ -900,12 +900,12 @@ export function TokenizationAssetTokenInformation() {
                 defaultValue={
                   appUser.userWallets.find(
                     (w) =>
-                      w.publicKey === formData.walletToHoldAssetsNotForSale,
+                      w.address === formData.walletToHoldAssetsNotForSale,
                   )
                     ? {
                         text: appUser.userWallets.find(
                           (w) =>
-                            w.publicKey ===
+                            w.address ===
                             formData.walletToHoldAssetsNotForSale,
                         )!.alias,
                         value: formData.walletToHoldAssetsNotForSale,
@@ -913,7 +913,7 @@ export function TokenizationAssetTokenInformation() {
                     : null
                 }
                 options={appUser.userWallets.map((w) => {
-                  return { text: w.alias, value: w.publicKey };
+                  return { text: w.alias, value: w.address };
                 })}
                 onSelect={(option) =>
                   updateField('walletToHoldAssetsNotForSale', option.value)

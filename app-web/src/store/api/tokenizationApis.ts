@@ -3,7 +3,7 @@ import { baseApi } from './baseapi';
 
 type DocumentUploadPayload = {
   signer: string;
-  publicKey: string;
+  address: string;
   secretKey: string;
   tokenizedAssetId: string;
   documentTitle: string;
@@ -13,14 +13,14 @@ type DocumentUploadPayload = {
 
 type DocumentDeletePayload = {
   signer: string;
-  publicKey: string;
+  address: string;
   secretKey: string;
   documentId: string;
 };
 
 type UploadAssetLogoPayload = {
   signer: string;
-  publicKey: string;
+  address: string;
   secretKey: string;
   tokenizedAssetId: string;
   file: File;
@@ -28,14 +28,14 @@ type UploadAssetLogoPayload = {
 
 type TokenizationDetailPayload = {
   signer: string;
-  publicKey: string;
+  address: string;
   secretKey: string;
   tokenizedAssetId: string;
 };
 
 type ConfirmTokenizationPayload = {
   signer: string;
-  publicKey: string;
+  address: string;
   secretKey: string;
   tokenizedAssetId: string;
   body: string;
@@ -43,7 +43,7 @@ type ConfirmTokenizationPayload = {
 
 type UploadTokenizationFeeProofPayload = {
   signer: string;
-  publicKey: string;
+  address: string;
   secretKey: string;
   tokenizedAssetId: string;
   tokenizationFeePaymentMethodID: string;
@@ -53,14 +53,14 @@ type UploadTokenizationFeeProofPayload = {
 
 type DeleteTokenizationFeeProofPayload = {
   signer: string;
-  publicKey: string;
+  address: string;
   secretKey: string;
   documentId: string;
 };
 
 type ConfirmTokenizationFeePayload = {
   signer: string;
-  publicKey: string;
+  address: string;
   secretKey: string;
   tokenizedAssetId: string;
   body: string;
@@ -76,7 +76,7 @@ export const tokenizationApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         }, 
@@ -90,7 +90,7 @@ export const tokenizationApi = baseApi.injectEndpoints({
           data: {
             creds: {
               signer: payload.signer,
-              publicKey: payload.publicKey,
+              address: payload.address,
               secretKey: payload.secretKey,
             }
           }, 
@@ -104,7 +104,7 @@ export const tokenizationApi = baseApi.injectEndpoints({
         data: {
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         },
@@ -125,7 +125,7 @@ export const tokenizationApi = baseApi.injectEndpoints({
             payload: formData,
             creds: {
               signer: payload.signer,
-              publicKey: payload.publicKey,
+              address: payload.address,
               secretKey: payload.secretKey,
             },
             isFormData: true,
@@ -148,7 +148,7 @@ uploadAssetLogo: builder.mutation({
             payload: formData,
             creds: {
               signer: payload.signer,
-              publicKey: payload.publicKey,
+              address: payload.address,
               secretKey: payload.secretKey,
             },
             isFormData: true,
@@ -164,7 +164,7 @@ uploadAssetLogo: builder.mutation({
           payload: {},
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },
@@ -177,7 +177,7 @@ uploadAssetLogo: builder.mutation({
         data: {
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },
@@ -204,7 +204,7 @@ uploadAssetLogo: builder.mutation({
             payload: formData,
             creds: {
               signer: payload.signer,
-              publicKey: payload.publicKey,
+              address: payload.address,
               secretKey: payload.secretKey,
             },
             isFormData: true,
@@ -220,7 +220,7 @@ uploadAssetLogo: builder.mutation({
           payload: {},
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },
@@ -234,7 +234,7 @@ uploadAssetLogo: builder.mutation({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },
@@ -248,7 +248,7 @@ uploadAssetLogo: builder.mutation({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },
@@ -262,7 +262,7 @@ uploadAssetLogo: builder.mutation({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },

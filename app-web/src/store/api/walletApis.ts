@@ -11,7 +11,7 @@ export const authApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         }, 
@@ -20,12 +20,12 @@ export const authApi = baseApi.injectEndpoints({
     receiveAsset: builder.query({
       query: (payload: Payload) => {
         return ({
-          url: `/v1/users/payment/generate/${payload.body.alias}?paymentDestination=${payload.body.publicKey}&assetCode=${payload.body.assetCode}&assetIssuer=${payload.body.assetIssuer}&amount=${payload.body.amount}&memo=${payload.body.memo != null ? encodeURIComponent(payload.body.memo.toString()) : ''}`,
+          url: `/v1/users/payment/generate/${payload.body.alias}?paymentDestination=${payload.body.address}&assetCode=${payload.body.assetCode}&assetIssuer=${payload.body.assetIssuer}&amount=${payload.body.amount}&memo=${payload.body.memo != null ? encodeURIComponent(payload.body.memo.toString()) : ''}`,
           method: 'GET',        
           data: {
             creds: {
               signer: payload.signer,
-              publicKey: payload.publicKey,
+              address: payload.address,
               secretKey: payload.secretKey,
             }
           }, 
@@ -40,7 +40,7 @@ export const authApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         },
@@ -48,12 +48,12 @@ export const authApi = baseApi.injectEndpoints({
     }),
     fetchFiatPayments: builder.query({
       query: (payload: Payload) => ({
-        url: `/v1/users/payments/${payload.publicKey}?limit=${payload.body.limit ?? 50}${payload.body.query ?? ''}`,
+        url: `/v1/users/payments/${payload.address}?limit=${payload.body.limit ?? 50}${payload.body.query ?? ''}`,
         method: 'GET',
         data: {
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         },
@@ -66,7 +66,7 @@ export const authApi = baseApi.injectEndpoints({
         data: {
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         },
@@ -79,7 +79,7 @@ export const authApi = baseApi.injectEndpoints({
         data: {
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         },
@@ -92,7 +92,7 @@ export const authApi = baseApi.injectEndpoints({
         data: {
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         },
@@ -105,7 +105,7 @@ export const authApi = baseApi.injectEndpoints({
         data: {
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         },
@@ -118,7 +118,7 @@ export const authApi = baseApi.injectEndpoints({
         data: {
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         },
@@ -136,7 +136,7 @@ export const authApi = baseApi.injectEndpoints({
           payload: payload.body.data,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         },
@@ -152,7 +152,7 @@ export const authApi = baseApi.injectEndpoints({
           payload: {'amount': payload.body.amount},
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         },
@@ -167,7 +167,7 @@ export const authApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         },
@@ -183,7 +183,7 @@ export const authApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         },
@@ -199,7 +199,7 @@ export const authApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         },

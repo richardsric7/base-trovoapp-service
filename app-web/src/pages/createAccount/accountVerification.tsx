@@ -59,8 +59,8 @@ function AccountVerification() {
       toggleLoader();
 
       const res = await userRegister({
-        signer: appUser.publicKey,
-        publicKey: appUser.publicKey,
+        signer: appUser.address,
+        address: appUser.address,
         secretKey: tempData.secretKey,
         body: { ...registrationUser, verificationCode },
       });
@@ -69,8 +69,8 @@ function AccountVerification() {
 
       if ('data' in res) {
         const payload = {
-          signer: appUser.publicKey,
-          publicKey: appUser.publicKey,
+          signer: appUser.address,
+          address: appUser.address,
           secretKey: tempData.secretKey,
           body: { userId: appUser.username, import: 1 },
         };
@@ -84,14 +84,14 @@ function AccountVerification() {
           const base64EncryptedSecretKey = await encryptor.encryptData(
             tempData.secretKey,
             tempData.password,
-            appUser.publicKey,
+            appUser.address,
           );
 
           const passwordHash = await encryptor.createHash(userData.username);
           const encryptedPassword = await encryptor.encryptData(
             tempData.password,
             passwordHash,
-            appUser.publicKey,
+            appUser.address,
           );
 
           const user = {
@@ -107,7 +107,7 @@ function AccountVerification() {
           const base64EncryptedUserData = await encryptor.encryptData(
             JSON.stringify(user),
             hash,
-            user.publicKey,
+            user.address,
           );
 
           dispatch(

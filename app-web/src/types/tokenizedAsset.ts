@@ -136,7 +136,7 @@ export interface TokenizedAsset {
   closedGroupInfo: ClosedGroupInfo;
   secApproval: number;
   secApprovalIdNumber: string;
-  issuingWalletPublicKey: string;
+  issuingWalletAddress: string;
   issuingWalletAlias: string;
   marketMakingWallet: string;
   assetDescription: string;

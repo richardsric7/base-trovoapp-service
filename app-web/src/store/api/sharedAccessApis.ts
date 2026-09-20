@@ -10,7 +10,7 @@ export const sharedAccessApi = baseApi.injectEndpoints({
         data: {
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },
@@ -23,7 +23,7 @@ export const sharedAccessApi = baseApi.injectEndpoints({
         data: {
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },
@@ -37,7 +37,7 @@ export const sharedAccessApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },
@@ -51,7 +51,7 @@ export const sharedAccessApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },
@@ -65,7 +65,7 @@ export const sharedAccessApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },
@@ -79,7 +79,7 @@ export const sharedAccessApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },
@@ -93,7 +93,7 @@ export const sharedAccessApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },
@@ -106,7 +106,7 @@ export const sharedAccessApi = baseApi.injectEndpoints({
         data: {
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },
@@ -119,7 +119,7 @@ export const sharedAccessApi = baseApi.injectEndpoints({
         data: {
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           },
         },

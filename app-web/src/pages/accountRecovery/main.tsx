@@ -44,8 +44,8 @@ function RecoveryMain() {
       toggleLoader();
 
       const res = await verifyEmailOtp({
-        signer: tempAccount.publicKey,
-        publicKey: tempAccount.publicKey,
+        signer: tempAccount.address,
+        address: tempAccount.address,
         secretKey: tempAccount.secretKey,
         body: { username, otp },
       });
@@ -77,8 +77,8 @@ function RecoveryMain() {
     try {
       toggleLoader();
       const res = await recoveryOtp({
-        signer: tempAccount.publicKey,
-        publicKey: tempAccount.publicKey,
+        signer: tempAccount.address,
+        address: tempAccount.address,
         secretKey: tempAccount.secretKey,
         body: { username },
       });
@@ -158,7 +158,7 @@ function RecoveryMain() {
                         setFormState({
                           ...tempData,
                           secretKey: tempAccount.secretKey,
-                          publicKey: tempAccount.publicKey,
+                          address: tempAccount.address,
                           emailOtp: otp,
                           username: username,
                         }),
@@ -175,7 +175,7 @@ function RecoveryMain() {
                         setFormState({
                           ...tempData,
                           secretKey: tempAccount.secretKey,
-                          publicKey: tempAccount.publicKey,
+                          address: tempAccount.address,
                           emailOtp: otp,
                           username: username,
                         }),

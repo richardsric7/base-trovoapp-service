@@ -52,7 +52,7 @@ export default function SharedAccessAdd() {
     try {
       const payload = {
         signer: appUser.primarySigner,
-        publicKey: appUser.publicKey,
+        address: appUser.address,
         secretKey: appUser.secretKeys[0],
         body: {
           walletAlias,

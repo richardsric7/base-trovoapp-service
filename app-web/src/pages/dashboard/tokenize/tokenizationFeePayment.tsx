@@ -298,7 +298,7 @@ export function TokenizationFeePayment() {
 
       const res = await getTokenizationDetail({
         signer: appUser.primarySigner,
-        publicKey: appUser.publicKey,
+        address: appUser.address,
         secretKey: currentSecretKey,
         tokenizedAssetId: tokenizedAsset.id,
       });
@@ -352,7 +352,7 @@ export function TokenizationFeePayment() {
 
       const res = await uploadFeeProof({
         signer: appUser.primarySigner,
-        publicKey: appUser.publicKey,
+        address: appUser.address,
         secretKey: currentSecretKey,
         tokenizedAssetId: tokenizedAsset.id,
         transactionReference: transactionReference.trim(),
@@ -403,7 +403,7 @@ export function TokenizationFeePayment() {
 
       const res = await deleteFeeProof({
         signer: appUser.primarySigner,
-        publicKey: appUser.publicKey,
+        address: appUser.address,
         secretKey: currentSecretKey,
         documentId,
       });
@@ -442,7 +442,7 @@ export function TokenizationFeePayment() {
 
       const res = await confirmTokenizationFee({
         signer: appUser.primarySigner,
-        publicKey: appUser.publicKey,
+        address: appUser.address,
         secretKey: currentSecretKey,
         tokenizedAssetId: tokenizedAsset.id,
         body: '',

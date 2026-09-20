@@ -14,7 +14,7 @@ import { showNotification } from '../../../utils/showToaster';
 type Row = {
   amount: string;
   wallet: string;
-  publicKey: string;
+  address: string;
   asset?: Asset;
   transactionId: string;
   blockchainProof: string;
@@ -28,7 +28,7 @@ export default function Yield() {
   const appUser = useSelector((state: RootState) => state.auth.user!);
 
   const [wallet] = useState<Wallet>(
-    appUser.userWallets.find((w) => w.publicKey == searchParams.get('wallet'))!,
+    appUser.userWallets.find((w) => w.address == searchParams.get('wallet'))!,
   );
   const [asset] = useState<Asset>(
     wallet?.claimedAssets.find(
@@ -62,7 +62,7 @@ export default function Yield() {
     {
       amount: '$100',
       wallet: 'Received',
-      publicKey: 'GDZT5...LY320',
+      address: 'GDZT5...LY320',
       asset: undefined,
       transactionId: 'Deposit to wallet',
       blockchainProof: 'string',
@@ -71,7 +71,7 @@ export default function Yield() {
     {
       amount: '$50',
       wallet: 'Sent',
-      publicKey: 'GDZT5...LY320',
+      address: 'GDZT5...LY320',
       asset: undefined,
       transactionId: 'Withdrawal from wallet',
       blockchainProof: 'string',
@@ -80,7 +80,7 @@ export default function Yield() {
     {
       amount: '$50',
       wallet: 'Sent',
-      publicKey: 'GDZT5...LY320',
+      address: 'GDZT5...LY320',
       asset: undefined,
       transactionId: 'Withdrawal from wallet',
       blockchainProof: 'string',
@@ -89,7 +89,7 @@ export default function Yield() {
     {
       amount: '$50',
       wallet: 'Swap',
-      publicKey: 'GDZT5...LY320',
+      address: 'GDZT5...LY320',
       asset: undefined,
       transactionId: 'Withdrawal from wallet',
       blockchainProof: 'string',
@@ -260,7 +260,7 @@ export default function Yield() {
                         </button>
                       </div>
                       <div className="flex space-x-3 w-full justify-between items-between">
-                        <p>{activeRow?.publicKey}</p>{' '}
+                        <p>{activeRow?.address}</p>{' '}
                         <button
                           type="button"
                           onClick={() =>
@@ -279,7 +279,7 @@ export default function Yield() {
                         Asset Token
                       </p>
                       <div className="flex space-x-3 w-full justify-between items-between">
-                        <p>{activeRow?.publicKey}</p>{' '}
+                        <p>{activeRow?.address}</p>{' '}
                       </div>
                       <hr className="border-1" />
                       <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">

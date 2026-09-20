@@ -3,7 +3,7 @@ import { getAssetCode } from "./utilities";
 export const normalizeTransactionType = (
     value: string | undefined,
     item?: Record<string, any>,
-    activePublicKey?: string,
+    activeAddress?: string,
   ) => {
     const type = `${value ?? ''}`.toLowerCase();
 
@@ -12,11 +12,11 @@ export const normalizeTransactionType = (
     if (type.includes('received') || type.includes('receive'))
       return 'Received';
     if (type.includes('payment')) {
-      const fromPublicKey = `${item?.fromPublicKey ?? item?.senderPublicKey ?? ''}`;
-      const toPublicKey = `${item?.toPublicKey ?? item?.receiverPublicKey ?? ''}`;
+      const fromAddress = `${item?.fromAddress ?? item?.senderAddress ?? ''}`;
+      const toAddress = `${item?.toAddress ?? item?.receiverAddress ?? ''}`;
 
-      if (activePublicKey && fromPublicKey === activePublicKey) return 'Sent';
-      if (activePublicKey && toPublicKey === activePublicKey) return 'Received';
+      if (activeAddress && fromAddress === activeAddress) return 'Sent';
+      if (activeAddress && toAddress === activeAddress) return 'Received';
     }
 
     return 'Received';

@@ -303,7 +303,7 @@ export function TokenizationAssetDocuments() {
       try {
         const payload = {
           signer: appUser.primarySigner,
-          publicKey: appUser.publicKey,
+          address: appUser.address,
           secretKey: currentSecretKey,
           body: { formId: '1' },
         };
@@ -341,7 +341,7 @@ export function TokenizationAssetDocuments() {
 
       const res = await getTokenizationDetail({
         signer: appUser.primarySigner,
-        publicKey: appUser.publicKey,
+        address: appUser.address,
         secretKey: currentSecretKey,
         tokenizedAssetId,
       });
@@ -433,7 +433,7 @@ export function TokenizationAssetDocuments() {
 
       const res = await uploadDocument({
         signer: appUser.primarySigner,
-        publicKey: appUser.publicKey,
+        address: appUser.address,
         secretKey: currentSecretKey,
         tokenizedAssetId,
         documentTitle,
@@ -471,7 +471,7 @@ export function TokenizationAssetDocuments() {
 
       const res = await deleteDocument({
         signer: appUser.primarySigner,
-        publicKey: appUser.publicKey,
+        address: appUser.address,
         secretKey: currentSecretKey,
         documentId: documentToDelete,
       });

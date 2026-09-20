@@ -1,7 +1,7 @@
 export type Permission = {
     createdAt?: Date,
     updatedAt?: Date,
-    walletPublicKey: string,
+    walletAddress: string,
     targetUsername: string,
     fullName: string,
     permission: string,

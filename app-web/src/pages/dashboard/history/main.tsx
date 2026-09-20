@@ -29,8 +29,8 @@ import {
 
 type FilterState = {
   username: string;
-  fromPublicKey: string;
-  toPublicKey: string;
+  fromAddress: string;
+  toAddress: string;
   memo: string;
 };
 
@@ -51,16 +51,16 @@ type HistoryRow = {
   username: string;
   fromName: string;
   toName: string;
-  fromPublicKey: string;
-  toPublicKey: string;
+  fromAddress: string;
+  toAddress: string;
   transactionId: string;
   memo: string;
 };
 
 const defaultFilters: FilterState = {
   username: '',
-  fromPublicKey: '',
-  toPublicKey: '',
+  fromAddress: '',
+  toAddress: '',
   memo: '',
 };
 
@@ -116,8 +116,8 @@ export const History = () => {
   const primaryWallet =
     wallets.find((wallet) => wallet.primaryWallet) ?? wallets?.[0];
 
-  const forPublicKey =
-    selectedWallet !== '' ? selectedWallet : (primaryWallet?.publicKey ?? '');
+  const forAddress =
+    selectedWallet !== '' ? selectedWallet : (primaryWallet?.address ?? '');
 
   const apiDateRange = buildDateRange(dateRangeKey, startDate, endDate);
 
@@ -129,12 +129,12 @@ export const History = () => {
     queryParams.push(`&name=${encodeURIComponent(filters.username)}`);
   if (filters.memo)
     queryParams.push(`&memo=${encodeURIComponent(filters.memo)}`);
-  if (filters.fromPublicKey)
+  if (filters.fromAddress)
     queryParams.push(
-      `&fromPublicKey=${encodeURIComponent(filters.fromPublicKey)}`,
+      `&fromAddress=${encodeURIComponent(filters.fromAddress)}`,
     );
-  if (filters.toPublicKey)
-    queryParams.push(`&toPublicKey=${encodeURIComponent(filters.toPublicKey)}`);
+  if (filters.toAddress)
+    queryParams.push(`&toAddress=${encodeURIComponent(filters.toAddress)}`);
   if (appliedMinAmount !== null || appliedMaxAmount !== null) {
     const min = appliedMinAmount !== null ? appliedMinAmount : '';
     const max = appliedMaxAmount !== null ? appliedMaxAmount : '';
@@ -152,7 +152,7 @@ export const History = () => {
   const { data, isLoading } = useFetchFiatPaymentsQuery(
     {
       signer: primaryWallet?.signer ?? '',
-      publicKey: forPublicKey,
+      address: forAddress,
       secretKey,
       body: { limit: 50, query: queryParams.join('') },
     },
@@ -163,7 +163,7 @@ export const History = () => {
     { label: 'All wallets', value: '' },
     ...wallets.map((wallet) => ({
       label: wallet.alias,
-      value: wallet.publicKey,
+      value: wallet.address,
     })),
   ];
 
@@ -196,7 +196,7 @@ export const History = () => {
       const type = normalizeTransactionType(
         item.transactionType ?? item.type,
         item,
-        forPublicKey,
+        forAddress,
       );
       const amountValue = parseAmountValue(item.amount);
       const assetCode = getTransactionAssetCode(item);
@@ -222,8 +222,8 @@ export const History = () => {
       const walletMatch =
         wallets.find(
           (wallet) =>
-            wallet.publicKey === item.publicKey ||
-            wallet.publicKey === item.walletPublicKey ||
+            wallet.address === item.address ||
+            wallet.address === item.walletAddress ||
             wallet.alias === item.walletAlias,
         ) ?? primaryWallet;
 
@@ -237,13 +237,13 @@ export const History = () => {
         dateLabel: formatRelativeTime(createdAt),
         dateValue: createdAt,
         dateRaw: `${item.transactionDate ?? item.createdAt ?? item.date ?? ''}`,
-        walletKey: walletMatch?.publicKey ?? 'unknown',
+        walletKey: walletMatch?.address ?? 'unknown',
         walletLabel: walletMatch?.alias ?? 'Primary wallet',
         username: `${item.username ?? item.fullName ?? item.name ?? ''}`.trim(),
         fromName: `${item.from ?? item.senderName ?? ''}`.trim(),
         toName: `${item.to ?? item.receiverName ?? ''}`.trim(),
-        fromPublicKey: `${item.fromPublicKey ?? item.senderPublicKey ?? ''}`,
-        toPublicKey: `${item.toPublicKey ?? item.receiverPublicKey ?? ''}`,
+        fromAddress: `${item.fromAddress ?? item.senderAddress ?? ''}`,
+        toAddress: `${item.toAddress ?? item.receiverAddress ?? ''}`,
         transactionId: `${item.transactionId ?? item.id ?? item._id ?? item.reference ?? ''}`,
         memo: `${item.memo ?? item.narration ?? ''}`.trim(),
       };
@@ -550,12 +550,12 @@ export const History = () => {
                   selectedHistoryRow.username ||
                   selectedHistoryRow.walletLabel
                 }
-                value={shortenKey(selectedHistoryRow.toPublicKey)}
+                value={shortenKey(selectedHistoryRow.toAddress)}
               />
               <DetailRow
                 title="From"
                 name={selectedHistoryRow.fromName || '-'}
-                value={shortenKey(selectedHistoryRow.fromPublicKey)}
+                value={shortenKey(selectedHistoryRow.fromAddress)}
               />
               <DetailRow
                 title="Blockchain Proof (Transaction ID)"
@@ -629,22 +629,22 @@ export const History = () => {
             <LabeledInput
               label="“From” Public Key"
               placeholder="“From” Public Key"
-              value={draftFilters.fromPublicKey}
+              value={draftFilters.fromAddress}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  fromPublicKey: value,
+                  fromAddress: value,
                 }))
               }
             />
             <LabeledInput
               label="“To” Public Key"
               placeholder="“To” Public Key"
-              value={draftFilters.toPublicKey}
+              value={draftFilters.toAddress}
               onChange={(value) =>
                 setDraftFilters((current) => ({
                   ...current,
-                  toPublicKey: value,
+                  toAddress: value,
                 }))
               }
             />
@@ -881,12 +881,12 @@ const HistoryReceiptPdf = ({ row }: { row: HistoryRow }) => {
           <PdfDetailRow
             title="Received On"
             lineOne={row.toName || row.username || row.walletLabel}
-            lineTwo={shortenKey(row.toPublicKey)}
+            lineTwo={shortenKey(row.toAddress)}
           />
           <PdfDetailRow
             title="From"
             lineOne={row.fromName || '-'}
-            lineTwo={shortenKey(row.fromPublicKey)}
+            lineTwo={shortenKey(row.fromAddress)}
           />
           <PdfDetailRow
             title="Blockchain Proof (Transaction ID)"
@@ -1199,9 +1199,9 @@ const buildHistoryShareText = (row: HistoryRow) => {
     `Amount: ${row.price}`,
     `Asset: ${row.assetCode}`,
     `Received On: ${receiver}`,
-    `Receiver Key: ${row.toPublicKey || '-'}`,
+    `Receiver Key: ${row.toAddress || '-'}`,
     `From: ${row.fromName || '-'}`,
-    `Sender Key: ${row.fromPublicKey || '-'}`,
+    `Sender Key: ${row.fromAddress || '-'}`,
     `Transaction ID: ${row.transactionId || '-'}`,
     `Date: ${formatModalDateTime(row.dateValue, row.dateRaw)}`,
     row.memo ? `Memo: ${row.memo}` : '',
@@ -1278,12 +1278,12 @@ const generateHistoryImageBlob = async (row: HistoryRow) => {
     {
       title: 'Received On',
       lineOne: row.toName || row.username || row.walletLabel,
-      lineTwo: shortenKey(row.toPublicKey),
+      lineTwo: shortenKey(row.toAddress),
     },
     {
       title: 'From',
       lineOne: row.fromName || '-',
-      lineTwo: shortenKey(row.fromPublicKey),
+      lineTwo: shortenKey(row.fromAddress),
     },
     {
       title: 'Blockchain Proof (Transaction ID)',

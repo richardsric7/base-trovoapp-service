@@ -102,7 +102,7 @@ export default function AppRouter() {
               element={<SharedAccessLanding />}
             />
             <Route
-              path="shared-access/wallets/:publicKey"
+              path="shared-access/wallets/:address"
               element={<SharedAccessWalletInfo />}
             />
             <Route

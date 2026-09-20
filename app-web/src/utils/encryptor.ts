@@ -29,8 +29,8 @@ export class Encryptor {
       );
     }
   
-    async encryptData(data: string, password: string, primaryWalletPublicKey: string): Promise<string> {
-      const key = await this.deriveKeyFromPassword(password, primaryWalletPublicKey);
+    async encryptData(data: string, password: string, primaryWalletAddress: string): Promise<string> {
+      const key = await this.deriveKeyFromPassword(password, primaryWalletAddress);
       const encodedData = new TextEncoder().encode(data);
       const iv = window.crypto.getRandomValues(new Uint8Array(12));
       const encryptedData =  await window.crypto.subtle.encrypt(
@@ -45,7 +45,7 @@ export class Encryptor {
       return `${ivBase64}|${encryptDataB64}`;
     }
   
-    async decryptData(base64EncryptedData: string, password: string, primaryWalletPublicKey: string): Promise<string> {
+    async decryptData(base64EncryptedData: string, password: string, primaryWalletAddress: string): Promise<string> {
       const splitB64String = base64EncryptedData.split('|');
       const encryptedDataArray = Uint8Array.from(
         atob(splitB64String[1]),
@@ -56,7 +56,7 @@ export class Encryptor {
       );
       const encryptedDataUint = new Uint8Array(encryptedDataArray);
 
-      const key = await this.deriveKeyFromPassword(password, primaryWalletPublicKey);
+      const key = await this.deriveKeyFromPassword(password, primaryWalletAddress);
       const decrypted = await window.crypto.subtle.decrypt(
         { name: 'AES-GCM', iv },
         key,
@@ -97,7 +97,7 @@ export class Encryptor {
       const base64EncryptedUserData = await this.encryptData(
         JSON.stringify(user),
         hash,
-        user.publicKey,
+        user.address,
       );
       store.dispatch(
         setUser({

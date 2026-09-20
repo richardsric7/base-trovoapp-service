@@ -264,7 +264,7 @@ export function ConfirmTokenizationDetails() {
 
       const res = await confirmTokenization({
         signer: appUser.primarySigner,
-        publicKey: appUser.publicKey,
+        address: appUser.address,
         secretKey: currentSecretKey,
         tokenizedAssetId: tokenizedAsset.id,
         body: requestBody,
@@ -321,7 +321,7 @@ export function ConfirmTokenizationDetails() {
 
       const res = await confirmTokenization({
         signer: appUser.primarySigner,
-        publicKey: appUser.publicKey,
+        address: appUser.address,
         secretKey: currentSecretKey,
         tokenizedAssetId: tokenizedAsset.id,
         body: requestBody,

@@ -23,7 +23,7 @@ export default function EarlyExitView() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [agreesToTerms, setAgreesToTerms] = useState(false);
   const [wallet] = useState<Wallet>(
-    appUser.userWallets.find((w) => w.publicKey == searchParams.get('wallet'))!,
+    appUser.userWallets.find((w) => w.address == searchParams.get('wallet'))!,
   );
   const [asset] = useState<Asset>(
     wallet?.claimedAssets.find(

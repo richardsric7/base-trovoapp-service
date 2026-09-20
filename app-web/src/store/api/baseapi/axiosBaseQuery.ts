@@ -20,7 +20,7 @@ axios.interceptors.request.use(
 
 type Credentials = {
   signer: string,
-  publicKey: string,
+  address: string,
   secretKey: string,
 }
 
@@ -44,7 +44,7 @@ export const axiosBaseQuery =
     const isFormData = data?.isFormData as boolean | undefined;
     try {
       const requestHeaders: any = creds
-        ? { ...baseHeaders, ...headers, ...getRequestHeaders(url!, creds.signer, creds.publicKey, creds.secretKey) }
+        ? { ...baseHeaders, ...headers, ...getRequestHeaders(url!, creds.signer, creds.address, creds.secretKey) }
         : { ...baseHeaders, ...headers };
 
       // For FormData uploads, let axios set Content-Type automatically
@@ -70,21 +70,21 @@ export const axiosBaseQuery =
     }
   };
 
-  const getRequestHeaders = (uri: string, signer: string, publicKey: string, secretKey: string) => {
+  const getRequestHeaders = (uri: string, signer: string, address: string, secretKey: string) => {
     const deviceId = navigator.userAgent;
     const ms = Date.now();
     const serverTs = Math.round(ms / 1000).toString();
     const toSign = uri + signer + serverTs;
     console.log('toSign: ', toSign); 
     const signature = signHTTP(toSign, secretKey);
-    console.log('pubkey: ', publicKey);  
+    console.log('pubkey: ', address);  
     console.log('uri: ', uri);
     console.log('signature: ', signature);
     console.log('timestamp: ', serverTs);
 
     return {
       "X-TW-SIGNATURE": signature,
-      "X-TW-PUBLIC-KEY": publicKey,
+      "X-TW-PUBLIC-KEY": address,
       "X-TW-SIGNER": signer,
       "X-TW-DEVICE-ID": deviceId,
       // "X-TW-APP-VERSION": "1",

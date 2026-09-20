@@ -10,7 +10,7 @@ export type AuthState = {
     passphrase: string,
     importExistingWallet: boolean,
     secretKey: string,
-    publicKey: string,
+    address: string,
     username: string,
     emailOtp: string,
     password: string,
@@ -24,7 +24,7 @@ const initialState: AuthState = {
     usePassphrase: false,
     importExistingWallet: true,
     secretKey: '',
-    publicKey: '',
+    address: '',
     username: '',
     password: '',
     passphrase: '',
@@ -40,7 +40,7 @@ export const authSlice = createSlice({
       const storage = localStorage;
       if (action.payload) {
         state.user = action.payload.user;
-        setStorage(USER_DETAILS, {__slw31H408: action.payload.encryptedUser, __39deR7sx4: action.payload.key, __i34dcY9Mn: state.user!.publicKey});               
+        setStorage(USER_DETAILS, {__slw31H408: action.payload.encryptedUser, __39deR7sx4: action.payload.key, __i34dcY9Mn: state.user!.address});               
       } else {
         state = initialState;
         storage.clear();

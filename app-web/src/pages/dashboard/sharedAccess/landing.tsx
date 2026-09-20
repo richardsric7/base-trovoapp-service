@@ -33,7 +33,7 @@ type SharedAccessRow = {
   owner: string;
   permissions: string[];
   description: string;
-  publicKey: string;
+  address: string;
 };
 
 type SharedAccessActivityRow = {
@@ -208,12 +208,12 @@ export default function SharedAccessLanding() {
     useState<string>('Pending');
   const [selectedInitiator, setSelectedInitiator] = useState<string>('');
   const [selectedWalletAlias, setSelectedWalletAlias] = useState<string>('');
-  const [selectedWalletPublicKey, setSelectedWalletPublicKey] =
+  const [selectedWalletAddress, setSelectedWalletAddress] =
     useState<string>('');
   const [selectedDescription, setSelectedDescription] = useState<string>('');
   const [draftInitiator, setDraftInitiator] = useState<string>('');
   const [draftWalletAlias, setDraftWalletAlias] = useState<string>('');
-  const [draftWalletPublicKey, setDraftWalletPublicKey] = useState<string>('');
+  const [draftWalletAddress, setDraftWalletAddress] = useState<string>('');
   const [draftDescription, setDraftDescription] = useState<string>('');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
@@ -367,7 +367,7 @@ export default function SharedAccessLanding() {
   useEffect(() => {
     if (activeModal === 'modify' && selectedRow && appUser) {
       const wallet = appUser.userWallets.find(
-        (w) => w.publicKey === selectedRow.publicKey,
+        (w) => w.address === selectedRow.address,
       );
       if (wallet) {
         const rawPermissions = wallet.permissions ?? [];
@@ -418,7 +418,7 @@ export default function SharedAccessLanding() {
       const decryptedSecretKey = await encryptor.getSecretKey(appUser!);
       const payload = {
         signer: activeWallet.signer || appUser!.primarySigner,
-        publicKey: activeWallet.publicKey,
+        address: activeWallet.address,
         secretKey: decryptedSecretKey,
         body: { username },
       };
@@ -648,7 +648,7 @@ export default function SharedAccessLanding() {
     }
 
     const wallet = appUser?.userWallets.find(
-      (w) => w.publicKey === selectedRow?.publicKey,
+      (w) => w.address === selectedRow?.address,
     );
     if (!wallet) return;
 
@@ -663,7 +663,7 @@ export default function SharedAccessLanding() {
     }
 
     const newPerm: Permission = {
-      walletPublicKey: wallet.publicKey,
+      walletAddress: wallet.address,
       targetUsername: username,
       fullName: `${userInfo.firstName} ${userInfo.lastName}`,
       permission: 'VIEW-ONLY',
@@ -698,7 +698,7 @@ export default function SharedAccessLanding() {
     }
 
     const wallet = appUser?.userWallets.find(
-      (w) => w.publicKey === selectedRow?.publicKey,
+      (w) => w.address === selectedRow?.address,
     );
     if (!wallet) return;
 
@@ -716,7 +716,7 @@ export default function SharedAccessLanding() {
         setModifyApprovers((prev) => [
           ...prev,
           {
-            walletPublicKey: wallet.publicKey,
+            walletAddress: wallet.address,
             targetUsername: username,
             fullName: viewer.fullName,
             permission: 'APPROVER',
@@ -726,7 +726,7 @@ export default function SharedAccessLanding() {
         setModifyInitiators((prev) => [
           ...prev,
           {
-            walletPublicKey: wallet.publicKey,
+            walletAddress: wallet.address,
             targetUsername: username,
             fullName: viewer.fullName,
             permission: 'INITIATOR',
@@ -759,7 +759,7 @@ export default function SharedAccessLanding() {
       setModifyApprovers((prev) => [
         ...prev,
         {
-          walletPublicKey: wallet.publicKey,
+          walletAddress: wallet.address,
           targetUsername: username,
           fullName: existingInitiator.fullName,
           permission: 'APPROVER',
@@ -781,7 +781,7 @@ export default function SharedAccessLanding() {
     setModifyApprovers((prev) => [
       ...prev,
       {
-        walletPublicKey: wallet.publicKey,
+        walletAddress: wallet.address,
         targetUsername: username,
         fullName: `${userInfo.firstName} ${userInfo.lastName}`,
         permission: 'APPROVER',
@@ -791,7 +791,7 @@ export default function SharedAccessLanding() {
     setModifyInitiators((prev) => [
       ...prev,
       {
-        walletPublicKey: wallet.publicKey,
+        walletAddress: wallet.address,
         targetUsername: username,
         fullName: `${userInfo.firstName} ${userInfo.lastName}`,
         permission: 'INITIATOR',
@@ -815,7 +815,7 @@ export default function SharedAccessLanding() {
     }
 
     const wallet = appUser?.userWallets.find(
-      (w) => w.publicKey === selectedRow?.publicKey,
+      (w) => w.address === selectedRow?.address,
     );
     if (!wallet) return;
 
@@ -833,7 +833,7 @@ export default function SharedAccessLanding() {
         setModifyInitiators((prev) => [
           ...prev,
           {
-            walletPublicKey: wallet.publicKey,
+            walletAddress: wallet.address,
             targetUsername: username,
             fullName: viewer.fullName,
             permission: 'INITIATOR',
@@ -866,7 +866,7 @@ export default function SharedAccessLanding() {
       setModifyInitiators((prev) => [
         ...prev,
         {
-          walletPublicKey: wallet.publicKey,
+          walletAddress: wallet.address,
           targetUsername: username,
           fullName: existingApprover.fullName,
           permission: 'INITIATOR',
@@ -888,7 +888,7 @@ export default function SharedAccessLanding() {
     setModifyInitiators((prev) => [
       ...prev,
       {
-        walletPublicKey: wallet.publicKey,
+        walletAddress: wallet.address,
         targetUsername: username,
         fullName: `${userInfo.firstName} ${userInfo.lastName}`,
         permission: 'INITIATOR',
@@ -1003,8 +1003,8 @@ export default function SharedAccessLanding() {
     try {
       const encryptor = new Encryptor();
       const importedPayload = {
-        signer: appUser!.publicKey,
-        publicKey: appUser!.publicKey,
+        signer: appUser!.address,
+        address: appUser!.address,
         secretKey: appUser!.secretKeys[0],
         body: { userId: appUser!.username, import: 1 },
       };
@@ -1014,13 +1014,13 @@ export default function SharedAccessLanding() {
         const base64EncryptedSecretKey = await encryptor.encryptData(
           decryptedSecretKey,
           passwordUsed,
-          appUser!.publicKey,
+          appUser!.address,
         );
         const passwordHash = await encryptor.createHash(userData.username);
         const encryptedPassword = await encryptor.encryptData(
           passwordUsed,
           passwordHash,
-          appUser!.publicKey,
+          appUser!.address,
         );
         const updatedUser = {
           ...userData,
@@ -1036,7 +1036,7 @@ export default function SharedAccessLanding() {
         const base64EncryptedUserData = await encryptor.encryptData(
           JSON.stringify(updatedUser),
           userHash,
-          updatedUser.publicKey,
+          updatedUser.address,
         );
         dispatch(
           setUser({
@@ -1107,7 +1107,7 @@ export default function SharedAccessLanding() {
 
       const payload = {
         signer: grantWallet.signer || appUser.primarySigner,
-        publicKey: grantWallet.publicKey,
+        address: grantWallet.address,
         secretKey: decryptedSecretKey,
         body,
       };
@@ -1129,7 +1129,7 @@ export default function SharedAccessLanding() {
 
         const secondPayload = {
           signer: grantWallet.signer || appUser.primarySigner,
-          publicKey: grantWallet.publicKey,
+          address: grantWallet.address,
           secretKey: decryptedSecretKey,
           body: secondBody,
         };
@@ -1196,7 +1196,7 @@ export default function SharedAccessLanding() {
       }
 
       const wallet = appUser.userWallets.find(
-        (w) => w.publicKey === selectedRow.publicKey,
+        (w) => w.address === selectedRow.address,
       );
       if (!wallet) {
         setIsApprovalsLoading(false);
@@ -1258,7 +1258,7 @@ export default function SharedAccessLanding() {
 
       const payload = {
         signer: appUser.primarySigner,
-        publicKey: wallet.publicKey,
+        address: wallet.address,
         secretKey: decryptedSecretKey,
         body,
       };
@@ -1282,7 +1282,7 @@ export default function SharedAccessLanding() {
 
         const secondPayload = {
           signer: appUser.primarySigner,
-          publicKey: wallet.publicKey,
+          address: wallet.address,
           secretKey: decryptedSecretKey,
           body: txData,
         };
@@ -1351,7 +1351,7 @@ export default function SharedAccessLanding() {
 
       const payload = {
         signer: appUser.primarySigner,
-        publicKey: selectedRow.publicKey,
+        address: selectedRow.address,
         secretKey: decryptedSecretKey,
         body: {},
       };
@@ -1426,7 +1426,7 @@ export default function SharedAccessLanding() {
 
       const payload = {
         signer: appUser.primarySigner,
-        publicKey: selectedRow.publicKey,
+        address: selectedRow.address,
         secretKey: decryptedSecretKey,
         body: secondBody,
       };
@@ -1434,7 +1434,7 @@ export default function SharedAccessLanding() {
       const response = await disableSharedAccess(payload);
       if ('data' in response) {
         const viewOnly = selectedAccessMode === 'Access granted to me';
-        const walletLabel = selectedRow.wallet || selectedRow.publicKey;
+        const walletLabel = selectedRow.wallet || selectedRow.address;
         const msg = viewOnly
           ? `Shared access has successfully been disabled on this wallet [${walletLabel}]`
           : `Your request to disable shared access on wallet [${walletLabel}] has been submitted. This transaction will be completed when it gets the required number of approvals.`;
@@ -1443,8 +1443,8 @@ export default function SharedAccessLanding() {
         setDisablePassword('');
 
         const importedPayload = {
-          signer: appUser.publicKey,
-          publicKey: appUser.publicKey,
+          signer: appUser.address,
+          address: appUser.address,
           secretKey: appUser.secretKeys[0],
           body: { userId: appUser.username, import: 1 },
         };
@@ -1454,13 +1454,13 @@ export default function SharedAccessLanding() {
           const base64EncryptedSecretKey = await encryptor.encryptData(
             decryptedSecretKey,
             disablePassword,
-            appUser.publicKey,
+            appUser.address,
           );
           const passwordHash = await encryptor.createHash(userData.username);
           const encryptedPassword = await encryptor.encryptData(
             disablePassword,
             passwordHash,
-            appUser.publicKey,
+            appUser.address,
           );
           const updatedUser = {
             ...userData,
@@ -1476,7 +1476,7 @@ export default function SharedAccessLanding() {
           const base64EncryptedUserData = await encryptor.encryptData(
             JSON.stringify(updatedUser),
             userHash,
-            updatedUser.publicKey,
+            updatedUser.address,
           );
           dispatch(
             setUser({
@@ -1538,7 +1538,7 @@ export default function SharedAccessLanding() {
 
       const payload = {
         signer: appUser.primarySigner,
-        publicKey: appUser.primarySigner, // Uses primary signer as per dart
+        address: appUser.primarySigner, // Uses primary signer as per dart
         secretKey: decryptedSecretKey,
         body: { id: (selectedActivityRecord as any).id }, // Ensure ID is passed
       };
@@ -1555,7 +1555,7 @@ export default function SharedAccessLanding() {
 
         const secondPayload = {
           signer: appUser.primarySigner,
-          publicKey: appUser.primarySigner,
+          address: appUser.primarySigner,
           secretKey: decryptedSecretKey,
           body: {
             id: (selectedActivityRecord as any).id,
@@ -1584,7 +1584,7 @@ export default function SharedAccessLanding() {
           // Refresh list
           fetchApprovals({
             signer: appUser.primarySigner,
-            publicKey: appUser.publicKey,
+            address: appUser.address,
             secretKey: appUser.secretKeys[0],
             body: {
               limit: APPROVALS_PER_PAGE,
@@ -1654,7 +1654,7 @@ export default function SharedAccessLanding() {
 
       const payload = {
         signer: appUser.primarySigner,
-        publicKey: appUser.primarySigner,
+        address: appUser.primarySigner,
         secretKey: decryptedSecretKey,
         body: {
           id: (selectedActivityRecord as any).id,
@@ -1681,7 +1681,7 @@ export default function SharedAccessLanding() {
         // Refresh list
         fetchApprovals({
           signer: appUser.primarySigner,
-          publicKey: appUser.publicKey,
+          address: appUser.address,
           secretKey: appUser.secretKeys[0],
           body: {
             limit: APPROVALS_PER_PAGE,
@@ -1705,7 +1705,7 @@ export default function SharedAccessLanding() {
 
   const debouncedInitiator = selectedInitiator;
   const debouncedWalletAlias = selectedWalletAlias;
-  const debouncedWalletPublicKey = selectedWalletPublicKey;
+  const debouncedWalletAddress = selectedWalletAddress;
   const debouncedDescription = selectedDescription;
 
   const toggleView = () => {
@@ -1749,7 +1749,7 @@ export default function SharedAccessLanding() {
     setSelectedTransactionStatus('Pending');
     setSelectedInitiator('');
     setSelectedWalletAlias('');
-    setSelectedWalletPublicKey('');
+    setSelectedWalletAddress('');
     setSelectedDescription('');
     setCustomStartDate('');
     setCustomEndDate('');
@@ -1757,7 +1757,7 @@ export default function SharedAccessLanding() {
     setDraftCustomEndDate('');
     setDraftInitiator('');
     setDraftWalletAlias('');
-    setDraftWalletPublicKey('');
+    setDraftWalletAddress('');
     setDraftDescription('');
   };
 
@@ -1805,12 +1805,12 @@ export default function SharedAccessLanding() {
         },
       });
     }
-    if (selectedWalletPublicKey) {
+    if (selectedWalletAddress) {
       chips.push({
-        label: `Key: ${selectedWalletPublicKey}`,
+        label: `Key: ${selectedWalletAddress}`,
         onRemove: () => {
-          setSelectedWalletPublicKey('');
-          setDraftWalletPublicKey('');
+          setSelectedWalletAddress('');
+          setDraftWalletAddress('');
         },
       });
     }
@@ -1831,7 +1831,7 @@ export default function SharedAccessLanding() {
     selectedTransactionStatus,
     selectedInitiator,
     selectedWalletAlias,
-    selectedWalletPublicKey,
+    selectedWalletAddress,
     selectedDescription,
   ]);
 
@@ -1843,7 +1843,7 @@ export default function SharedAccessLanding() {
     debouncedDescription,
     debouncedInitiator,
     debouncedWalletAlias,
-    debouncedWalletPublicKey,
+    debouncedWalletAddress,
     selectedDateRange,
     selectedTransactionStatus,
     selectedTransactionType,
@@ -1887,9 +1887,9 @@ export default function SharedAccessLanding() {
         );
       }
 
-      if (debouncedWalletPublicKey.trim()) {
+      if (debouncedWalletAddress.trim()) {
         queryParts.push(
-          `walletPublicKey=${encodeURIComponent(debouncedWalletPublicKey.trim())}`,
+          `walletAddress=${encodeURIComponent(debouncedWalletAddress.trim())}`,
         );
       }
 
@@ -1921,7 +1921,7 @@ export default function SharedAccessLanding() {
       try {
         const result = await fetchApprovals({
           signer: appUser.primarySigner,
-          publicKey: appUser.publicKey,
+          address: appUser.address,
           secretKey: appUser.secretKeys[0],
           body: {
             limit: APPROVALS_PER_PAGE,
@@ -1992,7 +1992,7 @@ export default function SharedAccessLanding() {
     debouncedDescription,
     debouncedInitiator,
     debouncedWalletAlias,
-    debouncedWalletPublicKey,
+    debouncedWalletAddress,
     fetchApprovals,
     selectedTransactionStatus,
     selectedTransactionType,
@@ -2057,18 +2057,18 @@ export default function SharedAccessLanding() {
           continue;
         }
 
-        const walletKey = wallet.alias || wallet.publicKey;
+        const walletKey = wallet.alias || wallet.address;
         const permissionLabels = Array.from(permissionCodes).map(
           formatPermissionLabel,
         );
 
         if (!walletsMap.has(walletKey)) {
           walletsMap.set(walletKey, {
-            wallet: wallet.alias || wallet.publicKey,
+            wallet: wallet.alias || wallet.address,
             owner: wallet.owner,
             permissions: permissionLabels,
             description: wallet.description || '-',
-            publicKey: wallet.publicKey,
+            address: wallet.address,
           });
           continue;
         }
@@ -2111,11 +2111,11 @@ export default function SharedAccessLanding() {
           : permissionCodes;
 
         return {
-          wallet: wallet.alias || wallet.publicKey,
+          wallet: wallet.alias || wallet.address,
           owner: wallet.owner || appUser.username,
           permissions: filteredPermissionCodes.map(formatPermissionLabel),
           description: wallet.description || '-',
-          publicKey: wallet.publicKey,
+          address: wallet.address,
         };
       })
       .filter((row) => row.permissions.length > 0)
@@ -2196,7 +2196,7 @@ export default function SharedAccessLanding() {
       const hasSigned = hasApproved || hasRejected;
 
       const relatedWallet = appUser?.userWallets.find(
-        (w) => w.publicKey === record.walletAlias || w.alias === record.alias,
+        (w) => w.address === record.walletAlias || w.alias === record.alias,
       );
       const isApprover = relatedWallet?.isApprover ?? false;
 
@@ -2449,11 +2449,11 @@ export default function SharedAccessLanding() {
                 </label>
                 <select
                   className="h-12 w-full rounded-md border border-[#b5cfe4] bg-white px-3 text-base text-primary-800 outline-none"
-                  value={grantWallet?.publicKey || ''}
+                  value={grantWallet?.address || ''}
                   onChange={(e) => {
                     const val = e.target.value;
                     const found =
-                      shareableWallets.find((w) => w.publicKey === val) || null;
+                      shareableWallets.find((w) => w.address === val) || null;
                     setGrantWallet(found);
                     setGrantAddApprovers(false);
                     setGrantViewers([]);
@@ -2467,8 +2467,8 @@ export default function SharedAccessLanding() {
                   }}
                 >
                   {shareableWallets.map((wallet) => (
-                    <option key={wallet.publicKey} value={wallet.publicKey}>
-                      {wallet.alias || wallet.publicKey}
+                    <option key={wallet.address} value={wallet.address}>
+                      {wallet.alias || wallet.address}
                     </option>
                   ))}
                 </select>
@@ -2861,7 +2861,7 @@ export default function SharedAccessLanding() {
                 Wallet
               </label>
               <div className="rounded-lg border border-[#bed1e3] bg-[#e9eff7] px-3 py-3 text-center text-base font-semibold text-primary-800">
-                {grantWallet?.alias || grantWallet?.publicKey}
+                {grantWallet?.alias || grantWallet?.address}
               </div>
             </div>
 
@@ -2983,7 +2983,7 @@ export default function SharedAccessLanding() {
             <p className="text-base text-primary-700">
               You have successfully enabled shared access on your wallet{' '}
               <span className="font-semibold text-primary-800">
-                {grantWallet?.alias || grantWallet?.publicKey}
+                {grantWallet?.alias || grantWallet?.address}
               </span>
             </p>
 
@@ -3051,7 +3051,7 @@ export default function SharedAccessLanding() {
                   if (selectedRow) {
                     setActiveModal(null);
                     navigate(
-                      `/dashboard/wallet?wallet=${selectedRow.publicKey}&rel=shared`,
+                      `/dashboard/wallet?wallet=${selectedRow.address}&rel=shared`,
                     );
                   }
                 }}
@@ -3063,7 +3063,7 @@ export default function SharedAccessLanding() {
                   setActiveModal(null);
                   if (selectedRow) {
                     navigate(
-                      `/dashboard/history?wallet=${selectedRow.publicKey}&rel=shared`,
+                      `/dashboard/history?wallet=${selectedRow.address}&rel=shared`,
                     );
                   } else {
                     navigate('/dashboard/history');
@@ -3184,7 +3184,7 @@ export default function SharedAccessLanding() {
 
               {(() => {
                 const walletObj = appUser?.userWallets.find(
-                  (w) => w.publicKey === selectedRow?.publicKey,
+                  (w) => w.address === selectedRow?.address,
                 );
                 if (
                   walletObj &&
@@ -3520,7 +3520,7 @@ export default function SharedAccessLanding() {
                   Wallet
                 </div>
                 <div className="text-base text-primary-800">
-                  {selectedRow?.wallet || selectedRow?.publicKey}
+                  {selectedRow?.wallet || selectedRow?.address}
                 </div>
               </div>
 
@@ -3680,7 +3680,7 @@ export default function SharedAccessLanding() {
               <p className="mt-3 text-base text-primary-700">
                 Your request to modify shared access on wallet{' '}
                 <span className="font-semibold text-primary-800">
-                  {selectedRow?.wallet || selectedRow?.publicKey}
+                  {selectedRow?.wallet || selectedRow?.address}
                 </span>{' '}
                 has been successfully submitted.
               </p>
@@ -3816,8 +3816,8 @@ export default function SharedAccessLanding() {
             <LabeledInput
               label="Wallet public key"
               placeholder="Select or enter wallet public key"
-              value={draftWalletPublicKey}
-              onChange={(value) => setDraftWalletPublicKey(value)}
+              value={draftWalletAddress}
+              onChange={(value) => setDraftWalletAddress(value)}
             />
             <LabeledInput
               label="Description"
@@ -3834,11 +3834,11 @@ export default function SharedAccessLanding() {
               onClick={() => {
                 setDraftInitiator('');
                 setDraftWalletAlias('');
-                setDraftWalletPublicKey('');
+                setDraftWalletAddress('');
                 setDraftDescription('');
                 setSelectedInitiator('');
                 setSelectedWalletAlias('');
-                setSelectedWalletPublicKey('');
+                setSelectedWalletAddress('');
                 setSelectedDescription('');
                 setActiveModal(null);
               }}
@@ -3851,7 +3851,7 @@ export default function SharedAccessLanding() {
               onClick={() => {
                 setSelectedInitiator(draftInitiator);
                 setSelectedWalletAlias(draftWalletAlias);
-                setSelectedWalletPublicKey(draftWalletPublicKey);
+                setSelectedWalletAddress(draftWalletAddress);
                 setSelectedDescription(draftDescription);
                 setActiveModal(null);
               }}
@@ -4258,12 +4258,12 @@ export default function SharedAccessLanding() {
                       }}
                     />
                     <FilterTrigger
-                      label={`More Filters${[selectedInitiator, selectedWalletAlias, selectedWalletPublicKey, selectedDescription].filter(Boolean).length > 0 ? ` (${[selectedInitiator, selectedWalletAlias, selectedWalletPublicKey, selectedDescription].filter(Boolean).length})` : ''}`}
+                      label={`More Filters${[selectedInitiator, selectedWalletAlias, selectedWalletAddress, selectedDescription].filter(Boolean).length > 0 ? ` (${[selectedInitiator, selectedWalletAlias, selectedWalletAddress, selectedDescription].filter(Boolean).length})` : ''}`}
                       icon={<FilterIcon />}
                       onClick={() => {
                         setDraftInitiator(selectedInitiator);
                         setDraftWalletAlias(selectedWalletAlias);
-                        setDraftWalletPublicKey(selectedWalletPublicKey);
+                        setDraftWalletAddress(selectedWalletAddress);
                         setDraftDescription(selectedDescription);
                         setActiveModal('moreFilters');
                       }}

@@ -439,7 +439,7 @@ export function TokenizationSetupAndCompliance() {
 
       const res = await submitTokenization({
         signer: appUser.primarySigner,
-        publicKey: appUser.publicKey,
+        address: appUser.address,
         secretKey: currentSecretKey,
         body: payload,
       });

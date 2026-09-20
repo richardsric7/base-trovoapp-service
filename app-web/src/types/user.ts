@@ -11,7 +11,7 @@ export type User = {
     firstName: string,
     lastName: string,
     mobile: string,
-    publicKey: string,
+    address: string,
     primarySigner: string,
     referrer: string,
     referralLink: string,

@@ -3,11 +3,11 @@ export const truncateValues = (value: number, decimalPlaces:number) => {
     return output.slice(0, (output.indexOf("."))+decimalPlaces)
   }
 
-  export const truncatePublicKey = (publicKey: string) => {
-    if (publicKey == null) return "Enter public key";
-    if (publicKey.length <= 7) return publicKey;
-    return truncate(publicKey,  7) +
-        publicKey.substring(publicKey.length - 7);
+  export const truncateAddress = (address: string) => {
+    if (address == null) return "Enter public key";
+    if (address.length <= 7) return address;
+    return truncate(address,  7) +
+        address.substring(address.length - 7);
   }
   
   export const truncate = (text: string,  length: number = 7, omission: string  = '....'): string => {  

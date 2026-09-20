@@ -24,7 +24,7 @@ export const deserializeUserData = (data: any): User => {
         w.isPrimaryWallet = w.primaryWallet == 1;
 
         if(w.isSharedWallet && !w.canInitiate) console.log('========> cannot initiate', w);
-        walletsMap.set(wallet.publicKey, w);
+        walletsMap.set(wallet.address, w);
     }    
 
     for (var assetKey in data.assetBalances) {
@@ -89,7 +89,7 @@ export const deserializeUserData = (data: any): User => {
             canInitiate: (d.walletSettings?.walletThreshold == 2 && getAccesses(permissions, userData.username).includes('INITIATOR')) && d.walletSettings.walletType == 0,
             isPrimaryWallet: false,
             description: d.walletDescription,
-            publicKey: d.walletPublicKey,
+            address: d.walletAddress,
             numberOfApprovalsNeeded: d.walletSettings ? d.walletSettings.numberOfApprovalsNeeded : null,
             walletThreshold: d.walletSettings ? d.walletSettings.walletThreshold : null,
             walletType: d.walletSettings ? d.walletSettings.walletType : null,
@@ -116,7 +116,7 @@ export const deserializeUserData = (data: any): User => {
             }}),
             nfts: [],
         };
-        walletsMap.set(d.walletPublicKey, w as unknown as Wallet);
+        walletsMap.set(d.walletAddress, w as unknown as Wallet);
     }
 
     for (var asset of data.defaultAssets) {

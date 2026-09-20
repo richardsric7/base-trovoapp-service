@@ -141,7 +141,7 @@ export default function WalletOperations({
 
     const payload = {
       signer: activeWallet.signer,
-      publicKey: activeWallet.publicKey,
+      address: activeWallet.address,
       secretKey: secretKey,
       body: {
         isSharedWallet: activeWallet.sharedAccessEnabled,
@@ -183,13 +183,13 @@ export default function WalletOperations({
 
     const payload = {
       signer: activeWallet.signer,
-      publicKey: activeWallet.publicKey,
+      address: activeWallet.address,
       secretKey: secretKey,
       body: {
         destination: formData.sendTo,
         memo: formData.memo,
         amount: formData.amount,
-        publicKey: activeWallet.publicKey,
+        address: activeWallet.address,
         alias: activeWallet.alias,
         assetCode: selectedAsset.assetCode,
         assetIssuer: selectedAsset.assetIssuer,
@@ -222,7 +222,7 @@ export default function WalletOperations({
 
     const payload = {
       signer: activeWallet.signer,
-      publicKey: activeWallet.publicKey,
+      address: activeWallet.address,
       secretKey: secretKey,
       body: {
         isSharedWallet: activeWallet.sharedAccessEnabled,
@@ -542,7 +542,7 @@ export default function WalletOperations({
                             selectedItem.index,
                           );
                         }}
-                        key={`${activeWallet.publicKey}`}
+                        key={`${activeWallet.address}`}
                       />
                     </div>
                     <div className="space-y-3 w-full">
@@ -677,7 +677,7 @@ export default function WalletOperations({
                                   selectedItem.index,
                                 );
                               }}
-                              key={`${activeWallet.publicKey}`}
+                              key={`${activeWallet.address}`}
                             />
                           </div>
                           <div className="w-2/6 self-end">
@@ -807,13 +807,13 @@ export default function WalletOperations({
                             </p>
                             <div className="flex justify-between break-all">
                               <p className="max-w-sm">
-                                {activeWallet.publicKey}
+                                {activeWallet.address}
                               </p>
                               <button
                                 type="button"
                                 onClick={() =>
                                   navigator.clipboard
-                                    .writeText(activeWallet.publicKey)
+                                    .writeText(activeWallet.address)
                                     .then(() => {
                                       showNotification(
                                         'info',
@@ -877,7 +877,7 @@ export default function WalletOperations({
                               selectedItem.index,
                             );
                           }}
-                          key={`${activeWallet.publicKey}`}
+                          key={`${activeWallet.address}`}
                         />
                       </div>
                       <div className="w-full space-y-2">
@@ -1149,7 +1149,7 @@ export default function WalletOperations({
 
                 const payload = {
                   signer: activeWallet.signer,
-                  publicKey: activeWallet.publicKey,
+                  address: activeWallet.address,
                   secretKey: secretKey,
                   body,
                 };
@@ -1170,8 +1170,8 @@ export default function WalletOperations({
                     JSON.stringify({
                       to: `${res.data.destinationFirstName} ${res.data.destinationLastName} [${res.data.destination}]`,
                       from: `${appUser.firstName} ${appUser.lastName} [${appUser.username}]`,
-                      fromPublicKey: activeWallet.publicKey,
-                      toPublicKey: '',
+                      fromAddress: activeWallet.address,
+                      toAddress: '',
                       memo: res.data.memo,
                       amount: res.data.amount,
                       transactionId: res.data.transactionId,
@@ -1457,7 +1457,7 @@ export default function WalletOperations({
 
                   const payload = {
                     signer: activeWallet.signer,
-                    publicKey: activeWallet.publicKey,
+                    address: activeWallet.address,
                     secretKey: secretKey,
                     body,
                   };

@@ -1,6 +1,6 @@
 export type Payload = {
     signer: string,
-    publicKey: string,
+    address: string,
     secretKey: string,
     body: Record<string, unknown>,    
 }

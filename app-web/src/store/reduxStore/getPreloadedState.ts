@@ -9,7 +9,7 @@ export const getPreloadedState = ()  => {
         username: '',
         secretKey: '',
         emailOtp: '',
-        publicKey: '',
+        address: '',
         password: '',
         agreesToTerms: false
       }      

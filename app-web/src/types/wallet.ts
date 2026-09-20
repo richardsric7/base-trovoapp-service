@@ -3,7 +3,7 @@ import { Permission } from "./permission";
 
 export type Wallet = {
     createdAt: Date,
-    publicKey: string,
+    address: string,
     tag: string,
     description: string,
     alias: string,

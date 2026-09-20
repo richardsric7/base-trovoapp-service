@@ -15,7 +15,7 @@ import { useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { TransactionInfo } from '../../types/transactionInfo';
 import { getAssetCode, getExplorerBaseUrl } from '../../utils/utilities';
-import { truncatePublicKey } from '../../utils/truncateValues';
+import { truncateAddress } from '../../utils/truncateValues';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/reduxStore';
 
@@ -140,7 +140,7 @@ export default function SendAssetReceipt() {
                 >
                   <Text style={styles.itemHeader}>Sent from</Text>
                   <Text style={styles.itemBody}>{info!.from!}</Text>
-                  <Text style={styles.itemBody2}>{info?.fromPublicKey}</Text>
+                  <Text style={styles.itemBody2}>{info?.fromAddress}</Text>
                 </View>
                 <View
                   style={{
@@ -151,9 +151,9 @@ export default function SendAssetReceipt() {
                 >
                   <Text style={styles.itemHeader}>To</Text>
                   <Text style={styles.itemBody}>{info?.to}</Text>
-                  {info?.toPublicKey && (
+                  {info?.toAddress && (
                     <Text style={styles.itemBody2}>
-                      {truncatePublicKey(info.toPublicKey)}
+                      {truncateAddress(info.toAddress)}
                     </Text>
                   )}
                 </View>

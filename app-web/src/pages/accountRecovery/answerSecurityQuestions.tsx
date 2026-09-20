@@ -44,8 +44,8 @@ function AnswerSecurityQuestions() {
   const dispatch = useDispatch();
 
   const { data, isLoading } = useFetchSecurityQuestionsQuery({
-    signer: tempData.publicKey,
-    publicKey: tempData.publicKey,
+    signer: tempData.address,
+    address: tempData.address,
     secretKey: tempData.secretKey,
     body: { username: tempData.username },
   });
@@ -117,8 +117,8 @@ function AnswerSecurityQuestions() {
       };
 
       const res = await submitSecurityAnswers({
-        signer: tempData.publicKey,
-        publicKey: tempData.publicKey,
+        signer: tempData.address,
+        address: tempData.address,
         secretKey: tempData.secretKey,
         body: { username: tempData.username, answers: data },
       });
@@ -146,7 +146,7 @@ function AnswerSecurityQuestions() {
       toggleLoader();
 
       const body = {
-        newSignerPublicKey: tempData.publicKey,
+        newSignerAddress: tempData.address,
         disableOldSignerFromPrimaryWallet: invalidateOldSigner ? 1 : 0,
         commit,
         emailOtp: tempData.emailOtp,
@@ -163,8 +163,8 @@ function AnswerSecurityQuestions() {
       };
 
       const res = await requestAccountRecovery({
-        signer: tempData.publicKey,
-        publicKey: tempData.publicKey,
+        signer: tempData.address,
+        address: tempData.address,
         secretKey: tempData.secretKey,
         body,
       });
@@ -190,7 +190,7 @@ function AnswerSecurityQuestions() {
               emailOtp: '',
               username: '',
               secretKey: '',
-              publicKey: '',
+              address: '',
             }),
           );
         }
@@ -333,13 +333,13 @@ function AnswerSecurityQuestions() {
                     </p>
                     <div className="flex w-full justify-between">
                       <div className="w-4/5 h-full break-all">
-                        {tempData.publicKey}
+                        {tempData.address}
                       </div>
                       <button
                         type="button"
                         onClick={() =>
                           navigator.clipboard
-                            .writeText(tempData.publicKey)
+                            .writeText(tempData.address)
                             .then(() => {
                               showNotification('info', 'Public key copied!');
                             })

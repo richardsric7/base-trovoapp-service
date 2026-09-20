@@ -11,7 +11,7 @@ export const authApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         }, 
@@ -25,7 +25,7 @@ export const authApi = baseApi.injectEndpoints({
           payload: "",
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         }, 
@@ -39,7 +39,7 @@ export const authApi = baseApi.injectEndpoints({
           payload: "",
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         }, 
@@ -55,7 +55,7 @@ export const authApi = baseApi.injectEndpoints({
           data: {
             creds: {
               signer: payload.signer,
-              publicKey: payload.publicKey,
+              address: payload.address,
               secretKey: payload.secretKey,
             }
           }, 
@@ -70,7 +70,7 @@ export const authApi = baseApi.injectEndpoints({
           payload: payload.body.answers,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         }, 
@@ -84,7 +84,7 @@ export const authApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         }, 
@@ -98,7 +98,7 @@ export const authApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         }, 
@@ -112,7 +112,7 @@ export const authApi = baseApi.injectEndpoints({
           payload: payload.body,
           creds: {
             signer: payload.signer,
-            publicKey: payload.publicKey,
+            address: payload.address,
             secretKey: payload.secretKey,
           }
         }, 
@@ -132,7 +132,7 @@ export const authApi = baseApi.injectEndpoints({
           data: {
             creds: {
               signer: payload.signer,
-              publicKey: payload.publicKey,
+              address: payload.address,
               secretKey: payload.secretKey,
             }
           }, 

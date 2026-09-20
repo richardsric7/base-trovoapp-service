@@ -63,8 +63,8 @@ function RestoreInactiveAccount() {
   const navigate = useNavigate();
 
   const { data, isLoading } = useFetchSecurityQuestionsQuery({
-    signer: tempData.publicKey,
-    publicKey: tempData.publicKey,
+    signer: tempData.address,
+    address: tempData.address,
     secretKey: tempData.secretKey,
     body: { username: tempData.username },
   });
@@ -137,15 +137,15 @@ function RestoreInactiveAccount() {
       toggleLoader();
 
       const body = {
-        newSignerPublicKey: tempData.publicKey,
+        newSignerAddress: tempData.address,
         emailOtp: tempData.emailOtp,
         username: tempData.username,
         securityAnswers,
       };
 
       const res = await restoreInactiveAccount({
-        signer: tempData.publicKey,
-        publicKey: tempData.publicKey,
+        signer: tempData.address,
+        address: tempData.address,
         secretKey: tempData.secretKey,
         body,
       });
@@ -408,13 +408,13 @@ function RestoreInactiveAccount() {
                     </p>
                     <div className="flex w-full justify-between">
                       <div className="w-4/5 h-full break-all">
-                        {tempData.publicKey}
+                        {tempData.address}
                       </div>
                       <button
                         type="button"
                         onClick={() =>
                           navigator.clipboard
-                            .writeText(tempData.publicKey)
+                            .writeText(tempData.address)
                             .then(() => {
                               showNotification('info', 'Public key copied!');
                             })

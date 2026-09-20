@@ -21,15 +21,15 @@ export default function SharedAccessWalletInfo() {
 
   const currentWallet = useMemo(() => {
     const walletFromState = appUser.userWallets.find(
-      (entry) => entry.publicKey === params.publicKey,
+      (entry) => entry.address === params.address,
     );
     return walletFromState ?? wallet;
-  }, [appUser.userWallets, params.publicKey, wallet]);
+  }, [appUser.userWallets, params.address, wallet]);
 
   useEffect(() => {
-    if (!params.publicKey) return;
+    if (!params.address) return;
     const foundWallet = appUser.userWallets.find(
-      (entry) => entry.publicKey === params.publicKey,
+      (entry) => entry.address === params.address,
     );
     if (foundWallet) {
       setWallet(foundWallet);
@@ -40,7 +40,7 @@ export default function SharedAccessWalletInfo() {
       try {
         const result = await fetchBalance({
           signer: appUser.primarySigner,
-          publicKey: appUser.publicKey,
+          address: appUser.address,
           secretKey: appUser.secretKeys[0],
           body: {},
         });
@@ -55,7 +55,7 @@ export default function SharedAccessWalletInfo() {
     };
 
     load();
-  }, [appUser, fetchBalance, params.publicKey]);
+  }, [appUser, fetchBalance, params.address]);
 
   if (!currentWallet) {
     return <div className="p-6">Loading shared wallet details...</div>;

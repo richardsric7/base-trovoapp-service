@@ -36,7 +36,7 @@ import {
   parseAmountValue,
   parseDate,
 } from '../../utils/transactionUtils';
-import { truncatePublicKey } from '../../utils/truncateValues';
+import { truncateAddress } from '../../utils/truncateValues';
 import { TokenizedAsset } from '../../types/tokenizedAsset';
 import {
   setActiveTokenizedAsset,
@@ -181,13 +181,13 @@ export default function Home() {
 
     const payload = {
       signer: primaryWallet.signer,
-      publicKey: primaryWallet.publicKey,
+      address: primaryWallet.address,
       secretKey: secretKey,
       body: {
         destination: formData.sendTo,
         memo: formData.memo,
         amount: formData.amount,
-        publicKey: primaryWallet.publicKey,
+        address: primaryWallet.address,
         alias: primaryWallet.alias,
         assetCode: '',
         assetIssuer: '',
@@ -216,7 +216,7 @@ export default function Home() {
   const handleBuyWithFiat = async () => {
     const payload = {
       signer: primaryWallet.signer,
-      publicKey: primaryWallet.publicKey,
+      address: primaryWallet.address,
       secretKey: secretKey,
       body: {},
     };
@@ -244,7 +244,7 @@ export default function Home() {
   const { data, isLoading } = useFetchFiatPaymentsQuery(
     {
       signer: primaryWallet?.signer ?? '',
-      publicKey: primaryWallet.publicKey,
+      address: primaryWallet.address,
       secretKey,
       body: { limit: 5 },
     },
@@ -258,7 +258,7 @@ export default function Home() {
       const type = normalizeTransactionType(
         item.transactionType ?? item.type,
         item,
-        primaryWallet.publicKey,
+        primaryWallet.address,
       );
       const amountValue = parseAmountValue(item.amount);
       const assetCode = getTransactionAssetCode(item);
@@ -284,8 +284,8 @@ export default function Home() {
       const walletMatch =
         appUser.userWallets.find(
           (wallet) =>
-            wallet.publicKey === item.publicKey ||
-            wallet.publicKey === item.walletPublicKey ||
+            wallet.address === item.address ||
+            wallet.address === item.walletAddress ||
             wallet.alias === item.walletAlias,
         ) ?? primaryWallet;
 
@@ -298,13 +298,13 @@ export default function Home() {
         description,
         dateLabel: formatRelativeTime(createdAt),
         dateValue: createdAt,
-        walletKey: walletMatch?.publicKey ?? 'unknown',
+        walletKey: walletMatch?.address ?? 'unknown',
         walletLabel: walletMatch?.alias ?? 'Primary wallet',
         username: `${item.username ?? item.fullName ?? item.name ?? ''}`.trim(),
         fromUsername: item.from,
         toUsername: item.to,
-        fromPublicKey: `${item.fromPublicKey ?? item.senderPublicKey ?? ''}`,
-        toPublicKey: `${item.toPublicKey ?? item.receiverPublicKey ?? ''}`,
+        fromAddress: `${item.fromAddress ?? item.senderAddress ?? ''}`,
+        toAddress: `${item.toAddress ?? item.receiverAddress ?? ''}`,
         memo: `${item.memo ?? item.narration ?? ''}`.trim(),
       };
     },
@@ -314,7 +314,7 @@ export default function Home() {
     useFetchTokenizedAssetsQuery(
       {
         signer: primaryWallet?.signer ?? '',
-        publicKey: primaryWallet.publicKey,
+        address: primaryWallet.address,
         secretKey,
         body: { status: 0 },
       },
@@ -324,7 +324,7 @@ export default function Home() {
   const { data: expressedInterests } = useFetchExpressedInterestsQuery(
     {
       signer: primaryWallet?.signer ?? '',
-      publicKey: primaryWallet.publicKey,
+      address: primaryWallet.address,
       secretKey,
       body: {},
     },
@@ -337,7 +337,7 @@ export default function Home() {
     useFetchTokenizedAssetsQuery(
       {
         signer: primaryWallet?.signer ?? '',
-        publicKey: primaryWallet.publicKey,
+        address: primaryWallet.address,
         secretKey,
         body: { status: 1 },
       },
@@ -363,7 +363,7 @@ export default function Home() {
   const { data: tokenizationData } = useFetchTokenizationDataQuery(
     {
       signer: primaryWallet?.signer ?? '',
-      publicKey: primaryWallet.publicKey,
+      address: primaryWallet.address,
       secretKey,
       body: { limit: 5 },
     },
@@ -814,14 +814,14 @@ export default function Home() {
                               {primaryWallet.alias}
                             </p>
                             <p className="text-xs text-primary-400">
-                              {primaryWallet.publicKey}
+                              {primaryWallet.address}
                             </p>
                           </div>
                           <button
                             type="button"
                             onClick={() => {
                               navigator.clipboard
-                                .writeText(primaryWallet.publicKey)
+                                .writeText(primaryWallet.address)
                                 .then(() => {
                                   showNotification(
                                     'success',
@@ -1003,10 +1003,10 @@ export default function Home() {
                   addressOrUsername={
                     item.type == 'Sent'
                       ? item.toUsername?.length == 0
-                        ? truncatePublicKey(item.toPublicKey)
+                        ? truncateAddress(item.toAddress)
                         : (item.toUsername ?? '')
                       : item.fromUsername?.length == 0
-                        ? truncatePublicKey(item.fromPublicKey)
+                        ? truncateAddress(item.fromAddress)
                         : (item.fromUsername ?? '')
                   }
                   transactionType={item.type == 'Sent' ? 0 : 1}

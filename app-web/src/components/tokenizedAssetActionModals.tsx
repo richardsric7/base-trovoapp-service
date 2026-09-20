@@ -90,7 +90,7 @@ export function ExpressInterestModal({
               }
               const payload = {
                 signer: activeWallet.signer,
-                publicKey: activeWallet.publicKey,
+                address: activeWallet.address,
                 secretKey: secretKey,
                 body: {
                   isSharedWallet: activeWallet.sharedAccessEnabled,
@@ -304,7 +304,7 @@ function renderBuyTokenSteps(asset: TokenizedAsset, onClose: () => void) {
               console.log(selectedItem);
               setActiveWallet(selectedItem.value);
             }}
-            key={`${activeWallet.publicKey}`}
+            key={`${activeWallet.address}`}
           />
           <div className="w-full md:w-2/4 space-y-3">
             <Button
@@ -338,7 +338,7 @@ function renderBuyTokenSteps(asset: TokenizedAsset, onClose: () => void) {
             onSelect={(selectedItem) => {
               console.log(selectedItem);
             }}
-            key={`${activeWallet.publicKey}`}
+            key={`${activeWallet.address}`}
           />
           <div className="w-full space-y-2">
             <TextInput
@@ -446,7 +446,7 @@ function renderBuyTokenSteps(asset: TokenizedAsset, onClose: () => void) {
 
                 const payload = {
                   signer: activeWallet.signer,
-                  publicKey: activeWallet.publicKey,
+                  address: activeWallet.address,
                   secretKey: secretKey,
                   body: {
                     isSharedWallet: activeWallet.sharedAccessEnabled,
@@ -480,7 +480,7 @@ function renderBuyTokenSteps(asset: TokenizedAsset, onClose: () => void) {
 
                   const payload = {
                     signer: activeWallet.signer,
-                    publicKey: activeWallet.publicKey,
+                    address: activeWallet.address,
                     secretKey: secretKey,
                     body,
                   };

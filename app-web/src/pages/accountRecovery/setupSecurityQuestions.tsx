@@ -66,8 +66,8 @@ function SetupSecurityQuestions() {
   const navigate = useNavigate();
 
   const { data, isLoading } = useFetchSecurityQuestionsQuery({
-    signer: user.publicKey,
-    publicKey: user.publicKey,
+    signer: user.address,
+    address: user.address,
     secretKey,
     body: { username: user.username },
   });
@@ -140,7 +140,7 @@ function SetupSecurityQuestions() {
       console.log('sddsauser', user.primarySigner, secretKey);
       const res = await restoreInactiveAccount({
         signer: user.primarySigner,
-        publicKey: user.publicKey,
+        address: user.address,
         secretKey,
         body,
       });
@@ -408,13 +408,13 @@ function SetupSecurityQuestions() {
                       </p>
                       <div className="flex w-full justify-between">
                         <div className="w-4/5 h-full break-all">
-                          {user.publicKey}
+                          {user.address}
                         </div>
                         <button
                           type="button"
                           onClick={() =>
                             navigator.clipboard
-                              .writeText(user.publicKey)
+                              .writeText(user.address)
                               .then(() => {
                                 showNotification('info', 'Public key copied!');
                               })

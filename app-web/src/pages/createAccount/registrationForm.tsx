@@ -251,7 +251,7 @@ export default function RegistrationForm() {
           : createAccount();
 
         setSecretKey(account.secretKey);
-        dispatch(setTempUser({ ...user, publicKey: account.publicKey }));
+        dispatch(setTempUser({ ...user, address: account.address }));
         dispatch(
           setFormState({
             ...tempData,
@@ -264,8 +264,8 @@ export default function RegistrationForm() {
 
         toggleLoader();
         const res = await userRegister({
-          signer: account.publicKey,
-          publicKey: account.publicKey,
+          signer: account.address,
+          address: account.address,
           secretKey: account.secretKey,
           body: user,
         });

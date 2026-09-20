@@ -56,7 +56,7 @@ export default function TokenizedAssetsListView() {
   const { data, isLoading } = useFetchTokenizedAssetsQuery(
     {
       signer: primaryWallet?.signer ?? '',
-      publicKey: primaryWallet.publicKey,
+      address: primaryWallet.address,
       secretKey,
       body: { status: listType.code },
     },
@@ -71,7 +71,7 @@ export default function TokenizedAssetsListView() {
     const { data: expressedInterest } = useFetchExpressedInterestsQuery(
       {
         signer: primaryWallet?.signer ?? '',
-        publicKey: primaryWallet.publicKey,
+        address: primaryWallet.address,
         secretKey,
         body: { status: 1 },
       },
