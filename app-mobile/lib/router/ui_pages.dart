@@ -23,7 +23,6 @@ const String SendAssetViewPath = '/sendAssetView';
 const String ConfirmTransactionViewPath = '/confirmTransactionAssetView';
 const String TransactionSuccessViewPath = '/transactionSuccessView';
 const String ReceiveAssetViewPath = '/recieveAssetView';
-const String PendingAssetDetailsViewPath = '/pendingAssetView';
 const String PaymentHistoryViewPath = '/paymentHistoryView';
 const String PaymentDetailsViewPath = '/PaymentDetailsView';
 const String SwapAssetsViewPath = '/SwapAssetsView';
@@ -76,9 +75,6 @@ const String WelcomeSubscriptionsViewPath = '/WelcomeSubscriptionsView';
 const String SubscriptionPlansViewPath = '/SubscriptionPlansView';
 const String SubscriptionPlanBenefitsViewPath = '/SubscriptionPlanBenefitsView';
 const String AuthorizeSubscriptionViewPath = '/AuthorizeSubscriptionView';
-const String OptInAssetViewPath = '/OptInAssetView';
-const String OptOutAssetViewPath = '/OptOutAssetView';
-const String OptInOutAssetViewPath = '/OptInOutAssetView';
 const String TokenizationWelcomeViewPath = '/TokenizationWelcomeView';
 const String SettingsViewPath = '/SettingsView';
 const String TokenizeAssetViewPath = '/TokenizeAssetView';
@@ -168,7 +164,6 @@ enum Pages {
   ConfirmTransactionView,
   TransactionSuccessView,
   ReceiveAssetView,
-  PendingAssetDetailsView,
   PaymentHistoryView,
   PaymentDetailsView,
   SwapAssetsView,
@@ -222,9 +217,6 @@ enum Pages {
   SubscriptionPlansView,
   SubscriptionPlanBenefitsView,
   AuthorizeSubscriptionView,
-  OptInAssetView,
-  OptOutAssetView,
-  OptInOutAssetView,
   TokenizationWelcomeView,
   SettingsView,
   TokenizeAssetView,
@@ -432,12 +424,6 @@ PageConfiguration ReceiveAssetViewPageConfig = PageConfiguration(
   key: 'ReceiveAssetView',
   path: ReceiveAssetViewPath,
   uiPage: Pages.ReceiveAssetView,
-  currentPageAction: null,
-);
-PageConfiguration PendingAssetDetailsViewPageConfig = PageConfiguration(
-  key: 'PendingAssetDetailsView',
-  path: PendingAssetDetailsViewPath,
-  uiPage: Pages.PendingAssetDetailsView,
   currentPageAction: null,
 );
 PageConfiguration PaymentHistoryViewPageConfig = PageConfiguration(
@@ -722,24 +708,6 @@ PageConfiguration AuthorizeSubscriptionViewPageConfig = PageConfiguration(
   key: 'AuthorizeSubscriptionView',
   path: AuthorizeSubscriptionViewPath,
   uiPage: Pages.AuthorizeSubscriptionView,
-  currentPageAction: null,
-);
-PageConfiguration OptInAssetViewPageConfig = PageConfiguration(
-  key: 'OptInAssetView',
-  path: OptInAssetViewPath,
-  uiPage: Pages.OptInAssetView,
-  currentPageAction: null,
-);
-PageConfiguration OptOutAssetViewPageConfig = PageConfiguration(
-  key: 'OptOutAssetView',
-  path: OptOutAssetViewPath,
-  uiPage: Pages.OptOutAssetView,
-  currentPageAction: null,
-);
-PageConfiguration OptInOutAssetViewPageConfig = PageConfiguration(
-  key: 'OptInOutAssetView',
-  path: OptInOutAssetViewPath,
-  uiPage: Pages.OptInOutAssetView,
   currentPageAction: null,
 );
 PageConfiguration TokenizationWelcomeViewPageConfig = PageConfiguration(

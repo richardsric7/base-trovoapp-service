@@ -55,8 +55,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return TransactionSuccessViewPageConfig;
       case ReceiveAssetViewPath:
         return ReceiveAssetViewPageConfig;
-      case PendingAssetDetailsViewPath:
-        return PendingAssetDetailsViewPageConfig;
       case PaymentHistoryViewPath:
         return PaymentHistoryViewPageConfig;
       case PaymentDetailsViewPath:
@@ -151,12 +149,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return SubscriptionPlanBenefitsViewPageConfig;
       case AuthorizeSubscriptionViewPath:
         return AuthorizeSubscriptionViewPageConfig;
-      case OptInAssetViewPath:
-        return OptInAssetViewPageConfig;
-      case OptOutAssetViewPath:
-        return OptOutAssetViewPageConfig;
-      case OptInOutAssetViewPath:
-        return OptInOutAssetViewPageConfig;
       case TokenizationWelcomeViewPath:
         return TokenizationWelcomeViewPageConfig;
       case SettingsViewPath:
@@ -251,8 +243,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return RouteInformation(uri: Uri.parse(TransactionSuccessViewPath));
       case Pages.ReceiveAssetView:
         return RouteInformation(uri: Uri.parse(ReceiveAssetViewPath));
-      case Pages.PendingAssetDetailsView:
-        return RouteInformation(uri: Uri.parse(PendingAssetDetailsViewPath));
       case Pages.PaymentHistoryView:
         return RouteInformation(uri: Uri.parse(PaymentHistoryViewPath));
       case Pages.PaymentDetailsView:
@@ -363,12 +353,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         );
       case Pages.AuthorizeSubscriptionView:
         return RouteInformation(uri: Uri.parse(AuthorizeSubscriptionViewPath));
-      case Pages.OptInAssetView:
-        return RouteInformation(uri: Uri.parse(OptInAssetViewPath));
-      case Pages.OptOutAssetView:
-        return RouteInformation(uri: Uri.parse(OptOutAssetViewPath));
-      case Pages.OptInOutAssetView:
-        return RouteInformation(uri: Uri.parse(OptInOutAssetViewPath));
       case Pages.TokenizationWelcomeView:
         return RouteInformation(uri: Uri.parse(TokenizationWelcomeViewPath));
       case Pages.SettingsView:

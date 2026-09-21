@@ -29,7 +29,6 @@ class Wallet {
   String? permission; // singular, for shared wallet
   String? owner; // for shared wallet
   List<Asset>? claimedAssets;
-  List<Asset>? unClaimedAssets;
 
   Wallet({
     this.createdAt,
@@ -53,7 +52,6 @@ class Wallet {
     this.sharedAccessUpdatedAt,
     this.owner,
     this.claimedAssets,
-    this.unClaimedAssets,
   });
 
   toJSONEncodable() {
@@ -108,9 +106,6 @@ class Wallet {
       claimedAssets: deserializeAssetList(
         assetBalances[m["address"]]['claimed'],
       ),
-      unClaimedAssets: deserializeAssetList(
-        assetBalances[m["address"]]['unclaimed'],
-      ),
     );
   }
 
@@ -158,7 +153,6 @@ class Wallet {
           ? getPermissionList(m["walletSettings"]["permissions"])
           : null,
       claimedAssets: deserializeAssetList(m["assetBalances"]["claimed"]),
-      unClaimedAssets: deserializeAssetList(m["assetBalances"]["unclaimed"]),
     );
   }
 

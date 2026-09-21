@@ -48,7 +48,6 @@ class _HomeState extends State<Home>
   late UserInfo userInfo;
   late List<Wallet> wallets;
   late List<Wallet> sharedWallets;
-  List<Asset>? unclaimedAssets;
   List<Asset>? claimedAssets;
   String? activeWallet;
   var noOfTransactionsToSign;
@@ -83,7 +82,6 @@ class _HomeState extends State<Home>
     if ((activeWallet == null && wallets.length > 0) || activateWallet) {
       activeWallet = wallets[0].address;
       claimedAssets = wallets[0].claimedAssets;
-      unclaimedAssets = wallets[0].unClaimedAssets;
       activateWallet =
           claimedAssets!
               .firstWhere(

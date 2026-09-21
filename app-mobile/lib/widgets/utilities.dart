@@ -1729,29 +1729,6 @@ Widget getDrawer(
         ),
         ListTile(
           leading: Image.asset(
-            "assets/images/asset.png",
-            color: notifier.getgrey.withOpacity(.80),
-            scale: 1,
-            height: height / 40,
-          ),
-          title: Text(
-            "addremoveasset".tr(),
-            style: TextStyle(
-              fontFamily: fontbody,
-              color: notifier.getbluewhitecolor,
-              fontSize: 14,
-            ),
-          ),
-          onTap: () {
-            Navigator.pop(context);
-            appState.currentAction = PageAction(
-              state: PageState.addPage,
-              page: OptInOutAssetViewPageConfig,
-            );
-          },
-        ),
-        ListTile(
-          leading: Image.asset(
             "assets/images/import.png",
             color: notifier.getgrey.withOpacity(.80),
             scale: 1,

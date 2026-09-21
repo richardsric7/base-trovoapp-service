@@ -44,9 +44,6 @@ import 'package:trovo_app/screens/send_and_recieve/dividend_and_yield.dart';
 import 'package:trovo_app/screens/send_and_recieve/dividend_history.dart';
 import 'package:trovo_app/screens/send_and_recieve/dividend_payment_detail.dart';
 import 'package:trovo_app/screens/send_and_recieve/early_exit_summary.dart';
-import 'package:trovo_app/screens/send_and_recieve/opt_in_asset.dart';
-import 'package:trovo_app/screens/send_and_recieve/opt_in_out_asset.dart';
-import 'package:trovo_app/screens/send_and_recieve/opt_out_asset.dart';
 import 'package:trovo_app/screens/account_recovery/account_recovery_success.dart';
 import 'package:trovo_app/screens/account_recovery/answer_security_questions.dart';
 import 'package:trovo_app/screens/account_recovery/backup_recovery_secret.dart';
@@ -79,7 +76,6 @@ import 'package:trovo_app/screens/send_and_recieve/request_specific_payment.dart
 import 'package:trovo_app/screens/send_and_recieve/send_asset.dart';
 import 'package:trovo_app/screens/send_and_recieve/transaction_status.dart';
 import 'package:trovo_app/screens/send_and_recieve/transaction_success.dart';
-import 'package:trovo_app/screens/send_and_recieve/trust_asset.dart';
 import 'package:trovo_app/screens/account_recovery/security_questions.dart';
 import 'package:trovo_app/screens/send_and_recieve/withdraw_asset.dart';
 import 'package:trovo_app/screens/send_and_recieve/wrapped_asset.dart';
@@ -244,12 +240,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.ReceiveAssetView:
           _addPageData(ReceiveAsset(), ReceiveAssetViewPageConfig);
-          break;
-        case Pages.PendingAssetDetailsView:
-          _addPageData(
-            PendingAssetDetails(),
-            PendingAssetDetailsViewPageConfig,
-          );
           break;
         case Pages.PaymentHistoryView:
           _addPageData(PaymentHistory(), PaymentHistoryViewPageConfig);
@@ -451,15 +441,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
             AuthorizeSubscription(),
             AuthorizeSubscriptionViewPageConfig,
           );
-          break;
-        case Pages.OptInAssetView:
-          _addPageData(OptInAsset(), OptInAssetViewPageConfig);
-          break;
-        case Pages.OptOutAssetView:
-          _addPageData(OptOutAsset(), OptOutAssetViewPageConfig);
-          break;
-        case Pages.OptInOutAssetView:
-          _addPageData(OptInOutAsset(), OptInOutAssetViewPageConfig);
           break;
         case Pages.TokenizationWelcomeView:
           _addPageData(
@@ -757,9 +738,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
       case Pages.ReceiveAssetView:
         ReceiveAssetViewPageConfig.currentPageAction = action;
         break;
-      case Pages.PendingAssetDetailsView:
-        PendingAssetDetailsViewPageConfig.currentPageAction = action;
-        break;
       case Pages.PaymentHistoryView:
         PaymentHistoryViewPageConfig.currentPageAction = action;
         break;
@@ -901,15 +879,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.AuthorizeSubscriptionView:
         AuthorizeSubscriptionViewPageConfig.currentPageAction = action;
-        break;
-      case Pages.OptInAssetView:
-        OptInAssetViewPageConfig.currentPageAction = action;
-        break;
-      case Pages.OptOutAssetView:
-        OptOutAssetViewPageConfig.currentPageAction = action;
-        break;
-      case Pages.OptInOutAssetView:
-        OptInOutAssetViewPageConfig.currentPageAction = action;
         break;
       case Pages.TokenizationWelcomeView:
         TokenizationWelcomeViewPageConfig.currentPageAction = action;

@@ -49,11 +49,10 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
   late Account primaryWalletKeyPair;
   late Account newSubWalletKeyPair;
   late DataProvider appState;
-  List<Asset>? unclaimedAssets;
   List<Asset> otherTokens = [];
   late UserInfo userInfo;
   final carouselController = CarouselSliderController();
-  int tabLength = 2;
+  int tabLength = 1;
   int activeTabIndex = 0;
   DashboardAssetListMode listMode = DashboardAssetListMode.TokenizedAssets;
   late RefreshController _refreshController;
@@ -164,7 +163,6 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
           .getOtherTokens(appState)
           .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
           .toList();
-      unclaimedAssets = wallets[0].unClaimedAssets;
       tokenizedAssets = wallets[0].getTokenizedAssets(appState);
       noXbnBalance =
           wallets[0].claimedAssets!
@@ -180,19 +178,6 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
       }
 
       reOrderClaimedAssets(activeWallet!);
-    }
-
-    if (listMode == DashboardAssetListMode.OtherAssets) {
-      // in order to make assets tab length dynamic we have to check
-      // for when we have pending asset and then change the tablength
-      // to 3 or back to 2 when we do not have pending assets.
-      if (unclaimedAssets != null && unclaimedAssets!.length > 0) {
-        tabLength = 2;
-      } else {
-        tabLength = 1;
-      }
-    } else if (listMode == DashboardAssetListMode.TokenizedAssets) {
-      tabLength = 1;
     }
 
     if (tabLength != _tabController.length) {
@@ -495,13 +480,6 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                           .toLowerCase()
                           .capitalizeEachWord(),
                     ),
-                    if (unclaimedAssets != null && tabLength == 2) ...[
-                      Tab(
-                        height: 20,
-                        text:
-                            '${"pending".tr()} (${unclaimedAssets == null ? 0 : unclaimedAssets!.length})',
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -657,7 +635,6 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                   (asset) => asset.assetCode != '' && asset.assetIssuer != '',
                 )
                 .toList();
-            unclaimedAssets = wallets[activeWalletIndex].unClaimedAssets;
             tokenizedAssets = wallets[activeWalletIndex].getTokenizedAssets(
               appState,
             );
@@ -789,68 +766,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
       height: height / 2.2,
       child: TabBarView(
         controller: _tabController,
-        children: [
-          showTokenAssets(),
-          if (tabLength == 2) ...[
-            Container(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    if (unclaimedAssets != null &&
-                        unclaimedAssets!.length > 0) ...[
-                      // if assets is greater than 5 then show five assets
-                      // and then add a button to view all in the wallet
-                      // details view
-                      for (var i = 0; i < unclaimedAssets!.length; i++) ...[
-                        GestureDetector(
-                          onTap: () {
-                            appState.setActiveWallet = wallets.firstWhere(
-                              (wallet) => wallet.address == activeWallet,
-                            );
-
-                            appState.viewData = {
-                              'assetCode': unclaimedAssets![i].assetCode,
-                              'assetIssuer': unclaimedAssets![i].assetIssuer,
-                              'walletAddress': activeWallet,
-                            };
-                            appState.currentAction = PageAction(
-                              state: PageState.addPage,
-                              page: PendingAssetDetailsViewPageConfig,
-                            );
-                          },
-                          child: tiles(
-                            unclaimedAssets![i],
-                            null,
-                            activeWalletIndex,
-                          ),
-                        ),
-                      ],
-                    ] else ...[
-                      Container(
-                        height: height / 4,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
-                          child: Center(
-                            child: Text(
-                              "nopendingassets".tr(),
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: fontsemibold,
-                                color: notifier.getblck,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                    SizedBox(height: height / 22),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ],
+        children: [showTokenAssets()],
       ),
     );
   }

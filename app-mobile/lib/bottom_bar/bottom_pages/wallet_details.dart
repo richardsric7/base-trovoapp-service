@@ -119,20 +119,6 @@ class _WalletDetailsState extends State<WalletDetails>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
 
-    if (listMode == DashboardAssetListMode.OtherAssets) {
-      // in order to make assets tab length dynamic we have to check
-      // for when we have pending asset and then change the tablength
-      // to 3 or back to 2 when we do not have pending assets.
-      if (wallet.unClaimedAssets != null &&
-          wallet.unClaimedAssets!.length > 0) {
-        tabLength = 2;
-      } else {
-        tabLength = 1;
-      }
-    } else if (listMode == DashboardAssetListMode.TokenizedAssets) {
-      tabLength = 1;
-    }
-
     if (tabLength != _tabController.length) {
       // change the length of tabController too or you will have an error
       _tabController = TabController(length: tabLength, vsync: this);
@@ -523,13 +509,6 @@ class _WalletDetailsState extends State<WalletDetails>
                   height: 20,
                   text: "othertokens".tr().toLowerCase().capitalizeEachWord(),
                 ),
-                if (wallet.unClaimedAssets != null && tabLength == 2) ...[
-                  Tab(
-                    height: 20,
-                    text:
-                        '${"pending".tr()} (${wallet.unClaimedAssets == null ? 0 : wallet.unClaimedAssets!.length})',
-                  ),
-                ],
               ],
             ),
           ),
@@ -633,88 +612,6 @@ class _WalletDetailsState extends State<WalletDetails>
                         ],
                       ),
                     ),
-                    if (tabLength == 2) ...[
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-                        child: Container(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                if (wallet.unClaimedAssets != null &&
-                                    wallet.unClaimedAssets!.length > 0) ...[
-                                  for (var asset
-                                      in wallet.unClaimedAssets!) ...[
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          activeTabIndex = _tabController.index;
-                                        });
-
-                                        appState.returnView = PageAction(
-                                          state: PageState.addAll,
-                                          pages: [
-                                            BottomHomePageConfig,
-                                            WalletDetailsViewPageConfig,
-                                          ],
-                                        );
-
-                                        if (rel == 'sharedWalletView') {
-                                          appState.returnView = PageAction(
-                                            state: PageState.addAll,
-                                            pages: [
-                                              BottomHomePageConfig,
-                                              SharedAccessViewPageConfig,
-                                              SharedWalletInfoViewPageConfig,
-                                              WalletDetailsViewPageConfig,
-                                            ],
-                                          );
-                                        }
-
-                                        appState.viewData = {
-                                          'assetCode': asset.assetCode,
-                                          'assetIssuer': asset.assetIssuer,
-                                          'walletAddress': wallet.address,
-                                        };
-                                        appState.currentAction = PageAction(
-                                          state: PageState.addPage,
-                                          page:
-                                              PendingAssetDetailsViewPageConfig,
-                                        );
-                                      },
-                                      child: tiles(asset, null),
-                                    ),
-                                  ],
-                                ] else ...[
-                                  Container(
-                                    height: height / 4,
-                                    child: Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                        10,
-                                        28.0,
-                                        10,
-                                        0,
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          "nopendingassets".tr(),
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            fontFamily: fontsemibold,
-                                            color: notifier.getblck,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                                SizedBox(height: height / 22),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
