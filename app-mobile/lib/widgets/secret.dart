@@ -76,7 +76,7 @@ class _SecretState extends State<Secret> {
               ),
               Divider(),
               Text(
-                'Public Key: ',
+                'Address: ',
                 style: TextStyle(
                   fontFamily: fontsemibold,
                   fontWeight: FontWeight.bold,
@@ -100,7 +100,7 @@ class _SecretState extends State<Secret> {
                   IconButton(
                     onPressed: () => {
                       Clipboard.setData(ClipboardData(text: widget.address)),
-                      showSnackBar('Public Key', context),
+                      showSnackBar('Address', context),
                     },
                     icon: Icon(Icons.copy),
                     color: notifier.getblck,
@@ -156,7 +156,7 @@ class _SecretState extends State<Secret> {
                   Clipboard.setData(
                     ClipboardData(
                       text:
-                          'Alias:  ${widget.alias}\n\nPublic Key:  ${widget.address}\n\nSecretKey:  ${widget.secret}',
+                          'Alias:  ${widget.alias}\n\nAddress:  ${widget.address}\n\nSecretKey:  ${widget.secret}',
                     ),
                   ),
                   showSnackBar('Wallet Details', context),

@@ -92,6 +92,6 @@ class Account {
 
   @override
   String toString() {
-    return "Public-Key: " + this.address + " Secret-Key: " + this.secretKey;
+    return "Address: " + this.address + " Secret-Key: " + this.secretKey;
   }
 }

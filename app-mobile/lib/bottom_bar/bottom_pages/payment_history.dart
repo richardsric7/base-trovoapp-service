@@ -44,8 +44,8 @@ class Payment_HistoryState extends State<PaymentHistory>
     HistoryFilterType.DateRange: "Date range",
     HistoryFilterType.AmountRange: "Amount range",
     HistoryFilterType.Username: "Username",
-    HistoryFilterType.FromAddress: "From public key",
-    HistoryFilterType.ToAddress: "To public key",
+    HistoryFilterType.FromAddress: "From address",
+    HistoryFilterType.ToAddress: "To address",
     HistoryFilterType.Memo: "Memo",
   };
 

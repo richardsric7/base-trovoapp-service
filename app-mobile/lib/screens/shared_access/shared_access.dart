@@ -77,7 +77,7 @@ class _SharedAccessState extends State<SharedAccess>
     ApprovalsListFilterType.TransactionId: "Transaction ID",
     ApprovalsListFilterType.Initiator: "Initiator",
     ApprovalsListFilterType.Description: "Description",
-    ApprovalsListFilterType.WalletAddress: "Wallet public key",
+    ApprovalsListFilterType.WalletAddress: "Wallet address",
     ApprovalsListFilterType.WalletAlias: "Wallet alias",
   };
   var transactionTypes = <String>[
