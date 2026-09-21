@@ -18,7 +18,6 @@ export type Wallet = {
     sharedAccessUpdatedAt?: Date,
     nfts: any[],
     claimedAssets: Asset[],
-    unclaimedAssets: Asset[],
     owner: string,
     permission: string,
     permissions: Permission[],

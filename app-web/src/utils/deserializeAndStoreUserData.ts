@@ -12,9 +12,8 @@ export const deserializeUserData = (data: any): User => {
     for (var wallet of data.userData.userWallets) {
         const w = {
             ...wallet,
-            unclaimedAssets: [],
             claimedAssets: [],
-            nfts: [],            
+            nfts: [],
         };
         w.isInitiator = getAccesses(w.permissions, userData.username).includes('INITIATOR');
         w.isApprover = getAccesses(w.permissions, userData.username).includes('APPROVER');
@@ -30,7 +29,6 @@ export const deserializeUserData = (data: any): User => {
     for (var assetKey in data.assetBalances) {
         const assetBalance = data.assetBalances[assetKey];
         const claimed = assetBalance.claimed;
-        const unclaimed = assetBalance.unclaimed;
         if(assetBalance){
             claimed.map((a: any) => {
                 walletsMap
@@ -46,21 +44,6 @@ export const deserializeUserData = (data: any): User => {
                     nativePrice: a.nativePrice,
                 });
             });
-
-            unclaimed.map((a: any) => {
-                walletsMap
-                .get(assetKey)
-                ?.unclaimedAssets.push({
-                    ...a,
-                    amount: Number(a.amount),
-                    usdPrice: Number(a.usdPrice),
-                    inTrade: {
-                        sellingLiabilities: Number(a.inTrade.sellingLiabilities),
-                        buyingLiabilities: Number(a.inTrade.buyingLiabilities),
-                    },
-                    nativePrice: a.nativePrice,
-                });
-            });            
         }
     }
 
@@ -103,16 +86,6 @@ export const deserializeUserData = (data: any): User => {
                 },
                 nativePrice: a.nativePrice,
                 tokenizedAsset: a.tokenizedAsset === 1,
-            }}),
-            unclaimedAssets: d.assetBalances.unclaimed.map((a: any) => {return {
-                ...a,
-                amount: Number(a.amount),
-                usdPrice: Number(a.usdPrice),
-                inTrade: {
-                    sellingLiabilities: Number(a.inTrade.sellingLiabilities),
-                    buyingLiabilities: Number(a.inTrade.buyingLiabilities),
-                },
-                nativePrice: a.nativePrice,
             }}),
             nfts: [],
         };

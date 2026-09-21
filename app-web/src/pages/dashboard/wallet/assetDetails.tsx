@@ -141,7 +141,7 @@ export default function AssetDetail() {
               </div>
               <div className="w-full flex flex-col items-center space-y-2">
                 <p className="font-montserratSemiBold flex items-center">
-                  Issuer Public Key
+                  Token Contract Address
                 </p>
                 <p className="flex items-center space-x-2">
                   <span>{truncateAddress(asset?.assetIssuer ?? '')}</span>
@@ -151,7 +151,7 @@ export default function AssetDetail() {
                       navigator.clipboard
                         .writeText(asset?.assetIssuer ?? '')
                         .then(() => {
-                          showNotification('info', 'Public key copied!');
+                          showNotification('info', 'Address copied!');
                         })
                     }
                   >

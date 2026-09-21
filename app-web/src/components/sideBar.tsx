@@ -122,19 +122,6 @@ function SideBar({ mobileMode = false }: Props) {
             }}
           />
           <SideBarItem
-            label="Add/Remove Asset"
-            icon={
-              activeItem === 8
-                ? '/images/addAssetWhite.svg'
-                : '/images/addAsset.svg'
-            }
-            url="/dashboard/add-remove-assets"
-            isActive={activeItem === 8}
-            onSidebarClicked={() => {
-              setActiveItem(8);
-            }}
-          />
-          <SideBarItem
             label="Import Wallet"
             icon={
               activeItem === 9
