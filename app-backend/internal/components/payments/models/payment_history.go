@@ -13,7 +13,7 @@ type PaymentHistory struct {
 	FromAddress           string    `json:"fromAddress" gorm:"size:150;index:idx_payment_history_from_pk;not null"`
 	To                    *string   `json:"to" gorm:"size:100;index:idx_payment_history_to;null"` //trovoWallet alias and name
 	ToAddress             string    `json:"toAddress" gorm:"size:100;index:idx_payment_history_to_pk;not null;"`
-	Memo                  *string   `json:"memo" gorm:"size:28;null"`
+	Memo                  *string   `json:"memo" gorm:"size:60;null"`
 	AssetIssuer           *string   `json:"assetIssuer" gorm:"size:100;null;"`
 	AssetCode             string    `json:"assetCode" gorm:"size:12;not null;"`
 	Amount                string    `json:"amount" gorm:"index:idx_amount_ph"`

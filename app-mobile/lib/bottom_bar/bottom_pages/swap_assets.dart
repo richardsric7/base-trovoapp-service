@@ -703,11 +703,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
       return "youdonthavesufficientbalance".tr();
     }
 
-    if (getAssetCode(sourceAsset!.assetCode) == 'ETH' &&
-        double.tryParse(value)! > (sourceAsset!.amount! - 6)) {
-      return "youdonthavesufficientbalance".tr();
-    }
-
     return null;
   }
 

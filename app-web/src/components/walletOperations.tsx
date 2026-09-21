@@ -276,15 +276,6 @@ export default function WalletOperations({
         amount: "You don't have sufficient balance",
       };
       isValid = false;
-    } else if (
-      getAssetCode(selectedAsset!.assetCode) == 'ETH' &&
-      Number(formData.amount) > selectedAsset!.amount! - 6
-    ) {
-      newObj = {
-        ...newObj,
-        amount: "You don't have sufficient balance",
-      };
-      isValid = false;
     } else {
       newObj = {
         ...newObj,
@@ -367,15 +358,6 @@ export default function WalletOperations({
         amount: "You don't have sufficient balance",
       };
       isValid = false;
-    } else if (
-      getAssetCode(selectedAsset!.assetCode) == 'ETH' &&
-      Number(formData.amount) > selectedAsset!.amount! - 6
-    ) {
-      newObj = {
-        ...newObj,
-        amount: "You don't have sufficient balance",
-      };
-      isValid = false;
     } else {
       newObj = {
         ...newObj,
@@ -383,10 +365,10 @@ export default function WalletOperations({
       };
     }
 
-    if (formData.memo && getBytesLength(formData.memo) > 28) {
+    if (formData.memo && getBytesLength(formData.memo) > 60) {
       newObj = {
         ...newObj,
-        memo: 'Memo length cannot be more than 28 bytes',
+        memo: 'Memo length cannot be more than 60 bytes',
       };
       isValid = false;
     } else {
@@ -422,10 +404,10 @@ export default function WalletOperations({
       };
     }
 
-    if (formData.memo && getBytesLength(formData.memo) > 28) {
+    if (formData.memo && getBytesLength(formData.memo) > 60) {
       newObj = {
         ...newObj,
-        memo: 'Memo length cannot be more than 28 bytes',
+        memo: 'Memo length cannot be more than 60 bytes',
       };
     } else {
       newObj = {
@@ -626,13 +608,13 @@ export default function WalletOperations({
                         )}
                         <span
                           className={
-                            formData.memo && getBytesLength(formData.memo) > 28
+                            formData.memo && getBytesLength(formData.memo) > 60
                               ? 'text-red-500'
                               : ''
                           }
                         >
                           {formData.memo ? getBytesLength(formData.memo) : 0}
-                          /28
+                          /60
                         </span>
                       </div>
                     </div>
@@ -777,7 +759,7 @@ export default function WalletOperations({
                               <span
                                 className={
                                   formData.memo &&
-                                  getBytesLength(formData.memo) > 28
+                                  getBytesLength(formData.memo) > 60
                                     ? 'text-red-500'
                                     : ''
                                 }
@@ -785,7 +767,7 @@ export default function WalletOperations({
                                 {formData.memo
                                   ? getBytesLength(formData.memo)
                                   : 0}
-                                /28
+                                /60
                               </span>
                             </div>
                           </div>

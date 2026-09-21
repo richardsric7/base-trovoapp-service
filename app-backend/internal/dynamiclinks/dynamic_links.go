@@ -442,8 +442,8 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 		err = errors.New("no payment destination")
 		return
 	}
-	if len(memo) > 28 {
-		err = errors.New("memo cannot be more than 28 bytes in length")
+	if len(memo) > 60 {
+		err = errors.New("memo cannot be more than 60 bytes in length")
 		return
 	}
 

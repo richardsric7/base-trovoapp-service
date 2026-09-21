@@ -151,10 +151,10 @@ export default function Home() {
       };
     }
 
-    if (formData.memo && getBytesLength(formData.memo) > 28) {
+    if (formData.memo && getBytesLength(formData.memo) > 60) {
       newObj = {
         ...newObj,
-        memo: 'Memo length cannot be more than 28 bytes',
+        memo: 'Memo length cannot be more than 60 bytes',
       };
     } else {
       newObj = {
@@ -589,12 +589,12 @@ export default function Home() {
                     </p>
                     <div className="space-y-2">
                       <p className="text-md text-center">
-                        But you cannot use it for any transaction just yet until
-                        it is activated with atleast 10 Bantu tokens (ETH)
+                        You'll need at least 10 ETH in your wallet before you
+                        can start transacting
                       </p>
                       <p className="text-md text-center">
-                        You can get Bantu tokens (ETH) for your wallet using
-                        either of the 3 easy ways displayed below
+                        You can add ETH to your wallet using either of the 3
+                        easy ways displayed below
                       </p>
                     </div>
                     <div className="px-3 pb-5 space-y-3">
@@ -773,13 +773,13 @@ export default function Home() {
                         )}
                         <span
                           className={
-                            formData.memo && getBytesLength(formData.memo) > 28
+                            formData.memo && getBytesLength(formData.memo) > 60
                               ? 'text-red-500'
                               : ''
                           }
                         >
                           {formData.memo ? getBytesLength(formData.memo) : 0}
-                          /28
+                          /60
                         </span>
                       </div>
                     </div>

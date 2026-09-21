@@ -192,7 +192,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                   75.sp,
                   300.sp,
                   onSaved: (value) => memo = value,
-                  maxLength: 28,
+                  maxLength: 60,
                   controller: _utf8TextController,
                   buildCounter:
                       (context, {currentLength, isFocused, maxLength}) {
@@ -206,7 +206,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                           ),
                         );
                       },
-                  inputFormatters: [_Utf8LengthLimitingTextInputFormatter(28)],
+                  inputFormatters: [_Utf8LengthLimitingTextInputFormatter(60)],
                 ),
               ],
             ),

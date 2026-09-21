@@ -281,7 +281,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                     75.sp,
                     300.sp,
                     onSaved: (value) => memo = value,
-                    maxLength: 28,
+                    maxLength: 60,
                     controller: _utf8TextController,
                     readOnly:
                         deeplinkInfo != null &&
@@ -299,7 +299,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                           );
                         },
                     inputFormatters: [
-                      _Utf8LengthLimitingTextInputFormatter(28),
+                      _Utf8LengthLimitingTextInputFormatter(60),
                     ],
                   ),
                   SizedBox(height: height / 20),
@@ -344,14 +344,6 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     }
 
     if (double.tryParse(value)! > asset!.amount!) {
-      setState(() {
-        amountError = true;
-      });
-      return "youdonthavesufficientbalance".tr();
-    }
-
-    if ((getAssetCode(asset!.assetCode) == 'ETH') &&
-        double.tryParse(value)! > (asset!.amount! - 7)) {
       setState(() {
         amountError = true;
       });
