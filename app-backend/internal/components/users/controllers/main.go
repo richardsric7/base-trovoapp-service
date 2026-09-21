@@ -81,22 +81,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		router.POST("/v1/users/stablerail/onrampcngn/:amount", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersStablerailOnrampcngnAmountHandler(callBackRetryChan, gc))
 
 	}
-	router.POST("/v1/users/asset/opt-in", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersAssetOptInHandler(callBackRetryChan, gc))
-
-	router.POST("/v1/shared-access/users/asset/opt-in", middleware.AuthenticationMiddlewareUsingTimestamp(), postSharedAccessUsersAssetOptInHandler(callBackRetryChan, gc))
-
-	router.DELETE("/v1/users/asset/opt-out", middleware.AuthenticationMiddlewareUsingTimestamp(), deleteUsersAssetOptOutHandler(callBackRetryChan, gc))
-
-	router.DELETE("/v1/shared-access/users/asset/opt-out", middleware.AuthenticationMiddlewareUsingTimestamp(), deleteSharedAccessUsersAssetOptOutHandler(callBackRetryChan, gc))
-
-	router.PUT("/v1/users/actions/claim-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), putUsersActionsClaimAssetHandler(callBackRetryChan, gc))
-
-	router.DELETE("/v1/users/actions/reject-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), deleteUsersActionsRejectAssetHandler(callBackRetryChan, gc))
-
-	router.PUT("/v1/shared-access/users/actions/claim-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), putSharedAccessUsersActionsClaimAssetHandler(callBackRetryChan, gc))
-
-	router.DELETE("/v1/shared-access/users/actions/reject-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), deleteSharedAccessUsersActionsRejectAssetHandler(callBackRetryChan, gc))
-
 	router.GET("/v1/users/payment/generate/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), getUsersPaymentGenerateTargetUserHandler(callBackRetryChan, gc))
 
 	router.POST("/v1/security-questions", middleware.AuthenticationMiddlewareUsingTimestamp(), postSecurityQuestionsHandler(callBackRetryChan, gc))

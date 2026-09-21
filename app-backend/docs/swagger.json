@@ -295,7 +295,7 @@
                 }
             }
         },
-        "/v1/crypto/deposit-history/{currency}/{targetPublicKeyForHistory}": {
+        "/v1/crypto/deposit-history/{currency}/{targetAddressForHistory}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -303,7 +303,7 @@
                 "tags": [
                     "users"
                 ],
-                "summary": "GET /v1/crypto/deposit-history/:currency/:targetPublicKeyForHistory",
+                "summary": "GET /v1/crypto/deposit-history/:currency/:targetAddressForHistory",
                 "parameters": [
                     {
                         "type": "string",
@@ -315,7 +315,7 @@
                     {
                         "type": "string",
                         "description": "Target public key",
-                        "name": "targetPublicKeyForHistory",
+                        "name": "targetAddressForHistory",
                         "in": "path",
                         "required": true
                     }
@@ -381,7 +381,7 @@
                 }
             }
         },
-        "/v1/crypto/withdrawal-history/{currency}/{targetPublicKeyForHistory}": {
+        "/v1/crypto/withdrawal-history/{currency}/{targetAddressForHistory}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -389,7 +389,7 @@
                 "tags": [
                     "users"
                 ],
-                "summary": "GET /v1/crypto/withdrawal-history/:currency/:targetPublicKeyForHistory",
+                "summary": "GET /v1/crypto/withdrawal-history/:currency/:targetAddressForHistory",
                 "parameters": [
                     {
                         "type": "string",
@@ -401,7 +401,7 @@
                     {
                         "type": "string",
                         "description": "Target public key",
-                        "name": "targetPublicKeyForHistory",
+                        "name": "targetAddressForHistory",
                         "in": "path",
                         "required": true
                     }
@@ -1967,198 +1967,6 @@
                 }
             }
         },
-        "/v1/shared-access/users/actions/claim-asset": {
-            "put": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "PUT /v1/shared-access/users/actions/claim-asset",
-                "parameters": [
-                    {
-                        "description": "Pending asset payload",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/users.PendingAssetToClaim"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/shared-access/users/actions/reject-asset": {
-            "delete": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "DELETE /v1/shared-access/users/actions/reject-asset",
-                "parameters": [
-                    {
-                        "description": "Pending asset payload",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/users.PendingAssetToClaim"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/shared-access/users/asset/opt-in": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "POST /v1/shared-access/users/asset/opt-in",
-                "parameters": [
-                    {
-                        "description": "Trustline payload",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/users.Trustline"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/shared-access/users/asset/opt-out": {
-            "delete": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "DELETE /v1/shared-access/users/asset/opt-out",
-                "parameters": [
-                    {
-                        "description": "Trustline payload",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/users.Trustline"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/v1/shared-access/wallet-balances": {
             "get": {
                 "produces": [
@@ -2864,6 +2672,61 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/tokenization/subscriptions/fiat/{tokenizedAssetID}": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "POST /v1/tokenization/subscriptions/fiat/:tokenizedAssetID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tokenized asset ID",
+                        "name": "tokenizedAssetID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fiat subscription payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.FiatTokenizedAssetSubscriptionInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -3776,7 +3639,7 @@
                 }
             }
         },
-        "/v1/trovo-api/users/balance/{walletPublicKey}": {
+        "/v1/trovo-api/users/balance/{walletAddress}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -3784,12 +3647,12 @@
                 "tags": [
                     "servicelinks"
                 ],
-                "summary": "GET /v1/trovo-api/users/balance/:walletPublicKey",
+                "summary": "GET /v1/trovo-api/users/balance/:walletAddress",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Wallet public key",
-                        "name": "walletPublicKey",
+                        "name": "walletAddress",
                         "in": "path",
                         "required": true
                     }
@@ -3908,7 +3771,7 @@
                 }
             }
         },
-        "/v1/trovo-api/users/payment-history/{walletPublicKey}": {
+        "/v1/trovo-api/users/payment-history/{walletAddress}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -3916,12 +3779,12 @@
                 "tags": [
                     "servicelinks"
                 ],
-                "summary": "GET /v1/trovo-api/users/payment-history/:walletPublicKey",
+                "summary": "GET /v1/trovo-api/users/payment-history/:walletAddress",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Wallet public key",
-                        "name": "walletPublicKey",
+                        "name": "walletAddress",
                         "in": "path",
                         "required": true
                     }
@@ -4670,7 +4533,7 @@
                 }
             }
         },
-        "/v1/trovo-manager/wallet-balances/{walletPublicKey}": {
+        "/v1/trovo-manager/wallet-balances/{walletAddress}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -4678,12 +4541,12 @@
                 "tags": [
                     "users"
                 ],
-                "summary": "GET /v1/trovo-manager/wallet-balances/:walletPublicKey",
+                "summary": "GET /v1/trovo-manager/wallet-balances/:walletAddress",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Wallet public key",
-                        "name": "walletPublicKey",
+                        "name": "walletAddress",
                         "in": "path",
                         "required": true
                     }
@@ -4942,102 +4805,6 @@
                 }
             }
         },
-        "/v1/users/actions/claim-asset": {
-            "put": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "PUT /v1/users/actions/claim-asset",
-                "parameters": [
-                    {
-                        "description": "Pending asset payload",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/users.PendingAssetToClaim"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/users/actions/reject-asset": {
-            "delete": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "DELETE /v1/users/actions/reject-asset",
-                "parameters": [
-                    {
-                        "description": "Pending asset payload",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/users.PendingAssetToClaim"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/v1/users/activate/fiat": {
             "get": {
                 "produces": [
@@ -5057,102 +4824,6 @@
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/users/asset/opt-in": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "POST /v1/users/asset/opt-in",
-                "parameters": [
-                    {
-                        "description": "Trustline payload",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/users.Trustline"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/users/asset/opt-out": {
-            "delete": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "DELETE /v1/users/asset/opt-out",
-                "parameters": [
-                    {
-                        "description": "Trustline payload",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/users.Trustline"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -5592,7 +5263,7 @@
                 }
             }
         },
-        "/v1/users/payments/{targetPublicKeyForHistory}": {
+        "/v1/users/payments/{targetAddressForHistory}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -5600,12 +5271,12 @@
                 "tags": [
                     "users"
                 ],
-                "summary": "GET /v1/users/payments/:targetPublicKeyForHistory",
+                "summary": "GET /v1/users/payments/:targetAddressForHistory",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Target public key",
-                        "name": "targetPublicKeyForHistory",
+                        "name": "targetAddressForHistory",
                         "in": "path",
                         "required": true
                     }
@@ -6521,7 +6192,7 @@
                         "type": "string"
                     }
                 },
-                "newSignerPublicKey": {
+                "newSignerAddress": {
                     "type": "string"
                 },
                 "securityAnswers": {
@@ -6664,7 +6335,7 @@
                 "transactionSignature": {
                     "type": "string"
                 },
-                "walletPublicKey": {
+                "walletAddress": {
                     "type": "string"
                 }
             }
@@ -7104,7 +6775,37 @@
                 "status": {
                     "type": "string"
                 },
+                "tokenizedAssetId": {
+                    "type": "string"
+                },
+                "transaction": {
+                    "type": "string"
+                },
+                "transactionSignature": {
+                    "type": "string"
+                },
                 "username": {
+                    "type": "string"
+                },
+                "walletAddress": {
+                    "type": "string"
+                },
+                "walletAlias": {
+                    "type": "string"
+                }
+            }
+        },
+        "users.FiatTokenizedAssetSubscriptionInput": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "fiat amount in tokenized asset quote currency",
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "transactionSignature": {
                     "type": "string"
                 }
             }
@@ -7225,7 +6926,7 @@
                 "emailOtp": {
                     "type": "string"
                 },
-                "newSignerPublicKey": {
+                "newSignerAddress": {
                     "type": "string"
                 },
                 "securityAnswers": {
@@ -7405,7 +7106,7 @@
                 "transactionSignature": {
                     "type": "string"
                 },
-                "walletPublicKey": {
+                "walletAddress": {
                     "type": "string"
                 }
             }
@@ -7447,41 +7148,6 @@
                     "type": "string"
                 },
                 "vatAmount": {
-                    "type": "string"
-                }
-            }
-        },
-        "users.PendingAssetToClaim": {
-            "type": "object",
-            "properties": {
-                "assetCode": {
-                    "type": "string"
-                },
-                "assetIssuer": {
-                    "type": "string"
-                },
-                "commit": {
-                    "type": "integer"
-                },
-                "messages": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "networkPassPhrase": {
-                    "type": "string"
-                },
-                "signatureRequired": {
-                    "type": "integer"
-                },
-                "transaction": {
-                    "type": "string"
-                },
-                "transactionId": {
-                    "type": "string"
-                },
-                "transactionSignature": {
                     "type": "string"
                 }
             }
@@ -7535,12 +7201,12 @@
                 "feeCode": {
                     "type": "string"
                 },
-                "linkedWalletMustSign": {
-                    "type": "integer"
-                },
-                "linkedWalletPublicKey": {
+                "linkedWalletAddress": {
                     "description": "required for initial call only if wallet type is issuing wallet",
                     "type": "string"
+                },
+                "linkedWalletMustSign": {
+                    "type": "integer"
                 },
                 "linkedWalletSignature": {
                     "type": "string"
@@ -7563,7 +7229,7 @@
                 "subWalletSignature": {
                     "type": "string"
                 },
-                "subwalletPublicKey": {
+                "subwalletAddress": {
                     "description": "required for Initial Call",
                     "type": "string"
                 },
@@ -7578,7 +7244,7 @@
                     "type": "string"
                 },
                 "walletType": {
-                    "description": "0=normal, 1= assetIssuing (if issuing wallet, then linkedWalletPublicKey is required). Required for initial Call",
+                    "description": "0=normal, 1= assetIssuing (if issuing wallet, then linkedWalletAddress is required). Required for initial Call",
                     "type": "integer"
                 }
             }
@@ -7601,11 +7267,11 @@
                 "feeCode": {
                     "type": "string"
                 },
+                "linkedWalletAddress": {
+                    "type": "string"
+                },
                 "linkedWalletMustSign": {
                     "type": "integer"
-                },
-                "linkedWalletPublicKey": {
-                    "type": "string"
                 },
                 "linkedWalletSignature": {
                     "type": "string"
@@ -7690,6 +7356,12 @@
                 "CreditRatingAgency": {
                     "type": "string"
                 },
+                "EarlyExitFee": {
+                    "type": "string"
+                },
+                "EarlyExitPenalty": {
+                    "type": "string"
+                },
                 "IsFreeFromLiensAndEncumbrances": {
                     "type": "integer"
                 },
@@ -7710,6 +7382,9 @@
                 },
                 "allowedAllocationRange": {
                     "type": "string"
+                },
+                "annualRentalIncome": {
+                    "type": "number"
                 },
                 "approvedAssetCustodianId": {
                     "type": "integer"
@@ -7768,6 +7443,9 @@
                 "assetOwnerRetainedOrContributedValue": {
                     "type": "number"
                 },
+                "assetPerformanceRisk": {
+                    "type": "string"
+                },
                 "assetPhysicalAddress": {
                     "type": "string"
                 },
@@ -7810,11 +7488,17 @@
                 "autoRollover": {
                     "type": "string"
                 },
+                "averageHoldingPeriod": {
+                    "type": "integer"
+                },
                 "averageMaturity": {
                     "type": "number"
                 },
                 "averageMaturityHybrid": {
                     "type": "number"
+                },
+                "averagePortfolioDuration": {
+                    "type": "integer"
                 },
                 "backingSecurity": {
                     "type": "string"
@@ -7852,6 +7536,12 @@
                 "capQuantity": {
                     "type": "number"
                 },
+                "cashAllocation": {
+                    "type": "number"
+                },
+                "cashFlowVolatilityRisk": {
+                    "type": "string"
+                },
                 "closedGroupId": {
                     "type": "string"
                 },
@@ -7884,6 +7574,9 @@
                 },
                 "contractualProtectionSLA": {
                     "type": "integer"
+                },
+                "counterpartyConcentrationRisk": {
+                    "type": "string"
                 },
                 "couponOrInterestRate": {
                     "type": "number"
@@ -7936,6 +7629,9 @@
                 "currentBeneficialOwner": {
                     "type": "string"
                 },
+                "currentMarketValue": {
+                    "type": "number"
+                },
                 "dcsrDetails": {
                     "type": "string"
                 },
@@ -7960,16 +7656,28 @@
                 "debtInstrumentType": {
                     "type": "string"
                 },
+                "debtOutstanding": {
+                    "type": "number"
+                },
                 "debtPercentage": {
                     "type": "number"
                 },
                 "defaultHistory": {
                     "type": "string"
                 },
+                "defaultRecoveryRisk": {
+                    "type": "string"
+                },
+                "developmentProjects": {
+                    "type": "string"
+                },
                 "distributionFrequency": {
                     "type": "string"
                 },
                 "distributionMethod": {
+                    "type": "string"
+                },
+                "distributionPolicy": {
                     "type": "string"
                 },
                 "dividendPolicy": {
@@ -8008,6 +7716,9 @@
                 "equityStrategy": {
                     "type": "string"
                 },
+                "esgClassification": {
+                    "type": "string"
+                },
                 "esgOrImpactMetrics": {
                     "type": "string"
                 },
@@ -8040,6 +7751,9 @@
                 },
                 "exitLoadRedemptionFee": {
                     "type": "number"
+                },
+                "exitStrategy": {
+                    "type": "string"
                 },
                 "exitWithFiat": {
                     "type": "integer"
@@ -8084,6 +7798,18 @@
                     "description": "0=equity, 1= debt, 2= hybrid",
                     "type": "integer"
                 },
+                "fundsFromOperations": {
+                    "type": "number"
+                },
+                "fundsHoldingWalletAddress": {
+                    "type": "string"
+                },
+                "geographicAllocation": {
+                    "type": "string"
+                },
+                "geographicDistribution": {
+                    "type": "string"
+                },
                 "geographicExposure": {
                     "type": "string"
                 },
@@ -8109,6 +7835,9 @@
                     "type": "string"
                 },
                 "independentMonitoringList": {
+                    "type": "string"
+                },
+                "independentValuationFirm": {
                     "type": "string"
                 },
                 "initialNetAssetValue": {
@@ -8210,6 +7939,9 @@
                 "investmentObjective": {
                     "type": "string"
                 },
+                "investmentStrategy": {
+                    "type": "string"
+                },
                 "investorAccreditationRequired": {
                     "type": "integer"
                 },
@@ -8292,6 +8024,9 @@
                 "lienOrEncumbrances": {
                     "type": "string"
                 },
+                "liquidityClassification": {
+                    "type": "string"
+                },
                 "liquidityProfile": {
                     "type": "string"
                 },
@@ -8357,8 +8092,17 @@
                 "navOrMarketValueUpdates": {
                     "type": "string"
                 },
+                "navPerUnit": {
+                    "type": "number"
+                },
                 "navUpdateFrequency": {
                     "type": "string"
+                },
+                "netOperatingIncome": {
+                    "type": "number"
+                },
+                "noOfProperties": {
+                    "type": "integer"
                 },
                 "number": {
                     "type": "string"
@@ -8368,6 +8112,12 @@
                 },
                 "numberOfTokenToBeSold": {
                     "type": "number"
+                },
+                "occupancyRate": {
+                    "type": "number"
+                },
+                "occupancyRisk": {
+                    "type": "string"
                 },
                 "offeringType": {
                     "description": "PRIVATE, PUBLIC",
@@ -8426,6 +8176,12 @@
                 "partiesInvolvedCustodian": {
                     "type": "string"
                 },
+                "partiesInvolvedIndependentValuer": {
+                    "type": "string"
+                },
+                "partiesInvolvedInvestmentCommittee": {
+                    "type": "string"
+                },
                 "partiesInvolvedIssuer": {
                     "type": "string"
                 },
@@ -8438,7 +8194,13 @@
                 "partiesInvolvedRatingAgency": {
                     "type": "string"
                 },
+                "partiesInvolvedRegistrar": {
+                    "type": "string"
+                },
                 "partiesInvolvedRegulator": {
+                    "type": "string"
+                },
+                "partiesInvolvedRiskCommittee": {
                     "type": "string"
                 },
                 "partiesInvolvedTrustee": {
@@ -8458,6 +8220,39 @@
                 },
                 "paymentStructureToTokenHolders": {
                     "type": "string"
+                },
+                "pchCompanyName": {
+                    "type": "string"
+                },
+                "pchCostBasis": {
+                    "type": "number"
+                },
+                "pchCountry": {
+                    "type": "string"
+                },
+                "pchCurrentFairValue": {
+                    "type": "number"
+                },
+                "pchEBITDAGrowthRate": {
+                    "type": "number"
+                },
+                "pchExitStatus": {
+                    "type": "number"
+                },
+                "pchExpectedExitTimeline": {
+                    "type": "number"
+                },
+                "pchIndustry": {
+                    "type": "string"
+                },
+                "pchInvestmentDate": {
+                    "type": "string"
+                },
+                "pchOwnershipPercentage": {
+                    "type": "string"
+                },
+                "pchRevenueGrowthRate": {
+                    "type": "number"
                 },
                 "percentageValueOfInsurance": {
                     "type": "number"
@@ -8480,11 +8275,17 @@
                 "poolComposition": {
                     "type": "string"
                 },
+                "portfolioGrowthStrategy": {
+                    "type": "string"
+                },
                 "portfolioLockInPeriod": {
                     "type": "integer"
                 },
                 "portfolioPerformanceFee": {
                     "type": "number"
+                },
+                "portfolioSummary": {
+                    "type": "string"
                 },
                 "portfolioTopHoldings": {
                     "type": "string"
@@ -8498,8 +8299,14 @@
                 "pricingYield": {
                     "type": "number"
                 },
+                "principalAmount": {
+                    "type": "number"
+                },
                 "principalPaymentMethod": {
                     "type": "string"
+                },
+                "privateEquityAllocation": {
+                    "type": "number"
                 },
                 "proceedCycle": {
                     "type": "string"
@@ -8553,6 +8360,12 @@
                 "projectTechnicalPartners": {
                     "type": "string"
                 },
+                "propertyCategories": {
+                    "type": "string"
+                },
+                "propertyTypeAllocation": {
+                    "type": "string"
+                },
                 "protectionMethods": {
                     "description": "csv format",
                     "type": "string"
@@ -8599,6 +8412,9 @@
                 "referenceIndex": {
                     "type": "string"
                 },
+                "refinancingRisk": {
+                    "type": "string"
+                },
                 "registrarOrCSCSAgent": {
                     "type": "string"
                 },
@@ -8609,6 +8425,9 @@
                     "type": "string"
                 },
                 "regulatoryLicenseNumber": {
+                    "type": "string"
+                },
+                "reitSponsor": {
                     "type": "string"
                 },
                 "repaymentMethod": {
@@ -8785,10 +8604,16 @@
                 "structuralComplexityRisk": {
                     "type": "string"
                 },
+                "structure": {
+                    "type": "string"
+                },
                 "summaryOfUseOfProceeds": {
                     "type": "string"
                 },
                 "targetAllocation": {
+                    "type": "string"
+                },
+                "targetReturnRange": {
                     "type": "string"
                 },
                 "taxIdNumber": {
@@ -8798,6 +8623,12 @@
                     "type": "string"
                 },
                 "taxTreatmentTokenHolders": {
+                    "type": "string"
+                },
+                "tenantConcentrationRatio": {
+                    "type": "string"
+                },
+                "tenantConcentrationRisk": {
                     "type": "string"
                 },
                 "tenure": {
@@ -8810,6 +8641,12 @@
                     "type": "integer"
                 },
                 "tokenizationObjective": {
+                    "type": "string"
+                },
+                "top10Properties": {
+                    "type": "string"
+                },
+                "top10Tenants": {
                     "type": "string"
                 },
                 "topDebtHoldings": {
@@ -8827,11 +8664,17 @@
                 "totalExpenseRatio": {
                     "type": "number"
                 },
+                "totalGrossAssetValue": {
+                    "type": "number"
+                },
                 "totalIssueSize": {
                     "type": "number"
                 },
                 "totalTokenHeldByManager": {
                     "type": "number"
+                },
+                "totalUnitsOutstanding": {
+                    "type": "integer"
                 },
                 "trusteeAppointed": {
                     "type": "integer"
@@ -8849,6 +8692,12 @@
                     "type": "string"
                 },
                 "typeOfCommercialPaper": {
+                    "type": "string"
+                },
+                "typeOfFund": {
+                    "type": "string"
+                },
+                "typeOfREIT": {
                     "type": "string"
                 },
                 "underlyingAssetPoolSize": {
@@ -8879,6 +8728,9 @@
                     "type": "string"
                 },
                 "valuationMethodology": {
+                    "type": "string"
+                },
+                "valuationRisk": {
                     "type": "string"
                 },
                 "vaultAccreditationBody": {
@@ -8921,7 +8773,13 @@
                 "warehouseOperatorName": {
                     "type": "string"
                 },
+                "weightedAverageLeaseExpiry": {
+                    "type": "integer"
+                },
                 "weightedAverageLife": {
+                    "type": "number"
+                },
+                "weightedPortfolioYield": {
                     "type": "number"
                 },
                 "withholdingTaxDisclosure": {
@@ -8948,11 +8806,20 @@
                 "wrVerifier": {
                     "type": "string"
                 },
+                "yieldInstrumentAllocation": {
+                    "type": "number"
+                },
                 "yieldToMaturity": {
                     "type": "number"
                 },
                 "yieldToMaturityHybrid": {
                     "type": "number"
+                },
+                "yihDuration": {
+                    "type": "integer"
+                },
+                "yihIssuer": {
+                    "type": "string"
                 }
             }
         },
@@ -8966,7 +8833,7 @@
                 "commit": {
                     "type": "integer"
                 },
-                "destinationWalletPublicKey": {
+                "destinationWalletAddress": {
                     "type": "string"
                 },
                 "memo": {
@@ -8979,6 +8846,12 @@
                     }
                 },
                 "networkPassPhrase": {
+                    "type": "string"
+                },
+                "paymentAssetCode": {
+                    "type": "string"
+                },
+                "paymentAssetIssuer": {
                     "type": "string"
                 },
                 "purchaserUsername": {
@@ -9037,6 +8910,14 @@
                 "networkPassPhrase": {
                     "type": "string"
                 },
+                "paymentAssetCode": {
+                    "description": "optional: stablecoin to pay in. Defaults to CNGN.",
+                    "type": "string"
+                },
+                "paymentAssetIssuer": {
+                    "description": "optional: never trusted verbatim, always re-resolved server-side.",
+                    "type": "string"
+                },
                 "signatureRequired": {
                     "type": "integer"
                 },
@@ -9058,42 +8939,7 @@
                 "transactionSignature": {
                     "type": "string"
                 },
-                "walletPublicKey": {
-                    "type": "string"
-                }
-            }
-        },
-        "users.Trustline": {
-            "type": "object",
-            "properties": {
-                "assetCode": {
-                    "type": "string"
-                },
-                "assetIssuer": {
-                    "type": "string"
-                },
-                "commit": {
-                    "type": "integer"
-                },
-                "messages": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "networkPassPhrase": {
-                    "type": "string"
-                },
-                "signatureRequired": {
-                    "type": "integer"
-                },
-                "transaction": {
-                    "type": "string"
-                },
-                "transactionId": {
-                    "type": "string"
-                },
-                "transactionSignature": {
+                "walletAddress": {
                     "type": "string"
                 }
             }
@@ -9236,7 +9082,7 @@
                     }
                 },
                 "sHash": {
-                    "description": "LinkedWalletPublicKey            string                 `json:\"linkedWalletPublicKey\"`\nLinkedWalletSignatureRequired    int                    `json:\"linkedWalletSignatureRequired\"`",
+                    "description": "LinkedWalletAddress            string                 `json:\"linkedWalletAddress\"`\nLinkedWalletSignatureRequired    int                    `json:\"linkedWalletSignatureRequired\"`",
                     "type": "string"
                 },
                 "signatureRequired": {
@@ -9252,7 +9098,7 @@
                 "transactionSignature": {
                     "type": "string"
                 },
-                "walletPublicKey": {
+                "walletAddress": {
                     "type": "string"
                 }
             }

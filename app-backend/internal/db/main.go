@@ -499,11 +499,6 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating ProceedCycle: ", errMigrate)
 		}
 
-		errMigrate = gormDB.AutoMigrate(&users.PostTokenizationTrustlineCandidate{})
-		if errMigrate != nil {
-			log.Fatalln("[OpenDb]Error Migrating PostTokenizationTrustlineCandidate: ", errMigrate)
-		}
-
 		dberr := gormDB.First(&assetModels.AssetClass{}).Error
 		if errors.Is(dberr, gorm.ErrRecordNotFound) {
 			assetClasses := []assetModels.AssetClass{{AssetClass: "Token"}, {AssetClass: "Stablecoin"}, {AssetClass: "Tokenized Asset"}, {AssetClass: "Non Fungible Token (NFT)"}, {AssetClass: "Reward"}}

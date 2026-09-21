@@ -13,35 +13,6 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 )
 
-// PendingAssetToClaim holds pensing assets to be claimed
-type PendingAssetToClaim struct {
-	AssetCode            string   `json:"assetCode"`
-	AssetIssuer          string   `json:"assetIssuer"`
-	Transaction          string   `json:"transaction"`
-	TransactionSignature string   `json:"transactionSignature"`
-	TransactionID        string   `json:"transactionId"`
-	NetworkPassPhrase    string   `json:"networkPassPhrase"`
-	Multiparty           int      `json:"-"`
-	TransactionSource    string   `json:"-"`
-	SignatureRequired    int      `json:"signatureRequired"`
-	ReturnedDescription  string   `json:"-"`
-	Commit               int      `json:"commit"`
-	Messages             []string `json:"messages"`
-}
-type Trustline struct {
-	AssetCode            string   `json:"assetCode"`
-	AssetIssuer          string   `json:"assetIssuer"`
-	Transaction          string   `json:"transaction"`
-	TransactionSignature string   `json:"transactionSignature"`
-	TransactionID        string   `json:"transactionId"`
-	NetworkPassPhrase    string   `json:"networkPassPhrase"`
-	Multiparty           int      `json:"-"`
-	TransactionSource    string   `json:"-"`
-	SignatureRequired    int      `json:"signatureRequired"`
-	ReturnedDescription  string   `json:"-"`
-	Commit               int      `json:"commit"`
-	Messages             []string `json:"messages"`
-}
 
 // MintingInfo represents model for minting asset
 type MintingInfo struct {

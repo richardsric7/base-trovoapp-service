@@ -2133,48 +2133,6 @@ type TokenizedAssetPayoutEngineTask struct {
 	Paid                           int       `gorm:"default:0" json:"paid"`
 }
 
-type PostTokenizationTrustlineCandidate struct {
-	ID          uint64
-	Address     string
-	Description string
-}
-
-func (p PostTokenizationTrustlineCandidate) GetUntrustedTokenizedAssets(gc *sharedconfig.GlobalConfig) (untrusted []string) {
-	knownAssets := make(map[string]struct{})
-	known := make([]string, 0)
-	//get curated tokenized assets
-	assets := gc.GetCuratedAssetByClassID(3, false)
-	//get account balance
-	account, _, err := UserWalletID(p.Address).GetBlockchainAccountDetail(gc)
-	if err != nil {
-		return
-	}
-
-	for _, a := range assets {
-		knownAssets[a.AssetCode+":"+a.AssetIssuer] = struct{}{}
-	}
-
-	for _, b := range account.Balances {
-		key := b.Code + ":" + b.Issuer
-		if _, exists := knownAssets[key]; exists {
-			known = append(known, key)
-		}
-	}
-	//range through known and remove the ones that exists
-	if len(known) > 0 {
-		//remove the ones that exists
-		for _, v := range known {
-			delete(knownAssets, v)
-		}
-	}
-
-	for key := range knownAssets {
-		untrusted = append(untrusted, key)
-	}
-
-	return untrusted
-}
-
 func (p *ProceedPayout) CreateBatch() error {
 	if len(p.TokenizedAssetID) == 0 {
 		return &tErrors.CustomError{Err: "error invalid tokenizedAssetId", ErrMessage: "tokenized asset identification is invalid"}

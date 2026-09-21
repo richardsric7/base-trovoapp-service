@@ -914,18 +914,6 @@ func (gc *GlobalConfig) GetCuratedAssetByClassID(assetClassID uint64, includeIna
 	return tas
 }
 
-type PostTokenizationTrustlineCandidate struct {
-	ID          uint64
-	Address     string
-	Description string
-}
-
-func (gc *GlobalConfig) GetPostTokenizationTrustlineCandidates() (tas []PostTokenizationTrustlineCandidate) {
-	tas = make([]PostTokenizationTrustlineCandidate, 0)
-	gc.DB.Find(&tas)
-	return tas
-}
-
 func (gc *GlobalConfig) GetKycConfig(provider string) (t KYCConfig) {
 
 	gc.DB.Where("service_provider = ?", provider).First(&t)

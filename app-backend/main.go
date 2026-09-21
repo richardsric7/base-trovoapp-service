@@ -848,8 +848,6 @@ func main() {
 			for {
 
 				userServices.ActivatePrimarySalesRoutine(&globalConfig)
-				//also process trustlines that exist.
-				userServices.ProcessPostTokenizationTrustline(&globalConfig)
 				time.Sleep(5 * time.Second)
 			}
 		}()
