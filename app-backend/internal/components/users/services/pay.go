@@ -2,17 +2,14 @@ package users
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 	"trovo-wallet-api/internal/basetxn"
-	algofuncs "trovo-wallet-api/internal/blockchainalgofuncs"
 	tPayErrors "trovo-wallet-api/internal/components/payments/errors"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
-	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -614,58 +611,17 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 	} else {
 		//custom asset
 
-		// claimable assets are for TrovoApp users only. it would return error above when destination does not trust asset
-
 		if !destinationAccountTrustsAsset {
+			// Only market-ready tokenized/regulated assets ever reach here
+			// (see network.IsWalletAuthorizedForAsset) - every other B20
+			// asset is always authorized on Base, no opt-in step needed.
 			if !publicKeyPayment {
-				if gc.IsValidTokenizedAsset(asset.GetCode()) {
-
-					return "", nil, &tErrors.CustomError{
-						Param:      "destination",
-						Err:        "error-destination-cannot-accept-asset",
-						ErrMessage: fmt.Sprintf("%v does not accept the asset %v at this time.", destinationWallet.Alias, asset.GetCode()),
-					}
-
+				return "", nil, &tErrors.CustomError{
+					Param:      "destination",
+					Err:        "error-destination-cannot-accept-asset",
+					ErrMessage: fmt.Sprintf("%v does not accept the asset %v at this time.", destinationWallet.Alias, asset.GetCode()),
 				}
-				//meaning that destinationWallet and destinationUser objects are valid.
-				if destinationWallet.WalletType == 1 {
-					//asset issuing wallet is forbidden to receive custom assets. only native assets
-					err = &tErrors.CustomError{
-						Param:      "destination",
-						Err:        "error-destination-forbidden-to-receive-asset",
-						ErrMessage: fmt.Sprintf("%v, a token minting wallet, is forbidden from receiving %v.", destinationWallet.Alias, asset.GetCode()),
-					}
-					return "", nil, err
-				}
-				if destinationWallet.WalletType == 0 {
-					//standard wallet, create pending asset
-					ops2, _tempAccountKeyPair, tokenIssuerMustSign, err := processDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, asset, newAmountToSend, gc)
-					if err != nil {
-						return "", nil, err
-					}
-
-					tokenizedAssetIssuerMustSign = tokenIssuerMustSign
-
-					extraAccountKeyPair = _tempAccountKeyPair
-
-					ops = append(ops, ops2...)
-				}
-
-				if destinationWallet.WalletType == 2 || destinationWallet.WalletType == 3 {
-
-					ops2, _dSignerAccountKeyPair, err := processCustodialDestinationWalletDoesNotTrustAsset(&destinationWallet, sourceAccount, asset, newAmountToSend)
-
-					if err != nil {
-						return "", nil, err
-					}
-
-					extraAccountKeyPair = _dSignerAccountKeyPair
-
-					ops = append(ops, ops2...)
-				}
-
 			}
-
 		} else {
 			ops = append(ops, &basetxn.Payment{
 				Destination:   destinationAddress,
@@ -1059,31 +1015,13 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 			return "", nil, err
 		}
 		if destinationWallet.WalletType == 0 {
-			//standard wallet, create pending asset
-			// if owner.IsEnterpriseProfile(gc) {
-
-			//set the trusline.
-			//set trusline for the enterprise subwallet
-
+			//standard wallet: authorize the destination for this
+			//tokenized/regulated asset before minting to it.
 			ops = append(ops, &basetxn.ChangeTrust{
 				Line:          asset,
 				Limit:         "900000000000",
 				SourceAccount: destinationWallet.ID,
 			})
-			// tokenizedAssetIssuerMustSign = true
-			// }
-			//  else {
-			// 	ops2, _tempAccountKeyPair, tokenIssuerMustSign, err := processDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, asset, newAmountToSend, gc)
-			// 	tokenizedAssetIssuerMustSign = tokenIssuerMustSign
-			// 	if err != nil {
-			// 		return "", nil, err
-			// 	}
-
-			// 	extraAccountKeyPair = _tempAccountKeyPair
-
-			// 	ops = append(ops, ops2...)
-			// }
-
 		}
 
 		if destinationWallet.WalletType == 2 || destinationWallet.WalletType == 3 {
@@ -1311,7 +1249,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 		}
 	}
 
-	_, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, asset)
+	_, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, _, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, asset)
 	_, _, channelSourceAccountNativeBalance, _, channelSourceAccount, channelSourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, paymentInfo.ChannelAccount, basetxn.NativeAsset{})
 
 	if channelSourceAccountErr != nil {
@@ -1369,48 +1307,17 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 	} else {
 		//custom asset
 
-		// claimable assets are for trovotech customers only. it would return error above when destination does not trust asset
-
 		if !destinationAccountTrustsAsset {
+			// Only market-ready tokenized/regulated assets ever reach here
+			// (see network.IsWalletAuthorizedForAsset) - every other B20
+			// asset is always authorized on Base, no opt-in step needed.
 			if !publicKeyPayment {
-				//meaning that destinationWallet and destinationUser objects are valid.
-				if destinationWallet.WalletType == 1 {
-					//asset issuing wallet is forbidden to receive custom assets. only native assets
-					err = &tErrors.CustomError{
-						Param:      "destination",
-						Err:        "error-destination-forbidden-to-receive-asset",
-						ErrMessage: fmt.Sprintf("%v, a token minting wallet, is forbidden from receiving %v.", destinationWallet.Alias, asset.GetCode()),
-					}
-					return "", nil, err
+				return "", nil, &tErrors.CustomError{
+					Param:      "destination",
+					Err:        "error-destination-cannot-accept-asset",
+					ErrMessage: fmt.Sprintf("%v does not accept the asset %v at this time.", destinationWallet.Alias, asset.GetCode()),
 				}
-				if destinationWallet.WalletType == 0 {
-					//standard wallet, create pending asset
-					ops2, _tempAccountKeyPair, tokenIssuerMustSign, err := processDestinationWalletDoesNotTrustAsset(&destinationInfo, &destinationWallet, sourceAccount, asset, newAmountToSend, gc)
-					tokenizedAssetIssuerMustSign = tokenIssuerMustSign
-					if err != nil {
-						return "", nil, err
-					}
-
-					extraAccountKeyPair = _tempAccountKeyPair
-
-					ops = append(ops, ops2...)
-				}
-
-				if destinationWallet.WalletType == 2 || destinationWallet.WalletType == 3 {
-
-					ops2, _dSignerAccountKeyPair, err := processCustodialDestinationWalletDoesNotTrustAsset(&destinationWallet, sourceAccount, asset, newAmountToSend)
-
-					if err != nil {
-						return "", nil, err
-					}
-
-					extraAccountKeyPair = _dSignerAccountKeyPair
-
-					ops = append(ops, ops2...)
-				}
-
 			}
-
 		} else {
 			ops = append(ops, &basetxn.Payment{
 				Destination:   destinationAddress,
@@ -1511,177 +1418,6 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 		owner.InvalidateUserCache(gc)
 	}
 	return xdrBase64, &destinationInfo, nil
-}
-
-func processDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User, destinationWallet *userModels.UserWallet, sourceAccount *network.AccountInfo, asset basetxn.Asset, amountToSend string, gc *sharedconfig.GlobalConfig) ([]basetxn.Operation, *evmkeypair.Full, bool, error) {
-
-	ops := make([]basetxn.Operation, 0)
-
-	var signerKeyPairToReturn *evmkeypair.Full = nil
-	var tokenizedAssetIssuerMustSign bool
-	tempAccountKeypair, tempAccountError := network.TempAccountKeypair(destinationWallet.ID)
-
-	if tempAccountError != nil {
-		log.Printf("[processDestinationAssetDoesNotTrustAsset] error generating temporary account %v\n", tempAccountError)
-		return ops, tempAccountKeypair, false, &tErrors.ErrorTemporaryServerError{}
-	}
-
-	// var tempAccount txnbuild.Account = &txnbuild.SimpleAccount{AccountID: tempAccountKeypair.Address(), Sequence: 0}
-
-	tempAccountExists, tempAccountTrustsAsset, _, _, tempAccountSource, tempAccountError :=
-		network.BlockchainAccountProperties(gc.BantuExpansionClient, tempAccountKeypair.Address(), asset)
-
-	if tempAccountError != nil {
-		log.Printf("[processDestinationAssetDoesNotTrustAsset] error looking up temporary account %v\n", tempAccountError)
-		return ops, tempAccountKeypair, false, &tErrors.ErrorTemporaryServerError{}
-	}
-
-	{
-
-		var _wallet userModels.UserWallet
-
-		//check if temp account exists in buds or not.
-		err := gc.DB.Where("id = ?", destinationWallet.ID).First(&_wallet).Error
-
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return ops, nil, false, &tErrors.ErrorInvalidAddress{}
-
-			}
-			log.Println("[processDestinationAssetDoesNotTrustAsset]", err)
-			return ops, nil, false, &tErrors.ErrorTemporaryServerError{}
-
-		}
-
-		// var _walletToUpdate users.UserWallet
-		var update bool
-
-		if _wallet.TempAddress != nil {
-			if *_wallet.TempAddress != tempAccountKeypair.Address() {
-				v := tempAccountKeypair.Address()
-				_wallet.TempAddress = &v
-				update = true
-
-			}
-		} else {
-			v := tempAccountKeypair.Address()
-			_wallet.TempAddress = &v
-			update = true
-		}
-
-		if update {
-			dbSaveError := gc.DB.Omit(clause.Associations).Save(&_wallet).Error
-
-			if dbSaveError != nil {
-				log.Printf("[processDestinationAssetDoesNotTrustAsset]db temp save error %v\n", dbSaveError)
-				return ops, nil, tokenizedAssetIssuerMustSign, &tErrors.ErrorTemporaryServerError{}
-			}
-		}
-
-	}
-
-	baseReserve := network.GetBlockchainBaseReserve()
-
-	if !tempAccountExists {
-
-		//create temp account and add destination public key as signer.
-
-		ops = append(ops, &basetxn.CreateAccount{
-			Destination:   tempAccountKeypair.Address(),
-			Amount:        baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String(),
-			SourceAccount: sourceAccount.Address,
-		})
-
-		ops = append(ops, &basetxn.SetOptions{
-			Signer: &basetxn.Signer{
-				Address: destinationWallet.Signer,
-				Weight:  1,
-			},
-			SourceAccount: tempAccountKeypair.Address(),
-		})
-
-		signerKeyPairToReturn = tempAccountKeypair
-	}
-
-	//add the recovery address if enabled and account exists but recovery is not already signer key
-	if len(destinationUser.Username) > 0 {
-		if destinationUser.AccountRecoveryEnabled == 1 {
-			recoveryKeyAddress := algofuncs.GetRecoveryAccountAddress(destinationUser.Username, destinationUser.Address)
-			if len(recoveryKeyAddress) > 0 {
-				if !userBc.SignerIsValid(tempAccountKeypair.Address(), recoveryKeyAddress) {
-
-					//just make the recovery key a signer
-
-					ops = append(ops, &basetxn.SetOptions{
-						Signer: &basetxn.Signer{
-							Address: recoveryKeyAddress,
-							Weight:  1,
-						},
-						SourceAccount: tempAccountKeypair.Address(),
-					})
-
-					signerKeyPairToReturn = tempAccountKeypair
-				}
-			}
-
-		}
-	}
-
-	if tempAccountExists && !network.IsAccountSigner(tempAccountSource.Address, destinationWallet.Signer) {
-
-		//just make the temporary key a signer
-
-		ops = append(ops, &basetxn.SetOptions{
-			Signer: &basetxn.Signer{
-				Address: destinationWallet.Signer,
-				Weight:  1,
-			},
-			SourceAccount: tempAccountKeypair.Address(),
-		})
-
-		signerKeyPairToReturn = tempAccountKeypair
-	}
-
-	if !tempAccountTrustsAsset {
-
-		ops = append(ops, &basetxn.Payment{
-			Destination:   tempAccountKeypair.Address(),
-			Amount:        baseReserve.Mul(decimal.NewFromInt(2)).Truncate(7).String(),
-			Asset:         basetxn.NativeAsset{},
-			SourceAccount: sourceAccount.Address,
-		})
-
-		ops = append(ops, &basetxn.ChangeTrust{
-			Line:          asset,
-			Limit:         "900000000000",
-			SourceAccount: tempAccountKeypair.Address(),
-		})
-
-		signerKeyPairToReturn = tempAccountKeypair
-
-		if gc.IsValidTokenizedAsset(asset.GetCode()) {
-			//check if it is a tokenized asset
-			// allow trust from issuer to destination wallet
-			ops = append(ops, &basetxn.SetTrustLineFlags{
-				Trustor:       tempAccountKeypair.Address(),
-				Asset:         basetxn.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
-				SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-				SourceAccount: asset.GetIssuer(),
-			})
-			tokenizedAssetIssuerMustSign = true
-		}
-
-	}
-
-	ops = append(ops, &basetxn.Payment{
-		Destination:   tempAccountKeypair.Address(),
-		Amount:        amountToSend,
-		Asset:         asset,
-		SourceAccount: sourceAccount.Address,
-	})
-
-	return ops, signerKeyPairToReturn, tokenizedAssetIssuerMustSign, nil
-
 }
 
 // func processCustodialDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User, destinationWallet *userModels.UserWallet, sourceAccount, destinationAccount *network.AccountInfo, asset basetxn.Asset, amountToSend string) (ops []basetxn.Operation, signerKeyPairToReturn *evmkeypair.Full, err error) {
