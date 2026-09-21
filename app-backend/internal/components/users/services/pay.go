@@ -1000,8 +1000,6 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 
 	//custom asset
 
-	// claimable assets are for TrovoApp users only. it would return error above when destination does not trust asset
-
 	if !destinationAccountTrustsAsset {
 
 		//meaning that destinationWallet and destinationUser objects are valid.
@@ -1014,37 +1012,28 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 			}
 			return "", nil, err
 		}
-		if destinationWallet.WalletType == 0 {
-			//standard wallet: authorize the destination for this
-			//tokenized/regulated asset before minting to it.
-			ops = append(ops, &basetxn.ChangeTrust{
-				Line:          asset,
-				Limit:         "900000000000",
-				SourceAccount: destinationWallet.ID,
-			})
+
+		// Only market-ready tokenized/regulated assets ever reach here
+		// (see network.IsWalletAuthorizedForAsset) - every other B20
+		// asset is always authorized on Base, no opt-in step needed. A
+		// regulated asset needs an explicit compliance approval (POST
+		// /v1/compliance/wallet-authorization, signed by the asset's own
+		// issuing wallet) before it can be minted to any destination,
+		// custodial wallets included - so this rejects rather than
+		// minting around the gate.
+		return "", nil, &tErrors.CustomError{
+			Param:      "destination",
+			Err:        "error-destination-cannot-accept-asset",
+			ErrMessage: fmt.Sprintf("%v is not authorized to receive the asset %v.", destinationWallet.Alias, asset.GetCode()),
 		}
 
-		if destinationWallet.WalletType == 2 || destinationWallet.WalletType == 3 {
-
-			ops2, _dSignerAccountKeyPair, err := processCustodialDestinationWalletDoesNotTrustAsset(&destinationWallet, sourceAccount, asset, newAmountToSend)
-
-			if err != nil {
-				return "", nil, err
-			}
-
-			extraAccountKeyPair = _dSignerAccountKeyPair
-
-			ops = append(ops, ops2...)
-		}
-
-	} else {
-		ops = append(ops, &basetxn.Payment{
-			Destination:   destinationAddress,
-			Amount:        newAmountToSend,
-			Asset:         asset,
-			SourceAccount: sourceWallet.ID,
-		})
 	}
+	ops = append(ops, &basetxn.Payment{
+		Destination:   destinationAddress,
+		Amount:        newAmountToSend,
+		Asset:         asset,
+		SourceAccount: sourceWallet.ID,
+	})
 
 	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
@@ -1418,37 +1407,6 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 		owner.InvalidateUserCache(gc)
 	}
 	return xdrBase64, &destinationInfo, nil
-}
-
-// func processCustodialDestinationWalletDoesNotTrustAsset(destinationUser *userModels.User, destinationWallet *userModels.UserWallet, sourceAccount, destinationAccount *network.AccountInfo, asset basetxn.Asset, amountToSend string) (ops []basetxn.Operation, signerKeyPairToReturn *evmkeypair.Full, err error) {
-func processCustodialDestinationWalletDoesNotTrustAsset(destinationWallet *userModels.UserWallet, sourceAccount *network.AccountInfo, asset basetxn.Asset, amountToSend string) (ops []basetxn.Operation, signerKeyPairToReturn *evmkeypair.Full, err error) {
-
-	ops = make([]basetxn.Operation, 0)
-
-	if destinationWallet.WalletType == 1 && !asset.IsNative() {
-		err = &tErrors.CustomError{
-			Param:      "destination",
-			Err:        "error-destination-forbidden-to-receive-asset",
-			ErrMessage: fmt.Sprintf("%v, a token minting wallet, is forbidden from receiving %v", destinationWallet.Alias, asset.GetCode()),
-		}
-		return
-	}
-
-	ops = append(ops, &basetxn.ChangeTrust{
-		Line:          asset,
-		Limit:         "900000000000",
-		SourceAccount: destinationWallet.ID,
-	})
-
-	ops = append(ops, &basetxn.Payment{
-		Destination:   destinationWallet.ID,
-		Amount:        amountToSend,
-		Asset:         asset,
-		SourceAccount: sourceAccount.Address,
-	})
-
-	return ops, signerKeyPairToReturn, nil
-
 }
 
 // GetBlockchainAccountDataKey looked up values from a Stellar account's
