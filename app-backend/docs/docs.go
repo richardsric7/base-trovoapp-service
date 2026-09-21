@@ -301,6 +301,121 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/compliance/wallet-authorization": {
+            "post": {
+                "description": "Grants or revokes a wallet's authorization to hold/send a regulated asset. Must be signed by the asset's own issuing wallet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "compliance"
+                ],
+                "summary": "POST /v1/compliance/wallet-authorization",
+                "parameters": [
+                    {
+                        "description": "Wallet authorization payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.WalletAssetAuthorizationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/network.WalletAssetAuthorization"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/compliance/wallet-authorization/{assetCode}/{assetIssuer}": {
+            "get": {
+                "description": "Lists every wallet authorization row for a regulated asset. Must be called by the asset's own issuing wallet.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "compliance"
+                ],
+                "summary": "GET /v1/compliance/wallet-authorization/:assetCode/:assetIssuer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset code",
+                        "name": "assetCode",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Asset issuer (issuing wallet) address",
+                        "name": "assetIssuer",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/network.WalletAssetAuthorization"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/crypto/deposit-history/{currency}/{targetAddressForHistory}": {
             "get": {
                 "produces": [
@@ -5954,6 +6069,38 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "network.WalletAssetAuthorization": {
+            "type": "object",
+            "properties": {
+                "approvedBy": {
+                    "type": "string"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetIssuer": {
+                    "type": "string"
+                },
+                "authorized": {
+                    "type": "boolean"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "walletAddress": {
+                    "type": "string"
+                }
+            }
+        },
         "payments.PaymentInfo": {
             "type": "object",
             "properties": {
@@ -9183,6 +9330,26 @@ const docTemplate = `{
                 },
                 "trusteeId": {
                     "type": "integer"
+                }
+            }
+        },
+        "users.WalletAssetAuthorizationRequest": {
+            "type": "object",
+            "properties": {
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetIssuer": {
+                    "type": "string"
+                },
+                "authorized": {
+                    "type": "boolean"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "walletAddress": {
+                    "type": "string"
                 }
             }
         },

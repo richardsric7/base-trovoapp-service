@@ -1,5 +1,26 @@
 basePath: /
 definitions:
+  network.WalletAssetAuthorization:
+    properties:
+      approvedBy:
+        type: string
+      assetCode:
+        type: string
+      assetIssuer:
+        type: string
+      authorized:
+        type: boolean
+      createdAt:
+        type: string
+      id:
+        type: integer
+      reason:
+        type: string
+      updatedAt:
+        type: string
+      walletAddress:
+        type: string
+    type: object
   payments.PaymentInfo:
     properties:
       amount:
@@ -2148,6 +2169,19 @@ definitions:
       trusteeId:
         type: integer
     type: object
+  users.WalletAssetAuthorizationRequest:
+    properties:
+      assetCode:
+        type: string
+      assetIssuer:
+        type: string
+      authorized:
+        type: boolean
+      reason:
+        type: string
+      walletAddress:
+        type: string
+    type: object
   users.WalletPermissionInfo:
     properties:
       Id:
@@ -2390,6 +2424,86 @@ paths:
       summary: GET /v1/closed-groups
       tags:
       - users
+  /v1/compliance/wallet-authorization:
+    post:
+      consumes:
+      - application/json
+      description: Grants or revokes a wallet's authorization to hold/send a regulated
+        asset. Must be signed by the asset's own issuing wallet.
+      parameters:
+      - description: Wallet authorization payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/users.WalletAssetAuthorizationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/network.WalletAssetAuthorization'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: POST /v1/compliance/wallet-authorization
+      tags:
+      - compliance
+  /v1/compliance/wallet-authorization/{assetCode}/{assetIssuer}:
+    get:
+      description: Lists every wallet authorization row for a regulated asset. Must
+        be called by the asset's own issuing wallet.
+      parameters:
+      - description: Asset code
+        in: path
+        name: assetCode
+        required: true
+        type: string
+      - description: Asset issuer (issuing wallet) address
+        in: path
+        name: assetIssuer
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/network.WalletAssetAuthorization'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: GET /v1/compliance/wallet-authorization/:assetCode/:assetIssuer
+      tags:
+      - compliance
   /v1/crypto/deposit-history/{currency}/{targetAddressForHistory}:
     get:
       parameters:

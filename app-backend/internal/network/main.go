@@ -305,7 +305,10 @@ func DB() *gorm.DB {
 
 // WalletAssetAuthorization is one wallet's authorization to hold/send one
 // B20 asset - the Base equivalent of a Stellar trustline's authorization
-// flag.
+// flag. Rows are only ever written by a compliance approval (see
+// internal/components/users/services' SetWalletAssetAuthorization),
+// signed by the asset's own issuing wallet - ApprovedBy/Reason record who
+// made that call and why, for audit purposes.
 type WalletAssetAuthorization struct {
 	ID            uint64 `gorm:"primaryKey"`
 	CreatedAt     time.Time
@@ -314,6 +317,8 @@ type WalletAssetAuthorization struct {
 	AssetCode     string `gorm:"size:12;not null;uniqueIndex:idx_wallet_asset_auth"`
 	AssetIssuer   string `gorm:"size:64;not null;uniqueIndex:idx_wallet_asset_auth"`
 	Authorized    bool   `gorm:"not null;default:false"`
+	ApprovedBy    string `gorm:"size:64;not null;default:''" json:"approvedBy"`
+	Reason        string `gorm:"size:255;not null;default:''" json:"reason"`
 }
 
 // IsWalletAuthorizedForAsset reports whether wallet may hold/send asset.
@@ -349,8 +354,11 @@ func isTokenizedAsset(assetCode string) bool {
 
 // SetWalletAssetAuthorization grants or revokes wallet's authorization to
 // hold/send asset - the Base equivalent of submitting a
-// SetTrustLineFlags/ChangeTrust operation on Stellar.
-func SetWalletAssetAuthorization(wallet string, asset basetxn.Asset, authorized bool) error {
+// SetTrustLineFlags/ChangeTrust operation on Stellar. approvedBy is the
+// address the compliance approval was authenticated against (the asset's
+// own issuing wallet - see the service-layer caller), reason an optional
+// free-text compliance note; both are recorded for audit purposes.
+func SetWalletAssetAuthorization(wallet string, asset basetxn.Asset, authorized bool, approvedBy, reason string) error {
 	if authDB == nil {
 		return &tErrors.ErrorTemporaryServerError{}
 	}
@@ -359,11 +367,30 @@ func SetWalletAssetAuthorization(wallet string, asset basetxn.Asset, authorized 
 		AssetCode:     asset.GetCode(),
 		AssetIssuer:   strings.ToLower(asset.GetIssuer()),
 		Authorized:    authorized,
+		ApprovedBy:    strings.ToLower(approvedBy),
+		Reason:        reason,
 	}
+	// Assign takes a map, not a struct literal: GORM's struct-to-assignment
+	// conversion silently drops zero-value fields (false, ""), which would
+	// make a revoke (authorized=false) never actually persist.
 	return authDB.Where("wallet_address = ? AND asset_code = ? AND asset_issuer = ?",
 		row.WalletAddress, row.AssetCode, row.AssetIssuer).
-		Assign(WalletAssetAuthorization{Authorized: authorized}).
+		Assign(map[string]interface{}{"authorized": authorized, "approved_by": row.ApprovedBy, "reason": reason}).
 		FirstOrCreate(&row).Error
+}
+
+// WalletAssetAuthorizations lists every wallet's authorization row for
+// one asset (assetIssuer identifies the specific issuance, matching
+// IsWalletAuthorizedForAsset's own lookup) - for a compliance review of
+// who currently holds/is entitled to hold it.
+func WalletAssetAuthorizations(assetCode, assetIssuer string) ([]WalletAssetAuthorization, error) {
+	rows := make([]WalletAssetAuthorization, 0)
+	if authDB == nil {
+		return rows, &tErrors.ErrorTemporaryServerError{}
+	}
+	err := authDB.Where("asset_code = ? AND asset_issuer = ?", assetCode, strings.ToLower(assetIssuer)).
+		Order("created_at desc").Find(&rows).Error
+	return rows, err
 }
 
 // --- Account signer registry (app-layer stand-in for Stellar's

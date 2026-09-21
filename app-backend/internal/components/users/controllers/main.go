@@ -543,6 +543,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		router.DELETE("/v1/tokenization/fee/:documentID", middleware.AuthenticationMiddlewareUsingTimestamp(), deleteTokenizationFeeDocumentIDHandler(callBackRetryChan, gc))
 
+		router.POST("/v1/compliance/wallet-authorization", middleware.AuthenticationMiddlewareUsingTimestamp(), postComplianceWalletAuthorizationHandler(callBackRetryChan, gc))
+
+		router.GET("/v1/compliance/wallet-authorization/:assetCode/:assetIssuer", middleware.AuthenticationMiddlewareUsingTimestamp(), getComplianceWalletAuthorizationHandler(callBackRetryChan, gc))
+
 	}
 
 }

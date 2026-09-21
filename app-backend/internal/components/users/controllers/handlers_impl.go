@@ -7501,3 +7501,89 @@ func deleteTokenizationFeeDocumentIDHandler(callBackRetryChan chan userModels.Re
 		c.JSON(http.StatusOK, document)
 	}
 }
+
+// postComplianceWalletAuthorizationHandler godoc
+// @Summary POST /v1/compliance/wallet-authorization
+// @Description Grants or revokes a wallet's authorization to hold/send a regulated asset. Must be signed by the asset's own issuing wallet.
+// @Tags compliance
+// @Accept json
+// @Produce json
+// @Param body body userModels.WalletAssetAuthorizationRequest true "Wallet authorization payload"
+// @Success 200 {object} network.WalletAssetAuthorization
+// @Failure 400 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /v1/compliance/wallet-authorization [post]
+func postComplianceWalletAuthorizationHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req userModels.WalletAssetAuthorizationRequest
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		if err := json.Unmarshal(data, &req); err != nil {
+			var invalidJSON tErrors.ErrorInvalidJSON
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		approverSigner := middleware.ExtractSigner(c)
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/compliance/wallet-authorization %v", approverSigner), gc.DB)
+
+		row, err := userServices.ApproveWalletAssetAuthorization(approverSigner, &req, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, row)
+	}
+}
+
+// getComplianceWalletAuthorizationHandler godoc
+// @Summary GET /v1/compliance/wallet-authorization/:assetCode/:assetIssuer
+// @Description Lists every wallet authorization row for a regulated asset. Must be called by the asset's own issuing wallet.
+// @Tags compliance
+// @Produce json
+// @Param assetCode path string true "Asset code"
+// @Param assetIssuer path string true "Asset issuer (issuing wallet) address"
+// @Success 200 {array} network.WalletAssetAuthorization
+// @Failure 400 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /v1/compliance/wallet-authorization/{assetCode}/{assetIssuer} [get]
+func getComplianceWalletAuthorizationHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		assetCode := c.Param("assetCode")
+		assetIssuer := c.Param("assetIssuer")
+		approverSigner := middleware.ExtractSigner(c)
+
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/compliance/wallet-authorization/%v/%v %v", assetCode, assetIssuer, approverSigner), gc.DB)
+
+		rows, err := userServices.GetWalletAssetAuthorizations(approverSigner, assetCode, assetIssuer, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, rows)
+	}
+}
