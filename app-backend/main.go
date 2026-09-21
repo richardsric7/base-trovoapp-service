@@ -207,6 +207,14 @@ func main() {
 			log.Println("ENV variable SHORT_LINKS_BASE_URL is not set. Using default https://trovo.app")
 		}
 
+		// Wires internal/network's WalletAssetAuthorization DB handle and
+		// basetxn's default Builder (see network.SetDB's doc comment: "Called
+		// once at startup"). Without this, IsWalletAuthorizedForAsset silently
+		// no-ops (authDB stays nil) and every basetxn.Transaction.Sign call
+		// across the codebase fails with "no Builder configured". Kept inside
+		// this !migrateOnly block since it dials BASE_RPC_URL/EXPANSION_URL,
+		// which a migrate-only run isn't guaranteed to have set.
+		network.SetDB(database)
 	}
 	log.Println("starting migration")
 	//migrate DB models if any

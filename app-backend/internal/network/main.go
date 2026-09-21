@@ -322,11 +322,11 @@ type WalletAssetAuthorization struct {
 }
 
 // IsWalletAuthorizedForAsset reports whether wallet may hold/send asset.
-// The native asset, and any B20 asset that doesn't require authorization
-// (see internal/components/assets' AuthRequired flag - checked by callers
-// before this is even consulted for such assets), is always authorized.
+// The native asset, and any B20 asset that doesn't require authorization,
+// is always authorized - only market-ready tokenized/regulated assets
+// (isTokenizedAsset) are gated behind an explicit authorization row.
 func IsWalletAuthorizedForAsset(wallet string, asset basetxn.Asset) bool {
-	if asset.IsNative() || authDB == nil {
+	if asset.IsNative() || authDB == nil || !isTokenizedAsset(asset.GetCode()) {
 		return true
 	}
 	var row WalletAssetAuthorization
@@ -336,6 +336,20 @@ func IsWalletAuthorizedForAsset(wallet string, asset basetxn.Asset) bool {
 		return false
 	}
 	return row.Authorized
+}
+
+// isTokenizedAsset mirrors sharedconfig.GlobalConfig.IsValidTokenizedAsset's
+// query (duplicated rather than imported, to avoid a sharedconfig<->network
+// import cycle): an asset only requires wallet-level authorization once
+// it's a market-ready tokenized/regulated asset (Asset_Tokenization_Status
+// > 3). Every other B20 asset needs no opt-in on Base.
+func isTokenizedAsset(assetCode string) bool {
+	type Result struct {
+		ID string
+	}
+	var result Result
+	authDB.Raw("SELECT id FROM Tokenized_Assets WHERE Asset_Tokenization_Status > 3 AND Asset_Code = upper(?)", assetCode).Scan(&result)
+	return len(result.ID) > 0
 }
 
 // SetWalletAssetAuthorization grants or revokes wallet's authorization to
