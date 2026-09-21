@@ -318,13 +318,13 @@ export default function WalletOperations({
     if (!formData.sendTo) {
       newObj = {
         ...newObj,
-        sendTo: 'Please enter receiver username or public key',
+        sendTo: 'Please enter receiver username or address',
       };
       isValid = false;
     } else if (formData.sendTo.length < 3) {
       newObj = {
         ...newObj,
-        sendTo: 'Invalid username or public key',
+        sendTo: 'Invalid username or address',
       };
       isValid = false;
     } else {
@@ -799,7 +799,7 @@ export default function WalletOperations({
                                     .then(() => {
                                       showNotification(
                                         'info',
-                                        'Public key copied!',
+                                        'Address copied!',
                                       );
                                     })
                                 }

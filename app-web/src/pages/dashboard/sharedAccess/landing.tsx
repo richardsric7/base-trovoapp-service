@@ -3814,8 +3814,8 @@ export default function SharedAccessLanding() {
               onChange={(value) => setDraftWalletAlias(value)}
             />
             <LabeledInput
-              label="Wallet public key"
-              placeholder="Select or enter wallet public key"
+              label="Wallet address"
+              placeholder="Select or enter wallet address"
               value={draftWalletAddress}
               onChange={(value) => setDraftWalletAddress(value)}
             />

@@ -61,7 +61,7 @@ export default function Backup() {
               </div>
               <div className="flex flex-col space-y-5 w-full">
                 <p className="text-left w-full text-primary-800 text-md font-bold">
-                  Public Key:
+                  Address:
                 </p>
                 <div className="flex w-full justify-between">
                   <div className="w-4/5 h-full break-all">{d.address}</div>
@@ -69,7 +69,7 @@ export default function Backup() {
                     type="button"
                     onClick={() =>
                       navigator.clipboard.writeText(d.address).then(() => {
-                        showNotification('info', 'Public key copied!');
+                        showNotification('info', 'Address copied!');
                       })
                     }
                   >
@@ -117,7 +117,7 @@ export default function Backup() {
                   onClick={async () => {
                     navigator.clipboard
                       .writeText(
-                        `Wallet alias: ${d.alias}\nPublic key: ${d.address}\nSecret key: ${d.secretKey}`,
+                        `Wallet alias: ${d.alias}\nAddress: ${d.address}\nSecret key: ${d.secretKey}`,
                       )
                       .then(() => {
                         showNotification('info', 'Wallet info copied!');

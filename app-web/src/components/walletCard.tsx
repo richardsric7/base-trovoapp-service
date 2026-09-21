@@ -45,7 +45,7 @@ const WalletCard = forwardRef<HTMLDivElement, Props>(
               type="button"
               onClick={() =>
                 navigator.clipboard.writeText(alias).then(() => {
-                  showNotification('info', 'Public key copied!');
+                  showNotification('info', 'Address copied!');
                 })
               }
             >

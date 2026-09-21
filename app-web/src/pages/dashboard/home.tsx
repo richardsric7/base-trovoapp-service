@@ -448,7 +448,7 @@ export default function Home() {
                     navigator.clipboard
                       .writeText(JSON.stringify(tokenizationData))
                       .then(() => {
-                        showNotification('success', 'Public key copied!');
+                        showNotification('success', 'Address copied!');
                       });
                   }}
                   className="text-primary-800 text-center text-lg md:text-xl font-montserratSemiBold"
@@ -654,7 +654,7 @@ export default function Home() {
                               .then(() => {
                                 showNotification(
                                   'success',
-                                  'Public key copied!',
+                                  'Address copied!',
                                 );
                               });
                           }}
@@ -671,7 +671,7 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-                {/* Public key copied modal */}
+                {/* Address copied modal */}
                 <Modal
                   showModal={showCopiedModal}
                   onClose={() => {
@@ -682,7 +682,7 @@ export default function Home() {
                     <img src="/images/success.png" alt="success" />
                     <div className="flex flex-col text-center space-y-5 items-center w-2/3 md:px-10 justify-center">
                       <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
-                        Public Key Copied Successfully!
+                        Address Copied Successfully!
                       </p>
                     </div>
                   </div>
@@ -825,7 +825,7 @@ export default function Home() {
                                 .then(() => {
                                   showNotification(
                                     'success',
-                                    'Public key copied!',
+                                    'Address copied!',
                                   );
                                 });
                             }}
@@ -1055,7 +1055,7 @@ export default function Home() {
           }}
         />
       )}
-      {/* Public key copied modal */}
+      {/* Address copied modal */}
       <P2pComingSoonModal
         show={showP2pComingSoonModal}
         onClose={() => {

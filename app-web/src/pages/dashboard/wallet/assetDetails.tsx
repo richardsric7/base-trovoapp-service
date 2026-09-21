@@ -232,7 +232,7 @@ export default function AssetDetail() {
                 <div />
               </div>
             </Modal>
-            {/* Public key copied modal */}
+            {/* Address copied modal */}
             <Modal
               showModal={showSuccessModal}
               onClose={() => {

@@ -167,7 +167,7 @@ export default function TokenizedAssetsListView() {
           }}
         />
       )}
-      {/* Public key copied modal */}
+      {/* Address copied modal */}
       <P2pComingSoonModal
         show={showP2pComingSoonModal}
         onClose={() => {

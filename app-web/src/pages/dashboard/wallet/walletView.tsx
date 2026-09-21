@@ -617,7 +617,7 @@ export default function WalletView() {
           />
         </div>
       </div>
-      {/* Public key copied modal */}
+      {/* Address copied modal */}
       <Modal
         showModal={showAddSubwalletModal}
         onClose={() => {
@@ -832,7 +832,7 @@ export default function WalletView() {
                         {formData.description}
                       </p>
                       <p className="text-sm text-primary-800 font-montserratSemiBold">
-                        Public Key
+                        Address
                       </p>
                       <p className="text-sm text-primary-800 ">
                         {formData.newAddress}

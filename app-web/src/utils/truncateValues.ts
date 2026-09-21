@@ -4,7 +4,7 @@ export const truncateValues = (value: number, decimalPlaces:number) => {
   }
 
   export const truncateAddress = (address: string) => {
-    if (address == null) return "Enter public key";
+    if (address == null) return "Enter address";
     if (address.length <= 7) return address;
     return truncate(address,  7) +
         address.substring(address.length - 7);

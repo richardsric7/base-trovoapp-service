@@ -873,7 +873,7 @@ export default function TokenizedAssetDetailsView() {
           setShowSubscribeModal(false);
         }}
       />
-      {/* Public key copied modal */}
+      {/* Address copied modal */}
       <P2pComingSoonModal
         show={showP2pComingSoonModal}
         onClose={() => {

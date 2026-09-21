@@ -627,8 +627,8 @@ export const History = () => {
               }
             />
             <LabeledInput
-              label="“From” Public Key"
-              placeholder="“From” Public Key"
+              label="“From” Address"
+              placeholder="“From” Address"
               value={draftFilters.fromAddress}
               onChange={(value) =>
                 setDraftFilters((current) => ({
@@ -638,8 +638,8 @@ export const History = () => {
               }
             />
             <LabeledInput
-              label="“To” Public Key"
-              placeholder="“To” Public Key"
+              label="“To” Address"
+              placeholder="“To” Address"
               value={draftFilters.toAddress}
               onChange={(value) =>
                 setDraftFilters((current) => ({

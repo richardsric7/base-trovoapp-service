@@ -329,7 +329,7 @@ function AnswerSecurityQuestions() {
                   </div>
                   <div className="flex flex-col space-y-5 w-full">
                     <p className="text-left w-full text-primary-800 text-md font-bold">
-                      Public Key:
+                      Address:
                     </p>
                     <div className="flex w-full justify-between">
                       <div className="w-4/5 h-full break-all">
@@ -341,7 +341,7 @@ function AnswerSecurityQuestions() {
                           navigator.clipboard
                             .writeText(tempData.address)
                             .then(() => {
-                              showNotification('info', 'Public key copied!');
+                              showNotification('info', 'Address copied!');
                             })
                         }
                       >
