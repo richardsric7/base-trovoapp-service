@@ -105,7 +105,7 @@ func main() {
 		// vestigial on Base (see network.GetBlockchainNetworkPassPhrase /
 		// GetBlockchainBaseReserve) - both handle being unset gracefully,
 		// so they're no longer required to boot.
-		requiredEnvironmentVariables := []string{"EXPANSION_URL",
+		requiredEnvironmentVariables := []string{"BASE_RPC_URL",
 			"MNEMONIC_TEMP_ACCOUNTS", "NATIVE_ASSET_CODE", "ENABLE_CACHING",
 			"MM_FEE_COLLECTION_CHANNEL_ACCOUNT", "MARKET_MAKING_SALT", "MNEMONIC_MARKET_MAKING",
 			"MARKET_MAKING_FEE_WALLET",

@@ -74,14 +74,9 @@ func GetBlockchainSwapDestinationMin() decimal.Decimal {
 }
 
 // GetBlockchainClient returns the Base JSON-RPC client, the Base
-// equivalent of Stellar's Horizon client. Reads BASE_RPC_URL, falling
-// back to the original EXPANSION_URL env var if BASE_RPC_URL isn't set
-// yet, so a deployment can rename its env at its own pace.
+// equivalent of Stellar's Horizon client.
 func GetBlockchainClient() *ethclient.Client {
 	url := os.Getenv("BASE_RPC_URL")
-	if url == "" {
-		url = os.Getenv("EXPANSION_URL")
-	}
 	client, err := ethclient.Dial(url)
 	if err != nil {
 		log.Panicf("[GetBlockchainClient] invalid BASE_RPC_URL %q: %v", url, err)

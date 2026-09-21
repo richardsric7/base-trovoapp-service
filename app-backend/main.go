@@ -108,7 +108,7 @@ func main() {
 		// vestigial on Base (see network.GetBlockchainNetworkPassPhrase /
 		// GetBlockchainBaseReserve) - both handle being unset gracefully,
 		// so they're no longer required to boot.
-		requiredEnvironmentVariables := []string{"EXPANSION_URL",
+		requiredEnvironmentVariables := []string{"BASE_RPC_URL",
 			"MNEMONIC_TEMP_ACCOUNTS", "MAILGUN_PRIVATE_API_KEY", "CDB_CONNECTION_STRING",
 			"IPAPI_KEY", "IPAPI_HOST", "VERIFICATION_CODE_SALT", "ENABLE_EMAIL_VALIDATION", "ENABLE_CACHING", "DEFAULT_ASSET_IMAGE_URL",
 			"REDIS_HOST", "REDIS_PORT", "DYNAMIC_LINKS_DOMAIN_PREFIX", "DYNAMIC_LINKS_ANDROID_PACKAGE_NAME",
@@ -212,8 +212,8 @@ func main() {
 		// once at startup"). Without this, IsWalletAuthorizedForAsset silently
 		// no-ops (authDB stays nil) and every basetxn.Transaction.Sign call
 		// across the codebase fails with "no Builder configured". Kept inside
-		// this !migrateOnly block since it dials BASE_RPC_URL/EXPANSION_URL,
-		// which a migrate-only run isn't guaranteed to have set.
+		// this !migrateOnly block since it dials BASE_RPC_URL, which a
+		// migrate-only run isn't guaranteed to have set.
 		network.SetDB(database)
 	}
 	log.Println("starting migration")

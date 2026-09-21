@@ -179,9 +179,6 @@ func New(db, roachDB *gorm.DB, redisCache *cache.RedisCache, blockchainClient *e
 	}
 	if blockchainClient != nil {
 		s.rpcURL = os.Getenv("BASE_RPC_URL")
-		if s.rpcURL == "" {
-			s.rpcURL = os.Getenv("EXPANSION_URL")
-		}
 	}
 	return s
 }
