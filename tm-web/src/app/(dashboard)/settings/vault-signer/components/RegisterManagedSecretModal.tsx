@@ -91,8 +91,10 @@ const RegisterManagedSecretModal: React.FC<RegisterManagedSecretModalProps> = ({
           </Field>
         </Row>
         <Hint>
-          The CSV at this Vault path must already hold at least 4 real, activated signer keys —
-          this only registers the pointer, it never writes to Vault.
+          The value at this Vault path must already hold at least 4 real, activated signer keys,
+          separated by semicolons (;) rather than commas — a pasted signer value is often a wallet
+          mnemonic, which can itself contain commas. This only registers the pointer, it never
+          writes to Vault.
         </Hint>
         <PrimaryButton buttonStyle={{ width: "100%" }} disabled={isLoading}>
           {isLoading ? "Registering..." : "Register"}

@@ -178,7 +178,7 @@ func ClaimPosition(ctx context.Context, db *gorm.DB, vc *vaultapi.Client, assign
 		if err != nil {
 			return err
 		}
-		totalPositions := len(strings.Split(csvValue, ","))
+		totalPositions := len(vaultclient.SplitCSV(csvValue))
 
 		var claimedPositions []int
 		if err := tx.Model(&vaultsignermodels.VaultSignerAssignment{}).
@@ -337,7 +337,7 @@ func DeleteAssignment(ctx context.Context, db *gorm.DB, vc *vaultapi.Client, ass
 	if err != nil {
 		return nil, err
 	}
-	parts := strings.Split(originalCSV, ",")
+	parts := vaultclient.SplitCSV(originalCSV)
 	if len(parts)-1 < vaultclient.MinCSVEntries {
 		return nil, ErrCSVFloorViolation
 	}
