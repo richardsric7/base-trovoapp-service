@@ -27,7 +27,7 @@ func ApproveWalletAssetAuthorization(approverSigner string, req *userModels.Wall
 	if err := validators.ValidateAddressFormat(req.WalletAddress); err != nil {
 		return result, err
 	}
-	if err := validators.ValidateAddressFormat(req.AssetIssuer); err != nil {
+	if err := validators.ValidateAddressFormat(req.ContractAddress); err != nil {
 		return result, err
 	}
 	if err := validators.ValidateAssetCodeFormat(req.AssetCode); err != nil {
@@ -43,39 +43,39 @@ func ApproveWalletAssetAuthorization(approverSigner string, req *userModels.Wall
 		}
 	}
 
-	issuingWallet, _, err := usersDB.GetWallet(req.AssetIssuer, gc.DB)
+	issuingWallet, _, err := usersDB.GetWallet(req.ContractAddress, gc.DB)
 	if err != nil {
 		return result, err
 	}
 	if issuingWallet.WalletType != 1 {
 		return result, &tErrors.CustomError{
-			Param:      "assetIssuer",
+			Param:      "contractAddress",
 			Err:        "error-not-an-issuing-wallet",
-			ErrMessage: fmt.Sprintf("%v is not an asset-issuing wallet.", req.AssetIssuer),
+			ErrMessage: fmt.Sprintf("%v is not an asset-issuing wallet.", req.ContractAddress),
 			Code:       http.StatusBadRequest,
 		}
 	}
 	if !strings.EqualFold(issuingWallet.Signer, approverSigner) {
 		return result, &tErrors.CustomError{
-			Param:      "assetIssuer",
+			Param:      "contractAddress",
 			Err:        "error-not-authorized-issuer",
 			ErrMessage: "Only the asset's own issuing wallet may approve or revoke wallet authorization for it.",
 			Code:       http.StatusForbidden,
 		}
 	}
 
-	asset := basetxn.CreditAsset{Code: strings.ToUpper(req.AssetCode), Issuer: req.AssetIssuer}
+	asset := basetxn.CreditAsset{Code: strings.ToUpper(req.AssetCode), Issuer: req.ContractAddress}
 	if err := network.SetWalletAssetAuthorization(req.WalletAddress, asset, req.Authorized, approverSigner, req.Reason); err != nil {
 		return result, &tErrors.ErrorTemporaryServerError{}
 	}
 
 	result = network.WalletAssetAuthorization{
-		WalletAddress: strings.ToLower(req.WalletAddress),
-		AssetCode:     strings.ToUpper(req.AssetCode),
-		AssetIssuer:   strings.ToLower(req.AssetIssuer),
-		Authorized:    req.Authorized,
-		ApprovedBy:    strings.ToLower(approverSigner),
-		Reason:        req.Reason,
+		WalletAddress:   strings.ToLower(req.WalletAddress),
+		AssetCode:       strings.ToUpper(req.AssetCode),
+		ContractAddress: strings.ToLower(req.ContractAddress),
+		Authorized:      req.Authorized,
+		ApprovedBy:      strings.ToLower(approverSigner),
+		Reason:          req.Reason,
 	}
 	return result, nil
 }
@@ -84,26 +84,26 @@ func ApproveWalletAssetAuthorization(approverSigner string, req *userModels.Wall
 // previously revoked) for a regulated asset, for the asset's own issuing
 // wallet to review. Same issuer-signature gate as
 // ApproveWalletAssetAuthorization.
-func GetWalletAssetAuthorizations(approverSigner, assetCode, assetIssuer string, gc *sharedconfig.GlobalConfig) ([]network.WalletAssetAuthorization, error) {
-	if err := validators.ValidateAddressFormat(assetIssuer); err != nil {
+func GetWalletAssetAuthorizations(approverSigner, assetCode, contractAddress string, gc *sharedconfig.GlobalConfig) ([]network.WalletAssetAuthorization, error) {
+	if err := validators.ValidateAddressFormat(contractAddress); err != nil {
 		return nil, err
 	}
 	if err := validators.ValidateAssetCodeFormat(assetCode); err != nil {
 		return nil, err
 	}
 
-	issuingWallet, _, err := usersDB.GetWallet(assetIssuer, gc.DB)
+	issuingWallet, _, err := usersDB.GetWallet(contractAddress, gc.DB)
 	if err != nil {
 		return nil, err
 	}
 	if !strings.EqualFold(issuingWallet.Signer, approverSigner) {
 		return nil, &tErrors.CustomError{
-			Param:      "assetIssuer",
+			Param:      "contractAddress",
 			Err:        "error-not-authorized-issuer",
 			ErrMessage: "Only the asset's own issuing wallet may view its wallet authorizations.",
 			Code:       http.StatusForbidden,
 		}
 	}
 
-	return network.WalletAssetAuthorizations(strings.ToUpper(assetCode), assetIssuer)
+	return network.WalletAssetAuthorizations(strings.ToUpper(assetCode), contractAddress)
 }

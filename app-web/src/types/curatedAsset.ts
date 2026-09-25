@@ -1,5 +1,5 @@
 export type CuratedAsset = {
-    assetIssuer: string,
+    contractAddress: string,
     assetCode: string,
     assetName: string,
     description: string,

@@ -52,7 +52,7 @@ class _EarlyExitSummaryView extends State<EarlyExitSummaryView>
       asset = wallet.claimedAssets!.firstWhere(
         (asset) =>
             asset.assetCode == appState.viewData!['assetCode'] &&
-            asset.assetIssuer == appState.viewData!['assetIssuer'],
+            asset.contractAddress == appState.viewData!['contractAddress'],
       );
     }
   }

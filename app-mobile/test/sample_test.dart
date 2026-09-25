@@ -28,7 +28,7 @@ void main() {
     //     publicKey: "GD73I6JM5RX22XDZCT6RT4SSOYYRYDZI3A6NO4TITDFLZRM6NKMYMNSY",
     //     claimedAssets: [
     //       Asset().deserializeJson({
-    //         "assetIssuer": "",
+    //         "contractAddress": "",
     //         "assetCode": "",
     //         "amount": "821672.236766",
     //         "inTrade": {
@@ -49,7 +49,7 @@ void main() {
     //         "exitWithFiat": 0,
     //       }),
     //       Asset().deserializeJson({
-    //         "assetIssuer":
+    //         "contractAddress":
     //             "GCS7P6422J2MHBCOTPZMMP6D65UP4TX2JX3INNK7RKPGFLOIC2PO37RU",
     //         "assetCode": "GLEN",
     //         "amount": "85.0701829",

@@ -82,7 +82,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
 
     if (selectedAsset.isEmpty) {
       selectedAsset =
-          "${getAssetCode(appState.primaryWallet.claimedAssets!.first.assetCode)}|${getAssetIssuer(appState.primaryWallet.claimedAssets!.first.assetIssuer)}";
+          "${getAssetCode(appState.primaryWallet.claimedAssets!.first.assetCode)}|${getContractAddress(appState.primaryWallet.claimedAssets!.first.contractAddress)}";
     }
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -113,7 +113,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
 
                       this.asset = wallet.claimedAssets!.firstWhereOrNull(
                         (x) =>
-                            "${getAssetCode(x.assetCode)}|${getAssetIssuer(x.assetIssuer)}" ==
+                            "${getAssetCode(x.assetCode)}|${getContractAddress(x.contractAddress)}" ==
                             selectedAsset,
                       );
 
@@ -128,7 +128,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                         for (var asset in wallet.claimedAssets!) {
                           var splitNewValue = newValue.toString().split('|');
                           if (asset.assetCode == splitNewValue[0] &&
-                              asset.assetIssuer == splitNewValue[1]) {
+                              asset.contractAddress == splitNewValue[1]) {
                             this.asset = asset;
                           }
                         }

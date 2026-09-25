@@ -149,12 +149,12 @@ func postUsersSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = "basicTransactionHistory"
 			var fromAsset, toAsset string
-			if swapInfo.SourceAssetIssuer == "" || swapInfo.SourceAssetIssuer == "native" {
+			if swapInfo.SourceContractAddress == "" || swapInfo.SourceContractAddress == "native" {
 				fromAsset = os.Getenv("NATIVE_ASSET_CODE")
 			} else {
 				fromAsset = swapInfo.SourceAssetCode
 			}
-			if swapInfo.DestinationAssetIssuer == "" || swapInfo.DestinationAssetIssuer == "native" {
+			if swapInfo.DestinationContractAddress == "" || swapInfo.DestinationContractAddress == "native" {
 				toAsset = os.Getenv("NATIVE_ASSET_CODE")
 			} else {
 				toAsset = swapInfo.DestinationAssetCode

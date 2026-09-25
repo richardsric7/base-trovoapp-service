@@ -52,7 +52,7 @@ class _TransactionStatus extends State<TransactionStatus> {
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+          asset.contractAddress == appState.viewData!['contractAddress'],
     );
 
     transactionInfo = appState.viewData!['transactionData'];
@@ -235,7 +235,7 @@ class _TransactionStatus extends State<TransactionStatus> {
                   appState.viewData = {
                     'walletAddress': wallet.address,
                     'assetCode': asset!.assetCode,
-                    'assetIssuer': asset!.assetIssuer,
+                    'contractAddress': asset!.contractAddress,
                     'historyMode': 'Withdrawal history',
                   };
                   appState.currentAction = PageAction(

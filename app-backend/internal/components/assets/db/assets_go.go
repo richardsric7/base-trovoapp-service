@@ -54,14 +54,14 @@ func GetCuratedAssets(includeInactive bool, gc *sharedconfig.GlobalConfig) (asse
 		go func(v models.CuratedAsset) {
 			defer wg.Done()
 			//get native price
-			// log.Printf(">>>>>>>>>>>>>>>Fetched Asset: Code: %v, Issuer: %v\n", v.AssetCode, v.AssetIssuer)
-			// nativePrice, _ := blockchain.GetNativeAskPrice(v.AssetCode, v.AssetIssuer)
+			// log.Printf(">>>>>>>>>>>>>>>Fetched Asset: Code: %v, Issuer: %v\n", v.AssetCode, v.ContractAddress)
+			// nativePrice, _ := blockchain.GetNativeAskPrice(v.AssetCode, v.ContractAddress)
 			// v.NativePrice = nativePrice
 			// usdPriceFloat := decimal.RequireFromString(usdPrice)
 			// nativePriceFloat := decimal.RequireFromString(nativePrice)
 			// v.UsdPrice = nativePriceFloat.Mul(usdPriceFloat).Truncate(7).String()
 			m.Lock()
-			tempAssets[v.AssetCode+":"+v.AssetIssuer] = v
+			tempAssets[v.AssetCode+":"+v.ContractAddress] = v
 			m.Unlock()
 		}(v)
 
@@ -82,7 +82,7 @@ func GetCuratedAssets(includeInactive bool, gc *sharedconfig.GlobalConfig) (asse
 }
 
 // GetCuratedAssetByCodeAndIssuer returns list of Curated Assets
-func GetCuratedAssetByCodeAndIssuer(assetCode, assetIssuer string, includeInactive bool, gc *sharedconfig.GlobalConfig) (asset models.CuratedAsset, err error) {
+func GetCuratedAssetByCodeAndIssuer(assetCode, contractAddress string, includeInactive bool, gc *sharedconfig.GlobalConfig) (asset models.CuratedAsset, err error) {
 
 	cacheKeyInfo := "curatedAssetsByCodeAndIssuer_"
 	{
@@ -101,10 +101,10 @@ func GetCuratedAssetByCodeAndIssuer(assetCode, assetIssuer string, includeInacti
 
 	var dberr error
 	if !includeInactive {
-		dberr = gc.DB.Preload(clause.Associations).Order("priority").Order("asset_code").Where("inactive = ? AND asset_code = ? AND asset_issuer = ?", 0, assetCode, assetIssuer).Find(&asset).Error
+		dberr = gc.DB.Preload(clause.Associations).Order("priority").Order("asset_code").Where("inactive = ? AND asset_code = ? AND contract_address = ?", 0, assetCode, contractAddress).Find(&asset).Error
 
 	} else {
-		dberr = gc.DB.Preload(clause.Associations).Order("priority").Order("asset_code").Where("asset_code = ? AND asset_issuer = ?", assetCode, assetIssuer).Find(&asset).Error
+		dberr = gc.DB.Preload(clause.Associations).Order("priority").Order("asset_code").Where("asset_code = ? AND contract_address = ?", assetCode, contractAddress).Find(&asset).Error
 	}
 
 	if dberr != nil {

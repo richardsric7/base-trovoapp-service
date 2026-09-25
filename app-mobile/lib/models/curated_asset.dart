@@ -1,5 +1,5 @@
 class CuratedAsset {
-  String? assetIssuer;
+  String? contractAddress;
   String? assetCode;
   String? assetName;
   String? description;
@@ -20,7 +20,7 @@ class CuratedAsset {
   bool isCustom = false; // if the asset is added by the user and not curated by the platform
 
   CuratedAsset({
-    this.assetIssuer,
+    this.contractAddress,
     this.assetCode,
     this.assetName,
     this.description,
@@ -42,7 +42,7 @@ class CuratedAsset {
   CuratedAsset deserializeJson(Map<String, dynamic> m) {
     return CuratedAsset(
       assetCode: m["assetCode"],
-      assetIssuer: m["assetIssuer"],
+      contractAddress: m["contractAddress"],
       assetName: m["assetName"],
       description: m["description"],
       website: m["website"],

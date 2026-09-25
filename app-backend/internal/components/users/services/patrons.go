@@ -358,7 +358,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 	if len(patronSubInput.Transaction) > 0 && len(patronSubInput.TransactionSignature) > 0 {
 		//transaction signed
 
-		var dbAssetIssuer *string
+		var dbContractAddress *string
 		serviceFee := owner.UserWallets[0].GetPatronFee(gc)
 		patronFeeKP, e := evmkeypair.ParseFull(serviceFee.FeeWalletSecretKey)
 		if e != nil {
@@ -372,8 +372,8 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 		}
 
 		dbAssetCode := assetLabel
-		if len(patronSubInput.PaymentAssetIssuer) > 0 {
-			dbAssetIssuer = &patronSubInput.PaymentAssetIssuer
+		if len(patronSubInput.PaymentContractAddress) > 0 {
+			dbContractAddress = &patronSubInput.PaymentContractAddress
 		}
 
 		vatFeeCollection := sharedconfig.FeeCollection{
@@ -394,7 +394,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 
 			}(),
 			AssetCode:             dbAssetCode,
-			AssetIssuer:           dbAssetIssuer,
+			ContractAddress:       dbContractAddress,
 			DestinationWallet:     patronFeeKP.Address(),
 			SharedAccessOperation: 0,
 		}
@@ -445,15 +445,15 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 	var errGetEstimate error
 	var requiredSourceQuantity, estimatedTrov string
 	var path []basetxn.Asset
-	if len(patronSubInput.PaymentAssetIssuer) == 42 {
-		sourceAssets = strings.ToUpper(fmt.Sprintf("%v:%v", patronSubInput.PaymentAssetCode, patronSubInput.PaymentAssetIssuer))
+	if len(patronSubInput.PaymentContractAddress) == 42 {
+		sourceAssets = strings.ToUpper(fmt.Sprintf("%v:%v", patronSubInput.PaymentAssetCode, patronSubInput.PaymentContractAddress))
 	}
 
 	var asset basetxn.Asset
-	if len(patronSubInput.PaymentAssetIssuer) == 0 {
+	if len(patronSubInput.PaymentContractAddress) == 0 {
 		asset = basetxn.NativeAsset{}
 	} else {
-		asset = basetxn.CreditAsset{Code: patronSubInput.PaymentAssetCode, Issuer: patronSubInput.PaymentAssetIssuer}
+		asset = basetxn.CreditAsset{Code: patronSubInput.PaymentAssetCode, Issuer: patronSubInput.PaymentContractAddress}
 	}
 	// chanAccount := <-gc.ChannelAccounts
 	// defer func(c *evmkeypair.Full) {
@@ -474,7 +474,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 	// pathInput := swapModel.SwapPathInput{
 	// 	SourceAssets:           "TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
 	// 	DestinationAssetCode:   strings.Split(os.Getenv("DOLLAR_ASSET"), ":")[0],
-	// 	DestinationAssetIssuer: strings.Split(os.Getenv("DOLLAR_ASSET"), ":")[1],
+	// 	DestinationContractAddress: strings.Split(os.Getenv("DOLLAR_ASSET"), ":")[1],
 	// 	DestinationAmount:      decimal.NewFromFloat(priceConfig.Price).Truncate(7).String(),
 	// }
 
@@ -488,10 +488,10 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 
 	//get the source quantity/equivalent needed for the CNGN amount we now have from the market since there is CNGN offer of the asset.
 	pathInput := swapModel.SwapPathInput{
-		SourceAssets:           sourceAssets,
-		DestinationAssetCode:   nairaAssetSlice[0],
-		DestinationAssetIssuer: nairaAssetSlice[1],
-		DestinationAmount:      cngnAmount.Truncate(7).String(),
+		SourceAssets:               sourceAssets,
+		DestinationAssetCode:       nairaAssetSlice[0],
+		DestinationContractAddress: nairaAssetSlice[1],
+		DestinationAmount:          cngnAmount.Truncate(7).String(),
 	}
 	_, requiredSourceQuantity, errGetEstimate = swaps.GetStrictReceivePaths(pathInput, gc.BantuExpansionClient)
 
@@ -532,10 +532,10 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 
 		//get swap the asset amount to TROV.
 		pathInput := swapModel.SwapSendPathInput{
-			DestinationAssets: "TROV:" + os.Getenv("TROV_ASSET_ISSUER"),
-			SourceAssetCode:   patronSubInput.PaymentAssetCode,
-			SourceAssetIssuer: patronSubInput.PaymentAssetIssuer,
-			SourceAmount:      requiredSourceQuantity,
+			DestinationAssets:     "TROV:" + os.Getenv("TROV_ASSET_CONTRACT_ADDRESS"),
+			SourceAssetCode:       patronSubInput.PaymentAssetCode,
+			SourceContractAddress: patronSubInput.PaymentContractAddress,
+			SourceAmount:          requiredSourceQuantity,
 		}
 
 		path, estimatedTrov, errGetEstimate = swaps.GetStrictSendPaths(pathInput, gc)
@@ -548,17 +548,17 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 		{
 			//build a swap operation to swap the non-trov asset to trov so that trov can be debited.
 			var sendAsset basetxn.Asset
-			if len(patronSubInput.PaymentAssetIssuer) == 0 {
+			if len(patronSubInput.PaymentContractAddress) == 0 {
 				sendAsset = basetxn.NativeAsset{}
 			} else {
-				sendAsset = basetxn.CreditAsset{Code: patronSubInput.PaymentAssetCode, Issuer: patronSubInput.PaymentAssetIssuer}
+				sendAsset = basetxn.CreditAsset{Code: patronSubInput.PaymentAssetCode, Issuer: patronSubInput.PaymentContractAddress}
 			}
 
 			ops = append(ops, &basetxn.PathPaymentStrictSend{
 				SendAsset:     sendAsset,
 				SendAmount:    estimatedTrov,
 				Destination:   patronFeeKP.Address(),
-				DestAsset:     basetxn.CreditAsset{Code: "TROV", Issuer: os.Getenv("TROV_ASSET_ISSUER")},
+				DestAsset:     basetxn.CreditAsset{Code: "TROV", Issuer: os.Getenv("TROV_ASSET_CONTRACT_ADDRESS")},
 				DestMin:       "0.0000001",
 				Path:          path,
 				SourceAccount: owner.Address, //primary wallet
@@ -569,7 +569,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 		ops = append(ops, &basetxn.Payment{
 			Destination:   patronFeeKP.Address(),
 			Amount:        requiredSourceQuantity,
-			Asset:         basetxn.CreditAsset{Code: "TROV", Issuer: os.Getenv("TROV_ASSET_ISSUER")},
+			Asset:         basetxn.CreditAsset{Code: "TROV", Issuer: os.Getenv("TROV_ASSET_CONTRACT_ADDRESS")},
 			SourceAccount: owner.Address, //primary wallet
 		})
 	}
@@ -591,7 +591,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 	patronSubInput.AmountToPay = amountToPay.String()
 	patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription. This is inclusive of VAT (%v %v)", patronSubInput.AmountToPay, assetLabel, owner.Username, patronSubInput.VatAmount, assetLabel))
 
-	// if len(patronSubInput.PaymentAssetIssuer) == 0 {
+	// if len(patronSubInput.PaymentContractAddress) == 0 {
 	// 	patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription.", requiredUsdWorth, nativeAssetCode, owner.Username))
 
 	// } else {

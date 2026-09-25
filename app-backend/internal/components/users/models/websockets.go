@@ -9,19 +9,19 @@ type Streams struct {
 }
 
 type OrderBookStream struct {
-	AssetCode      string `json:"assetCode"`
-	AssetIssuer    string `json:"assetIssuer"`
-	CurrencyCode   string `json:"currencyCode"`
-	CurrencyIssuer string `json:"currencyIssuer"`
+	AssetCode       string `json:"assetCode"`
+	ContractAddress string `json:"contractAddress"`
+	CurrencyCode    string `json:"currencyCode"`
+	CurrencyIssuer  string `json:"currencyIssuer"`
 }
 
 type ChartStream struct {
-	AssetCode      string `json:"assetCode"`
-	AssetIssuer    string `json:"assetIssuer"`
-	CurrencyCode   string `json:"currencyCode"`
-	CurrencyIssuer string `json:"currencyIssuer"`
-	ChartPeriod    string `json:"chartPeriod"`
-	Order          string `json:"order"`
+	AssetCode       string `json:"assetCode"`
+	ContractAddress string `json:"contractAddress"`
+	CurrencyCode    string `json:"currencyCode"`
+	CurrencyIssuer  string `json:"currencyIssuer"`
+	ChartPeriod     string `json:"chartPeriod"`
+	Order           string `json:"order"`
 }
 
 // Handshake holds model for handshake data object

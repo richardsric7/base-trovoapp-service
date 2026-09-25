@@ -13,12 +13,11 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 )
 
-
 // MintingInfo represents model for minting asset
 type MintingInfo struct {
 	Destination             string            `json:"destination"`
 	Memo                    string            `json:"memo"`
-	AssetIssuer             string            `json:"assetIssuer"`
+	ContractAddress         string            `json:"contractAddress"`
 	AssetCode               string            `json:"assetCode"`
 	Amount                  string            `json:"amount"`
 	Transaction             string            `json:"transaction"`
@@ -40,8 +39,8 @@ type MintingInfo struct {
 	CallbackURLS            map[string]string `json:"-"`
 }
 type BantuAsset struct {
-	AssetCode   string `json:"assetCode"`
-	AssetIssuer string `json:"assetIssuer"`
+	AssetCode       string `json:"assetCode"`
+	ContractAddress string `json:"contractAddress"`
 }
 
 type OrderBook struct {
@@ -61,16 +60,16 @@ func (i BantuAsset) GetDataKey(key string, gc *sharedconfig.GlobalConfig) string
 }
 
 func (i BantuAsset) GetAssetImage(gc *sharedconfig.GlobalConfig) string {
-	cacheKey := fmt.Sprintf("url%v_%v", i.AssetCode, i.AssetIssuer)
+	cacheKey := fmt.Sprintf("url%v_%v", i.AssetCode, i.ContractAddress)
 	ok, response := gc.RedisCache.GetCachedResult(cacheKey)
 	if ok {
 		return response.(string)
 	}
 	defaultAssetImageURL := os.Getenv("DEFAULT_ASSET_IMAGE_URL")
-	if len(i.AssetCode) == 0 && len(i.AssetIssuer) == 0 {
+	if len(i.AssetCode) == 0 && len(i.ContractAddress) == 0 {
 		return os.Getenv("NATIVE_ASSET_IMAGE_URL")
 	}
-	if len(strings.TrimSpace(i.AssetIssuer)) != 42 {
+	if len(strings.TrimSpace(i.ContractAddress)) != 42 {
 		return defaultAssetImageURL
 	}
 	cassets := assetsDB.GetCuratedAssets(false, gc)
@@ -79,7 +78,7 @@ func (i BantuAsset) GetAssetImage(gc *sharedconfig.GlobalConfig) string {
 		log.Printf("[GetAssetImage] <<<<<<< unable to get curated assets. returning default asset image")
 		return defaultAssetImageURL
 	}
-	v, ok := cassets[i.AssetCode+":"+i.AssetIssuer]
+	v, ok := cassets[i.AssetCode+":"+i.ContractAddress]
 	if !ok {
 		return defaultAssetImageURL
 
@@ -94,16 +93,16 @@ func (i BantuAsset) GetAssetImage(gc *sharedconfig.GlobalConfig) string {
 }
 
 func (i BantuAsset) IsEnabled(gc *sharedconfig.GlobalConfig) bool {
-	cacheKey := fmt.Sprintf("isenabled%v_%v", i.AssetCode, i.AssetIssuer)
+	cacheKey := fmt.Sprintf("isenabled%v_%v", i.AssetCode, i.ContractAddress)
 	ok, response := gc.RedisCache.GetCachedResult(cacheKey)
 	if ok {
 		return response.(bool)
 	}
-	if len(i.AssetCode) == 0 && len(i.AssetIssuer) == 0 {
+	if len(i.AssetCode) == 0 && len(i.ContractAddress) == 0 {
 		return true
 	}
 
-	casset, err := assetsDB.GetCuratedAssetByCodeAndIssuer(i.AssetCode, i.AssetIssuer, false, gc)
+	casset, err := assetsDB.GetCuratedAssetByCodeAndIssuer(i.AssetCode, i.ContractAddress, false, gc)
 
 	if err != nil {
 		log.Printf("[GetAssetImage] <<<<<<< unable to get curated assets")
@@ -126,7 +125,7 @@ func (i BantuAsset) CanDeposit(gc *sharedconfig.GlobalConfig) bool {
 
 		return false
 	}
-	v, ok := cassets[i.AssetCode+":"+i.AssetIssuer]
+	v, ok := cassets[i.AssetCode+":"+i.ContractAddress]
 	if !ok {
 		return false
 
@@ -176,7 +175,7 @@ func (i BantuAsset) CanWithdraw(gc *sharedconfig.GlobalConfig) bool {
 
 		return false
 	}
-	v, ok := cassets[i.AssetCode+":"+i.AssetIssuer]
+	v, ok := cassets[i.AssetCode+":"+i.ContractAddress]
 	if !ok {
 		return false
 
@@ -190,7 +189,7 @@ func (i BantuAsset) CanWithdraw(gc *sharedconfig.GlobalConfig) bool {
 
 func (i BantuAsset) IsTokenizedAsset(gc *sharedconfig.GlobalConfig) bool {
 
-	code, issuer := i.AssetCode, i.AssetIssuer
+	code, issuer := i.AssetCode, i.ContractAddress
 
 	e := gc.DB.Where("Asset_Tokenization_Status > 4 AND Asset_Code = upper(?) AND Issuing_Wallet_Public_Key = upper(?)", code, issuer).First(&TokenizedAsset{}).Error
 
@@ -202,7 +201,7 @@ func (i BantuAsset) IsTokenizedAsset(gc *sharedconfig.GlobalConfig) bool {
 // such store, so this always falls through to the DB-backed
 // GetAssetImage/DEFAULT_ASSET_IMAGE_URL instead.
 func (i BantuAsset) GetAssetImageFromIssuer(gc *sharedconfig.GlobalConfig) string {
-	if len(i.AssetCode) == 0 && len(i.AssetIssuer) == 0 {
+	if len(i.AssetCode) == 0 && len(i.ContractAddress) == 0 {
 		return os.Getenv("NATIVE_ASSET_IMAGE_URL")
 	}
 	return os.Getenv("DEFAULT_ASSET_IMAGE_URL")
@@ -237,9 +236,9 @@ type BlockchainAssetStat struct {
 // asset (e.g. stablecoins) as freely transferable.
 func (i BantuAsset) GetBlockchainAssetProperty(gc *sharedconfig.GlobalConfig) (assetStat BlockchainAssetStat, err error) {
 	var count int64
-	gc.DB.Table("curated_assets").Where("asset_code = ? AND asset_issuer = ?", strings.ToUpper(i.AssetCode), strings.ToLower(i.AssetIssuer)).Count(&count)
+	gc.DB.Table("curated_assets").Where("asset_code = ? AND contract_address = ?", strings.ToUpper(i.AssetCode), strings.ToLower(i.ContractAddress)).Count(&count)
 	if count == 0 {
-		gc.DB.Table("tokenized_assets").Where("asset_code = ? AND issuing_wallet_address = ?", strings.ToUpper(i.AssetCode), strings.ToLower(i.AssetIssuer)).Count(&count)
+		gc.DB.Table("tokenized_assets").Where("asset_code = ? AND issuing_wallet_address = ?", strings.ToUpper(i.AssetCode), strings.ToLower(i.ContractAddress)).Count(&count)
 	}
 	if count == 0 {
 		return assetStat, nil

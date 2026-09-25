@@ -22,13 +22,13 @@ type PaymentMethod struct {
 	CurrencyID           *string        `gorm:"size:10;null;" json:"currencyId"` // CurrencyID for both MoMo and Bank Transfer
 }
 type PaymentCallback struct {
-	TransactionID string    `gorm:"size:64;primaryKey;check:,length(transaction_id) > 5"`
-	CreatedAt     time.Time `gorm:"not null;default:now()" json:"createdAt"`
-	Memo          string    `gorm:"not null;size:28;null;index:idx_callback_memo;check:,length(memo) > 20" json:"memo"`
-	Sender        string    `gorm:"size 60" json:"sender"`
-	Amount        string    `gorm:"size:100" json:"amount"`
-	AssetCode     string    `gorm:"size:12" json:"assetCode"`
-	AssetIssuer   string    `gorm:"size:60" json:"assetIssuer"`
+	TransactionID   string    `gorm:"size:64;primaryKey;check:,length(transaction_id) > 5"`
+	CreatedAt       time.Time `gorm:"not null;default:now()" json:"createdAt"`
+	Memo            string    `gorm:"not null;size:28;null;index:idx_callback_memo;check:,length(memo) > 20" json:"memo"`
+	Sender          string    `gorm:"size 60" json:"sender"`
+	Amount          string    `gorm:"size:100" json:"amount"`
+	AssetCode       string    `gorm:"size:12" json:"assetCode"`
+	ContractAddress string    `gorm:"size:60" json:"contractAddress"`
 }
 type PaymentMethodJSON struct {
 	CreatedAt            time.Time `json:"createdAt"`
@@ -56,7 +56,7 @@ type PaymentCallbackInfo struct {
 	Sender          string    `json:"sender"`
 	Amount          string    `json:"amount"`
 	AssetCode       string    `json:"assetCode"`
-	AssetIssuer     string    `json:"assetIssuer"`
+	ContractAddress string    `json:"contractAddress"`
 	TransactionID   string    `json:"transactionId"`
 	TransactionMemo string    `json:"transactionMemo"`
 	TransactionTime time.Time `json:"transactionTime"`

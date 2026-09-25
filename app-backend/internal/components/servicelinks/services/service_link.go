@@ -235,7 +235,7 @@ func GetTransactionSignature(input *servicelinkModels.ServiceLinkTokenizedAssetA
 		t := gc.GetTokenizedAssetByCode(input.AssetCode)
 		if t.AssetTokenizationStatus < 6 {
 			return output, &tErrors.CustomError{
-				Param:      "assetIssuer",
+				Param:      "contractAddress",
 				Err:        "error-asset-not-yet-available-for-sale",
 				ErrMessage: "This tokenized Asset is not yet available for secondary market. Authorization is not allowed at this time.",
 				Code:       http.StatusForbidden,
@@ -275,7 +275,7 @@ func GetTransactionSignature(input *servicelinkModels.ServiceLinkTokenizedAssetA
 
 	}
 	return output, &tErrors.CustomError{
-		Param:      "assetIssuer",
+		Param:      "contractAddress",
 		Err:        "error-asset-not-valid",
 		ErrMessage: "This asset is not a tokenized Asset.",
 		Code:       http.StatusForbidden,

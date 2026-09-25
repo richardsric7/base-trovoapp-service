@@ -19,7 +19,7 @@ type FeeCollection struct {
 	FeeType                    string    `json:"fee_type"`
 	Amount                     float64   `json:"amount"`
 	AssetCode                  string    `json:"asset_code"`
-	AssetIssuer                string    `json:"asset_issuer"`
+	ContractAddress            string    `json:"contract_address"`
 	DestinationWallet          string    `json:"destination_wallet"`
 	SharedAccessOperation      int       `json:"shared_access_operation"`
 	TransactionHash            string    `json:"transaction_hash"`

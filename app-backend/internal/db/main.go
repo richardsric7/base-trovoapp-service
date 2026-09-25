@@ -147,9 +147,51 @@ func OpenSqliteDB() (*gorm.DB, error) {
 	return sqliteDB, nil
 }
 
+// renameAssetIssuerColumns renames legacy "asset_issuer"-family columns (Stellar-era
+// terminology, carrying a Base token's smart contract address since the Base port) to
+// "contract_address"-family names, matching the Go model fields renamed from AssetIssuer to
+// ContractAddress. AutoMigrate never renames an existing column - left alone, it would add a
+// new empty "contract_address" column while the old "asset_issuer" column (and its data)
+// stayed behind unused. Each rename is guarded to be a no-op on repeat runs: skipped if the
+// table doesn't exist yet (fresh DB, AutoMigrate below will just create the column with its
+// new name directly), if the old column is already gone, or if the new column is already
+// present.
+func renameAssetIssuerColumns(gormDB *gorm.DB) {
+	renames := []struct {
+		table, oldColumn, newColumn string
+	}{
+		{"curated_assets", "asset_issuer", "contract_address"},
+		{"market_offers", "asset_issuer", "contract_address"},
+		{"tokenization_currencies", "asset_issuer", "contract_address"},
+		{"tokenized_asset_subscriptions", "asset_issuer", "contract_address"},
+		{"expression_of_interests", "asset_issuer", "contract_address"},
+		{"tokenized_asset_payout_schedules", "payout_asset_issuer", "payout_contract_address"},
+		{"tokenized_asset_payout_engine_tasks", "payout_asset_issuer", "payout_contract_address"},
+		{"default_assets", "asset_issuer", "contract_address"},
+		{"service_fees", "fee_asset_issuer", "fee_contract_address"},
+		{"activation_amounts", "asset_issuer", "contract_address"},
+		{"fee_collections", "asset_issuer", "contract_address"},
+		{"payment_histories", "asset_issuer", "contract_address"},
+	}
+	migrator := gormDB.Migrator()
+	for _, r := range renames {
+		if !migrator.HasTable(r.table) {
+			continue
+		}
+		if migrator.HasColumn(r.table, r.oldColumn) && !migrator.HasColumn(r.table, r.newColumn) {
+			if err := migrator.RenameColumn(r.table, r.oldColumn, r.newColumn); err != nil {
+				log.Printf("[MigrateDB] failed to rename %s.%s -> %s: %v\n", r.table, r.oldColumn, r.newColumn, err)
+			} else {
+				log.Printf("[MigrateDB] renamed %s.%s -> %s\n", r.table, r.oldColumn, r.newColumn)
+			}
+		}
+	}
+}
+
 func MigrateDB(gormDB *gorm.DB) {
 	//do automigrate if it is not explicitly disabled,
 	if os.Getenv("DB_AUTOMIGRATE") != "0" {
+		renameAssetIssuerColumns(gormDB)
 		errMigrate := gormDB.AutoMigrate(&users.User{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error migrating User:", errMigrate)

@@ -4,7 +4,7 @@ import "github.com/shopspring/decimal"
 
 // Balance model for user
 type Balance struct {
-	AssetIssuer                  string                       `json:"assetIssuer"`
+	ContractAddress              string                       `json:"contractAddress"`
 	AssetCode                    string                       `json:"assetCode"`
 	Amount                       decimal.Decimal              `json:"amount"`
 	InTrade                      TradeLiabilties              `json:"inTrade"`
@@ -26,11 +26,11 @@ type TradeLiabilties struct {
 }
 
 type NFT struct {
-	AssetIssuer    string `json:"assetIssuer"`
-	AssetCode      string `json:"assetCode"`
-	NFTName        string `json:"nftName"`
-	NFTDescription string `json:"nftDescription"`
-	NFTImageURI    string `json:"nftImageURI"`
+	ContractAddress string `json:"contractAddress"`
+	AssetCode       string `json:"assetCode"`
+	NFTName         string `json:"nftName"`
+	NFTDescription  string `json:"nftDescription"`
+	NFTImageURI     string `json:"nftImageURI"`
 }
 
 // Signer model for user

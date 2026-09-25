@@ -383,12 +383,12 @@ type UserKyc struct {
 }
 
 type ActivationAmount struct {
-	CreatedAt     time.Time `json:"createdAt"`
-	UpdatedAt     time.Time `json:"updatedAt"`
-	LastUpdatedBy string    `json:"lastUpdatedBy"`
-	ID            string    `json:"id"`
-	Amount        float64   `gorm:"default:0" json:"amount"`
-	AssetCode     string    `gorm:"default:'GAS'" json:"assetCode"`
-	AssetIssuer   string    `gorm:"default:'GAS'" json:"assetIssuer"`
-	Inactive      int       `gorm:"default:0" json:"inactive"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+	LastUpdatedBy   string    `json:"lastUpdatedBy"`
+	ID              string    `json:"id"`
+	Amount          float64   `gorm:"default:0" json:"amount"`
+	AssetCode       string    `gorm:"default:'GAS'" json:"assetCode"`
+	ContractAddress string    `gorm:"default:'GAS'" json:"contractAddress"`
+	Inactive        int       `gorm:"default:0" json:"inactive"`
 }

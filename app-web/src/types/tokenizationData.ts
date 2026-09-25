@@ -101,7 +101,7 @@ export type FeePaymentMethod = {
 
 export type TokenizationCurrency = {
     assetCode:   string;
-    assetIssuer: string;
+    contractAddress: string;
     label:       string;
 }
 

@@ -76,7 +76,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+          asset.contractAddress == appState.viewData!['contractAddress'],
     );
 
     fetchNetworksFuture = fetchNetworks();
@@ -591,7 +591,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
           'withdrawalNetworkName': networks[index]['name'],
           'walletAddress': wallet.address,
           'assetCode': asset!.assetCode,
-          'assetIssuer': asset!.assetIssuer,
+          'contractAddress': asset!.contractAddress,
         };
 
         appState.currentAction = PageAction(

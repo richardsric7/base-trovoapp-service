@@ -306,10 +306,10 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 
-		var dbAssetIssuer *string
+		var dbContractAddress *string
 		dbAssetCode := paymentInfo.AssetCode
-		if len(paymentInfo.AssetIssuer) > 0 {
-			dbAssetIssuer = &paymentInfo.AssetIssuer
+		if len(paymentInfo.ContractAddress) > 0 {
+			dbContractAddress = &paymentInfo.ContractAddress
 		} else {
 			dbAssetCode = os.Getenv("NATIVE_ASSET_CODE")
 		}
@@ -323,7 +323,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			FeeType:                    "PAYMENT",
 			Amount:                     decimal.RequireFromString(paymentInfo.FeeAmount).InexactFloat64(),
 			AssetCode:                  dbAssetCode,
-			AssetIssuer:                dbAssetIssuer,
+			ContractAddress:            dbContractAddress,
 			DestinationWallet:          paymentInfo.Destination,
 			SharedAccessOperation:      1,
 		}
@@ -336,7 +336,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			FeeType:                    "VAT",
 			Amount:                     decimal.RequireFromString(paymentInfo.VatAmount).InexactFloat64(),
 			AssetCode:                  dbAssetCode,
-			AssetIssuer:                dbAssetIssuer,
+			ContractAddress:            dbContractAddress,
 			DestinationWallet:          paymentInfo.Destination,
 			SharedAccessOperation:      1,
 		}
@@ -370,10 +370,10 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 
-		var dbAssetIssuer *string
+		var dbContractAddress *string
 		dbAssetCode := swapInfo.SourceAssetCode
-		if len(swapInfo.SourceAssetIssuer) > 0 {
-			dbAssetIssuer = &swapInfo.SourceAssetIssuer
+		if len(swapInfo.SourceContractAddress) > 0 {
+			dbContractAddress = &swapInfo.SourceContractAddress
 		} else {
 			dbAssetCode = os.Getenv("NATIVE_ASSET_CODE")
 		}
@@ -387,7 +387,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			FeeType:                    "SWAP",
 			Amount:                     decimal.RequireFromString(swapInfo.FeeAmount).InexactFloat64(),
 			AssetCode:                  dbAssetCode,
-			AssetIssuer:                dbAssetIssuer,
+			ContractAddress:            dbContractAddress,
 			DestinationWallet:          wallet.Alias,
 			SharedAccessOperation:      swapInfo.Multiparty,
 		}
@@ -400,7 +400,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			FeeType:                    "VAT",
 			Amount:                     decimal.RequireFromString(swapInfo.VatAmount).InexactFloat64(),
 			AssetCode:                  dbAssetCode,
-			AssetIssuer:                dbAssetIssuer,
+			ContractAddress:            dbContractAddress,
 			DestinationWallet:          wallet.Alias,
 			SharedAccessOperation:      swapInfo.Multiparty,
 		}
@@ -792,7 +792,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 						Sender          string    `json:"sender"`
 						Amount          string    `json:"amount"`
 						AssetCode       string    `json:"assetCode"`
-						AssetIssuer     string    `json:"assetIssuer"`
+						ContractAddress string    `json:"contractAddress"`
 						TransactionID   string    `json:"transactionId"`
 						TransactionMemo string    `json:"transactionMemo"`
 						TransactionTime time.Time `json:"transactionTime"`
@@ -804,7 +804,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 						Sender:          wallet.Alias,
 						Amount:          paymentInfo.Amount,
 						AssetCode:       assetCode,
-						AssetIssuer:     paymentInfo.AssetIssuer,
+						ContractAddress: paymentInfo.ContractAddress,
 						TransactionID:   paymentInfo.TransactionID,
 						TransactionMemo: paymentInfo.Memo,
 						TransactionTime: time.Now(),
@@ -1009,7 +1009,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 			cAsset := assetModels.CuratedAsset{
 				AssetCode:       *ta.AssetCode,
-				AssetIssuer:     *ta.IssuingWalletAddress,
+				ContractAddress: *ta.IssuingWalletAddress,
 				AssetName:       *ta.AssetName,
 				Description:     *ta.AssetDescription,
 				ImageURL:        ta.AssetLogo,
@@ -1315,7 +1315,7 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 
 			var issuingWallet, distroWallet userModels.UserWallet
 			//now remove the wallets from the trovo ecosystem.
-			issuingWallet, e = userModels.UserWalletID(tkInput.AssetIssuer).GetWallet(dbTX, gc)
+			issuingWallet, e = userModels.UserWalletID(tkInput.ContractAddress).GetWallet(dbTX, gc)
 			distroWallet, e = userModels.UserWalletID(tkInput.Destination).GetWallet(dbTX, gc)
 			// nullify it.
 			ta.TokenizationTransaction = nil

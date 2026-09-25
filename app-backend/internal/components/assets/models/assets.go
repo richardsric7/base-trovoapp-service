@@ -11,7 +11,7 @@ type CuratedAsset struct {
 	UpdatedAt                   time.Time  `json:"-"`
 	AssetCode                   string     `gorm:"size:12;unique;not null; default:''" json:"assetCode"`
 	AssetName                   string     `gorm:"size:50;null; default:''" json:"assetName"`
-	AssetIssuer                 string     `gorm:"size:56;not null; default:''" json:"assetIssuer"`
+	ContractAddress             string     `gorm:"size:56;not null; default:''" json:"contractAddress"`
 	Description                 string     `gorm:"not null" json:"description"`
 	ImageURL                    *string    `gorm:"null" json:"imageUrl"`
 	Website                     string     `gorm:"null;size:100" json:"website"`
@@ -38,7 +38,7 @@ type CuratedSwapAsset struct {
 	UpdatedAt                   time.Time  `json:"-"`
 	AssetCode                   string     `gorm:"size:12;unique;not null" json:"assetCode"`
 	AssetName                   string     `gorm:"size:50;null" json:"assetName"`
-	AssetIssuer                 string     `gorm:"size:56;not null;" json:"assetIssuer"`
+	ContractAddress             string     `gorm:"size:56;not null;" json:"contractAddress"`
 	Description                 string     `gorm:"not null" json:"description"`
 	ImageURL                    string     `gorm:"null" json:"imageUrl"`
 	Website                     string     `gorm:"null;size:100" json:"website"`
@@ -81,14 +81,14 @@ type PaginatedBlockchainAssets struct {
 
 // BlockchainAsset holds blochcain assets
 type BlockchainAsset struct {
-	AssetCode      string
-	AssetIssuer    string
-	AmountOfTokens string
-	NumOfAccounts  int64
-	AuthRequired   bool
-	AuthRevocable  bool
-	AuthImmutable  bool
-	Toml           string
+	AssetCode       string
+	ContractAddress string
+	AmountOfTokens  string
+	NumOfAccounts   int64
+	AuthRequired    bool
+	AuthRevocable   bool
+	AuthImmutable   bool
+	Toml            string
 }
 
 // AssetClass model struct for CuratedAsset.

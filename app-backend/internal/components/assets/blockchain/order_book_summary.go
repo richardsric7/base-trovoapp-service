@@ -54,17 +54,17 @@ type TradeAggregationsPage struct {
 
 // OrderBookRequestInput holds orderbook request input bindings
 type OrderBookRequestInput struct {
-	SellingAssetType   string `json:"selling_asset_type" form:"selling_asset_type"`
-	SellingAssetCode   string `json:"selling_asset_code" form:"selling_asset_code"`
-	SellingAssetIssuer string `json:"selling_asset_issuer" form:"selling_asset_issuer"`
-	BuyingAssetType    string `json:"buying_asset_type" form:"buying_asset_type"`
-	BuyingAssetCode    string `json:"buying_asset_code" form:"buying_asset_code"`
-	BuyingAssetIssuer  string `json:"buying_asset_issuer" form:"buying_asset_issuer"`
-	Limit              string `json:"limit" form:"limit"`
+	SellingAssetType       string `json:"selling_asset_type" form:"selling_asset_type"`
+	SellingAssetCode       string `json:"selling_asset_code" form:"selling_asset_code"`
+	SellingContractAddress string `json:"selling_contract_address" form:"selling_contract_address"`
+	BuyingAssetType        string `json:"buying_asset_type" form:"buying_asset_type"`
+	BuyingAssetCode        string `json:"buying_asset_code" form:"buying_asset_code"`
+	BuyingContractAddress  string `json:"buying_contract_address" form:"buying_contract_address"`
+	Limit                  string `json:"limit" form:"limit"`
 }
 type Asset struct {
-	AssetCode   string `json:"assetCode"`
-	AssetIssuer string `json:"assetIssuer"`
+	AssetCode       string `json:"assetCode"`
+	ContractAddress string `json:"contractAddress"`
 }
 
 type OfferVolume struct {
@@ -95,18 +95,18 @@ type TradeChart struct {
 }
 
 type TradeAggregateInput struct {
-	StartTime          time.Time
-	EndTime            time.Time
-	Resolution         time.Duration
-	Offset             time.Duration
-	BaseAssetCode      string
-	BaseAssetIssuer    string
-	BaseAssetType      string
-	CounterAssetCode   string
-	CounterAssetIssuer string
-	CounterAssetType   string
-	Order              string
-	Limit              string
+	StartTime              time.Time
+	EndTime                time.Time
+	Resolution             time.Duration
+	Offset                 time.Duration
+	BaseAssetCode          string
+	BaseContractAddress    string
+	BaseAssetType          string
+	CounterAssetCode       string
+	CounterContractAddress string
+	CounterAssetType       string
+	Order                  string
+	Limit                  string
 }
 type PriceCache struct {
 	Price     string `json:"price"`
@@ -156,7 +156,7 @@ func GetGASDollarAskPrice(db *gorm.DB) (usdPrice string, err error) {
 }
 
 // GetDollarPrice dollar ask price using USDB
-func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst bool) (usdPrice, priceType string, err error) {
+func GetDollarPrice(sellingAssetCode, sellingContractAddress string, gc *sharedconfig.GlobalConfig, checkCacheFirst bool) (usdPrice, priceType string, err error) {
 	var priceCache PriceCache
 	var input OrderBookRequestInput
 	priceType = "ask"
@@ -169,7 +169,7 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 	} else {
 		errAssetCode = sellingAssetCode
 	}
-	cacheKey := fmt.Sprintf("%v.%v_dollar", sellingAssetCode, sellingAssetIssuer)
+	cacheKey := fmt.Sprintf("%v.%v_dollar", sellingAssetCode, sellingContractAddress)
 	if checkCacheFirst {
 		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
@@ -181,13 +181,13 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 	}
 
 	input.SellingAssetCode = sellingAssetCode
-	input.SellingAssetIssuer = sellingAssetIssuer
+	input.SellingContractAddress = sellingContractAddress
 	dollarAsset := strings.Split(os.Getenv("DOLLAR_ASSET"), ":")
 	if len(dollarAsset) != 2 {
 		return "0", priceType, &tErrors.ErrorTemporaryServerError{}
 	}
 
-	if strings.EqualFold(sellingAssetCode, dollarAsset[0]) && strings.EqualFold(sellingAssetIssuer, dollarAsset[1]) {
+	if strings.EqualFold(sellingAssetCode, dollarAsset[0]) && strings.EqualFold(sellingContractAddress, dollarAsset[1]) {
 		//it is dollar asset
 		return "1", priceType, nil
 	}
@@ -197,7 +197,7 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 	}
 
 	input.BuyingAssetCode = dollarAsset[0]
-	input.BuyingAssetIssuer = dollarAsset[1]
+	input.BuyingContractAddress = dollarAsset[1]
 
 	orderBook, err := GetBantuOrderBookSummary(input)
 	if err != nil {
@@ -236,7 +236,7 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 }
 
 // GetNairaPrice dollar ask price using USDB
-func GetNairaPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst, enabledAsset bool) (nairaPrice, priceType string, err error) {
+func GetNairaPrice(sellingAssetCode, sellingContractAddress string, gc *sharedconfig.GlobalConfig, checkCacheFirst, enabledAsset bool) (nairaPrice, priceType string, err error) {
 	var priceCache PriceCache
 
 	var input OrderBookRequestInput
@@ -253,7 +253,7 @@ func GetNairaPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig
 	} else {
 		errAssetCode = sellingAssetCode
 	}
-	cacheKey := fmt.Sprintf("%v.%v_naira", sellingAssetCode, sellingAssetIssuer)
+	cacheKey := fmt.Sprintf("%v.%v_naira", sellingAssetCode, sellingContractAddress)
 	if checkCacheFirst {
 		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
@@ -265,13 +265,13 @@ func GetNairaPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig
 	}
 
 	input.SellingAssetCode = sellingAssetCode
-	input.SellingAssetIssuer = sellingAssetIssuer
+	input.SellingContractAddress = sellingContractAddress
 	nairaAsset := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
 	if len(nairaAsset) != 2 {
 		return "0", priceType, &tErrors.ErrorTemporaryServerError{}
 	}
 
-	if strings.EqualFold(sellingAssetCode, nairaAsset[0]) && strings.EqualFold(sellingAssetIssuer, nairaAsset[1]) {
+	if strings.EqualFold(sellingAssetCode, nairaAsset[0]) && strings.EqualFold(sellingContractAddress, nairaAsset[1]) {
 		//it is dollar asset
 		return "1", priceType, nil
 	}
@@ -281,7 +281,7 @@ func GetNairaPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig
 	}
 
 	input.BuyingAssetCode = nairaAsset[0]
-	input.BuyingAssetIssuer = nairaAsset[1]
+	input.BuyingContractAddress = nairaAsset[1]
 
 	orderBook, err := GetBantuOrderBookSummary(input)
 	if err != nil {
@@ -320,7 +320,7 @@ func GetNairaPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig
 }
 
 // GetNativeAskPrice native (GAS) ask price
-func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst, isEnabled bool) (nativePrice string, err error) {
+func GetNativeAskPrice(sellingAssetCode, sellingContractAddress string, gc *sharedconfig.GlobalConfig, checkCacheFirst, isEnabled bool) (nativePrice string, err error) {
 	var priceCache PriceCache
 	var nativeCode, nativeIssuer string
 	if !isEnabled {
@@ -331,7 +331,7 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedco
 		nativeCode = nv[0]
 		nativeIssuer = nv[1]
 	}
-	cacheKey := fmt.Sprintf("%v.%v_nativePrice", sellingAssetCode, sellingAssetIssuer)
+	cacheKey := fmt.Sprintf("%v.%v_nativePrice", sellingAssetCode, sellingContractAddress)
 	if checkCacheFirst {
 		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
@@ -344,11 +344,11 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedco
 	var input OrderBookRequestInput
 
 	input.SellingAssetCode = sellingAssetCode
-	input.SellingAssetIssuer = sellingAssetIssuer
+	input.SellingContractAddress = sellingContractAddress
 	input.BuyingAssetCode = nativeCode
-	input.BuyingAssetIssuer = nativeIssuer
+	input.BuyingContractAddress = nativeIssuer
 
-	if sellingAssetCode == nativeCode && sellingAssetIssuer == nativeIssuer {
+	if sellingAssetCode == nativeCode && sellingContractAddress == nativeIssuer {
 		return "1", nil
 	}
 	orderBook, err := GetBantuOrderBookSummary(input)
@@ -366,20 +366,20 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedco
 }
 
 // GetOrderBook
-func GetOrderBook(assetCode, assetIssuer, currencyCode, currencyIssuer string) (trovoOrderBook OrderBook, err error) {
+func GetOrderBook(assetCode, contractAddress, currencyCode, currencyIssuer string) (trovoOrderBook OrderBook, err error) {
 	trovoOrderBook.Asks = make([]OfferVolume, 0)
 	trovoOrderBook.Bids = make([]OfferVolume, 0)
 	trovoOrderBook.Currency = Asset{
-		AssetCode:   currencyCode,
-		AssetIssuer: currencyIssuer,
+		AssetCode:       currencyCode,
+		ContractAddress: currencyIssuer,
 	}
 	trovoOrderBook.Asset = Asset{
-		AssetCode:   assetCode,
-		AssetIssuer: assetIssuer,
+		AssetCode:       assetCode,
+		ContractAddress: contractAddress,
 	}
 	if strings.EqualFold(assetCode, os.Getenv("NATIVE_ASSET_CODE")) {
 		assetCode = ""
-		assetIssuer = ""
+		contractAddress = ""
 	}
 	if strings.EqualFold(currencyCode, os.Getenv("NATIVE_ASSET_CODE")) {
 		currencyCode = ""
@@ -389,9 +389,9 @@ func GetOrderBook(assetCode, assetIssuer, currencyCode, currencyIssuer string) (
 	var input OrderBookRequestInput
 
 	input.SellingAssetCode = assetCode
-	input.SellingAssetIssuer = assetIssuer
+	input.SellingContractAddress = contractAddress
 	input.BuyingAssetCode = currencyCode
-	input.BuyingAssetIssuer = currencyIssuer
+	input.BuyingContractAddress = currencyIssuer
 
 	orderBook, err := GetBantuOrderBookSummary(input)
 	if err != nil {
@@ -422,19 +422,19 @@ func GetOrderBook(assetCode, assetIssuer, currencyCode, currencyIssuer string) (
 }
 
 // GetChartRecords
-func GetChartRecords(assetCode, assetIssuer, currencyCode, currencyIssuer, startTime, endTime, order, limit, chartPeriod, offset string) (tradeChart TradeChart, err error) {
+func GetChartRecords(assetCode, contractAddress, currencyCode, currencyIssuer, startTime, endTime, order, limit, chartPeriod, offset string) (tradeChart TradeChart, err error) {
 	tradeChart.ChartRecords = make([]ChartRecord, 0)
 	// tradeChart.Currency = Asset{
 	// 	AssetCode:   currencyCode,
-	// 	AssetIssuer: currencyIssuer,
+	// 	ContractAddress: currencyIssuer,
 	// }
 	// tradeChart.Asset = Asset{
 	// 	AssetCode:   assetCode,
-	// 	AssetIssuer: assetIssuer,
+	// 	ContractAddress: contractAddress,
 	// }
 	if strings.EqualFold(assetCode, os.Getenv("NATIVE_ASSET_CODE")) {
 		assetCode = ""
-		assetIssuer = ""
+		contractAddress = ""
 	}
 	if strings.EqualFold(currencyCode, os.Getenv("NATIVE_ASSET_CODE")) {
 		currencyCode = ""
@@ -444,9 +444,9 @@ func GetChartRecords(assetCode, assetIssuer, currencyCode, currencyIssuer, start
 	var input TradeAggregateInput
 
 	input.BaseAssetCode = assetCode
-	input.BaseAssetIssuer = assetIssuer
+	input.BaseContractAddress = contractAddress
 	input.CounterAssetCode = currencyCode
-	input.CounterAssetIssuer = currencyIssuer
+	input.CounterContractAddress = currencyIssuer
 	input.Order = order
 	input.Limit = limit
 
@@ -499,30 +499,30 @@ func GetChartRecords(assetCode, assetIssuer, currencyCode, currencyIssuer, start
 		return
 	}
 
-	tradeChart, err = TransformTradeAggregationInstance(assetCode, assetIssuer, currencyCode, currencyIssuer, &tds)
+	tradeChart, err = TransformTradeAggregationInstance(assetCode, contractAddress, currencyCode, currencyIssuer, &tds)
 
 	return tradeChart, err
 
 }
 
 // TransformTradeAggregationInstance
-func TransformTradeAggregationInstance(assetCode, assetIssuer, currencyCode, currencyIssuer string, tds *TradeAggregationsPage) (tradeChart TradeChart, err error) {
+func TransformTradeAggregationInstance(assetCode, contractAddress, currencyCode, currencyIssuer string, tds *TradeAggregationsPage) (tradeChart TradeChart, err error) {
 	tradeChart.ChartRecords = make([]ChartRecord, 0)
 	if assetCode == "" {
 		assetCode = os.Getenv("NATIVE_ASSET_CODE")
-		assetIssuer = ""
+		contractAddress = ""
 	}
 	if currencyCode == "" {
 		currencyCode = os.Getenv("NATIVE_ASSET_CODE")
 		currencyIssuer = ""
 	}
 	tradeChart.Currency = Asset{
-		AssetCode:   currencyCode,
-		AssetIssuer: currencyIssuer,
+		AssetCode:       currencyCode,
+		ContractAddress: currencyIssuer,
 	}
 	tradeChart.Asset = Asset{
-		AssetCode:   assetCode,
-		AssetIssuer: assetIssuer,
+		AssetCode:       assetCode,
+		ContractAddress: contractAddress,
 	}
 
 	for _, r := range tds.Embedded.Records {
@@ -553,8 +553,8 @@ func ProcessOrderBookEvent(orderBook OrderBookSummary) (trovoOrderBook OrderBook
 		}
 	} else {
 		trovoOrderBook.Asset = Asset{
-			AssetCode:   orderBook.Selling.AssetCode,
-			AssetIssuer: orderBook.Selling.AssetIssuer,
+			AssetCode:       orderBook.Selling.AssetCode,
+			ContractAddress: orderBook.Selling.ContractAddress,
 		}
 	}
 	if len(orderBook.Buying.AssetCode) == 0 {
@@ -563,8 +563,8 @@ func ProcessOrderBookEvent(orderBook OrderBookSummary) (trovoOrderBook OrderBook
 		}
 	} else {
 		trovoOrderBook.Currency = Asset{
-			AssetCode:   orderBook.Buying.AssetCode,
-			AssetIssuer: orderBook.Buying.AssetIssuer,
+			AssetCode:       orderBook.Buying.AssetCode,
+			ContractAddress: orderBook.Buying.ContractAddress,
 		}
 	}
 

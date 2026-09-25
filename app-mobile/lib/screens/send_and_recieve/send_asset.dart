@@ -61,7 +61,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
       asset = wallet.claimedAssets!.firstWhere(
         (asset) =>
             asset.assetCode == appState.viewData!['assetCode'] &&
-            asset.assetIssuer == appState.viewData!['assetIssuer'],
+            asset.contractAddress == appState.viewData!['contractAddress'],
       );
     }
   }
@@ -85,7 +85,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
       asset = wallet.claimedAssets!.firstWhere(
         (asset) =>
             asset.assetCode == deeplinkInfo['assetCode'] &&
-            asset.assetIssuer == deeplinkInfo['assetIssuer'],
+            asset.contractAddress == deeplinkInfo['contractAddress'],
       );
       appState.viewData![SendAssetViewPageConfig.key]['deepLinkInfo'] = null;
     }
@@ -377,7 +377,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
         "memo": memo,
         "amount": amount.toString(),
         "assetCode": asset!.assetCode == 'ETH' ? '' : asset!.assetCode,
-        "assetIssuer": asset!.assetIssuer,
+        "contractAddress": asset!.contractAddress,
       };
       String requestBody = jsonEncode(map);
 
@@ -430,7 +430,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     appState.viewData = {
       'walletAddress': wallet.address,
       'assetCode': asset!.assetCode,
-      'assetIssuer': asset!.assetIssuer,
+      'contractAddress': asset!.contractAddress,
       'rel': 'dashboard',
       'transactionData': data,
     };

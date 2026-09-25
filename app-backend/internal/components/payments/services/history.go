@@ -41,8 +41,8 @@ func GetPaymentHistory(targetAddress string, gc *sharedconfig.GlobalConfig, c *g
 	limit := int(limitU)
 	pageU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("page", "1")), 10, 64)
 	page := int(pageU)
-	assetIssuer := strings.TrimSpace(strings.ToUpper(c.Query("assetIssuer")))
-	// var assetIssuerVal *string
+	contractAddress := strings.TrimSpace(strings.ToUpper(c.Query("contractAddress")))
+	// var contractAddressVal *string
 	assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
 
 	transactionID := strings.ToLower(strings.TrimSpace(c.Query("transactionID")))
@@ -89,9 +89,9 @@ func GetPaymentHistory(targetAddress string, gc *sharedconfig.GlobalConfig, c *g
 		countQuery = countQuery.Where("asset_code = ?", strings.ToUpper(assetCode))
 
 	}
-	if len(assetIssuer) == 42 {
-		query = query.Where("asset_issuer = ?", assetIssuer)
-		countQuery = countQuery.Where("asset_issuer = ?", assetIssuer)
+	if len(contractAddress) == 42 {
+		query = query.Where("contract_address = ?", contractAddress)
+		countQuery = countQuery.Where("contract_address = ?", contractAddress)
 
 	}
 	if len(name) > 2 {

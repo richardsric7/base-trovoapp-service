@@ -5,7 +5,7 @@ String trovoLandingPage = 'https://wallet.trovotech.io';
 String privacyPolicyUrl = 'https://trovotech.io/privacy-policy.html';
 String trovoP2pUrl = 'p2p-frontend-staging-8shkr.ondigitalocean.app';
 String nativeAssetCode = 'ETH';
-String nativeAssetIssuer = 'Native Token';
+String nativeContractAddress = 'Native Token';
 String bantuBlockchainExplorerBaseUrl = 'https://basescan.org/tx/';
 String bantuBlockchainExplorerTestnetBaseUrl =
     'https://sepolia.basescan.org/tx/';

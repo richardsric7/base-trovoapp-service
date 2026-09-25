@@ -50,7 +50,7 @@ type UserRegistrationInfo struct {
 type PaymentInfo struct {
 	Destination             string            `json:"destination"`
 	Memo                    string            `json:"memo"`
-	AssetIssuer             string            `json:"assetIssuer"`
+	ContractAddress         string            `json:"contractAddress"`
 	AssetCode               string            `json:"assetCode"`
 	Amount                  string            `json:"amount"`
 	Transaction             string            `json:"transaction"`
@@ -138,10 +138,10 @@ type ThirdPartyWalletAccess struct {
 
 // Balance model for user
 type Balance struct {
-	AssetIssuer string          `json:"assetIssuer"`
-	AssetCode   string          `json:"assetCode"`
-	Amount      decimal.Decimal `json:"amount"`
-	QRCode      string          `json:"qrCode"`
+	ContractAddress string          `json:"contractAddress"`
+	AssetCode       string          `json:"assetCode"`
+	Amount          decimal.Decimal `json:"amount"`
+	QRCode          string          `json:"qrCode"`
 }
 
 // Signer model for user
@@ -170,12 +170,12 @@ type NFTBalances struct {
 	NFTs []NFT `json:"nfts"`
 }
 type NFT struct {
-	AssetIssuer string `json:"assetIssuer"`
-	AssetCode   string `json:"assetCode"`
+	ContractAddress string `json:"contractAddress"`
+	AssetCode       string `json:"assetCode"`
 }
 type DefaultAsset struct {
-	AssetCode   string `gorm:"size:12" json:"assetCode"`
-	AssetIssuer string `gorm:"size:56" json:"assetIssuer"`
+	AssetCode       string `gorm:"size:12" json:"assetCode"`
+	ContractAddress string `gorm:"size:56" json:"contractAddress"`
 }
 
 // func TestAccountRegistration(t *testing.T) {

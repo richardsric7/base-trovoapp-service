@@ -131,7 +131,7 @@ class Payment_HistoryState extends State<PaymentHistory>
     items.addAll(
       claimedAssets.map<DropdownMenuItem<String>>((asset) {
         return DropdownMenuItem<String>(
-          value: '${asset.assetIssuer}|${asset.assetCode}',
+          value: '${asset.contractAddress}|${asset.assetCode}',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,

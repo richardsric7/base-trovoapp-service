@@ -14,7 +14,7 @@ type PaymentHistory struct {
 	To                    *string   `json:"to" gorm:"size:100;index:idx_payment_history_to;null"` //trovoWallet alias and name
 	ToAddress             string    `json:"toAddress" gorm:"size:100;index:idx_payment_history_to_pk;not null;"`
 	Memo                  *string   `json:"memo" gorm:"size:60;null"`
-	AssetIssuer           *string   `json:"assetIssuer" gorm:"size:100;null;"`
+	ContractAddress       *string   `json:"contractAddress" gorm:"size:100;null;"`
 	AssetCode             string    `json:"assetCode" gorm:"size:12;not null;"`
 	Amount                string    `json:"amount" gorm:"index:idx_amount_ph"`
 	TransactionID         string    `json:"transactionId" gorm:"size:100;not null;index:idx_payment_history_txid;index:idx_payment_history_unique_key,unique"`
@@ -31,7 +31,7 @@ type PaymentHistoryJSON struct {
 	To              string    `json:"to"` //trovoWallet alias and name
 	ToAddress       string    `json:"toAddress"`
 	Memo            string    `json:"memo"`
-	AssetIssuer     string    `json:"assetIssuer"`
+	ContractAddress string    `json:"contractAddress"`
 	AssetCode       string    `json:"assetCode"`
 	Amount          string    `json:"amount"`
 	TransactionID   string    `json:"transactionId"`
@@ -64,8 +64,8 @@ func (ph *PaymentHistory) ToJSON() (json PaymentHistoryJSON) {
 	if ph.To != nil {
 		json.To = *ph.To
 	}
-	if ph.AssetIssuer != nil {
-		json.AssetIssuer = *ph.AssetIssuer
+	if ph.ContractAddress != nil {
+		json.ContractAddress = *ph.ContractAddress
 	}
 	if ph.Memo != nil {
 		json.Memo = *ph.Memo

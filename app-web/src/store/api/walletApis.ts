@@ -20,7 +20,7 @@ export const authApi = baseApi.injectEndpoints({
     receiveAsset: builder.query({
       query: (payload: Payload) => {
         return ({
-          url: `/v1/users/payment/generate/${payload.body.alias}?paymentDestination=${payload.body.address}&assetCode=${payload.body.assetCode}&assetIssuer=${payload.body.assetIssuer}&amount=${payload.body.amount}&memo=${payload.body.memo != null ? encodeURIComponent(payload.body.memo.toString()) : ''}`,
+          url: `/v1/users/payment/generate/${payload.body.alias}?paymentDestination=${payload.body.address}&assetCode=${payload.body.assetCode}&contractAddress=${payload.body.contractAddress}&amount=${payload.body.amount}&memo=${payload.body.memo != null ? encodeURIComponent(payload.body.memo.toString()) : ''}`,
           method: 'GET',        
           data: {
             creds: {

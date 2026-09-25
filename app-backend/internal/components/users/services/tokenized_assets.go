@@ -734,7 +734,7 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: "Proceed Payout currency code you supplied is invalid."}
 		return
 	}
-	if userModels.IsInternalBalanceAsset(proceedPayoutCurrency.AssetCode, proceedPayoutCurrency.AssetIssuer, gc) {
+	if userModels.IsInternalBalanceAsset(proceedPayoutCurrency.AssetCode, proceedPayoutCurrency.ContractAddress, gc) {
 		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: "Proceed Payout currency cannot be the internal balance token."}
 		return
 	}
@@ -793,7 +793,7 @@ func SubmitTokenizationAssetInfoByInitiator(initiator *userModels.User, input *u
 	ato.AssetQuoteCurrency = countryConfig.InternalBalanceTokenCode
 
 	//check Trov balance
-	_, _, _, sourceAccountCustomBalance, _, errCheckBalance := network.BlockchainAccountProperties(gc.BantuExpansionClient, initiator.Address, basetxn.CreditAsset{Code: "TROV", Issuer: os.Getenv("TROV_ASSET_ISSUER")})
+	_, _, _, sourceAccountCustomBalance, _, errCheckBalance := network.BlockchainAccountProperties(gc.BantuExpansionClient, initiator.Address, basetxn.CreditAsset{Code: "TROV", Issuer: os.Getenv("TROV_ASSET_CONTRACT_ADDRESS")})
 	if errCheckBalance != nil {
 		log.Printf("[SubmitTokenizationAssetInfoByInitiator]error checking wallet balance for initiator. error: %v", errCheckBalance)
 
@@ -842,7 +842,7 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: fmt.Sprintf("Proceed Payout currency code [%v] you supplied is invalid.", input.ProceedPayoutCurrency)}
 		return
 	}
-	if userModels.IsInternalBalanceAsset(proceedPayoutCurrency.AssetCode, proceedPayoutCurrency.AssetIssuer, gc) {
+	if userModels.IsInternalBalanceAsset(proceedPayoutCurrency.AssetCode, proceedPayoutCurrency.ContractAddress, gc) {
 		err = &tErrors.CustomError{Param: "proceedPayoutCurrency", Err: "error-invalid-proceed-payout-currency", ErrMessage: "Proceed Payout currency cannot be the internal balance token."}
 		return
 	}
@@ -1583,7 +1583,7 @@ func ActivatePrimarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 				for i, asset := range assets {
 
 					//check if it has been minted.
-					_, err := userModels.BantuAsset{AssetCode: *asset.AssetCode, AssetIssuer: *asset.IssuingWalletAddress}.GetBlockchainAssetProperty(gc)
+					_, err := userModels.BantuAsset{AssetCode: *asset.AssetCode, ContractAddress: *asset.IssuingWalletAddress}.GetBlockchainAssetProperty(gc)
 					if err != nil {
 						log.Printf("[ActivatePrimarySalesRoutine][CHECK PRIMARY SALES DATES]()()()@@@()()()()FAILED TO CONFIRM MINTING of %v on blockchain due to: %v\n", *asset.AssetCode, err)
 
@@ -2697,7 +2697,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 	client := gc.BantuExpansionClient
 	//transform codes and issuer
 	swapInfo.DestinationAssetCode = strings.ToUpper(*ta.AssetCode)
-	swapInfo.DestinationAssetIssuer = strings.ToUpper(*ta.IssuingWalletAddress)
+	swapInfo.DestinationContractAddress = strings.ToUpper(*ta.IssuingWalletAddress)
 
 	// resolve payment asset: any approved stablecoin, defaulting to CNGN for unchanged clients.
 	// a client-supplied issuer is never trusted verbatim - the issuer is always re-resolved server-side.
@@ -2710,16 +2710,16 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 		err = &tErrors.CustomError{Param: "paymentAssetCode", Err: "error-invalid-payment-asset", ErrMessage: fmt.Sprintf("Payment asset code [%v] you supplied is invalid.", paymentAssetCode)}
 		return
 	}
-	if len(input.PaymentAssetIssuer) > 0 && !strings.EqualFold(input.PaymentAssetIssuer, paymentCurrency.AssetIssuer) {
-		err = &tErrors.CustomError{Param: "paymentAssetIssuer", Err: "error-invalid-payment-asset", ErrMessage: "Payment asset issuer does not match the registered issuer for this currency."}
+	if len(input.PaymentContractAddress) > 0 && !strings.EqualFold(input.PaymentContractAddress, paymentCurrency.ContractAddress) {
+		err = &tErrors.CustomError{Param: "paymentContractAddress", Err: "error-invalid-payment-asset", ErrMessage: "Payment asset issuer does not match the registered issuer for this currency."}
 		return
 	}
-	if userModels.IsInternalBalanceAsset(paymentCurrency.AssetCode, paymentCurrency.AssetIssuer, gc) || strings.EqualFold(paymentCurrency.AssetCode, strings.ToUpper(*ta.AssetCode)) {
+	if userModels.IsInternalBalanceAsset(paymentCurrency.AssetCode, paymentCurrency.ContractAddress, gc) || strings.EqualFold(paymentCurrency.AssetCode, strings.ToUpper(*ta.AssetCode)) {
 		err = &tErrors.CustomError{Param: "paymentAssetCode", Err: "error-invalid-payment-asset", ErrMessage: "Payment asset cannot be the internal balance token or the tokenized asset itself."}
 		return
 	}
 	swapInfo.SourceAssetCode = strings.ToUpper(paymentCurrency.AssetCode)
-	swapInfo.SourceAssetIssuer = strings.ToUpper(paymentCurrency.AssetIssuer)
+	swapInfo.SourceContractAddress = strings.ToUpper(paymentCurrency.ContractAddress)
 	// write the resolved (normalized/defaulted) payment asset back onto both the in-memory
 	// subscription row (for the direct, non-multiparty save below) and input itself - input is what
 	// gets serialized into PendingAuth.TransactionInfoStr for the multiparty path, and later
@@ -2727,12 +2727,12 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 	// there via this same UpdateTokenizedAssetSubscriptionFromInput helper, so it must already carry
 	// the resolved values rather than whatever (possibly empty) code the client originally sent
 	taSubscription.PaymentAssetCode = paymentCurrency.AssetCode
-	taSubscription.PaymentAssetIssuer = paymentCurrency.AssetIssuer
+	taSubscription.PaymentContractAddress = paymentCurrency.ContractAddress
 	input.PaymentAssetCode = paymentCurrency.AssetCode
-	input.PaymentAssetIssuer = paymentCurrency.AssetIssuer
+	input.PaymentContractAddress = paymentCurrency.ContractAddress
 
 	//always save subscriptions afresh - done here, after the payment asset is resolved, so the
-	//saved row already carries the correct PaymentAssetCode/PaymentAssetIssuer
+	//saved row already carries the correct PaymentAssetCode/PaymentContractAddress
 	if input.Multiparty == 0 {
 		e := dbTX.Omit(clause.Associations).Save(&taSubscription).Error
 		if e != nil {
@@ -2794,7 +2794,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 				if len(swapInfo.DestinationAssetCode) > 0 {
 					destAsset = swapInfo.DestinationAssetCode
 				}
-				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceContractAddress, swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress)
 
 				emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
 				if b != "0" {
@@ -2846,7 +2846,7 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 					destAsset = swapInfo.DestinationAssetCode
 				}
 
-				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceContractAddress, swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress)
 
 				emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
 				if b != "0" {
@@ -3050,7 +3050,7 @@ func SubscribeToTokenizedAssetByFiat(subscriber *userModels.User, subscriberWall
 	swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).Truncate(7).String()
 	swapInfo.SwapAmount = swapInfo.SourceAmount
 	swapInfo.DestinationAssetCode = strings.ToUpper(*ta.AssetCode)
-	swapInfo.DestinationAssetIssuer = strings.ToUpper(*ta.IssuingWalletAddress)
+	swapInfo.DestinationContractAddress = strings.ToUpper(*ta.IssuingWalletAddress)
 
 	xdrBase64, channelAccountAddress, e := generateAssetSubscriptionFiatXdr(subscriberWallet, ta, &swapInfo, gc)
 	if e != nil {
@@ -3068,14 +3068,14 @@ func SubscribeToTokenizedAssetByFiat(subscriber *userModels.User, subscriberWall
 	taSubscription.ID = input.ID
 	taSubscription.TokenizedAssetID = ta.ID
 	taSubscription.AssetCode = *ta.AssetCode
-	taSubscription.AssetIssuer = *ta.IssuingWalletAddress
+	taSubscription.ContractAddress = *ta.IssuingWalletAddress
 	taSubscription.WalletAlias = subscriberWallet.Alias
 	taSubscription.WalletAddress = subscriberWallet.ID
 	taSubscription.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
 	taSubscription.Price = ta.PricePerToken
 	taSubscription.SubscriberUsername = subscriber.Username
 	taSubscription.PaymentAssetCode = *countryConfig.InternalBalanceTokenCode
-	taSubscription.PaymentAssetIssuer = "FIAT"
+	taSubscription.PaymentContractAddress = "FIAT"
 
 	if e := dbTX.Omit(clause.Associations).Create(&taSubscription).Error; e != nil {
 		log.Printf("[SubscribeToTokenizedAssetByFiat] error saving tokenized asset subscription [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
@@ -3150,11 +3150,11 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 
 	if len(swapInfo.DestinationAssetCode) != 0 && !strings.EqualFold(swapInfo.DestinationAssetCode, nativeAssetCode) {
 
-		destinationAsset = basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer}
+		destinationAsset = basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationContractAddress}
 	}
 	if len(swapInfo.SourceAssetCode) != 0 && !strings.EqualFold(swapInfo.SourceAssetCode, nativeAssetCode) {
 
-		sourceAsset = basetxn.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceAssetIssuer}
+		sourceAsset = basetxn.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceContractAddress}
 	}
 
 	swapInfo.Messages = messages
@@ -3229,9 +3229,9 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 			// allow trust from issuer to destination wallet
 			ops = append(ops, &basetxn.SetTrustLineFlags{
 				Trustor:       wallet.ID,
-				Asset:         basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
+				Asset:         basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationContractAddress},
 				SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-				SourceAccount: swapInfo.DestinationAssetIssuer,
+				SourceAccount: swapInfo.DestinationContractAddress,
 			})
 
 		}
@@ -3242,13 +3242,13 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 	//using destinationAssets gets path to only the asset
 	destAsset := ""
 	if !destinationAsset.IsNative() {
-		destAsset = fmt.Sprintf("%s:%s", swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+		destAsset = fmt.Sprintf("%s:%s", swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress)
 	}
 	pathInput := swapModels.SwapSendPathInput{
-		DestinationAssets: destAsset,
-		SourceAssetCode:   internalBalanceAsset.Code,
-		SourceAssetIssuer: internalBalanceAsset.Issuer,
-		SourceAmount:      swapInfo.SwapAmount,
+		DestinationAssets:     destAsset,
+		SourceAssetCode:       internalBalanceAsset.Code,
+		SourceContractAddress: internalBalanceAsset.Issuer,
+		SourceAmount:          swapInfo.SwapAmount,
 	}
 	path, swappedEstimate, err := GetStrictSendPaths(pathInput, client)
 	if err != nil {
@@ -3395,7 +3395,7 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 
 	var destinationAsset basetxn.Asset = basetxn.NativeAsset{}
 	if len(swapInfo.DestinationAssetCode) != 0 && !strings.EqualFold(swapInfo.DestinationAssetCode, nativeAssetCode) {
-		destinationAsset = basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer}
+		destinationAsset = basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationContractAddress}
 	}
 
 	swapInfo.Messages = messages
@@ -3447,22 +3447,22 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 		})
 		ops = append(ops, &basetxn.SetTrustLineFlags{
 			Trustor:       wallet.ID,
-			Asset:         basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
+			Asset:         basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationContractAddress},
 			SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-			SourceAccount: swapInfo.DestinationAssetIssuer,
+			SourceAccount: swapInfo.DestinationContractAddress,
 		})
 	}
 
 	//get sendPath from the internal balance token to the tokenized asset
 	destAsset := ""
 	if !destinationAsset.IsNative() {
-		destAsset = fmt.Sprintf("%s:%s", swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+		destAsset = fmt.Sprintf("%s:%s", swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress)
 	}
 	pathInput := swapModels.SwapSendPathInput{
-		DestinationAssets: destAsset,
-		SourceAssetCode:   internalBalanceAsset.Code,
-		SourceAssetIssuer: internalBalanceAsset.Issuer,
-		SourceAmount:      swapInfo.SwapAmount,
+		DestinationAssets:     destAsset,
+		SourceAssetCode:       internalBalanceAsset.Code,
+		SourceContractAddress: internalBalanceAsset.Issuer,
+		SourceAmount:          swapInfo.SwapAmount,
 	}
 	path, swappedEstimate, pathErr := GetStrictSendPaths(pathInput, client)
 	if pathErr != nil {
@@ -3679,7 +3679,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		}
 		return "", "", messages, issuingWallet, err
 	}
-	quoteCurrency := userModels.TokenizationCurrency{AssetCode: *countryConfig.InternalBalanceTokenCode, AssetIssuer: *countryConfig.InternalTokenIssuer}
+	quoteCurrency := userModels.TokenizationCurrency{AssetCode: *countryConfig.InternalBalanceTokenCode, ContractAddress: *countryConfig.InternalTokenIssuer}
 
 	if t.MintingApprovers == nil {
 		// set default
@@ -3766,7 +3766,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		NumberOfApprovalsNeeded: len(aps) - 2,
 		Permissions:             permInfo,
 	}
-	if err = checkDistributionWalletHasQuoteCurrencyAuthorization(quoteCurrency.AssetCode, quoteCurrency.AssetIssuer, &distributionWallet, gc); err != nil {
+	if err = checkDistributionWalletHasQuoteCurrencyAuthorization(quoteCurrency.AssetCode, quoteCurrency.ContractAddress, &distributionWallet, gc); err != nil {
 		return "", "", messages, issuingWallet, err
 	}
 
@@ -3857,15 +3857,15 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 
 	// create + authorize distributionWallet trustline to the quote currency (internal balance token)
 	ops = append(ops, &basetxn.ChangeTrust{
-		Line:          basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
+		Line:          basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.ContractAddress},
 		Limit:         gc.TokenLimitAsString(),
 		SourceAccount: distributionWallet.ID,
 	})
 	ops = append(ops, &basetxn.SetTrustLineFlags{
 		Trustor:       distributionWallet.ID,
-		Asset:         basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
+		Asset:         basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.ContractAddress},
 		SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-		SourceAccount: quoteCurrency.AssetIssuer,
+		SourceAccount: quoteCurrency.ContractAddress,
 	})
 
 	//mint the token to distribution wallet
@@ -3919,7 +3919,7 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 
 	priceStr := fmt.Sprintf("%v/%v", n, d)
 	marketOffer := &basetxn.ManageSellOffer{
-		Buying:        basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.AssetIssuer},
+		Buying:        basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.ContractAddress},
 		Amount:        decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7),
 		Selling:       basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletAddress},
 		Price:         priceStr,
@@ -4171,7 +4171,7 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 		Destination:          *issuingWallet.LinkedWalletAddress,
 		Amount:               decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).StringFixed(7),
 		AssetCode:            *ato.AssetCode,
-		AssetIssuer:          issuingWallet.ID,
+		ContractAddress:      issuingWallet.ID,
 		Transaction:          xdrBase64,
 		NetworkPassPhrase:    gc.BantuNetworkPassphrase,
 		TransactionSignature: transactionSource,
@@ -4233,10 +4233,10 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 	feeAmount := decimal.NewFromFloat(TOKENIZATION_APPLICATION_FEE.FeeFixed)
 
 	feeWalletPK := evmkeypair.MustParseFull(TOKENIZATION_APPLICATION_FEE.FeeWalletSecretKey)
-	assetIssuer := TOKENIZATION_APPLICATION_FEE.FeeAssetIssuer
+	contractAddress := TOKENIZATION_APPLICATION_FEE.FeeContractAddress
 	assetCode := TOKENIZATION_APPLICATION_FEE.FeeAssetCode
 
-	asset := basetxn.CreditAsset{Code: assetCode, Issuer: assetIssuer}
+	asset := basetxn.CreditAsset{Code: assetCode, Issuer: contractAddress}
 
 	_, _, _, assetAccountFeeBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
@@ -4280,7 +4280,7 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 
 	//save application fee to the object.
 	ato.TokenizationApplicationFee = TOKENIZATION_APPLICATION_FEE.FeeFixed
-	ato.TokenizationApplicationFeeAsset = fmt.Sprintf("%v:%v", TOKENIZATION_APPLICATION_FEE.FeeAssetCode, TOKENIZATION_APPLICATION_FEE.FeeAssetIssuer)
+	ato.TokenizationApplicationFeeAsset = fmt.Sprintf("%v:%v", TOKENIZATION_APPLICATION_FEE.FeeAssetCode, TOKENIZATION_APPLICATION_FEE.FeeContractAddress)
 	// e := gc.DB.Omit(clause.Associations).Save(ato).Error
 	// if e != nil {
 	// 	log.Println("[generateTokenizationFeeXdr]error saving the application fee to tokenization object", err)
@@ -4323,17 +4323,17 @@ func logDiscordFailedTokenizedAssetSubscription(msg string) {
 	discord.Say(msg)
 }
 
-func GetSwapEstimate(sourceAssetCode, sourceAssetIssuer, amount, destinationAssetCode, destinationAssetIssuer string, gc *sharedconfig.GlobalConfig) (swappedEstimate string) {
+func GetSwapEstimate(sourceAssetCode, sourceContractAddress, amount, destinationAssetCode, destinationContractAddress string, gc *sharedconfig.GlobalConfig) (swappedEstimate string) {
 	destAsset := ""
 
-	if len(destinationAssetIssuer) > 10 {
-		destAsset = fmt.Sprintf("%s:%s", destinationAssetCode, destinationAssetIssuer)
+	if len(destinationContractAddress) > 10 {
+		destAsset = fmt.Sprintf("%s:%s", destinationAssetCode, destinationContractAddress)
 	}
 	pathInput := swapModels.SwapSendPathInput{
-		DestinationAssets: destAsset,
-		SourceAssetCode:   sourceAssetCode,
-		SourceAssetIssuer: sourceAssetIssuer,
-		SourceAmount:      amount,
+		DestinationAssets:     destAsset,
+		SourceAssetCode:       sourceAssetCode,
+		SourceContractAddress: sourceContractAddress,
+		SourceAmount:          amount,
 	}
 	_, swappedEstimate, err := GetStrictSendPaths(pathInput, gc.BantuExpansionClient)
 	if err != nil {

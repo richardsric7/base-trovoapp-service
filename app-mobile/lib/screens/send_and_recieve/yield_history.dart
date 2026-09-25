@@ -37,7 +37,7 @@ class _YieldHistoryView extends State<YieldHistoryView>
       asset = wallet.claimedAssets!.firstWhere(
         (asset) =>
             asset.assetCode == appState.viewData!['assetCode'] &&
-            asset.assetIssuer == appState.viewData!['assetIssuer'],
+            asset.contractAddress == appState.viewData!['contractAddress'],
       );
     }
   }

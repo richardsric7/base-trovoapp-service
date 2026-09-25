@@ -59,7 +59,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+          asset.contractAddress == appState.viewData!['contractAddress'],
     );
 
     // free the memory..... lol
@@ -260,7 +260,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
       showLoader(context);
       Map responseData = await makeGetRequest(
         uri:
-            '/v1/users/payment/generate/${wallet.alias}?paymentDestination=${wallet.address}&assetCode=${asset!.assetCode}&assetIssuer=${asset!.assetIssuer}&amount=${amount.toString()}&memo=${memo != null ? Uri.encodeComponent(memo!) : ''}',
+            '/v1/users/payment/generate/${wallet.alias}?paymentDestination=${wallet.address}&assetCode=${asset!.assetCode}&contractAddress=${asset!.contractAddress}&amount=${amount.toString()}&memo=${memo != null ? Uri.encodeComponent(memo!) : ''}',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         address: wallet.address!,

@@ -88,7 +88,7 @@ class _WalletDetailsState extends State<WalletDetails>
     tokenizedAssets = wallet.getTokenizedAssets(appState);
     otherTokens = wallet
         .getOtherTokens(appState)
-        .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
+        .where((asset) => asset.assetCode != '' && asset.contractAddress != '')
         .toList();
 
     if (tokenizedAssets.isEmpty) {
@@ -184,7 +184,7 @@ class _WalletDetailsState extends State<WalletDetails>
                               onPressed: () {
                                 appState.viewData = {
                                   'assetCode': '',
-                                  'assetIssuer': '',
+                                  'contractAddress': '',
                                   'walletAddress': wallet.address,
                                 };
                                 appState.currentAction = PageAction(
@@ -349,7 +349,7 @@ class _WalletDetailsState extends State<WalletDetails>
                       children: [
                         for (var i = 0; i < tokenizedAssets.length; i++) ...[
                           GestureDetector(
-                            key: Key(tokenizedAssets[i].assetIssuer!),
+                            key: Key(tokenizedAssets[i].contractAddress!),
                             onTap: () {
                               appState.returnView = PageAction(
                                 state: PageState.addAll,
@@ -373,7 +373,7 @@ class _WalletDetailsState extends State<WalletDetails>
 
                               appState.viewData = {
                                 'assetCode': tokenizedAssets[i].assetCode,
-                                'assetIssuer': tokenizedAssets[i].assetIssuer,
+                                'contractAddress': tokenizedAssets[i].contractAddress,
                                 'walletAddress': wallet.address,
                               };
                               appState.currentAction = PageAction(
@@ -546,7 +546,7 @@ class _WalletDetailsState extends State<WalletDetails>
                                     i++
                                   ) ...[
                                     GestureDetector(
-                                      key: Key(otherTokens[i].assetIssuer!),
+                                      key: Key(otherTokens[i].contractAddress!),
                                       onTap: () {
                                         appState.returnView = PageAction(
                                           state: PageState.addAll,
@@ -570,8 +570,8 @@ class _WalletDetailsState extends State<WalletDetails>
 
                                         appState.viewData = {
                                           'assetCode': otherTokens[i].assetCode,
-                                          'assetIssuer':
-                                              otherTokens[i].assetIssuer,
+                                          'contractAddress':
+                                              otherTokens[i].contractAddress,
                                           'walletAddress': wallet.address,
                                         };
                                         appState.currentAction = PageAction(

@@ -1298,7 +1298,7 @@ func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.W
 
 	// asset = basetxn.NativeAsset{}
 
-	asset = basetxn.CreditAsset{Code: ca.AssetCode, Issuer: ca.AssetIssuer}
+	asset = basetxn.CreditAsset{Code: ca.AssetCode, Issuer: ca.ContractAddress}
 
 	_, sourceAccountTrustsAsset, nativeAccountBalance, currencyBalance, sourceAccount, errorSource := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
@@ -1338,7 +1338,7 @@ func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.W
 	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 
 	ops = append(ops, &basetxn.Payment{
-		Destination:   ca.AssetIssuer,
+		Destination:   ca.ContractAddress,
 		Amount:        fmt.Sprintf("%v", wdlInput.AmountSubmitted),
 		Asset:         asset,
 		SourceAccount: wallet.ID,

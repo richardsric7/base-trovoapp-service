@@ -40,13 +40,13 @@ class _WrappedAssetState extends State<WrappedAsset>
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+          asset.contractAddress == appState.viewData!['contractAddress'],
     );
 
     curatedAsset = appState.curatedSwapList.firstWhereOrNull(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+          asset.contractAddress == appState.viewData!['contractAddress'],
     );
   }
 
@@ -249,7 +249,7 @@ class _WrappedAssetState extends State<WrappedAsset>
             appState.viewData = {
               'walletAddress': wallet.address,
               'assetCode': asset!.assetCode,
-              'assetIssuer': asset!.assetIssuer,
+              'contractAddress': asset!.contractAddress,
             };
 
             if (asset!.cryptoWalletDepositAddresses!.length > 0) {
@@ -268,7 +268,7 @@ class _WrappedAssetState extends State<WrappedAsset>
             appState.viewData = {
               'walletAddress': wallet.address,
               'assetCode': asset!.assetCode,
-              'assetIssuer': asset!.assetIssuer,
+              'contractAddress': asset!.contractAddress,
             };
 
             appState.currentAction = PageAction(
@@ -285,7 +285,7 @@ class _WrappedAssetState extends State<WrappedAsset>
             appState.viewData = {
               'walletAddress': wallet.address,
               'assetCode': asset!.assetCode,
-              'assetIssuer': asset!.assetIssuer,
+              'contractAddress': asset!.contractAddress,
             };
 
             appState.currentAction = PageAction(

@@ -1664,7 +1664,7 @@ func getServicelinksAppAuthorizeVerifyOwnerUsernameTargetUserAuthIdHandler(gc *s
 // @Param ownerUsername query string false "Owner username"
 // @Param paymentDestination query string false "Payment destination"
 // @Param assetCode query string false "Asset code"
-// @Param assetIssuer query string false "Asset issuer"
+// @Param contractAddress query string false "Asset issuer"
 // @Param amount query string false "Amount"
 // @Param memo query string false "Memo"
 // @Success 200 {object} map[string]interface{}
@@ -1680,7 +1680,7 @@ func getServicelinksPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfi
 			paymentDestination = strings.ToUpper(paymentDestination)
 		}
 		assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
-		assetIssuer := strings.TrimSpace(strings.ToUpper(c.Query("assetIssuer")))
+		contractAddress := strings.TrimSpace(strings.ToUpper(c.Query("contractAddress")))
 		amount := strings.TrimSpace(c.Query("amount"))
 		memo := strings.TrimSpace(c.Query("memo"))
 
@@ -1699,7 +1699,7 @@ func getServicelinksPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfi
 			}
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/payment/%v/%v/?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", trovoUser, ownerUsername, paymentDestination, assetCode, assetIssuer, amount, memo), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/payment/%v/%v/?paymentDestination=%v&assetCode=%v&contractAddress=%v&amount=%v&memo=%v", trovoUser, ownerUsername, paymentDestination, assetCode, contractAddress, amount, memo), gc.DB)
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
@@ -1764,7 +1764,7 @@ func getServicelinksPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfi
 		}
 
 		//generate payment data
-		data, err := dl.GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, memo, gc)
+		data, err := dl.GeneratePaymentData(paymentDestination, assetCode, contractAddress, amount, memo, gc)
 		if err != nil {
 			//could not create login session
 			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
@@ -1790,7 +1790,7 @@ func getServicelinksPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfi
 // @Param ownerUsername query string false "Owner username"
 // @Param paymentDestination query string false "Payment destination"
 // @Param assetCode query string false "Asset code"
-// @Param assetIssuer query string false "Asset issuer"
+// @Param contractAddress query string false "Asset issuer"
 // @Param amount query string false "Amount"
 // @Param memo query string false "Memo"
 // @Success 200 {object} map[string]interface{}
@@ -1806,7 +1806,7 @@ func getTrovoApiPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfig) g
 			paymentDestination = strings.ToUpper(paymentDestination)
 		}
 		assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
-		assetIssuer := strings.TrimSpace(strings.ToUpper(c.Query("assetIssuer")))
+		contractAddress := strings.TrimSpace(strings.ToUpper(c.Query("contractAddress")))
 		amount := strings.TrimSpace(c.Query("amount"))
 		memo := strings.TrimSpace(c.Query("memo"))
 
@@ -1825,7 +1825,7 @@ func getTrovoApiPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfig) g
 			}
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/payment/%v/%v/?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", trovoUser, ownerUsername, paymentDestination, assetCode, assetIssuer, amount, memo), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/payment/%v/%v/?paymentDestination=%v&assetCode=%v&contractAddress=%v&amount=%v&memo=%v", trovoUser, ownerUsername, paymentDestination, assetCode, contractAddress, amount, memo), gc.DB)
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
@@ -1890,7 +1890,7 @@ func getTrovoApiPaymentRequestTargetUserHandler(gc *sharedconfig.GlobalConfig) g
 		}
 
 		//generate payment data
-		data, err := dl.GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, memo, gc)
+		data, err := dl.GeneratePaymentData(paymentDestination, assetCode, contractAddress, amount, memo, gc)
 		if err != nil {
 			//could not create login session
 			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
@@ -2581,10 +2581,10 @@ func postTrovoApiTokensMintHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFun
 			return
 		}
 
-		if len(mintingData.AssetIssuer) == 0 {
+		if len(mintingData.ContractAddress) == 0 {
 			//wrong status
 			statusCode := http.StatusBadRequest
-			response := gin.H{"error": "error-invalid-minting-asset-issuer", "data": "assetIssuer", "message": "Invalid Asset Issuer."}
+			response := gin.H{"error": "error-invalid-minting-asset-issuer", "data": "contractAddress", "message": "Invalid Asset Issuer."}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -3271,14 +3271,14 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 						Sender          string    `json:"sender"`
 						Amount          string    `json:"amount"`
 						AssetCode       string    `json:"assetCode"`
-						AssetIssuer     string    `json:"assetIssuer"`
+						ContractAddress string    `json:"contractAddress"`
 						TransactionID   string    `json:"transactionId"`
 						TransactionMemo string    `json:"transactionMemo"`
 						TransactionTime time.Time `json:"transactionTime"`
 						DeviceID        string    `json:"deviceId"`
 					}
 					assetCode := paymentInfoReturned.AssetCode
-					if paymentInfoReturned.AssetIssuer == "" {
+					if paymentInfoReturned.ContractAddress == "" {
 						assetCode = os.Getenv("NATIVE_ASSET_CODE")
 					}
 					senderWallet, _, _ := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
@@ -3287,7 +3287,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 						Sender:          senderWallet.Alias,
 						Amount:          paymentInfoReturned.Amount,
 						AssetCode:       assetCode,
-						AssetIssuer:     paymentInfoReturned.AssetIssuer,
+						ContractAddress: paymentInfoReturned.ContractAddress,
 						TransactionID:   paymentInfoReturned.TransactionID,
 						TransactionMemo: paymentInfoReturned.Memo,
 						TransactionTime: time.Now(),

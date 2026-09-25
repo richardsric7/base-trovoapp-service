@@ -5,9 +5,9 @@ package users
 // authorization to hold/send that asset - the compliance-approval
 // equivalent of the issuer signing a Stellar SetTrustLineFlags operation.
 type WalletAssetAuthorizationRequest struct {
-	WalletAddress string `json:"walletAddress"`
-	AssetCode     string `json:"assetCode"`
-	AssetIssuer   string `json:"assetIssuer"`
-	Authorized    bool   `json:"authorized"`
-	Reason        string `json:"reason"`
+	WalletAddress   string `json:"walletAddress"`
+	AssetCode       string `json:"assetCode"`
+	ContractAddress string `json:"contractAddress"`
+	Authorized      bool   `json:"authorized"`
+	Reason          string `json:"reason"`
 }

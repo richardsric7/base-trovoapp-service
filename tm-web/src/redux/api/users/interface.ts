@@ -129,7 +129,7 @@ export interface Transaction {
   to: string;
   toAddress: string;
   memo: string;
-  assetIssuer: string;
+  contractAddress: string;
   assetCode: string;
   amount: string;
   transactionId: string;
@@ -163,7 +163,7 @@ export interface InTrade {
 export interface WalletClaim {
   amount: string;
   assetCode: string;
-  assetIssuer: string;
+  contractAddress: string;
   closedGroup: string;
   cryptoWalletDepositAddresses: CryptoWalletDepositAddress[];
   imageUrl: string;

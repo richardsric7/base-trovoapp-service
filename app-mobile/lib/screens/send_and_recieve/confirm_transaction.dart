@@ -57,7 +57,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+          asset.contractAddress == appState.viewData!['contractAddress'],
     );
     viewData = appState.viewData!;
     transactionData = appState.viewData!['transactionData'];

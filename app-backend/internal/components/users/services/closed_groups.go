@@ -137,24 +137,24 @@ func generateClosedGroupXdr(owner *userModels.User, closedGroupInput *userModels
 	CLOSED_GROUP_FEE := owner.UserWallets[0].GetClosedGroupFee(gc)
 	cgFeeAmountUSD := CLOSED_GROUP_FEE.FeeFixed
 	cgFeeAssetCode := CLOSED_GROUP_FEE.FeeAssetCode
-	cgFeeAssetIssuer := CLOSED_GROUP_FEE.FeeAssetIssuer
+	cgFeeContractAddress := CLOSED_GROUP_FEE.FeeContractAddress
 	if len(cgFeeAssetCode) == 0 {
 		cgFeeAmountUSD = 0
 	}
 	if cgFeeAmountUSD > 0 {
 		cgFeeAssetCode = "TROV"
-		cgFeeAssetIssuer = os.Getenv("TROV_ASSET_ISSUER")
+		cgFeeContractAddress = os.Getenv("TROV_ASSET_CONTRACT_ADDRESS")
 	}
 	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 	cgFeeKP := evmkeypair.MustParseFull(CLOSED_GROUP_FEE.FeeWalletSecretKey)
-	sourceAssets := strings.ToUpper(fmt.Sprintf("%v:%v", cgFeeAssetCode, cgFeeAssetIssuer))
+	sourceAssets := strings.ToUpper(fmt.Sprintf("%v:%v", cgFeeAssetCode, cgFeeContractAddress))
 
 	var errGetEstimate error
 	var requiredUsdWorth string
 	// var path []basetxn.Asset
 
 	// var asset basetxn.Asset
-	asset := basetxn.CreditAsset{Code: cgFeeAssetCode, Issuer: cgFeeAssetIssuer}
+	asset := basetxn.CreditAsset{Code: cgFeeAssetCode, Issuer: cgFeeContractAddress}
 
 	_, _, nativeBalance, customBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.Address, asset)
 
@@ -166,10 +166,10 @@ func generateClosedGroupXdr(owner *userModels.User, closedGroupInput *userModels
 
 	//get the trov quantity/equivalent needed for the USD from the market.
 	pathInput := swapModel.SwapPathInput{
-		SourceAssets:           sourceAssets,
-		DestinationAssetCode:   CLOSED_GROUP_FEE.FeeAssetCode,
-		DestinationAssetIssuer: CLOSED_GROUP_FEE.FeeAssetIssuer,
-		DestinationAmount:      fmt.Sprintf("%v", cgFeeAmountUSD),
+		SourceAssets:               sourceAssets,
+		DestinationAssetCode:       CLOSED_GROUP_FEE.FeeAssetCode,
+		DestinationContractAddress: CLOSED_GROUP_FEE.FeeContractAddress,
+		DestinationAmount:          fmt.Sprintf("%v", cgFeeAmountUSD),
 	}
 	_, requiredUsdWorth, errGetEstimate = swaps.GetStrictReceivePaths(pathInput, gc.BantuExpansionClient)
 	// requiredTrovAssetEstimate = requiredUsdEstimate
@@ -200,7 +200,7 @@ func generateClosedGroupXdr(owner *userModels.User, closedGroupInput *userModels
 	ops = append(ops, &basetxn.Payment{
 		Destination:   cgFeeKP.Address(),
 		Amount:        requiredUsdWorth,
-		Asset:         basetxn.CreditAsset{Code: cgFeeAssetCode, Issuer: cgFeeAssetIssuer},
+		Asset:         basetxn.CreditAsset{Code: cgFeeAssetCode, Issuer: cgFeeContractAddress},
 		SourceAccount: owner.Address, //primary wallet
 	})
 	closedGroupInput.Messages = append(closedGroupInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the creation of the closed group.", requiredUsdWorth, cgFeeAssetCode, owner.Username))

@@ -341,7 +341,7 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 			}
 			if os.Getenv("ENABLE_TROV_ASSET_BY_DEFAULT") != "0" {
 
-				issuer := os.Getenv("TROV_ASSET_ISSUER")
+				issuer := os.Getenv("TROV_ASSET_CONTRACT_ADDRESS")
 				if issuer != "" {
 					trovAsset := basetxn.CreditAsset{Code: "TROV", Issuer: issuer}
 					_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.Address, trovAsset)
@@ -518,7 +518,7 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 
 				if os.Getenv("ENABLE_TROV_ASSET_BY_DEFAULT") != "0" {
 
-					issuer := os.Getenv("TROV_ASSET_ISSUER")
+					issuer := os.Getenv("TROV_ASSET_CONTRACT_ADDRESS")
 					if issuer != "" {
 						trovAsset := basetxn.CreditAsset{Code: "TROV", Issuer: issuer}
 						_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, trovAsset)
@@ -572,7 +572,7 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 	signForFeeTrustLine := 0
 	if accountOwner.Username != "atprofile" {
 		//add fee for transaction
-		usdPrice, _, _ := blockchain.GetDollarPrice(SUBWALLET_CREATION_FEE.FeeAssetCode, SUBWALLET_CREATION_FEE.FeeAssetIssuer, gc, true)
+		usdPrice, _, _ := blockchain.GetDollarPrice(SUBWALLET_CREATION_FEE.FeeAssetCode, SUBWALLET_CREATION_FEE.FeeContractAddress, gc, true)
 
 		serviceFee := decimal.NewFromFloat(SUBWALLET_CREATION_FEE.FeeFixed)
 		if e != nil {
@@ -588,7 +588,7 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 
 			feeAddress := feeKeypair.Address()
 
-			feeAsset := basetxn.CreditAsset{Code: SUBWALLET_CREATION_FEE.FeeAssetCode, Issuer: SUBWALLET_CREATION_FEE.FeeAssetIssuer}
+			feeAsset := basetxn.CreditAsset{Code: SUBWALLET_CREATION_FEE.FeeAssetCode, Issuer: SUBWALLET_CREATION_FEE.FeeContractAddress}
 			_, _, _, assetBalance, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, accountOwner.Address, feeAsset)
 			if assetBalance.LessThan(serviceFee) {
 				return "", subWalletObj, linkedWallet, &tErrors.CustomError{Param: "username", Err: "error-primary-wallet-underfunded", ErrMessage: fmt.Sprintf("%v %v is required on wallet %v to pay for fees for this service. Please first fund the wallet with at least %v %v.", serviceFee.String(), SUBWALLET_CREATION_FEE.FeeAssetCode, accountOwner.Username, serviceFee.Sub(assetBalance), SUBWALLET_CREATION_FEE.FeeAssetCode)}

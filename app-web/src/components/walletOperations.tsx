@@ -149,7 +149,7 @@ export default function WalletOperations({
         memo: formData.memo,
         amount: formData.amount,
         assetCode: getAssetCode(selectedAsset.assetCode),
-        assetIssuer: selectedAsset.assetIssuer,
+        contractAddress: selectedAsset.contractAddress,
       },
     };
 
@@ -192,7 +192,7 @@ export default function WalletOperations({
         address: activeWallet.address,
         alias: activeWallet.alias,
         assetCode: selectedAsset.assetCode,
-        assetIssuer: selectedAsset.assetIssuer,
+        contractAddress: selectedAsset.contractAddress,
       },
     };
 
@@ -227,9 +227,9 @@ export default function WalletOperations({
       body: {
         isSharedWallet: activeWallet.sharedAccessEnabled,
         destinationAssetCode: formData.swapTo?.assetCode,
-        destinationAssetIssuer: formData.swapTo?.assetIssuer,
+        destinationContractAddress: formData.swapTo?.contractAddress,
         sourceAssetCode: formData.swapFrom?.assetCode,
-        sourceAssetIssuer: formData.swapFrom?.assetIssuer,
+        sourceContractAddress: formData.swapFrom?.contractAddress,
         sourceAmount: formData.amount,
       },
     };
@@ -1158,7 +1158,7 @@ export default function WalletOperations({
                       amount: res.data.amount,
                       transactionId: res.data.transactionId,
                       assetCode: res.data.assetCode,
-                      assetIssuer: res.data.assetIssuer,
+                      contractAddress: res.data.contractAddress,
                       transactionDate: new Date(),
                       transactionDirection: TransactionDirection.Send,
                     }),

@@ -41,7 +41,7 @@ const getAssetCode = (assetCode: string) => {
     // empty assetCode value.
     // native token of the Base blockchain
     // has empty values as assetCode and
-    // assetIssuer
+    // contractAddress
     return !assetCode ? 'ETH' : assetCode.toString();
   }
 

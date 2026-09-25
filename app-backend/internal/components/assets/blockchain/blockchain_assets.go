@@ -10,11 +10,11 @@ import (
 // curatedAssetRow mirrors just the columns GetBlockchainAsset needs from
 // the curated_assets table.
 type curatedAssetRow struct {
-	AssetCode   string
-	AssetIssuer string
+	AssetCode       string
+	ContractAddress string
 }
 
-// GetBlockchainAsset searches Base assets matching assetCode/assetIssuer.
+// GetBlockchainAsset searches Base assets matching assetCode/contractAddress.
 // Stellar's version queried Horizon's global, network-wide asset
 // registry (paginated by cursor); Base has no such registry - any
 // contract can mint a token with any symbol, so "search assets" here
@@ -23,17 +23,17 @@ type curatedAssetRow struct {
 // enriched with each match's live on-chain total supply where available.
 // cursor/order are accepted for call-site compatibility but unused - the
 // curated-asset catalog is small enough not to need pagination yet.
-func GetBlockchainAsset(assetCode, assetIssuer, cursor, order string, limit uint, db *gorm.DB) (paginatedBlockchainAssets models.PaginatedBlockchainAssets, err error) {
+func GetBlockchainAsset(assetCode, contractAddress, cursor, order string, limit uint, db *gorm.DB) (paginatedBlockchainAssets models.PaginatedBlockchainAssets, err error) {
 	if limit < 1 {
 		limit = 25
 	}
 	var rows []curatedAssetRow
-	q := db.Table("curated_assets").Select("asset_code, asset_issuer")
+	q := db.Table("curated_assets").Select("asset_code, contract_address")
 	if assetCode != "" {
 		q = q.Where("asset_code = ?", strings.ToUpper(assetCode))
 	}
-	if assetIssuer != "" {
-		q = q.Where("asset_issuer = ?", strings.ToLower(assetIssuer))
+	if contractAddress != "" {
+		q = q.Where("contract_address = ?", strings.ToLower(contractAddress))
 	}
 	if e := q.Limit(int(limit)).Find(&rows).Error; e != nil {
 		return paginatedBlockchainAssets, e
@@ -49,9 +49,9 @@ func GetBlockchainAsset(assetCode, assetIssuer, cursor, order string, limit uint
 		// single account-level flag, so AuthRequired/AuthRevocable/
 		// AuthImmutable are left false here rather than guessed.
 		assetsOut = append(assetsOut, models.BlockchainAsset{
-			AssetCode:      row.AssetCode,
-			AssetIssuer:    row.AssetIssuer,
-			AmountOfTokens: "0",
+			AssetCode:       row.AssetCode,
+			ContractAddress: row.ContractAddress,
+			AmountOfTokens:  "0",
 		})
 	}
 

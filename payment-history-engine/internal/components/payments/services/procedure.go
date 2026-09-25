@@ -133,7 +133,7 @@ func TrackUserWallet(userWallet userModels.UserWallet, roachDB, db *gorm.DB, tra
 
 }
 
-func SavePaymentHistory(fromPK, fromAlias, fromName, toPK, toAlias, toName, memo, assetIssuer, assetCode, amount, transactionHash, transactionType, PT, ID, sss string, transactionTime time.Time, db *gorm.DB) error {
+func SavePaymentHistory(fromPK, fromAlias, fromName, toPK, toAlias, toName, memo, contractAddress, assetCode, amount, transactionHash, transactionType, PT, ID, sss string, transactionTime time.Time, db *gorm.DB) error {
 	var from, to string
 	var fromVal, toVal, memoVal, issuerVal *string
 	if len(fromAlias) > 1 {
@@ -147,8 +147,8 @@ func SavePaymentHistory(fromPK, fromAlias, fromName, toPK, toAlias, toName, memo
 	if len(memo) > 0 {
 		memoVal = &memo
 	}
-	if len(assetIssuer) > 0 {
-		issuerVal = &assetIssuer
+	if len(contractAddress) > 0 {
+		issuerVal = &contractAddress
 	}
 
 	if assetCode == "" {
@@ -162,7 +162,7 @@ func SavePaymentHistory(fromPK, fromAlias, fromName, toPK, toAlias, toName, memo
 		To:                    toVal,
 		ToAddress:             toPK,
 		Memo:                  memoVal,
-		AssetIssuer:           issuerVal,
+		ContractAddress:       issuerVal,
 		AssetCode:             assetCode,
 		Amount:                amount,
 		TransactionID:         transactionHash,
@@ -178,7 +178,7 @@ func SavePaymentHistory(fromPK, fromAlias, fromName, toPK, toAlias, toName, memo
 	// 	To:              toVal,
 	// 	ToAddress:     toPK,
 	// 	Memo:            memoVal,
-	// 	AssetIssuer:     issuerVal,
+	// 	ContractAddress:     issuerVal,
 	// 	AssetCode:       assetCode,
 	// 	Amount:          amount,
 	// 	TransactionID:   transactionHash,

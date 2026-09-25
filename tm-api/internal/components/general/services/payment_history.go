@@ -29,7 +29,7 @@ import (
 // @Param from query string false "Filter by sender alias or name"
 // @Param to query string false "Filter by recipient alias or name"
 // @Param memo query string false "Filter by transaction memo"
-// @Param assetIssuer query string false "Filter by asset issuer"
+// @Param contractAddress query string false "Filter by asset issuer"
 // @Param assetCode query string false "Filter by asset code"
 // @Param search query string false "Search across multiple fields (e.g., from, to, transaction ID)"
 // @Success 200 {object} response.Data
@@ -66,7 +66,7 @@ func GetPaymentHistory(walletDB *gorm.DB) gin.HandlerFunc {
 			From:            c.Query("from"),
 			To:              c.Query("to"),
 			Memo:            c.Query("memo"),
-			AssetIssuer:     c.Query("assetIssuer"),
+			ContractAddress: c.Query("contractAddress"),
 			AssetCode:       c.Query("assetCode"),
 			Search:          c.Query("search"),
 		}
@@ -140,8 +140,8 @@ func GetPaymentHistoryList(req models.PaymentHistoryRequest, db *gorm.DB) ([]mod
 	if req.Memo != "" {
 		query = query.Where("memo LIKE ?", "%"+req.Memo+"%")
 	}
-	if req.AssetIssuer != "" {
-		query = query.Where("asset_issuer LIKE ?", "%"+req.AssetIssuer+"%")
+	if req.ContractAddress != "" {
+		query = query.Where("contract_address LIKE ?", "%"+req.ContractAddress+"%")
 	}
 	if req.AssetCode != "" {
 		query = query.Where("asset_code = ?", req.AssetCode)
@@ -159,7 +159,7 @@ func GetPaymentHistoryList(req models.PaymentHistoryRequest, db *gorm.DB) ([]mod
 				//db.Where("\"to\" ILIKE ?", search),
 				db.Where("transaction_id ILIKE ?", search),
 				db.Where("memo ILIKE ?", search),
-				db.Where("asset_issuer ILIKE ?", search),
+				db.Where("contract_address ILIKE ?", search),
 				db.Where("asset_code ILIKE ?", search),
 				db.Where("CAST(amount AS TEXT) ILIKE ?", search),
 			),
@@ -189,7 +189,7 @@ func GetPaymentHistoryList(req models.PaymentHistoryRequest, db *gorm.DB) ([]mod
 			To:              coalesce(ph.To),
 			ToAddress:       ph.ToAddress,
 			Memo:            coalesce(ph.Memo),
-			AssetIssuer:     coalesce(ph.AssetIssuer),
+			ContractAddress: coalesce(ph.ContractAddress),
 			AssetCode:       ph.AssetCode,
 			Amount:          ph.Amount,
 			TransactionID:   ph.TransactionID,

@@ -67,8 +67,8 @@ type KycWebhookRequest struct {
 	Data            string
 }
 type Asset struct {
-	AssetCode   string `json:"assetCode"`
-	AssetIssuer string `json:"assetIssuer"`
+	AssetCode       string `json:"assetCode"`
+	ContractAddress string `json:"contractAddress"`
 }
 
 type OfferVolume struct {
@@ -89,7 +89,7 @@ type CuratedAsset struct {
 	UpdatedAt                   time.Time `json:"-"`
 	AssetCode                   string    `gorm:"size:12;unique;not null; default:''" json:"assetCode"`
 	AssetName                   string    `gorm:"size:50;null; default:''" json:"assetName"`
-	AssetIssuer                 string    `gorm:"size:56;not null; default:''" json:"assetIssuer"`
+	ContractAddress             string    `gorm:"size:56;not null; default:''" json:"contractAddress"`
 	Description                 string    `gorm:"not null" json:"description"`
 	ImageURL                    *string   `gorm:"null" json:"imageUrl"`
 	Website                     string    `gorm:"null;size:100" json:"website"`
@@ -992,14 +992,14 @@ func (gc *GlobalConfig) GetCuratedAssets(includeInactive bool) (assets map[strin
 		go func(v CuratedAsset) {
 			defer wg.Done()
 			//get native price
-			// log.Printf(">>>>>>>>>>>>>>>Fetched Asset: Code: %v, Issuer: %v\n", v.AssetCode, v.AssetIssuer)
-			// nativePrice, _ := blockchain.GetNativeAskPrice(v.AssetCode, v.AssetIssuer)
+			// log.Printf(">>>>>>>>>>>>>>>Fetched Asset: Code: %v, Issuer: %v\n", v.AssetCode, v.ContractAddress)
+			// nativePrice, _ := blockchain.GetNativeAskPrice(v.AssetCode, v.ContractAddress)
 			// v.NativePrice = nativePrice
 			// usdPriceFloat := decimal.RequireFromString(usdPrice)
 			// nativePriceFloat := decimal.RequireFromString(nativePrice)
 			// v.UsdPrice = nativePriceFloat.Mul(usdPriceFloat).Truncate(7).String()
 			m.Lock()
-			tempAssets[v.AssetCode+":"+v.AssetIssuer] = v
+			tempAssets[v.AssetCode+":"+v.ContractAddress] = v
 			m.Unlock()
 		}(v)
 
@@ -1264,20 +1264,20 @@ func (gc *GlobalConfig) LogDiscordFailedRequest(msg string) {
 }
 
 // GetOrderBook
-func (gc *GlobalConfig) GetOrderBook(assetCode, assetIssuer, currencyCode, currencyIssuer string) (trovoOrderBook OrderBook, err error) {
+func (gc *GlobalConfig) GetOrderBook(assetCode, contractAddress, currencyCode, currencyIssuer string) (trovoOrderBook OrderBook, err error) {
 	trovoOrderBook.Asks = make([]OfferVolume, 0)
 	trovoOrderBook.Bids = make([]OfferVolume, 0)
 	trovoOrderBook.Currency = Asset{
-		AssetCode:   currencyCode,
-		AssetIssuer: currencyIssuer,
+		AssetCode:       currencyCode,
+		ContractAddress: currencyIssuer,
 	}
 	trovoOrderBook.Asset = Asset{
-		AssetCode:   assetCode,
-		AssetIssuer: assetIssuer,
+		AssetCode:       assetCode,
+		ContractAddress: contractAddress,
 	}
 	if strings.EqualFold(assetCode, os.Getenv("NATIVE_ASSET_CODE")) {
 		assetCode = ""
-		assetIssuer = ""
+		contractAddress = ""
 	}
 	if strings.EqualFold(currencyCode, os.Getenv("NATIVE_ASSET_CODE")) {
 		currencyCode = ""
@@ -1287,9 +1287,9 @@ func (gc *GlobalConfig) GetOrderBook(assetCode, assetIssuer, currencyCode, curre
 	var input OrderBookRequestInput
 
 	input.SellingAssetCode = assetCode
-	input.SellingAssetIssuer = assetIssuer
+	input.SellingContractAddress = contractAddress
 	input.BuyingAssetCode = currencyCode
-	input.BuyingAssetIssuer = currencyIssuer
+	input.BuyingContractAddress = currencyIssuer
 
 	orderBook, err := GetBantuOrderBookSummary(input)
 	if err != nil {
@@ -1342,7 +1342,7 @@ type ServiceFee struct {
 	FeePercent         float64   `gorm:"default:0" json:"feePercent"`
 	FeeFixed           float64   `gorm:"default:0" json:"feeFixed"`
 	FeeAssetCode       string    `gorm:"default:''" json:"feeAssetCode"`
-	FeeAssetIssuer     string    `gorm:"default:''" json:"feeAssetIssuer"`
+	FeeContractAddress string    `gorm:"default:''" json:"feeContractAddress"`
 	Inactive           int       `gorm:"default:0" json:"inactive"`
 	Remarks            string    `gorm:"default:''" json:"remarks"`
 }
@@ -1381,7 +1381,7 @@ type FeeCollection struct {
 	FeeType                    string    `gorm:"not null" json:"feeType"`
 	Amount                     float64   `gorm:"default:0.0" json:"amount"`
 	AssetCode                  string    `gorm:"not null" json:"assetCode"`
-	AssetIssuer                *string   `gorm:"null" json:"assetIssuer"`
+	ContractAddress            *string   `gorm:"null" json:"contractAddress"`
 	DestinationWallet          string    `gorm:"not null" json:"destinationWallet"`
 	SharedAccessOperation      int       `json:"sharedAccessOperation" gorm:"type:integer;not null;default:0"`
 	TransactionHash            *string   `gorm:"null" json:"transactionHash"`

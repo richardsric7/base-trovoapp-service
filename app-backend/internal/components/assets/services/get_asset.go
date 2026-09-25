@@ -19,9 +19,9 @@ func GetCuratedAssets(gc *sharedconfig.GlobalConfig) (assetsInfo map[string]asse
 }
 
 // GetBlockchainAssets gets curated information
-func GetBlockchainAssets(assetCode, assetIssuer, cursor, order string, limit uint, db *gorm.DB) (assetsInfo assetmodels.PaginatedBlockchainAssets, err error) {
+func GetBlockchainAssets(assetCode, contractAddress, cursor, order string, limit uint, db *gorm.DB) (assetsInfo assetmodels.PaginatedBlockchainAssets, err error) {
 
-	assetsInfo, _ = assetblockchain.GetBlockchainAsset(assetCode, assetIssuer, cursor, order, limit, db)
+	assetsInfo, _ = assetblockchain.GetBlockchainAsset(assetCode, contractAddress, cursor, order, limit, db)
 
 	return
 

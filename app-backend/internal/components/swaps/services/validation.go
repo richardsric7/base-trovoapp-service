@@ -18,11 +18,11 @@ func ValidateSwapSendInfo(swapInfo *swapModels.SwapSendInfo) error {
 			return &errors.ErrorMissingParameter{Parameter: "sourceAmount"}
 		}
 
-		if len(swapInfo.DestinationAssetCode) == 0 && len(swapInfo.DestinationAssetIssuer) > 0 {
+		if len(swapInfo.DestinationAssetCode) == 0 && len(swapInfo.DestinationContractAddress) > 0 {
 			return &errors.ErrorMissingParameter{Parameter: "destinationAssetCode"}
 		}
-		if len(swapInfo.DestinationAssetIssuer) == 0 && len(swapInfo.DestinationAssetCode) > 0 {
-			return &errors.ErrorMissingParameter{Parameter: "destinationAssetIssuer"}
+		if len(swapInfo.DestinationContractAddress) == 0 && len(swapInfo.DestinationAssetCode) > 0 {
+			return &errors.ErrorMissingParameter{Parameter: "destinationContractAddress"}
 		}
 
 	}
@@ -30,14 +30,14 @@ func ValidateSwapSendInfo(swapInfo *swapModels.SwapSendInfo) error {
 	//vaidate asset issuer public key
 
 	{
-		if len(swapInfo.SourceAssetIssuer) > 0 {
-			err := validators.ValidateAddressFormat(swapInfo.SourceAssetIssuer)
+		if len(swapInfo.SourceContractAddress) > 0 {
+			err := validators.ValidateAddressFormat(swapInfo.SourceContractAddress)
 			if err != nil {
 				return err
 			}
 		}
-		if len(swapInfo.DestinationAssetIssuer) > 0 {
-			err := validators.ValidateAddressFormat(swapInfo.DestinationAssetIssuer)
+		if len(swapInfo.DestinationContractAddress) > 0 {
+			err := validators.ValidateAddressFormat(swapInfo.DestinationContractAddress)
 			if err != nil {
 				return err
 			}
@@ -65,7 +65,7 @@ func ValidateSwapSendInfo(swapInfo *swapModels.SwapSendInfo) error {
 	}
 
 	//check if asset and destination are same
-	if swapInfo.DestinationAssetCode+swapInfo.DestinationAssetIssuer == swapInfo.SourceAssetCode+swapInfo.SourceAssetIssuer {
+	if swapInfo.DestinationAssetCode+swapInfo.DestinationContractAddress == swapInfo.SourceAssetCode+swapInfo.SourceContractAddress {
 		return &swapErrors.ErrorSourceAndDestinationAssetAreSame{}
 	}
 
@@ -107,17 +107,17 @@ func ValidateSwapReceiveInfo(swapInfo *swapModels.SwapReceiveInfo) error {
 			return &errors.ErrorMissingParameter{Parameter: "destinationAmount"}
 		}
 
-		if len(swapInfo.DestinationAssetCode) == 0 && len(swapInfo.DestinationAssetIssuer) > 0 {
+		if len(swapInfo.DestinationAssetCode) == 0 && len(swapInfo.DestinationContractAddress) > 0 {
 			return &errors.ErrorMissingParameter{Parameter: "destinationAssetCode"}
 		}
-		if len(swapInfo.DestinationAssetIssuer) == 0 && len(swapInfo.DestinationAssetCode) > 0 {
-			return &errors.ErrorMissingParameter{Parameter: "destinationAssetIssuer"}
+		if len(swapInfo.DestinationContractAddress) == 0 && len(swapInfo.DestinationAssetCode) > 0 {
+			return &errors.ErrorMissingParameter{Parameter: "destinationContractAddress"}
 		}
-		if len(swapInfo.SourceAssetCode) == 0 && len(swapInfo.SourceAssetIssuer) > 0 {
+		if len(swapInfo.SourceAssetCode) == 0 && len(swapInfo.SourceContractAddress) > 0 {
 			return &errors.ErrorMissingParameter{Parameter: "sourceAssetCode"}
 		}
-		if len(swapInfo.SourceAssetIssuer) == 0 && len(swapInfo.SourceAssetCode) > 0 {
-			return &errors.ErrorMissingParameter{Parameter: "sourceAssetIssuer"}
+		if len(swapInfo.SourceContractAddress) == 0 && len(swapInfo.SourceAssetCode) > 0 {
+			return &errors.ErrorMissingParameter{Parameter: "sourceContractAddress"}
 		}
 
 	}
@@ -125,14 +125,14 @@ func ValidateSwapReceiveInfo(swapInfo *swapModels.SwapReceiveInfo) error {
 	//vaidate asset issuer public key
 
 	{
-		if len(swapInfo.SourceAssetIssuer) > 0 {
-			err := validators.ValidateAddressFormat(swapInfo.SourceAssetIssuer)
+		if len(swapInfo.SourceContractAddress) > 0 {
+			err := validators.ValidateAddressFormat(swapInfo.SourceContractAddress)
 			if err != nil {
 				return err
 			}
 		}
-		if len(swapInfo.DestinationAssetIssuer) > 0 {
-			err := validators.ValidateAddressFormat(swapInfo.DestinationAssetIssuer)
+		if len(swapInfo.DestinationContractAddress) > 0 {
+			err := validators.ValidateAddressFormat(swapInfo.DestinationContractAddress)
 			if err != nil {
 				return err
 			}
@@ -160,7 +160,7 @@ func ValidateSwapReceiveInfo(swapInfo *swapModels.SwapReceiveInfo) error {
 	}
 
 	//check if asset and destination are same
-	if swapInfo.DestinationAssetCode+swapInfo.DestinationAssetIssuer == swapInfo.SourceAssetCode+swapInfo.SourceAssetIssuer {
+	if swapInfo.DestinationAssetCode+swapInfo.DestinationContractAddress == swapInfo.SourceAssetCode+swapInfo.SourceContractAddress {
 		return &swapErrors.ErrorSourceAndDestinationAssetAreSame{}
 	}
 

@@ -47,7 +47,7 @@ export default function AssetDetail() {
     wallet?.claimedAssets.find(
       (a) =>
         a.assetCode == searchParams.get('assetCode') &&
-        a.assetIssuer == searchParams?.get('assetIssuer'),
+        a.contractAddress == searchParams?.get('contractAddress'),
     )!,
   );
   let mutableWalletArray = [...appUser.userWallets];
@@ -60,7 +60,7 @@ export default function AssetDetail() {
   const curatedAsset = appUser.curatedSwapList.find(
     (a) =>
       a.assetCode == searchParams.get('assetCode') &&
-      a.assetIssuer == searchParams?.get('assetIssuer'),
+      a.contractAddress == searchParams?.get('contractAddress'),
   );
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -86,7 +86,7 @@ export default function AssetDetail() {
                   additionalClasses="bg-primary-600 text-white font-montserratSemiBold"
                   onclick={() => {
                     navigate(
-                      `/dashboard/yield?wallet=${wallet.address}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
+                      `/dashboard/yield?wallet=${wallet.address}&assetCode=${asset.assetCode}&contractAddress=${asset.contractAddress}`,
                     );
                   }}
                 />
@@ -95,7 +95,7 @@ export default function AssetDetail() {
                   additionalClasses="font-montserratSemiBold"
                   onclick={() => {
                     navigate(
-                      `/dashboard/early-exit?wallet=${wallet.address}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
+                      `/dashboard/early-exit?wallet=${wallet.address}&assetCode=${asset.assetCode}&contractAddress=${asset.contractAddress}`,
                     );
                   }}
                 />
@@ -144,12 +144,12 @@ export default function AssetDetail() {
                   Token Contract Address
                 </p>
                 <p className="flex items-center space-x-2">
-                  <span>{truncateAddress(asset?.assetIssuer ?? '')}</span>
+                  <span>{truncateAddress(asset?.contractAddress ?? '')}</span>
                   <button
                     type="button"
                     onClick={() =>
                       navigator.clipboard
-                        .writeText(asset?.assetIssuer ?? '')
+                        .writeText(asset?.contractAddress ?? '')
                         .then(() => {
                           showNotification('info', 'Address copied!');
                         })
@@ -258,7 +258,7 @@ export default function AssetDetail() {
             setWallet(wallet);
             setAsset(
               wallet?.claimedAssets.find(
-                (a) => a.assetCode === '' && a.assetIssuer === '',
+                (a) => a.assetCode === '' && a.contractAddress === '',
               )!,
             );
           }}

@@ -356,7 +356,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/compliance/wallet-authorization/{assetCode}/{assetIssuer}": {
+        "/v1/compliance/wallet-authorization/{assetCode}/{contractAddress}": {
             "get": {
                 "description": "Lists every wallet authorization row for a regulated asset. Must be called by the asset's own issuing wallet.",
                 "produces": [
@@ -365,7 +365,7 @@ const docTemplate = `{
                 "tags": [
                     "compliance"
                 ],
-                "summary": "GET /v1/compliance/wallet-authorization/:assetCode/:assetIssuer",
+                "summary": "GET /v1/compliance/wallet-authorization/:assetCode/:contractAddress",
                 "parameters": [
                     {
                         "type": "string",
@@ -377,7 +377,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Asset issuer (issuing wallet) address",
-                        "name": "assetIssuer",
+                        "name": "contractAddress",
                         "in": "path",
                         "required": true
                     }
@@ -1303,7 +1303,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Asset issuer",
-                        "name": "assetIssuer",
+                        "name": "contractAddress",
                         "in": "query"
                     },
                     {
@@ -3542,7 +3542,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Asset issuer",
-                        "name": "assetIssuer",
+                        "name": "contractAddress",
                         "in": "query"
                     },
                     {
@@ -5350,7 +5350,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Asset issuer",
-                        "name": "assetIssuer",
+                        "name": "contractAddress",
                         "in": "query"
                     },
                     {
@@ -6078,7 +6078,7 @@ const docTemplate = `{
                 "assetCode": {
                     "type": "string"
                 },
-                "assetIssuer": {
+                "contractAddress": {
                     "type": "string"
                 },
                 "authorized": {
@@ -6113,7 +6113,7 @@ const docTemplate = `{
                 "assetCode": {
                     "type": "string"
                 },
-                "assetIssuer": {
+                "contractAddress": {
                     "type": "string"
                 },
                 "channelAccount": {
@@ -6271,7 +6271,7 @@ const docTemplate = `{
                 "destinationAssetCode": {
                     "type": "string"
                 },
-                "destinationAssetIssuer": {
+                "destinationContractAddress": {
                     "type": "string"
                 },
                 "fee": {
@@ -6301,7 +6301,7 @@ const docTemplate = `{
                 "sourceAssetCode": {
                     "type": "string"
                 },
-                "sourceAssetIssuer": {
+                "sourceContractAddress": {
                     "type": "string"
                 },
                 "swapAmount": {
@@ -7096,7 +7096,7 @@ const docTemplate = `{
                 "assetCode": {
                     "type": "string"
                 },
-                "assetIssuer": {
+                "contractAddress": {
                     "type": "string"
                 },
                 "commit": {
@@ -7152,7 +7152,7 @@ const docTemplate = `{
                 "assetCode": {
                     "type": "string"
                 },
-                "assetIssuer": {
+                "contractAddress": {
                     "type": "string"
                 },
                 "channelAccount": {
@@ -7285,7 +7285,7 @@ const docTemplate = `{
                 "paymentAssetCode": {
                     "type": "string"
                 },
-                "paymentAssetIssuer": {
+                "paymentContractAddress": {
                     "type": "string"
                 },
                 "transaction": {
@@ -9004,7 +9004,7 @@ const docTemplate = `{
                 "paymentAssetCode": {
                     "type": "string"
                 },
-                "paymentAssetIssuer": {
+                "paymentContractAddress": {
                     "type": "string"
                 },
                 "purchaserUsername": {
@@ -9067,7 +9067,7 @@ const docTemplate = `{
                     "description": "optional: stablecoin to pay in. Defaults to CNGN.",
                     "type": "string"
                 },
-                "paymentAssetIssuer": {
+                "paymentContractAddress": {
                     "description": "optional: never trusted verbatim, always re-resolved server-side.",
                     "type": "string"
                 },
@@ -9339,7 +9339,7 @@ const docTemplate = `{
                 "assetCode": {
                     "type": "string"
                 },
-                "assetIssuer": {
+                "contractAddress": {
                     "type": "string"
                 },
                 "authorized": {

@@ -548,7 +548,7 @@ func (s *ServiceLink) SendPushNotification(trovoUser, title, message, imageUri, 
 
 }
 
-func (s *ServiceLink) GetPaymentData(trovoUser, paymentDestination, assetCode, assetIssuer, amount, memo string) (paymentData *PayWithTrovoWalletData, err error) {
+func (s *ServiceLink) GetPaymentData(trovoUser, paymentDestination, assetCode, contractAddress, amount, memo string) (paymentData *PayWithTrovoWalletData, err error) {
 
 	if len(trovoUser) == 0 {
 		err = errors.New("trovoUser is empty")
@@ -564,8 +564,8 @@ func (s *ServiceLink) GetPaymentData(trovoUser, paymentDestination, assetCode, a
 		err = errors.New("native asset code is empty")
 		return
 	}
-	if assetCode == "" && assetIssuer != "" {
-		return nil, errors.New("assetCode is empty but assetIssuer was specified")
+	if assetCode == "" && contractAddress != "" {
+		return nil, errors.New("assetCode is empty but contractAddress was specified")
 	}
 	if len(assetCode) > 0 {
 		if len(assetCode) < 3 || len(assetCode) > 12 {
@@ -573,25 +573,25 @@ func (s *ServiceLink) GetPaymentData(trovoUser, paymentDestination, assetCode, a
 		}
 
 	}
-	if assetIssuer == "" && assetCode != "" && assetCode != os.Getenv("NATIVE_ASSET_CODE") {
-		return nil, errors.New("assetIssuer is empty but assetCode is specified")
+	if contractAddress == "" && assetCode != "" && assetCode != os.Getenv("NATIVE_ASSET_CODE") {
+		return nil, errors.New("contractAddress is empty but assetCode is specified")
 	}
 	if amount == "" || amount == "0" {
 		return nil, errors.New("amount is empty")
 	}
-	if len(assetIssuer) > 0 {
-		_, e := evmkeypair.ParseAddress(assetIssuer)
+	if len(contractAddress) > 0 {
+		_, e := evmkeypair.ParseAddress(contractAddress)
 		if e != nil {
-			return nil, errors.New("invalid assetIssuer")
+			return nil, errors.New("invalid contractAddress")
 		}
 	}
 	encPaymentDestination := url.QueryEscape(paymentDestination)
 	encAssetCode := url.QueryEscape(assetCode)
-	encAssetIssuer := url.QueryEscape(assetIssuer)
+	encContractAddress := url.QueryEscape(contractAddress)
 	encAmount := url.QueryEscape(amount)
 	encMemo := url.QueryEscape(memo)
 
-	fullPath := fmt.Sprintf("/v1/servicelinks/payment/request/%v?amount=%v&assetCode=%v&assetIssuer=%v&memo=%v&paymentDestination=%v", trovoUser, encAmount, encAssetCode, encAssetIssuer, encMemo, encPaymentDestination)
+	fullPath := fmt.Sprintf("/v1/servicelinks/payment/request/%v?amount=%v&assetCode=%v&contractAddress=%v&memo=%v&paymentDestination=%v", trovoUser, encAmount, encAssetCode, encContractAddress, encMemo, encPaymentDestination)
 
 	// fullPath := fmt.Sprintf("/v1/servicelinks/payment/request/%v", trovoUser)
 

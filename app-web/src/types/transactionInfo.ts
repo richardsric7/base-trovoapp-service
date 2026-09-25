@@ -8,7 +8,7 @@ export type TransactionInfo= {
     toAddress: string,
     memo: string,
     assetCode: string,
-    assetIssuer: string,
+    contractAddress: string,
     amount: string,
     transactionId: string,
 }

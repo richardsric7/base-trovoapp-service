@@ -289,6 +289,18 @@ var authDB *gorm.DB
 func SetDB(db *gorm.DB) {
 	authDB = db
 	if authDB != nil {
+		// Rename the legacy "asset_issuer" column (Stellar-era name) to
+		// "contract_address" before AutoMigrate, which never renames an
+		// existing column on its own - left alone it would add a new
+		// empty contract_address column while asset_issuer's data sat
+		// unused. No-op if already renamed or the table doesn't exist yet.
+		migrator := authDB.Migrator()
+		const table = "wallet_asset_authorizations"
+		if migrator.HasTable(table) && migrator.HasColumn(table, "asset_issuer") && !migrator.HasColumn(table, "contract_address") {
+			if err := migrator.RenameColumn(table, "asset_issuer", "contract_address"); err != nil {
+				log.Printf("[SetDB] failed to rename %s.asset_issuer -> contract_address: %v\n", table, err)
+			}
+		}
 		authDB.AutoMigrate(&WalletAssetAuthorization{})
 		authDB.AutoMigrate(&AccountSigner{})
 	}
@@ -310,15 +322,15 @@ func DB() *gorm.DB {
 // signed by the asset's own issuing wallet - ApprovedBy/Reason record who
 // made that call and why, for audit purposes.
 type WalletAssetAuthorization struct {
-	ID            uint64 `gorm:"primaryKey"`
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	WalletAddress string `gorm:"size:64;not null;uniqueIndex:idx_wallet_asset_auth"`
-	AssetCode     string `gorm:"size:12;not null;uniqueIndex:idx_wallet_asset_auth"`
-	AssetIssuer   string `gorm:"size:64;not null;uniqueIndex:idx_wallet_asset_auth"`
-	Authorized    bool   `gorm:"not null;default:false"`
-	ApprovedBy    string `gorm:"size:64;not null;default:''" json:"approvedBy"`
-	Reason        string `gorm:"size:255;not null;default:''" json:"reason"`
+	ID              uint64 `gorm:"primaryKey"`
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	WalletAddress   string `gorm:"size:64;not null;uniqueIndex:idx_wallet_asset_auth"`
+	AssetCode       string `gorm:"size:12;not null;uniqueIndex:idx_wallet_asset_auth"`
+	ContractAddress string `gorm:"size:64;not null;uniqueIndex:idx_wallet_asset_auth"`
+	Authorized      bool   `gorm:"not null;default:false"`
+	ApprovedBy      string `gorm:"size:64;not null;default:''" json:"approvedBy"`
+	Reason          string `gorm:"size:255;not null;default:''" json:"reason"`
 }
 
 // IsWalletAuthorizedForAsset reports whether wallet may hold/send asset.
@@ -330,7 +342,7 @@ func IsWalletAuthorizedForAsset(wallet string, asset basetxn.Asset) bool {
 		return true
 	}
 	var row WalletAssetAuthorization
-	err := authDB.Where("wallet_address = ? AND asset_code = ? AND asset_issuer = ?",
+	err := authDB.Where("wallet_address = ? AND asset_code = ? AND contract_address = ?",
 		strings.ToLower(wallet), asset.GetCode(), strings.ToLower(asset.GetIssuer())).First(&row).Error
 	if err != nil {
 		return false
@@ -363,32 +375,32 @@ func SetWalletAssetAuthorization(wallet string, asset basetxn.Asset, authorized 
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 	row := WalletAssetAuthorization{
-		WalletAddress: strings.ToLower(wallet),
-		AssetCode:     asset.GetCode(),
-		AssetIssuer:   strings.ToLower(asset.GetIssuer()),
-		Authorized:    authorized,
-		ApprovedBy:    strings.ToLower(approvedBy),
-		Reason:        reason,
+		WalletAddress:   strings.ToLower(wallet),
+		AssetCode:       asset.GetCode(),
+		ContractAddress: strings.ToLower(asset.GetIssuer()),
+		Authorized:      authorized,
+		ApprovedBy:      strings.ToLower(approvedBy),
+		Reason:          reason,
 	}
 	// Assign takes a map, not a struct literal: GORM's struct-to-assignment
 	// conversion silently drops zero-value fields (false, ""), which would
 	// make a revoke (authorized=false) never actually persist.
-	return authDB.Where("wallet_address = ? AND asset_code = ? AND asset_issuer = ?",
-		row.WalletAddress, row.AssetCode, row.AssetIssuer).
+	return authDB.Where("wallet_address = ? AND asset_code = ? AND contract_address = ?",
+		row.WalletAddress, row.AssetCode, row.ContractAddress).
 		Assign(map[string]interface{}{"authorized": authorized, "approved_by": row.ApprovedBy, "reason": reason}).
 		FirstOrCreate(&row).Error
 }
 
 // WalletAssetAuthorizations lists every wallet's authorization row for
-// one asset (assetIssuer identifies the specific issuance, matching
+// one asset (contractAddress identifies the specific issuance, matching
 // IsWalletAuthorizedForAsset's own lookup) - for a compliance review of
 // who currently holds/is entitled to hold it.
-func WalletAssetAuthorizations(assetCode, assetIssuer string) ([]WalletAssetAuthorization, error) {
+func WalletAssetAuthorizations(assetCode, contractAddress string) ([]WalletAssetAuthorization, error) {
 	rows := make([]WalletAssetAuthorization, 0)
 	if authDB == nil {
 		return rows, &tErrors.ErrorTemporaryServerError{}
 	}
-	err := authDB.Where("asset_code = ? AND asset_issuer = ?", assetCode, strings.ToLower(assetIssuer)).
+	err := authDB.Where("asset_code = ? AND contract_address = ?", assetCode, strings.ToLower(contractAddress)).
 		Order("created_at desc").Find(&rows).Error
 	return rows, err
 }

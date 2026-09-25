@@ -17,12 +17,12 @@ import (
 )
 
 const (
-	assetCode    = "KGM"
-	assetIssuer  = "ISSUER_PUBLIC_KEY" // Replace with actual issuer public key
-	batchSize    = 10000               // Batch size for saving to file/database
-	saveInterval = 5 * time.Minute     // How often to save to disk
-	pageLimit    = 200                 // Number of records per page for initial fetch
-	rateLimit    = time.Second         // Wait time between requests
+	assetCode       = "KGM"
+	contractAddress = "ISSUER_PUBLIC_KEY" // Replace with actual issuer public key
+	batchSize       = 10000               // Batch size for saving to file/database
+	saveInterval    = 5 * time.Minute     // How often to save to disk
+	pageLimit       = 200                 // Number of records per page for initial fetch
+	rateLimit       = time.Second         // Wait time between requests
 )
 
 func main() {
@@ -94,7 +94,7 @@ func processData(balance, publicKey string, payout *userModels.ProceedPayout, gc
 	}
 	ca, _ := userModels.Currency(*payout.TokenizedAsset.ProceedPayoutCurrency).GetCurratedAsset(gc)
 
-	payoutAsset := basetxn.CreditAsset{Code: ca.AssetCode, Issuer: ca.AssetIssuer}
+	payoutAsset := basetxn.CreditAsset{Code: ca.AssetCode, Issuer: ca.ContractAddress}
 
 	_, trustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, publicKey, payoutAsset)
 
@@ -107,7 +107,7 @@ func processData(balance, publicKey string, payout *userModels.ProceedPayout, gc
 		TokenizedAssetID:               payout.TokenizedAssetID,
 		Batch:                          payout.Batch,
 		PayoutAssetCode:                *payout.TokenizedAsset.AssetCode,
-		PayoutAssetIssuer:              *payout.TokenizedAsset.IssuingWalletAddress,
+		PayoutContractAddress:          *payout.TokenizedAsset.IssuingWalletAddress,
 		BeneficiaryAddress:             publicKey,
 		ConfirmedTokenizedAssetBalance: bal,
 		AmountToReceive:                amountToReceive.InexactFloat64(),
