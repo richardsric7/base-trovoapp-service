@@ -1717,9 +1717,9 @@ type TokenizedAssetSubSector struct {
 }
 
 type TokenizationCurrency struct {
-	AssetCode   string `gorm:"primaryKey;size:12" json:"assetCode"`
-	AssetIssuer string `gorm:"size:68" json:"assetIssuer"`
-	Label       string `gorm:"size:12" json:"label"`
+	AssetCode       string `gorm:"primaryKey;size:12" json:"assetCode"`
+	ContractAddress string `gorm:"size:68" json:"contractAddress"`
+	Label           string `gorm:"size:12" json:"label"`
 }
 type TokenizationPublicAssetAllowedCountryCode struct {
 	ID string `gorm:"size:3" json:"id"`
@@ -1939,7 +1939,7 @@ type TokenMinting struct {
 	Destination          string   `json:"destination" `
 	Amount               string   `json:"amount" `
 	AssetCode            string   `json:"assetCode"`
-	AssetIssuer          string   `json:"assetIssuer"`
+	ContractAddress      string   `json:"contractAddress"`
 	Transaction          string   `json:"transaction"`
 	TransactionSignature string   `json:"transactionSignature"`
 	TransactionID        string   `json:"transactionId"`
@@ -1951,21 +1951,21 @@ type TokenMinting struct {
 }
 
 type TokenizedAssetSubscription struct {
-	ID                 string         `gorm:"" json:"-" form:"-"`
-	CreatedAt          time.Time      `json:"createdAt"`
-	UpdatedAt          time.Time      `json:"updatedAt"`
-	TokenizedAssetID   string         `gorm:"not null;size:100" json:"tokenizedAssetId"`
-	TokenizedAsset     TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizedAssetInfo"`
-	AssetCode          string         `gorm:"not null;size:12" json:"assetCode"`
-	AssetIssuer        string         `gorm:"not null;size:100" json:"assetIssuer"`
-	WalletAlias        string         `gorm:"not null;size:100" json:"walletAlias"`
-	WalletAddress      string         `gorm:"not null;size:100" json:"walletAddress"`
-	Amount             float64        `json:"amount"` //fiat Amount in tokenized asset quote currency
-	Price              float64        `json:"price"`  // in tokenized asset price in quote currency
-	SubscriberUsername string         `gorm:"not null;size:100" json:"subscriberUsername"`
-	TransactionID      string         `json:"transactionId"`
-	PaymentAssetCode   string         `json:"paymentAssetCode"`
-	PaymentAssetIssuer string         `json:"paymentAssetIssuer"`
+	ID                     string         `gorm:"" json:"-" form:"-"`
+	CreatedAt              time.Time      `json:"createdAt"`
+	UpdatedAt              time.Time      `json:"updatedAt"`
+	TokenizedAssetID       string         `gorm:"not null;size:100" json:"tokenizedAssetId"`
+	TokenizedAsset         TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizedAssetInfo"`
+	AssetCode              string         `gorm:"not null;size:12" json:"assetCode"`
+	ContractAddress        string         `gorm:"not null;size:100" json:"contractAddress"`
+	WalletAlias            string         `gorm:"not null;size:100" json:"walletAlias"`
+	WalletAddress          string         `gorm:"not null;size:100" json:"walletAddress"`
+	Amount                 float64        `json:"amount"` //fiat Amount in tokenized asset quote currency
+	Price                  float64        `json:"price"`  // in tokenized asset price in quote currency
+	SubscriberUsername     string         `gorm:"not null;size:100" json:"subscriberUsername"`
+	TransactionID          string         `json:"transactionId"`
+	PaymentAssetCode       string         `json:"paymentAssetCode"`
+	PaymentContractAddress string         `json:"paymentContractAddress"`
 }
 type ExpressionOfInterest struct {
 	ID                 uint64         `gorm:"" json:"-" form:"-"`
@@ -1974,31 +1974,31 @@ type ExpressionOfInterest struct {
 	TokenizedAssetID   string         `gorm:"not null;size:100" json:"tokenizedAssetId"`
 	TokenizedAsset     TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizedAssetInfo"`
 	AssetCode          string         `gorm:"not null;size:12" json:"assetCode"`
-	AssetIssuer        string         `gorm:"not null;size:100" json:"assetIssuer"`
+	ContractAddress    string         `gorm:"not null;size:100" json:"contractAddress"`
 	Amount             float64        `json:"amount"` //fiat Amount in tokenized asset quote currency
 	Price              float64        `json:"price"`
 	SubscriberUsername string         `gorm:"not null;size:100" json:"subscriberUsername"`
 }
 
 type TokenizedAssetSubscriptionInput struct {
-	TokenizedAssetID     string   `json:"tokenizedAssetId"`
-	SubscriberUsername   string   `json:"subscriberUsername"`
-	WalletAddress        string   `json:"walletAddress"`
-	Amount               float64  `json:"amount"` //fiat Amount in tokenized asset quote currency
-	SwappedEstimate      string   `json:"swappedEstimate"`
-	Transaction          string   `json:"transaction"`
-	TransactionSignature string   `json:"transactionSignature"`
-	TransactionID        string   `json:"transactionId"`
-	NetworkPassPhrase    string   `json:"networkPassPhrase"`
-	Messages             []string `json:"messages"`
-	Memo                 string   `json:"memo"`
-	Multiparty           int      `json:"-"`
-	TransactionSource    string   `json:"-"`
-	SignatureRequired    int      `json:"signatureRequired"`
-	Commit               int      `json:"commit"`
-	ReturnedDescription  string   `json:"-"`
-	PaymentAssetCode     string   `json:"paymentAssetCode"`   //optional: stablecoin to pay in. Defaults to CNGN.
-	PaymentAssetIssuer   string   `json:"paymentAssetIssuer"` //optional: never trusted verbatim, always re-resolved server-side.
+	TokenizedAssetID       string   `json:"tokenizedAssetId"`
+	SubscriberUsername     string   `json:"subscriberUsername"`
+	WalletAddress          string   `json:"walletAddress"`
+	Amount                 float64  `json:"amount"` //fiat Amount in tokenized asset quote currency
+	SwappedEstimate        string   `json:"swappedEstimate"`
+	Transaction            string   `json:"transaction"`
+	TransactionSignature   string   `json:"transactionSignature"`
+	TransactionID          string   `json:"transactionId"`
+	NetworkPassPhrase      string   `json:"networkPassPhrase"`
+	Messages               []string `json:"messages"`
+	Memo                   string   `json:"memo"`
+	Multiparty             int      `json:"-"`
+	TransactionSource      string   `json:"-"`
+	SignatureRequired      int      `json:"signatureRequired"`
+	Commit                 int      `json:"commit"`
+	ReturnedDescription    string   `json:"-"`
+	PaymentAssetCode       string   `json:"paymentAssetCode"`       //optional: stablecoin to pay in. Defaults to CNGN.
+	PaymentContractAddress string   `json:"paymentContractAddress"` //optional: never trusted verbatim, always re-resolved server-side.
 }
 
 // FiatTokenizedAssetSubscriptionInput drives the two-call fiat asset purchase flow
@@ -2034,7 +2034,7 @@ type TokenizedAssetPrimarySalesPurchaseInputForServiceLink struct {
 	SignatureRequired        int      `json:"signatureRequired"`
 	Commit                   int      `json:"commit"`
 	PaymentAssetCode         string   `json:"paymentAssetCode"`
-	PaymentAssetIssuer       string   `json:"paymentAssetIssuer"`
+	PaymentContractAddress   string   `json:"paymentContractAddress"`
 }
 
 func (i *TokenizedAssetSubscriptionInput) ToServiceLinkInput(gc *sharedconfig.GlobalConfig) (si TokenizedAssetPrimarySalesPurchaseInputForServiceLink) {
@@ -2052,7 +2052,7 @@ func (i *TokenizedAssetSubscriptionInput) ToServiceLinkInput(gc *sharedconfig.Gl
 	si.SignatureRequired = i.SignatureRequired
 	si.Commit = i.Commit
 	si.PaymentAssetCode = i.PaymentAssetCode
-	si.PaymentAssetIssuer = i.PaymentAssetIssuer
+	si.PaymentContractAddress = i.PaymentContractAddress
 	return si
 }
 
@@ -2071,7 +2071,7 @@ func (i *TokenizedAssetPrimarySalesPurchaseInputForServiceLink) ToSubscriptionIn
 	si.SignatureRequired = i.SignatureRequired
 	si.Commit = i.Commit
 	si.PaymentAssetCode = i.PaymentAssetCode
-	si.PaymentAssetIssuer = i.PaymentAssetIssuer
+	si.PaymentContractAddress = i.PaymentContractAddress
 	return si
 }
 
@@ -2114,7 +2114,7 @@ type TokenizedAssetPayoutSchedule struct {
 	TokenizedAsset                 TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizedAssetInfo"`
 	Batch                          string         `gorm:"not null;size:100;index:," json:"batch"` //asset code + payout cycle + month + year
 	PayoutAssetCode                string         `gorm:"not null;size:12" json:"payoutAssetCode"`
-	PayoutAssetIssuer              string         `gorm:"not null;size:100" json:"payoutAssetIssuer"`
+	PayoutContractAddress          string         `gorm:"not null;size:100" json:"payoutContractAddress"`
 	BeneficiaryAddress             string         `gorm:"not null;size:100" json:"beneficiaryAddress"`
 	ConfirmedTokenizedAssetBalance float64        `json:"confirmedTokenizedAssetBalance"` //asset balance at the time of preparing schedule
 	AmountToReceive                float64        `json:"amountToReceive"`
@@ -2127,7 +2127,7 @@ type TokenizedAssetPayoutEngineTask struct {
 	CreatedAt                      time.Time `json:"createdAt"`
 	MemoFromBatch                  string    `gorm:"not null;size:28;index:," json:"batch"` //asset code + payout cycle + month + year
 	PayoutAssetCode                string    `gorm:"not null;size:12" json:"payoutAssetCode"`
-	PayoutAssetIssuer              string    `gorm:"not null;size:100" json:"payoutAssetIssuer"`
+	PayoutContractAddress          string    `gorm:"not null;size:100" json:"payoutContractAddress"`
 	BeneficiaryAddress             string    `gorm:"not null;size:100" json:"beneficiaryAddress"`
 	AmountToReceive                string    `json:"amountToReceive"`
 	Paid                           int       `gorm:"default:0" json:"paid"`
@@ -2305,7 +2305,7 @@ func (t *TokenizedAsset) SumAmountBoughtByWalletOwner(walletAlias string, gc *sh
 	if t.IssuingWalletAddress != nil {
 		issuerWalletAddress = *t.IssuingWalletAddress
 	}
-	gc.DB.Model(&TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND asset_issuer = ? AND Wallet_Alias LIKE ?", t.ID, issuerWalletAddress, strings.ToLower(ownerUsername)+"%").Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	gc.DB.Model(&TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND contract_address = ? AND Wallet_Alias LIKE ?", t.ID, issuerWalletAddress, strings.ToLower(ownerUsername)+"%").Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
@@ -6502,14 +6502,14 @@ func (tas *TokenizedAssetSubscription) UpdateTokenizedAssetSubscriptionFromInput
 	tas.ID = uuid.NewString()
 	tas.TokenizedAssetID = ta.ID
 	tas.AssetCode = *ta.AssetCode
-	tas.AssetIssuer = *ta.IssuingWalletAddress
+	tas.ContractAddress = *ta.IssuingWalletAddress
 	tas.WalletAlias = subscriberWallet.Alias
 	tas.WalletAddress = subscriberWallet.ID
 	tas.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
 	tas.Price = ta.PricePerToken
 	tas.SubscriberUsername = subscriberUsername
 	tas.PaymentAssetCode = input.PaymentAssetCode
-	tas.PaymentAssetIssuer = input.PaymentAssetIssuer
+	tas.PaymentContractAddress = input.PaymentContractAddress
 	return *tas
 }
 
@@ -6523,7 +6523,7 @@ func (e *ExpressionOfInterest) UpdateExpressionOfInterestFromInput(subscriberUse
 	}
 	e.TokenizedAssetID = ta.ID
 	e.AssetCode = *ta.AssetCode
-	e.AssetIssuer = *ta.IssuingWalletAddress
+	e.ContractAddress = *ta.IssuingWalletAddress
 	e.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
 	e.Price = ta.PricePerToken
 	e.SubscriberUsername = subscriberUsername

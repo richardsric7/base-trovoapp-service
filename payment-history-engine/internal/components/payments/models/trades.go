@@ -11,7 +11,7 @@ type MarketOffer struct {
 	MarketMakingWalletAddress string    `gorm:"not null;size:100" json:"marketMakingWalletAddress"`
 	OfferType                 string    `gorm:"not null;size:100" json:"offerType"`
 	AssetCode                 string    `gorm:"not null;size:100" json:"assetCode"`
-	AssetIssuer               *string   `gorm:"null;size:100" json:"assetIssuer"`
+	ContractAddress           *string   `gorm:"null;size:100" json:"contractAddress"`
 	CurrencyCode              string    `gorm:"not null;size:100" json:"currencyCode"`
 	CurrencyIssuer            *string   `gorm:"null;size:100" json:"currencyIssuer"`
 	PricePerUnit              string    `gorm:"not null;size:100" json:"pricePerUnit"`

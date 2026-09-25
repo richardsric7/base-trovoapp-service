@@ -545,7 +545,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		router.POST("/v1/compliance/wallet-authorization", middleware.AuthenticationMiddlewareUsingTimestamp(), postComplianceWalletAuthorizationHandler(callBackRetryChan, gc))
 
-		router.GET("/v1/compliance/wallet-authorization/:assetCode/:assetIssuer", middleware.AuthenticationMiddlewareUsingTimestamp(), getComplianceWalletAuthorizationHandler(callBackRetryChan, gc))
+		router.GET("/v1/compliance/wallet-authorization/:assetCode/:contractAddress", middleware.AuthenticationMiddlewareUsingTimestamp(), getComplianceWalletAuthorizationHandler(callBackRetryChan, gc))
 
 	}
 

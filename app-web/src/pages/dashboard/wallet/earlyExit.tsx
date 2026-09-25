@@ -29,7 +29,7 @@ export default function EarlyExitView() {
     wallet?.claimedAssets.find(
       (a) =>
         a.assetCode == searchParams.get('assetCode') &&
-        a.assetIssuer == searchParams?.get('assetIssuer'),
+        a.contractAddress == searchParams?.get('contractAddress'),
     )!,
   );
   const [errorObj] = useState({

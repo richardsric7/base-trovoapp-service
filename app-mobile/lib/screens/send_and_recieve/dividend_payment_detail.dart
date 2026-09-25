@@ -55,7 +55,7 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
     asset = activeWallet!.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+          asset.contractAddress == appState.viewData!['contractAddress'],
     );
   }
 

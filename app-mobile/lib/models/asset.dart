@@ -1,7 +1,7 @@
 import 'package:trovo_app/models/crypto_wallet_address.dart';
 
 class Asset {
-  String? assetIssuer;
+  String? contractAddress;
   String? assetCode;
   String? qrCode;
   String? imageUrl;
@@ -19,7 +19,7 @@ class Asset {
 
   Asset({
     this.assetCode,
-    this.assetIssuer,
+    this.contractAddress,
     this.qrCode,
     this.imageUrl,
     this.amount,
@@ -36,7 +36,7 @@ class Asset {
   Asset deserializeJson(Map<String, dynamic> m) {
     return Asset(
       assetCode: m["assetCode"],
-      assetIssuer: m["assetIssuer"],
+      contractAddress: m["contractAddress"],
       tokenizedAsset: m["tokenizedAsset"] == 1,
       amount: double.parse(m["amount"]),
       qrCode: m["qrCode"],

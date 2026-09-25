@@ -3485,7 +3485,7 @@ approvalTextFieldPopup(
 void showChooseWalletPopup(
   context,
   assetCode,
-  assetIssuer, {
+  contractAddress, {
   required void Function(String, bool) onDone,
   required void Function() onCancel,
 }) {
@@ -3498,7 +3498,7 @@ void showChooseWalletPopup(
   appState.transactionableWallets.forEach((key, value) {
     if (value['claimedAssets'] != null) {
       for (var i = 0; i < value['claimedAssets'].length; i++) {
-        if (value['claimedAssets'][i]['assetIssuer'] == assetIssuer &&
+        if (value['claimedAssets'][i]['contractAddress'] == contractAddress &&
             value['claimedAssets'][i]['assetCode'] == assetCode) {
           filteredWallets[key] = value;
         }

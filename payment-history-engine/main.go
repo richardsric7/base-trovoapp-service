@@ -532,10 +532,10 @@ func getTokenMeta(client *ethclient.Client, contract string) tokenMeta {
 // payment isn't hidden behind a generic swap label. Currently unused: Base has no native DEX to
 // source a path-payment-shaped swap event from (see MonitorTradeStream's doc comment) - kept for
 // a future DEX/AMM-router integration that would want the same classification.
-func swapTransactionType(from, sourceAssetIssuer, sourceAssetCode, to, destinationAssetIssuer, destinationAssetCode string) string {
+func swapTransactionType(from, sourceContractAddress, sourceAssetCode, to, destinationContractAddress, destinationAssetCode string) string {
 	swapLabel := fmt.Sprintf("SWAP %s>%s", sourceAssetCode, destinationAssetCode)
-	isMint := sourceAssetIssuer != "" && from == sourceAssetIssuer
-	isBurn := destinationAssetIssuer != "" && to == destinationAssetIssuer
+	isMint := sourceContractAddress != "" && from == sourceContractAddress
+	isBurn := destinationContractAddress != "" && to == destinationContractAddress
 
 	switch {
 	case isMint && isBurn:

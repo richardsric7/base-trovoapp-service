@@ -2,10 +2,10 @@ package models
 
 // Balance model for user
 type Balance struct {
-	AssetIssuer string `json:"assetIssuer"`
-	AssetCode   string `json:"assetCode"`
-	Amount      string `json:"amount"`
-	QRCode      string `json:"qrCode"`
+	ContractAddress string `json:"contractAddress"`
+	AssetCode       string `json:"assetCode"`
+	Amount          string `json:"amount"`
+	QRCode          string `json:"qrCode"`
 }
 
 // Signer model for user
@@ -29,7 +29,7 @@ type Thresholds struct {
 // AssetInfo    assetsmodels.CuratedAsset `json:"assetInfo"`
 // //TempBalance model for user
 // type TempBalance struct {
-// 	AssetIssuer  string                    `json:"assetIssuer"`
+// 	ContractAddress  string                    `json:"contractAddress"`
 // 	AssetCode    string                    `json:"assetCode"`
 // 	Amount       string                    `json:"amount"`
 // 	UsdPrice     string                    `json:"usdPrice"`

@@ -86,7 +86,7 @@ getAssetCode(assetCode) {
   // empty assetCode value.
   // native token of the bantu blockchain
   // has empty values as assetCode and
-  // assetIssuer
+  // contractAddress
   return assetCode.toString().isEmpty ? nativeAssetCode : assetCode.toString();
 }
 
@@ -101,15 +101,15 @@ Color getColor(context, indexOfWallet) {
   return indexOfWallet > 2 ? notifier.getbluecolor : notifier.getwihitecolor;
 }
 
-getAssetIssuer(assetIssuer) {
+getContractAddress(contractAddress) {
   // assign 'Native Token' to the asset which has an
-  // empty assetIssuer value.
+  // empty contractAddress value.
   // Native token of the bantu blockchain
   // has empty values as assetCode and
-  // assetIssuer
-  return assetIssuer.toString().isEmpty
-      ? nativeAssetIssuer
-      : assetIssuer.toString();
+  // contractAddress
+  return contractAddress.toString().isEmpty
+      ? nativeContractAddress
+      : contractAddress.toString();
 }
 
 String truncateToDecimalPlaces(double number, {int decimalPlaces = 7}) {

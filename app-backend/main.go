@@ -740,7 +740,7 @@ func main() {
 
 						continue
 					}
-					sourceWallet, err := userModels.UserWalletID(ca.AssetIssuer).GetWallet(globalConfig.DB, &globalConfig)
+					sourceWallet, err := userModels.UserWalletID(ca.ContractAddress).GetWallet(globalConfig.DB, &globalConfig)
 					if err != nil {
 
 						log.Printf("[MINTING INITIATOR] error getting initiator user to mint %v %v, error: %v\n", di.Currency, di.ToAddress, err)
@@ -777,12 +777,12 @@ func main() {
 					}
 
 					mintingInfo := userModels.MintingInfo{
-						Destination: da.TrovoWalletAddress,
-						Memo:        fmt.Sprintf("%v %v", amountLessFees.String(), da.Currency),
-						AssetIssuer: ca.AssetIssuer,
-						AssetCode:   ca.AssetCode,
-						Amount:      amountLessFees.String(),
-						Commit:      1,
+						Destination:     da.TrovoWalletAddress,
+						Memo:            fmt.Sprintf("%v %v", amountLessFees.String(), da.Currency),
+						ContractAddress: ca.ContractAddress,
+						AssetCode:       ca.AssetCode,
+						Amount:          amountLessFees.String(),
+						Commit:          1,
 					}
 
 					dbtx := database.Begin()

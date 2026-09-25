@@ -61,7 +61,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [isActivated] = useState(
     Number(
-      primaryWallet?.claimedAssets.find((a) => !a.assetCode && !a.assetIssuer)
+      primaryWallet?.claimedAssets.find((a) => !a.assetCode && !a.contractAddress)
         ?.amount,
     ) !== 0,
   );
@@ -190,7 +190,7 @@ export default function Home() {
         address: primaryWallet.address,
         alias: primaryWallet.alias,
         assetCode: '',
-        assetIssuer: '',
+        contractAddress: '',
       },
     };
 

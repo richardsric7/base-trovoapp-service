@@ -45,7 +45,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+          asset.contractAddress == appState.viewData!['contractAddress'],
     );
 
     // free the memory..... lol
@@ -65,14 +65,14 @@ class _ReceiveAssetState extends State<ReceiveAsset>
 
     if (asset == null) {
       asset = wallet.claimedAssets!.firstWhere(
-        (asset) => asset.assetCode == '' && asset.assetIssuer == '',
+        (asset) => asset.assetCode == '' && asset.contractAddress == '',
       );
       selectedAsset = '';
     }
 
     if (selectedAsset.isEmpty) {
       selectedAsset =
-          "${getAssetCode(asset!.assetCode)}|${getAssetIssuer(asset!.assetIssuer)}";
+          "${getAssetCode(asset!.assetCode)}|${getContractAddress(asset!.contractAddress)}";
     }
 
     return ScreenUtilInit(
@@ -99,7 +99,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
 
                   this.asset = wallet.claimedAssets!.firstWhereOrNull(
                     (x) =>
-                        "${getAssetCode(x.assetCode)}|${getAssetIssuer(x.assetIssuer)}" ==
+                        "${getAssetCode(x.assetCode)}|${getContractAddress(x.contractAddress)}" ==
                         selectedAsset,
                   );
 
@@ -114,7 +114,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                     for (var asset in wallet.claimedAssets!) {
                       var splitNewValue = newValue.toString().split('|');
                       if (asset.assetCode == splitNewValue[0] &&
-                          asset.assetIssuer == splitNewValue[1]) {
+                          asset.contractAddress == splitNewValue[1]) {
                         this.asset = asset;
                       }
                     }
@@ -188,7 +188,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                   appState.viewData = {
                     'walletAddress': wallet.address,
                     'assetCode': asset!.assetCode,
-                    'assetIssuer': asset!.assetIssuer,
+                    'contractAddress': asset!.contractAddress,
                   };
 
                   appState.currentAction = PageAction(

@@ -213,7 +213,7 @@ class Wallet {
     var tokenizedAssets = <Asset>[];
     claimedAssets!.forEach((asset) {
       if (appState
-              .curatedSwapListMap['${asset.assetIssuer}|${asset.assetCode}']
+              .curatedSwapListMap['${asset.contractAddress}|${asset.assetCode}']
               ?.assetClassId ==
           3) {
         tokenizedAssets.add(asset);
@@ -226,7 +226,7 @@ class Wallet {
     var tokenizedAssets = <Asset>[];
     claimedAssets!.forEach((asset) {
       if (appState
-              .curatedSwapListMap['${asset.assetIssuer}|${asset.assetCode}']
+              .curatedSwapListMap['${asset.contractAddress}|${asset.assetCode}']
               ?.assetClassId !=
           3) {
         tokenizedAssets.add(asset);

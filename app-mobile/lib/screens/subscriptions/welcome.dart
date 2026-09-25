@@ -163,7 +163,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                   paymentAssetsList.add(
                     Asset(
                       assetCode: asset['assetCode'],
-                      assetIssuer: asset['assetIssuer'],
+                      contractAddress: asset['contractAddress'],
                     ),
                   );
                 }

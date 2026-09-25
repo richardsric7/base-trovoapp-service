@@ -6706,7 +6706,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Filter by asset issuer",
-                        "name": "assetIssuer",
+                        "name": "contractAddress",
                         "in": "query"
                     },
                     {
@@ -19321,7 +19321,7 @@ const docTemplate = `{
                 "assetCode": {
                     "type": "string"
                 },
-                "assetIssuer": {
+                "contractAddress": {
                     "type": "string"
                 },
                 "closedGroup": {
@@ -19425,7 +19425,7 @@ const docTemplate = `{
                 "asset_code": {
                     "type": "string"
                 },
-                "asset_issuer": {
+                "contract_address": {
                     "type": "string"
                 },
                 "belongs_to_enterprise_profile": {

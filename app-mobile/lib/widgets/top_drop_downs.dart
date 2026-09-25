@@ -47,7 +47,7 @@ class _TopDropdownsState extends State<TopDropdowns> {
             overflow: TextOverflow.visible,
           ),
           value:
-              '${getAssetCode(asset.assetCode)}|${getAssetIssuer(asset.assetIssuer)}',
+              '${getAssetCode(asset.assetCode)}|${getContractAddress(asset.contractAddress)}',
         ),
       );
     }

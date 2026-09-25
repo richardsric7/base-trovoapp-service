@@ -34,7 +34,7 @@ export default function Yield() {
     wallet?.claimedAssets.find(
       (a) =>
         a.assetCode == searchParams.get('assetCode') &&
-        a.assetIssuer == searchParams?.get('assetIssuer'),
+        a.contractAddress == searchParams?.get('contractAddress'),
     )!,
   );
   const [activeRow, setActiveRow] = useState<Row>();

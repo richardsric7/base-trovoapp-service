@@ -1376,7 +1376,7 @@ func postUsersStablerailOnrampcngnAmountHandler(callBackRetryChan chan userModel
 // @Param targetUser path string true "Target user identifier"
 // @Param paymentDestination query string false "Payment destination"
 // @Param assetCode query string false "Asset code"
-// @Param assetIssuer query string false "Asset issuer"
+// @Param contractAddress query string false "Asset issuer"
 // @Param amount query string false "Amount"
 // @Param memo query string false "Memo"
 // @Success 200 {object} map[string]interface{}
@@ -1417,7 +1417,7 @@ func getUsersPaymentGenerateTargetUserHandler(callBackRetryChan chan userModels.
 			paymentDestination = strings.ToUpper(paymentDestination)
 		}
 		assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
-		assetIssuer := strings.TrimSpace(strings.ToUpper(c.Query("assetIssuer")))
+		contractAddress := strings.TrimSpace(strings.ToUpper(c.Query("contractAddress")))
 		amount := strings.TrimSpace(c.Query("amount"))
 		memo := strings.TrimSpace(c.Query("memo"))
 
@@ -1438,7 +1438,7 @@ func getUsersPaymentGenerateTargetUserHandler(callBackRetryChan chan userModels.
 			}
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/users/%v/generate/payment?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", identifier, paymentDestination, assetCode, assetIssuer, amount, memo), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/users/%v/generate/payment?paymentDestination=%v&assetCode=%v&contractAddress=%v&amount=%v&memo=%v", identifier, paymentDestination, assetCode, contractAddress, amount, memo), gc.DB)
 
 		_, err = usersDB.GetUser(identifier, gc.DB, gc)
 
@@ -1465,7 +1465,7 @@ func getUsersPaymentGenerateTargetUserHandler(callBackRetryChan chan userModels.
 		}
 
 		//generate payment data
-		data, err := dl.GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, memo, gc)
+		data, err := dl.GeneratePaymentData(paymentDestination, assetCode, contractAddress, amount, memo, gc)
 		if err != nil {
 			//could not create login session
 			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
@@ -7550,26 +7550,26 @@ func postComplianceWalletAuthorizationHandler(callBackRetryChan chan userModels.
 }
 
 // getComplianceWalletAuthorizationHandler godoc
-// @Summary GET /v1/compliance/wallet-authorization/:assetCode/:assetIssuer
+// @Summary GET /v1/compliance/wallet-authorization/:assetCode/:contractAddress
 // @Description Lists every wallet authorization row for a regulated asset. Must be called by the asset's own issuing wallet.
 // @Tags compliance
 // @Produce json
 // @Param assetCode path string true "Asset code"
-// @Param assetIssuer path string true "Asset issuer (issuing wallet) address"
+// @Param contractAddress path string true "Asset issuer (issuing wallet) address"
 // @Success 200 {array} network.WalletAssetAuthorization
 // @Failure 400 {object} map[string]interface{}
 // @Failure 403 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
-// @Router /v1/compliance/wallet-authorization/{assetCode}/{assetIssuer} [get]
+// @Router /v1/compliance/wallet-authorization/{assetCode}/{contractAddress} [get]
 func getComplianceWalletAuthorizationHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		assetCode := c.Param("assetCode")
-		assetIssuer := c.Param("assetIssuer")
+		contractAddress := c.Param("contractAddress")
 		approverSigner := middleware.ExtractSigner(c)
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/compliance/wallet-authorization/%v/%v %v", assetCode, assetIssuer, approverSigner), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/compliance/wallet-authorization/%v/%v %v", assetCode, contractAddress, approverSigner), gc.DB)
 
-		rows, err := userServices.GetWalletAssetAuthorizations(approverSigner, assetCode, assetIssuer, gc)
+		rows, err := userServices.GetWalletAssetAuthorizations(approverSigner, assetCode, contractAddress, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError

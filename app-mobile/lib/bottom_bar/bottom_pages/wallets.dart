@@ -42,7 +42,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
   late TabController _tabController;
   int activeWalletIndex = 0;
   late Asset gas;
-  int isAssetIssuerWallet = 0;
+  int isContractAddressWallet = 0;
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
   String password = '';
   var noXbnBalance = false;
@@ -161,14 +161,14 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
       activeWallet = wallets[0].address;
       otherTokens = wallets[0]
           .getOtherTokens(appState)
-          .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
+          .where((asset) => asset.assetCode != '' && asset.contractAddress != '')
           .toList();
       tokenizedAssets = wallets[0].getTokenizedAssets(appState);
       noXbnBalance =
           wallets[0].claimedAssets!
               .firstWhere(
                 (asset) =>
-                    asset.assetCode!.isEmpty && asset.assetIssuer!.isEmpty,
+                    asset.assetCode!.isEmpty && asset.contractAddress!.isEmpty,
               )
               .amount ==
           0;
@@ -354,7 +354,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                               onPressed: () {
                                 appState.viewData = {
                                   'assetCode': '',
-                                  'assetIssuer': '',
+                                  'contractAddress': '',
                                   'walletAddress': activeWallet,
                                 };
                                 appState.currentAction = PageAction(
@@ -565,7 +565,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
 
                                 appState.viewData = {
                                   'assetCode': tokenizedAssets[i].assetCode,
-                                  'assetIssuer': tokenizedAssets[i].assetIssuer,
+                                  'contractAddress': tokenizedAssets[i].contractAddress,
                                   'walletAddress': activeWallet,
                                 };
                                 appState.currentAction = PageAction(
@@ -632,7 +632,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
             otherTokens = wallets[activeWalletIndex]
                 .getOtherTokens(appState)
                 .where(
-                  (asset) => asset.assetCode != '' && asset.assetIssuer != '',
+                  (asset) => asset.assetCode != '' && asset.contractAddress != '',
                 )
                 .toList();
             tokenizedAssets = wallets[activeWalletIndex].getTokenizedAssets(
@@ -914,7 +914,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
 
                           appState.viewData = {
                             'assetCode': otherTokens[i].assetCode,
-                            'assetIssuer': otherTokens[i].assetIssuer,
+                            'contractAddress': otherTokens[i].contractAddress,
                             'walletAddress': activeWallet,
                           };
                           appState.currentAction = PageAction(

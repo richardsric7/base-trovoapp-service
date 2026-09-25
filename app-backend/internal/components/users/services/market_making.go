@@ -79,8 +79,8 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 	// 	return &tErrors.ErrorTemporaryServerError{}
 	// }
 	assetOfMarket := os.Getenv("NATIVE_ASSET_CODE")
-	if len(offerRequest.AssetIssuer) == 42 {
-		assetOfMarket = fmt.Sprintf("%v:%v...%v", offerRequest.AssetCode, offerRequest.AssetIssuer[0:4], offerRequest.AssetIssuer[51:55])
+	if len(offerRequest.ContractAddress) == 42 {
+		assetOfMarket = fmt.Sprintf("%v:%v...%v", offerRequest.AssetCode, offerRequest.ContractAddress[0:4], offerRequest.ContractAddress[51:55])
 	}
 	currencyOfMarket := os.Getenv("NATIVE_ASSET_CODE")
 	if len(offerRequest.CurrencyIssuer) == 42 {
@@ -89,7 +89,7 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 
 	if strings.EqualFold(offerRequest.AssetCode, os.Getenv("NATIVE_ASSET_CODE")) {
 		offerRequest.AssetCode = ""
-		offerRequest.AssetIssuer = ""
+		offerRequest.ContractAddress = ""
 	}
 
 	if strings.EqualFold(offerRequest.CurrencyCode, os.Getenv("NATIVE_ASSET_CODE")) {
@@ -140,9 +140,9 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 			Code:       404,
 		}
 	}
-	var assetIssuer, currencyIssuer *string
-	if len(offerRequest.AssetIssuer) > 0 {
-		assetIssuer = &offerRequest.AssetIssuer
+	var contractAddress, currencyIssuer *string
+	if len(offerRequest.ContractAddress) > 0 {
+		contractAddress = &offerRequest.ContractAddress
 	}
 	if len(offerRequest.CurrencyIssuer) > 0 {
 		currencyIssuer = &offerRequest.CurrencyIssuer
@@ -155,7 +155,7 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 			MarketMakingWalletAddress: sourceWallet.ID,
 			OfferType:                 offerRequest.OfferType,
 			AssetCode:                 offerRequest.AssetCode,
-			AssetIssuer:               assetIssuer,
+			ContractAddress:           contractAddress,
 			CurrencyCode:              offerRequest.CurrencyCode,
 			CurrencyIssuer:            currencyIssuer,
 			PricePerUnit:              offerRequest.PricePerUnit,
@@ -401,7 +401,7 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 	offerRequest.Messages = make([]string, 0)
 	var memo string
 	var currencyAsset, mainAsset basetxn.Asset
-	if offerRequest.AssetCode+offerRequest.AssetIssuer == offerRequest.CurrencyCode+offerRequest.CurrencyIssuer {
+	if offerRequest.AssetCode+offerRequest.ContractAddress == offerRequest.CurrencyCode+offerRequest.CurrencyIssuer {
 		return "", &tErrors.CustomError{
 			Param:      "AssetCode",
 			Err:        "error-asset-and-currency-are-the-same",
@@ -411,10 +411,10 @@ func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *us
 	offerRequest.OfferType = strings.ToUpper(offerRequest.OfferType)
 	n, d := ToFractionInt32(decimal.RequireFromString(offerRequest.PricePerUnit).InexactFloat64())
 
-	if offerRequest.AssetIssuer == "" {
+	if offerRequest.ContractAddress == "" {
 		mainAsset = basetxn.NativeAsset{}
 	} else {
-		mainAsset = basetxn.CreditAsset{Code: offerRequest.AssetCode, Issuer: offerRequest.AssetIssuer}
+		mainAsset = basetxn.CreditAsset{Code: offerRequest.AssetCode, Issuer: offerRequest.ContractAddress}
 	}
 
 	if offerRequest.CurrencyIssuer == "" {
@@ -705,10 +705,10 @@ func generateDeleteMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *
 	d := int32(fraction.Denom().Int64())
 	n := int32(fraction.Num().Int64())
 	offerIDInt, _ := strconv.ParseInt(bOffer.ID, 10, 64)
-	if offerRequest.AssetIssuer == nil {
+	if offerRequest.ContractAddress == nil {
 		mainAsset = basetxn.NativeAsset{}
 	} else {
-		mainAsset = basetxn.CreditAsset{Code: offerRequest.AssetCode, Issuer: *offerRequest.AssetIssuer}
+		mainAsset = basetxn.CreditAsset{Code: offerRequest.AssetCode, Issuer: *offerRequest.ContractAddress}
 	}
 
 	if offerRequest.CurrencyIssuer == nil {

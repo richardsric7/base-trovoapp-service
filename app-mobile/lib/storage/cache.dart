@@ -52,7 +52,7 @@ Future<void> fetchCuratedSwapList(DataProvider appState) async {
         responseData['data'],
       );
       appState.curatedSwapList.forEach((ca) {
-        appState.curatedSwapListMap['${ca.assetIssuer}|${ca.assetCode}'] = ca;
+        appState.curatedSwapListMap['${ca.contractAddress}|${ca.assetCode}'] = ca;
       });
     }
   }

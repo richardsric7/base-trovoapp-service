@@ -78,7 +78,7 @@ class _RequestEarlyExitView extends State<RequestEarlyExitView>
       asset = wallet.claimedAssets!.firstWhere(
         (asset) =>
             asset.assetCode == appState.viewData!['assetCode'] &&
-            asset.assetIssuer == appState.viewData!['assetIssuer'],
+            asset.contractAddress == appState.viewData!['contractAddress'],
       );
     }
   }
@@ -102,7 +102,7 @@ class _RequestEarlyExitView extends State<RequestEarlyExitView>
       asset = wallet.claimedAssets!.firstWhere(
         (asset) =>
             asset.assetCode == deeplinkInfo['assetCode'] &&
-            asset.assetIssuer == deeplinkInfo['assetIssuer'],
+            asset.contractAddress == deeplinkInfo['contractAddress'],
       );
       appState.viewData![SendAssetViewPageConfig.key]['deepLinkInfo'] = null;
     }
@@ -438,7 +438,7 @@ class _RequestEarlyExitView extends State<RequestEarlyExitView>
         "memo": memo,
         "amount": amount.toString(),
         "assetCode": asset!.assetCode == 'ETH' ? '' : asset!.assetCode,
-        "assetIssuer": asset!.assetIssuer,
+        "contractAddress": asset!.contractAddress,
       };
       String requestBody = jsonEncode(map);
 
@@ -491,7 +491,7 @@ class _RequestEarlyExitView extends State<RequestEarlyExitView>
     appState.viewData = {
       'walletAddress': wallet.address,
       'assetCode': asset!.assetCode,
-      'assetIssuer': asset!.assetIssuer,
+      'contractAddress': asset!.contractAddress,
       'rel': 'dashboard',
       'transactionData': data,
     };

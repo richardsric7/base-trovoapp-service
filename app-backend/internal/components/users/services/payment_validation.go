@@ -37,8 +37,8 @@ func ValidatePaymentInfo(paymentInfo *paymentModels.PaymentInfo) (*paymentModels
 	//vaidate asset issuer public key
 
 	{
-		if len(paymentInfo.AssetIssuer) > 0 {
-			err := validators.ValidateAddressFormat(paymentInfo.AssetIssuer)
+		if len(paymentInfo.ContractAddress) > 0 {
+			err := validators.ValidateAddressFormat(paymentInfo.ContractAddress)
 			if err != nil {
 				return paymentInfo, err
 			}
@@ -106,8 +106,8 @@ func ValidateMintingInfo(mintingInfo *userModels.MintingInfo) (*userModels.Minti
 	//vaidate asset issuer public key
 
 	{
-		if len(mintingInfo.AssetIssuer) > 0 {
-			err := validators.ValidateAddressFormat(mintingInfo.AssetIssuer)
+		if len(mintingInfo.ContractAddress) > 0 {
+			err := validators.ValidateAddressFormat(mintingInfo.ContractAddress)
 			if err != nil {
 				return mintingInfo, err
 			}
@@ -134,7 +134,7 @@ func ValidateMintingInfo(mintingInfo *userModels.MintingInfo) (*userModels.Minti
 			return mintingInfo, err
 		}
 
-		if len(mintingInfo.AssetCode) == 0 || len(mintingInfo.AssetIssuer) == 0 {
+		if len(mintingInfo.AssetCode) == 0 || len(mintingInfo.ContractAddress) == 0 {
 			return mintingInfo, &errors.CustomError{
 				Param:      "assetCode",
 				Err:        "error invalid asset",

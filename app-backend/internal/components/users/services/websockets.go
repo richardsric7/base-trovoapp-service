@@ -277,7 +277,7 @@ func TradeChartSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 		messageChan <- message
 		for {
 
-			tradeChart, err := blockchain.GetChartRecords(data.AssetCode, data.AssetIssuer, data.CurrencyCode, data.CurrencyIssuer, "", "", data.Order, "", data.ChartPeriod, "")
+			tradeChart, err := blockchain.GetChartRecords(data.AssetCode, data.ContractAddress, data.CurrencyCode, data.CurrencyIssuer, "", "", data.Order, "", data.ChartPeriod, "")
 			if err != nil {
 				log.Printf("Error fetching chart. Error %v\n", err)
 				exit = true

@@ -101,7 +101,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+          asset.contractAddress == appState.viewData!['contractAddress'],
     );
   }
 

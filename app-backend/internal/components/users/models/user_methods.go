@@ -196,13 +196,13 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 
 		}
 		balances[":"] = Balance{
-			AssetIssuer: "",
-			AssetCode:   "",
-			Amount:      decimal.Zero,
-			QRCode:      qrCode,
-			ImageURL:    os.Getenv("NATIVE_ASSET_IMAGE_URL"),
-			UsdPrice:    gasUsdPrice,
-			NativePrice: gasNativePrice,
+			ContractAddress: "",
+			AssetCode:       "",
+			Amount:          decimal.Zero,
+			QRCode:          qrCode,
+			ImageURL:        os.Getenv("NATIVE_ASSET_IMAGE_URL"),
+			UsdPrice:        gasUsdPrice,
+			NativePrice:     gasNativePrice,
 			InTrade: TradeLiabilties{
 				SellingLiabilities: "0",
 				BuyingLiabilities:  "0",
@@ -247,7 +247,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 	for _, v := range account.Balances {
 		wg.Add(1)
 		go func(bal AccountBalance) {
-			bantuAsset := BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}
+			bantuAsset := BantuAsset{AssetCode: bal.Code, ContractAddress: bal.Issuer}
 			// log.Printf("[BALANCE]%+v\n", v)
 			defer wg.Done()
 			amount, _ := decimal.NewFromString(bal.Balance)
@@ -331,7 +331,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 					qrCode = p.QRCode
 				}
 			}
-			imageUrl := BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}.GetAssetImage(gc)
+			imageUrl := BantuAsset{AssetCode: bal.Code, ContractAddress: bal.Issuer}.GetAssetImage(gc)
 			var quoteCurrency string
 			var tokenizedAsset, fundingStructure, exitWithFiat int
 			if gc.IsValidTokenizedAsset(bal.Code) {
@@ -344,7 +344,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 				exitWithFiat = t.ExitWithFiat
 
 			}
-			balance := Balance{AssetIssuer: bal.Issuer,
+			balance := Balance{ContractAddress: bal.Issuer,
 				AssetCode:        bal.Code,
 				Amount:           availableBalance,
 				QRCode:           qrCode,
@@ -361,7 +361,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 				},
 			}
 			if !temp {
-				balance.CryptoWalletDepositAddresses = BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}.GetDepositAddresses(u.ID, gc)
+				balance.CryptoWalletDepositAddresses = BantuAsset{AssetCode: bal.Code, ContractAddress: bal.Issuer}.GetDepositAddresses(u.ID, gc)
 				//can deposit asset, now get the deposit addresses.
 			}
 			// log.Printf("[BALANCE] balance: %+v\n", bal)
@@ -487,7 +487,7 @@ func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []N
 
 			}
 
-			nft := NFT{AssetIssuer: v.Issuer, AssetCode: v.Code,
+			nft := NFT{ContractAddress: v.Issuer, AssetCode: v.Code,
 				NFTName: nftName, NFTDescription: nftDescription, NFTImageURI: nftImageURI}
 			nfts = append(nfts, nft)
 
@@ -517,7 +517,7 @@ func (u *UserWallet) GetSortedUserBalance(temp bool, gc *sharedconfig.GlobalConf
 		// gasUsdPrice, _ := blockchain.GetGASDollarAskPrice(gc.DB)
 		// gasNativePrice := "1"
 		// unsortedBalances[":"] = Balance{
-		// 	AssetIssuer: "",
+		// 	ContractAddress: "",
 		// 	AssetCode:   "",
 		// 	Amount:      decimal.Zero,
 		// 	QRCode:      qrCode,
@@ -560,7 +560,7 @@ func (u *UserWallet) GetSortedUserBalance(temp bool, gc *sharedconfig.GlobalConf
 	// 	gasUsdPrice, _ := blockchain.GetGASDollarAskPrice(gc.DB)
 	// 	gasNativePrice := "1"
 	// 	balances = append(balances, Balance{
-	// 		AssetIssuer: "",
+	// 		ContractAddress: "",
 	// 		AssetCode:   "",
 	// 		Amount:      decimal.Zero,
 	// 		QRCode:      qrCode,
@@ -777,11 +777,11 @@ func fetchAccountDetail(address string, gc *sharedconfig.GlobalConfig, cacheKey 
 
 	curatedAssets := assetsDB.GetCuratedAssets(false, gc)
 	for _, asset := range curatedAssets {
-		bal, e := network.B20BalanceOf(client, asset.AssetIssuer, address)
+		bal, e := network.B20BalanceOf(client, asset.ContractAddress, address)
 		if e != nil {
 			continue
 		}
-		clientAccount.Balances = append(clientAccount.Balances, AccountBalance{Code: asset.AssetCode, Issuer: asset.AssetIssuer, Balance: bal.String(), SellingLiabilities: "0", BuyingLiabilities: "0"})
+		clientAccount.Balances = append(clientAccount.Balances, AccountBalance{Code: asset.AssetCode, Issuer: asset.ContractAddress, Balance: bal.String(), SellingLiabilities: "0", BuyingLiabilities: "0"})
 	}
 
 	cacheTimeStr := strings.TrimSpace(os.Getenv("BLOCKCHAIN_DATA_CACHE_LIFETIME"))
@@ -832,7 +832,7 @@ func (id UserWalletID) GetBlockchainAccountDetail(gc *sharedconfig.GlobalConfig)
 
 // isIssuerOfAssetCode reports whether issuer has an asset with assetCode
 // registered in this app's own catalog. Stellar's version queried
-// Horizon's global asset registry (client.Assets(ForAssetIssuer,
+// Horizon's global asset registry (client.Assets(ForContractAddress,
 // ForAssetCode)); Base has no such registry, so "is this wallet the
 // issuer of this asset" is answered from this backend's own curated/
 // tokenized asset tables instead - the same tables that are already this
@@ -843,7 +843,7 @@ func isIssuerOfAssetCode(issuer, assetCode string) bool {
 		return false
 	}
 	var count int64
-	db.Table("curated_assets").Where("asset_issuer = ? AND asset_code = ?", strings.ToLower(issuer), strings.ToUpper(assetCode)).Count(&count)
+	db.Table("curated_assets").Where("contract_address = ? AND asset_code = ?", strings.ToLower(issuer), strings.ToUpper(assetCode)).Count(&count)
 	if count > 0 {
 		return true
 	}
@@ -1907,7 +1907,7 @@ func (u *User) GetCuratedSwapList(gc *sharedconfig.GlobalConfig) (list []assets.
 	for _, a := range am {
 		item := assets.CuratedSwapAsset{
 			AssetCode:                   a.AssetCode,
-			AssetIssuer:                 a.AssetIssuer,
+			ContractAddress:             a.ContractAddress,
 			AssetName:                   a.AssetName,
 			Description:                 a.Description,
 			Website:                     a.Website,
@@ -2593,9 +2593,9 @@ func (u *User) GetDefaultAssets(gc *sharedconfig.GlobalConfig) (defaultAssets []
 				vals := v.(map[string]interface{})
 				// log.Printf("VALS: [%+v]\n", vals)
 				defaultAssets = append(defaultAssets, DefaultAsset{
-					AssetCode:   vals["assetCode"].(string),
-					AssetIssuer: vals["assetIssuer"].(string),
-					ImageURL:    vals["imageUrl"].(string),
+					AssetCode:       vals["assetCode"].(string),
+					ContractAddress: vals["contractAddress"].(string),
+					ImageURL:        vals["imageUrl"].(string),
 				})
 			}
 			return

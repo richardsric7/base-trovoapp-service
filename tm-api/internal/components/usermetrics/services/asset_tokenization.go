@@ -37,7 +37,7 @@ type CryptoWalletDepositAddress struct {
 }
 
 type Balance struct {
-	AssetIssuer                  string                       `json:"assetIssuer"`
+	ContractAddress              string                       `json:"contractAddress"`
 	AssetCode                    string                       `json:"assetCode"`
 	Amount                       string                       `json:"amount"`
 	InTrade                      TradeLiabilities             `json:"inTrade"`

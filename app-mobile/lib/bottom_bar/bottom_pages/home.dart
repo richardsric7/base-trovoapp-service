@@ -86,7 +86,7 @@ class _HomeState extends State<Home>
           claimedAssets!
               .firstWhere(
                 (asset) =>
-                    asset.assetCode!.isEmpty && asset.assetIssuer!.isEmpty,
+                    asset.assetCode!.isEmpty && asset.contractAddress!.isEmpty,
               )
               .amount ==
           0;
@@ -1026,7 +1026,7 @@ class _HomeState extends State<Home>
       await appState.getApprovals();
       setState(() {
         var xbn = appState.primaryWallet.claimedAssets!.firstWhere(
-          (asset) => asset.assetCode!.isEmpty && asset.assetIssuer!.isEmpty,
+          (asset) => asset.assetCode!.isEmpty && asset.contractAddress!.isEmpty,
         );
         print('========> xbn balance = ${xbn.amount}');
         activateWallet = xbn.amount == 0;
@@ -1159,7 +1159,7 @@ class _HomeState extends State<Home>
               onTap: () {
                 appState.viewData = {
                   'assetCode': '',
-                  'assetIssuer': '',
+                  'contractAddress': '',
                   'walletAddress': activeWallet,
                 };
                 appState.currentAction = PageAction(

@@ -5,7 +5,7 @@ import "time"
 type MarketOfferRequest struct {
 	OfferType            string   `json:"offerType"`
 	AssetCode            string   `json:"assetCode"`
-	AssetIssuer          string   `json:"assetIssuer"`
+	ContractAddress      string   `json:"contractAddress"`
 	CurrencyCode         string   `json:"currencyCode"`
 	CurrencyIssuer       string   `json:"currencyIssuer"`
 	PricePerUnit         string   `json:"pricePerUnit"`
@@ -49,7 +49,7 @@ type MarketOffer struct {
 	MarketMakingWalletAddress string    `gorm:"not null;size:100" json:"marketMakingWalletAddress"`
 	OfferType                 string    `gorm:"not null;size:100" json:"offerType"`
 	AssetCode                 string    `gorm:"not null;size:100" json:"assetCode"`
-	AssetIssuer               *string   `gorm:"null;size:100" json:"assetIssuer"`
+	ContractAddress           *string   `gorm:"null;size:100" json:"contractAddress"`
 	CurrencyCode              string    `gorm:"not null;size:100" json:"currencyCode"`
 	CurrencyIssuer            *string   `gorm:"null;size:100" json:"currencyIssuer"`
 	PricePerUnit              string    `gorm:"not null;size:100" json:"pricePerUnit"`

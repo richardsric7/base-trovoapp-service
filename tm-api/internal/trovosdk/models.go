@@ -43,14 +43,14 @@ type ServiceLinkTokenizedAssetAuthRequest struct {
 
 // Balance model for user
 type Balance struct {
-	AssetIssuer string          `json:"assetIssuer"`
-	AssetCode   string          `json:"assetCode"`
-	Amount      decimal.Decimal `json:"amount"`
-	InTrade     TradeLiabilties `json:"inTrade"`
-	QRCode      string          `json:"qrCode"`
-	ImageURL    string          `json:"imageUrl"`
-	UsdPrice    string          `json:"usdPrice"`
-	NativePrice string          `json:"nativePrice"`
+	ContractAddress string          `json:"contractAddress"`
+	AssetCode       string          `json:"assetCode"`
+	Amount          decimal.Decimal `json:"amount"`
+	InTrade         TradeLiabilties `json:"inTrade"`
+	QRCode          string          `json:"qrCode"`
+	ImageURL        string          `json:"imageUrl"`
+	UsdPrice        string          `json:"usdPrice"`
+	NativePrice     string          `json:"nativePrice"`
 }
 
 type TradeLiabilties struct {

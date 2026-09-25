@@ -70,10 +70,10 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 	client := gc.BantuExpansionClient
 	//transform codes and issuer
 	swapInfo.DestinationAssetCode = strings.ToUpper(swapInfo.DestinationAssetCode)
-	swapInfo.DestinationAssetIssuer = strings.ToUpper(swapInfo.DestinationAssetIssuer)
+	swapInfo.DestinationContractAddress = strings.ToUpper(swapInfo.DestinationContractAddress)
 	swapInfo.SourceAssetCode = strings.ToUpper(swapInfo.SourceAssetCode)
-	swapInfo.SourceAssetIssuer = strings.ToUpper(swapInfo.SourceAssetIssuer)
-	if userModels.IsInternalBalanceAsset(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, gc) || userModels.IsInternalBalanceAsset(swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer, gc) {
+	swapInfo.SourceContractAddress = strings.ToUpper(swapInfo.SourceContractAddress)
+	if userModels.IsInternalBalanceAsset(swapInfo.SourceAssetCode, swapInfo.SourceContractAddress, gc) || userModels.IsInternalBalanceAsset(swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress, gc) {
 		return &tErrors.CustomError{
 			Param:      "assetCode",
 			Err:        "error-asset-not-sendable",
@@ -88,7 +88,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		t := gc.GetTokenizedAssetByCode(swapInfo.DestinationAssetCode)
 		if t.AssetTokenizationStatus < 5 {
 			return &tErrors.CustomError{
-				Param:      "assetIssuer",
+				Param:      "contractAddress",
 				Err:        "error-asset-not-yet-available-for-sale",
 				ErrMessage: "This tokenized Asset is not yet available for sale. Swap is not allowed at this time.",
 				Code:       http.StatusForbidden,
@@ -133,10 +133,10 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 
 	if len(swapInfo.TransactionSignature) > 0 && swapInfo.Commit == 0 {
 
-		var dbAssetIssuer *string
+		var dbContractAddress *string
 		dbAssetCode := swapInfo.SourceAssetCode
-		if len(swapInfo.SourceAssetIssuer) > 0 {
-			dbAssetIssuer = &swapInfo.SourceAssetIssuer
+		if len(swapInfo.SourceContractAddress) > 0 {
+			dbContractAddress = &swapInfo.SourceContractAddress
 		} else {
 			dbAssetCode = os.Getenv("NATIVE_ASSET_CODE")
 		}
@@ -150,7 +150,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 			FeeType:                    "SWAP",
 			Amount:                     decimal.RequireFromString(swapInfo.FeeAmount).InexactFloat64(),
 			AssetCode:                  dbAssetCode,
-			AssetIssuer:                dbAssetIssuer,
+			ContractAddress:            dbContractAddress,
 			DestinationWallet:          wallet.Alias,
 			SharedAccessOperation:      swapInfo.Multiparty,
 		}
@@ -163,7 +163,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 			FeeType:                    "VAT",
 			Amount:                     decimal.RequireFromString(swapInfo.VatAmount).InexactFloat64(),
 			AssetCode:                  dbAssetCode,
-			AssetIssuer:                dbAssetIssuer,
+			ContractAddress:            dbContractAddress,
 			DestinationWallet:          wallet.Alias,
 			SharedAccessOperation:      swapInfo.Multiparty,
 		}
@@ -202,7 +202,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 				if len(swapInfo.DestinationAssetCode) > 0 {
 					destAsset = swapInfo.DestinationAssetCode
 				}
-				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceContractAddress, swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress)
 
 				emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
 				if b != "0" {
@@ -251,11 +251,11 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		id := uuid.NewString()
 		destinationAsset := os.Getenv("NATIVE_ASSET_CODE")
 		sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
-		if len(swapInfo.SourceAssetIssuer) == 42 {
-			sourceAsset = fmt.Sprintf("%v:%v...%v", swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer[0:4], swapInfo.SourceAssetIssuer[51:55])
+		if len(swapInfo.SourceContractAddress) == 42 {
+			sourceAsset = fmt.Sprintf("%v:%v...%v", swapInfo.SourceAssetCode, swapInfo.SourceContractAddress[0:4], swapInfo.SourceContractAddress[51:55])
 		}
-		if len(swapInfo.DestinationAssetIssuer) == 42 {
-			destinationAsset = fmt.Sprintf("%v:%v...%v", swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer[0:4], swapInfo.DestinationAssetIssuer[51:55])
+		if len(swapInfo.DestinationContractAddress) == 42 {
+			destinationAsset = fmt.Sprintf("%v:%v...%v", swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress[0:4], swapInfo.DestinationContractAddress[51:55])
 		}
 		description := fmt.Sprintf("Swap\n From:%v,\n To:%v,\n Est. Value After: %v", sourceAsset, destinationAsset, swapInfo.SwappedEstimate)
 		if len(swapInfo.Memo) > 0 {
@@ -324,10 +324,10 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 	client := gc.BantuExpansionClient
 	//transform codes and issuer
 	swapInfo.DestinationAssetCode = strings.ToUpper(swapInfo.DestinationAssetCode)
-	swapInfo.DestinationAssetIssuer = strings.ToUpper(swapInfo.DestinationAssetIssuer)
+	swapInfo.DestinationContractAddress = strings.ToUpper(swapInfo.DestinationContractAddress)
 	swapInfo.SourceAssetCode = strings.ToUpper(swapInfo.SourceAssetCode)
-	swapInfo.SourceAssetIssuer = strings.ToUpper(swapInfo.SourceAssetIssuer)
-	if userModels.IsInternalBalanceAsset(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, gc) || userModels.IsInternalBalanceAsset(swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer, gc) {
+	swapInfo.SourceContractAddress = strings.ToUpper(swapInfo.SourceContractAddress)
+	if userModels.IsInternalBalanceAsset(swapInfo.SourceAssetCode, swapInfo.SourceContractAddress, gc) || userModels.IsInternalBalanceAsset(swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress, gc) {
 		return &tErrors.CustomError{
 			Param:      "assetCode",
 			Err:        "error-asset-not-sendable",
@@ -371,7 +371,7 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 				if len(swapInfo.DestinationAssetCode) > 0 {
 					destAsset = swapInfo.DestinationAssetCode
 				}
-				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceContractAddress, swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress)
 
 				emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
 				if b != "0" {
@@ -397,11 +397,11 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 		id := uuid.NewString()
 		destinationAsset := os.Getenv("NATIVE_ASSET_CODE")
 		sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
-		if len(swapInfo.SourceAssetIssuer) == 42 {
-			sourceAsset = fmt.Sprintf("%v:%v...%v", swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer[0:4], swapInfo.SourceAssetIssuer[51:55])
+		if len(swapInfo.SourceContractAddress) == 42 {
+			sourceAsset = fmt.Sprintf("%v:%v...%v", swapInfo.SourceAssetCode, swapInfo.SourceContractAddress[0:4], swapInfo.SourceContractAddress[51:55])
 		}
-		if len(swapInfo.DestinationAssetIssuer) == 42 {
-			destinationAsset = fmt.Sprintf("%v:%v...%v", swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer[0:4], swapInfo.DestinationAssetIssuer[51:55])
+		if len(swapInfo.DestinationContractAddress) == 42 {
+			destinationAsset = fmt.Sprintf("%v:%v...%v", swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress[0:4], swapInfo.DestinationContractAddress[51:55])
 		}
 		description := fmt.Sprintf("Swap\n From:%v,\n To:%v,\n Est. Value After: %v", sourceAsset, destinationAsset, swapInfo.RequiredEstimate)
 		if len(swapInfo.Memo) > 0 {
@@ -457,7 +457,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
 	var err error
 	var amountToSwap, totalFees decimal.Decimal
-	var tokenizedAssetIssuerMustSign bool
+	var tokenizedContractAddressMustSign bool
 	if amountToSwap, err = decimal.NewFromString(swapInfo.SourceAmount); err != nil {
 		return "", &swapErrors.ErrorInvalidSwapAmount{}
 	}
@@ -469,11 +469,11 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 
 	if len(swapInfo.DestinationAssetCode) != 0 && !strings.EqualFold(swapInfo.DestinationAssetCode, nativeAssetCode) {
 
-		destinationAsset = basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer}
+		destinationAsset = basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationContractAddress}
 	}
 	if len(swapInfo.SourceAssetCode) != 0 && !strings.EqualFold(swapInfo.SourceAssetCode, nativeAssetCode) {
 
-		sourceAsset = basetxn.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceAssetIssuer}
+		sourceAsset = basetxn.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceContractAddress}
 	}
 
 	// charge := baseReserve.Mul(decimal.NewFromInt(1)).Truncate(7).String()
@@ -503,8 +503,8 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 		if !sourceAccountTrustsDestinationAsset {
 
 			bantuAsset := userModels.BantuAsset{
-				AssetCode:   destinationAsset.GetCode(),
-				AssetIssuer: destinationAsset.GetIssuer(),
+				AssetCode:       destinationAsset.GetCode(),
+				ContractAddress: destinationAsset.GetIssuer(),
 			}
 			bcAsset, e := bantuAsset.GetBlockchainAssetProperty(gc)
 			if e != nil {
@@ -544,14 +544,14 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 			})
 
 			if gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
-				tokenizedAssetIssuerMustSign = true
+				tokenizedContractAddressMustSign = true
 
 				// allow trust from issuer to destination wallet
 				ops = append(ops, &basetxn.SetTrustLineFlags{
 					Trustor:       wallet.ID,
-					Asset:         basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer},
+					Asset:         basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationContractAddress},
 					SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-					SourceAccount: swapInfo.DestinationAssetIssuer,
+					SourceAccount: swapInfo.DestinationContractAddress,
 				})
 			}
 
@@ -591,19 +591,19 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 	//using destinationAssets gets path to only the asset
 	destAsset := ""
 	if !destinationAsset.IsNative() {
-		destAsset = fmt.Sprintf("%s:%s", swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+		destAsset = fmt.Sprintf("%s:%s", swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress)
 	}
 	pathInput := swapModels.SwapSendPathInput{
-		DestinationAssets: destAsset,
-		SourceAssetCode:   swapInfo.SourceAssetCode,
-		SourceAssetIssuer: swapInfo.SourceAssetIssuer,
-		SourceAmount:      newAmountToSwap,
+		DestinationAssets:     destAsset,
+		SourceAssetCode:       swapInfo.SourceAssetCode,
+		SourceContractAddress: swapInfo.SourceContractAddress,
+		SourceAmount:          newAmountToSwap,
 	}
 	path, swappedEstimate, err := GetStrictSendPaths(pathInput, gc)
 	if err != nil {
 		log.Println("[generateSwapXdr]error fetching valid swap Path ", err)
 		if strings.Contains(err.Error(), "liquid") || strings.Contains(err.Error(), "market") {
-			_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer, swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer)
+			_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceContractAddress, swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress)
 
 			emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
 			if b != "0" {
@@ -667,14 +667,14 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 				})
 
 				if gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
-					tokenizedAssetIssuerMustSign = true
+					tokenizedContractAddressMustSign = true
 
 					// allow trust from issuer to destination wallet
 					ops = append(ops, &basetxn.SetTrustLineFlags{
 						Trustor:       feeAddress,
 						Asset:         basetxn.CreditAsset{Code: sourceAsset.GetCode(), Issuer: sourceAsset.GetIssuer()},
 						SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-						SourceAccount: swapInfo.DestinationAssetIssuer,
+						SourceAccount: swapInfo.DestinationContractAddress,
 					})
 				}
 
@@ -721,14 +721,14 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 				})
 
 				if gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
-					tokenizedAssetIssuerMustSign = true
+					tokenizedContractAddressMustSign = true
 
 					// allow trust from issuer to destination wallet
 					ops = append(ops, &basetxn.SetTrustLineFlags{
 						Trustor:       feeAddress,
 						Asset:         basetxn.CreditAsset{Code: sourceAsset.GetCode(), Issuer: sourceAsset.GetIssuer()},
 						SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-						SourceAccount: swapInfo.DestinationAssetIssuer,
+						SourceAccount: swapInfo.DestinationContractAddress,
 					})
 				}
 
@@ -749,10 +749,10 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 	var memoSAC, memoDAC string
 	memoSAC = swapInfo.SourceAssetCode
 	memoDAC = swapInfo.DestinationAssetCode
-	if swapInfo.SourceAssetIssuer == "" || swapInfo.SourceAssetIssuer == "native" {
+	if swapInfo.SourceContractAddress == "" || swapInfo.SourceContractAddress == "native" {
 		memoSAC = os.Getenv("NATIVE_ASSET_CODE")
 	}
-	if swapInfo.DestinationAssetIssuer == "" || swapInfo.DestinationAssetIssuer == "native" {
+	if swapInfo.DestinationContractAddress == "" || swapInfo.DestinationContractAddress == "native" {
 		memoDAC = os.Getenv("NATIVE_ASSET_CODE")
 	}
 
@@ -801,7 +801,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 		}
 	}
 
-	if tokenizedAssetIssuerMustSign {
+	if tokenizedContractAddressMustSign {
 		log.Println("[generateSwapXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
 		//get atprofile
 		var tokenizationIssuerProfileWallet string
@@ -853,11 +853,11 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 
 	if len(swapInfo.DestinationAssetCode) != 0 && !strings.EqualFold(swapInfo.DestinationAssetCode, nativeAssetCode) {
 
-		destinationAsset = basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer}
+		destinationAsset = basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationContractAddress}
 	}
 	if len(swapInfo.SourceAssetCode) != 0 && !strings.EqualFold(swapInfo.SourceAssetCode, nativeAssetCode) {
 
-		sourceAsset = basetxn.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceAssetIssuer}
+		sourceAsset = basetxn.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceContractAddress}
 	}
 
 	// charge := baseReserve.Mul(decimal.NewFromInt(1)).Truncate(7).String()
@@ -927,14 +927,14 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 	//using destinationAssets gets path to only the asset
 	sourceAssets := ""
 	if !sourceAsset.IsNative() {
-		sourceAssets = fmt.Sprintf("%s:%s", swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer)
+		sourceAssets = fmt.Sprintf("%s:%s", swapInfo.SourceAssetCode, swapInfo.SourceContractAddress)
 	}
 	pathInput := swapModels.SwapPathInput{
 		SourceAssets: sourceAssets,
 		// SourceAccount:          swapInfo.SourceAccount,
-		DestinationAssetCode:   swapInfo.DestinationAssetCode,
-		DestinationAssetIssuer: swapInfo.DestinationAssetIssuer,
-		DestinationAmount:      newAmountToSwap,
+		DestinationAssetCode:       swapInfo.DestinationAssetCode,
+		DestinationContractAddress: swapInfo.DestinationContractAddress,
+		DestinationAmount:          newAmountToSwap,
 	}
 	path, requiredEstimate, err := GetStrictReceivePaths(pathInput, client)
 	if err != nil {
@@ -1008,10 +1008,10 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 	var memoSAC, memoDAC string
 	memoSAC = swapInfo.SourceAssetCode
 	memoDAC = swapInfo.DestinationAssetCode
-	if swapInfo.SourceAssetIssuer == "" || swapInfo.SourceAssetIssuer == "native" {
+	if swapInfo.SourceContractAddress == "" || swapInfo.SourceContractAddress == "native" {
 		memoSAC = os.Getenv("NATIVE_ASSET_CODE")
 	}
-	if swapInfo.DestinationAssetIssuer == "" || swapInfo.DestinationAssetIssuer == "native" {
+	if swapInfo.DestinationContractAddress == "" || swapInfo.DestinationContractAddress == "native" {
 		memoDAC = os.Getenv("NATIVE_ASSET_CODE")
 	}
 

@@ -357,14 +357,14 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 						Sender          string    `json:"sender"`
 						Amount          string    `json:"amount"`
 						AssetCode       string    `json:"assetCode"`
-						AssetIssuer     string    `json:"assetIssuer"`
+						ContractAddress string    `json:"contractAddress"`
 						TransactionID   string    `json:"transactionId"`
 						TransactionMemo string    `json:"transactionMemo"`
 						TransactionTime time.Time `json:"transactionTime"`
 						DeviceID        string    `json:"deviceId"`
 					}
 					assetCode := paymentInfoReturned.AssetCode
-					if paymentInfoReturned.AssetIssuer == "" {
+					if paymentInfoReturned.ContractAddress == "" {
 						assetCode = os.Getenv("NATIVE_ASSET_CODE")
 					}
 					senderWallet, _, _ := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
@@ -373,7 +373,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 						Sender:          senderWallet.Alias,
 						Amount:          paymentInfoReturned.Amount,
 						AssetCode:       assetCode,
-						AssetIssuer:     paymentInfoReturned.AssetIssuer,
+						ContractAddress: paymentInfoReturned.ContractAddress,
 						TransactionID:   paymentInfoReturned.TransactionID,
 						TransactionMemo: paymentInfoReturned.Memo,
 						TransactionTime: time.Now(),

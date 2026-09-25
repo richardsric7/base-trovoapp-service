@@ -33,7 +33,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 	var err error
 	walletHasViewOnlyAccess := true
 
-	if userModels.IsInternalBalanceAsset(paymentInfo.AssetCode, paymentInfo.AssetIssuer, gc) {
+	if userModels.IsInternalBalanceAsset(paymentInfo.AssetCode, paymentInfo.ContractAddress, gc) {
 		return paymentInfo, destinationUser, &tErrors.CustomError{
 			Param:      "assetCode",
 			Err:        "error-asset-not-sendable",
@@ -197,10 +197,10 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 			}
 		} else {
 
-			var dbAssetIssuer *string
+			var dbContractAddress *string
 			dbAssetCode := paymentInfo.AssetCode
-			if len(paymentInfo.AssetIssuer) > 0 {
-				dbAssetIssuer = &paymentInfo.AssetIssuer
+			if len(paymentInfo.ContractAddress) > 0 {
+				dbContractAddress = &paymentInfo.ContractAddress
 			} else {
 				dbAssetCode = os.Getenv("NATIVE_ASSET_CODE")
 			}
@@ -214,7 +214,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 				FeeType:                    "PAYMENT",
 				Amount:                     decimal.RequireFromString(paymentInfo.FeeAmount).InexactFloat64(),
 				AssetCode:                  dbAssetCode,
-				AssetIssuer:                dbAssetIssuer,
+				ContractAddress:            dbContractAddress,
 				DestinationWallet:          paymentInfo.Destination,
 				SharedAccessOperation:      paymentInfo.Multiparty,
 			}
@@ -236,7 +236,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 
 				}(),
 				AssetCode:             dbAssetCode,
-				AssetIssuer:           dbAssetIssuer,
+				ContractAddress:       dbContractAddress,
 				DestinationWallet:     paymentInfo.Destination,
 				SharedAccessOperation: paymentInfo.Multiparty,
 			}
@@ -316,8 +316,8 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 	log.Printf("[Pay]shared access with approver permission enabled for %v \n", sourceWallet.Alias)
 	id := uuid.NewString()
 	assetOfPayment := os.Getenv("NATIVE_ASSET_CODE")
-	if len(paymentInfo.AssetIssuer) == 42 {
-		assetOfPayment = fmt.Sprintf("%v:%v...%v", paymentInfo.AssetCode, paymentInfo.AssetIssuer[0:4], paymentInfo.AssetIssuer[51:55])
+	if len(paymentInfo.ContractAddress) == 42 {
+		assetOfPayment = fmt.Sprintf("%v:%v...%v", paymentInfo.AssetCode, paymentInfo.ContractAddress[0:4], paymentInfo.ContractAddress[51:55])
 	}
 	var msgs string
 	for i, m := range paymentInfo.Messages {
@@ -364,7 +364,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, sourceWallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, db *gorm.DB, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
 	// paymentInfo.FeeAmount = "0"
-	var tokenizedAssetIssuerMustSign bool
+	var tokenizedContractAddressMustSign bool
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
 	// var messages []string
@@ -393,8 +393,8 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 
 	var asset basetxn.Asset = basetxn.NativeAsset{}
 
-	if len(paymentInfo.AssetIssuer) > 0 {
-		asset = basetxn.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.AssetIssuer}
+	if len(paymentInfo.ContractAddress) > 0 {
+		asset = basetxn.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.ContractAddress}
 	}
 
 	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, db, gc)
@@ -487,8 +487,8 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 			if !destinationAccountTrustsAsset && !gc.IsValidTokenizedAsset(asset.GetCode()) {
 
 				bantuAsset := userModels.BantuAsset{
-					AssetCode:   asset.GetCode(),
-					AssetIssuer: asset.GetIssuer(),
+					AssetCode:       asset.GetCode(),
+					ContractAddress: asset.GetIssuer(),
 				}
 				bcAsset, e := bantuAsset.GetBlockchainAssetProperty(gc)
 				if e != nil {
@@ -681,7 +681,7 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 							SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 							SourceAccount: asset.GetIssuer(),
 						})
-						tokenizedAssetIssuerMustSign = true
+						tokenizedContractAddressMustSign = true
 					}
 
 				}
@@ -736,7 +736,7 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 							SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 							SourceAccount: asset.GetIssuer(),
 						})
-						tokenizedAssetIssuerMustSign = true
+						tokenizedContractAddressMustSign = true
 					}
 
 				}
@@ -789,7 +789,7 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 						SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
 						SourceAccount: asset.GetIssuer(),
 					})
-					tokenizedAssetIssuerMustSign = true
+					tokenizedContractAddressMustSign = true
 				}
 
 			}
@@ -872,7 +872,7 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 		}
 	}
 
-	if tokenizedAssetIssuerMustSign {
+	if tokenizedContractAddressMustSign {
 		log.Println("[generatePaymentXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
 		//get atprofile
 		var tokenizationIssuerProfileWallet string
@@ -909,7 +909,7 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 }
 
 func generateMintingXdr(client *ethclient.Client, owner *userModels.User, sourceWallet *userModels.UserWallet, mintingInfo *userModels.MintingInfo, db *gorm.DB, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
-	var tokenizedAssetIssuerMustSign bool
+	var tokenizedContractAddressMustSign bool
 
 	var err error
 	mintingInfo, err = ValidateMintingInfo(mintingInfo)
@@ -920,7 +920,7 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 	// amountToSend := decimal.RequireFromString(mintingInfo.Amount).InexactFloat64()
 	// amountToSendDec := decimal.RequireFromString(mintingInfo.Amount)
 	newAmountToSend := decimal.RequireFromString(mintingInfo.Amount).Truncate(7).String()
-	asset := basetxn.CreditAsset{Code: mintingInfo.AssetCode, Issuer: mintingInfo.AssetIssuer}
+	asset := basetxn.CreditAsset{Code: mintingInfo.AssetCode, Issuer: mintingInfo.ContractAddress}
 	if sourceWallet.ID != asset.GetIssuer() {
 
 		return "", nil, &tErrors.CustomError{
@@ -1085,7 +1085,7 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 		}
 	}
 
-	if tokenizedAssetIssuerMustSign {
+	if tokenizedContractAddressMustSign {
 		log.Println("[generateMintingXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
 		//get atprofile
 		var tokenizationIssuerProfileWallet string
@@ -1126,7 +1126,7 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 
 func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
-	var tokenizedAssetIssuerMustSign bool
+	var tokenizedContractAddressMustSign bool
 	// var messages []string
 	//check if it is public key payment
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
@@ -1148,7 +1148,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 	var asset basetxn.Asset = basetxn.NativeAsset{}
 
 	if len(paymentInfo.AssetCode) != 0 {
-		asset = basetxn.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.AssetIssuer}
+		asset = basetxn.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.ContractAddress}
 	}
 	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
 	destinationWallet, _, _ := usersDB.GetWallet(paymentInfo.Destination, gc.DB)
@@ -1370,7 +1370,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 			return "", nil, &tErrors.ErrorTemporaryServerError{}
 		}
 	}
-	if tokenizedAssetIssuerMustSign {
+	if tokenizedContractAddressMustSign {
 		log.Println("[generatePaymentXdrWithChannelAccountPK] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
 		//get atprofile
 		var tokenizationIssuerProfileWallet string
@@ -1499,8 +1499,8 @@ func MintAsset(signerUser *userModels.User, sourceWallet *userModels.UserWallet,
 	log.Printf("[MintAsset]shared access with approver permission enabled for %v \n", sourceWallet.Alias)
 	id := uuid.NewString()
 	assetOfPayment := mintingInfo.AssetCode
-	if len(mintingInfo.AssetIssuer) == 42 {
-		assetOfPayment = fmt.Sprintf("%v:%v...%v", mintingInfo.AssetCode, mintingInfo.AssetIssuer[0:3], mintingInfo.AssetIssuer[52:55])
+	if len(mintingInfo.ContractAddress) == 42 {
+		assetOfPayment = fmt.Sprintf("%v:%v...%v", mintingInfo.AssetCode, mintingInfo.ContractAddress[0:3], mintingInfo.ContractAddress[52:55])
 	}
 	var msgs string
 	for i, m := range mintingInfo.Messages {

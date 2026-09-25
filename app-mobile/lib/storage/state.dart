@@ -457,7 +457,7 @@ class DataProvider with ChangeNotifier {
       if (!filterAsset.contains("*")) {
         var splitAssetInfo = filterAsset.split("|");
         uri +=
-            "&assetIssuer=${splitAssetInfo[0]}&assetCode=${splitAssetInfo[1].isEmpty ? "ETH" : splitAssetInfo[1]}";
+            "&contractAddress=${splitAssetInfo[0]}&assetCode=${splitAssetInfo[1].isEmpty ? "ETH" : splitAssetInfo[1]}";
       }
       Map responseData = await makeGetRequest(
         uri: uri,
@@ -753,14 +753,14 @@ class DataProvider with ChangeNotifier {
           initialDynamicLink.queryParameters['assetCode'] == 'ETH'
               ? ''
               : initialDynamicLink.queryParameters['assetCode'],
-          initialDynamicLink.queryParameters['assetIssuer'],
+          initialDynamicLink.queryParameters['contractAddress'],
           onDone: (walletAddress, isSharedWallet) {
             var deeplinkInfo = {
               "assetCode":
                   initialDynamicLink.queryParameters['assetCode'] == 'ETH'
                   ? ''
                   : initialDynamicLink.queryParameters['assetCode'],
-              "assetIssuer": initialDynamicLink.queryParameters['assetIssuer'],
+              "contractAddress": initialDynamicLink.queryParameters['contractAddress'],
               "source": "qr2",
               "receiver":
                   initialDynamicLink.queryParameters['paymentDestination'],
@@ -780,10 +780,10 @@ class DataProvider with ChangeNotifier {
 
             for (var asset in claimedAssets) {
               if (asset['assetCode'] == deeplinkAssetCode &&
-                  asset['assetIssuer'] == deeplinkInfo['assetIssuer']) {
+                  asset['contractAddress'] == deeplinkInfo['contractAddress']) {
                 viewData![SendAssetViewPageConfig.key] = {
                   'assetCode': asset['assetCode'],
-                  'assetIssuer': asset['assetIssuer'],
+                  'contractAddress': asset['contractAddress'],
                   'amount': asset['amount'],
                   'imageUrl': asset['imageUrl'],
                   'usdPrice': asset['usdPrice'],

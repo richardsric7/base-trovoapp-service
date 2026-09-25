@@ -437,7 +437,7 @@ func GenerateEventData(ownerUsername, serviceShortName, description, deviceInfo,
 }
 
 // GeneratePaymentData generates payment Data
-func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, memo string, gc *sharedconfig.GlobalConfig) (p PayWithTrovoWalletData, err error) {
+func GeneratePaymentData(paymentDestination, assetCode, contractAddress, amount, memo string, gc *sharedconfig.GlobalConfig) (p PayWithTrovoWalletData, err error) {
 	if len(paymentDestination) == 0 {
 		err = errors.New("no payment destination")
 		return
@@ -449,10 +449,10 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 
 	if assetCode == "" || assetCode == os.Getenv("NATIVE_ASSET_CODE") {
 		assetCode = os.Getenv("NATIVE_ASSET_CODE")
-		assetIssuer = ""
+		contractAddress = ""
 	}
 
-	if len(assetIssuer) > 0 && len(assetIssuer) != 42 {
+	if len(contractAddress) > 0 && len(contractAddress) != 42 {
 		err = errors.New("invalid asset issuer")
 		return
 	}
@@ -469,7 +469,7 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 	params.Add("action", "payment")
 	params.Add("paymentDestination", paymentDestination)
 	params.Add("assetCode", assetCode)
-	params.Add("assetIssuer", assetIssuer)
+	params.Add("contractAddress", contractAddress)
 	params.Add("amount", amount)
 	params.Add("memo", memo)
 	link := fmt.Sprintf("%v?%v", os.Getenv("DYNAMIC_LINKS_FALLBACK_BASE_URL"), params.Encode())
@@ -498,9 +498,9 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 }
 
 // GenerateTokenizedAssetDeeplink generates deep link for tokenized asset Data
-func GenerateTokenizedAssetDeeplink(assetCode, assetIssuer string, gc *sharedconfig.GlobalConfig) (p TokenizedAssetDeepLinkData, err error) {
+func GenerateTokenizedAssetDeeplink(assetCode, contractAddress string, gc *sharedconfig.GlobalConfig) (p TokenizedAssetDeepLinkData, err error) {
 
-	if len(assetIssuer) > 0 && len(assetIssuer) != 42 {
+	if len(contractAddress) > 0 && len(contractAddress) != 42 {
 		err = errors.New("invalid asset issuer")
 		return
 	}
@@ -513,7 +513,7 @@ func GenerateTokenizedAssetDeeplink(assetCode, assetIssuer string, gc *sharedcon
 	params := url.Values{}
 	params.Add("action", "tokenizedAsset")
 	params.Add("assetCode", assetCode)
-	params.Add("assetIssuer", assetIssuer)
+	params.Add("contractAddress", contractAddress)
 
 	link := fmt.Sprintf("%v?%v", os.Getenv("DYNAMIC_LINKS_FALLBACK_BASE_URL"), params.Encode())
 	// log.Println("[GeneratePaymentData]link=", link)

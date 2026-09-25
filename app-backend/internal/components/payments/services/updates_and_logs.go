@@ -18,7 +18,7 @@ func UpdateAndLogUserPaymentGeoInformation(userInfo *userModels.User, paymentInf
 		Sender:               userInfo.Username,
 		Destination:          paymentInfoReturned.Destination,
 		Memo:                 &paymentInfoReturned.Memo,
-		AssetIssuer:          &paymentInfoReturned.AssetIssuer,
+		ContractAddress:      &paymentInfoReturned.ContractAddress,
 		AssetCode:            &paymentInfoReturned.AssetCode,
 		Amount:               paymentInfoReturned.Amount,
 		Transaction:          &paymentInfoReturned.Transaction,

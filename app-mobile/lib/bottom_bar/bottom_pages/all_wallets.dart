@@ -57,7 +57,7 @@ class _AllWalletsView extends State<AllWalletsView>
   String? tag;
   String? description;
   String? secretKey;
-  int isAssetIssuerWallet = 0;
+  int isContractAddressWallet = 0;
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
   String password = '';
   late Account primaryWalletKeyPair;

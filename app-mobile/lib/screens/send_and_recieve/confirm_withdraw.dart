@@ -56,7 +56,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+          asset.contractAddress == appState.viewData!['contractAddress'],
     );
 
     transactionInfo = appState.viewData!['transactionData'];
@@ -492,7 +492,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
             'transactionData': responseData['data'],
             'walletAddress': wallet.address,
             'assetCode': asset!.assetCode,
-            'assetIssuer': asset!.assetIssuer,
+            'contractAddress': asset!.contractAddress,
           };
           appState.currentAction = PageAction(
             state: PageState.addPage,

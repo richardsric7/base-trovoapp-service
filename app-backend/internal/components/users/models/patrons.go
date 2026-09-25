@@ -54,7 +54,7 @@ type UserPatronSubscriptionLog struct {
 type PatronSubscriptionInput struct {
 	PatronMembershipGradeID uint64   `json:"patronMembershipGradeId"`
 	PaymentAssetCode        string   `json:"paymentAssetCode"`
-	PaymentAssetIssuer      string   `json:"paymentAssetIssuer"`
+	PaymentContractAddress  string   `json:"paymentContractAddress"`
 	Transaction             string   `json:"transaction"`
 	TransactionSignature    string   `json:"transactionSignature"`
 	TransactionID           string   `json:"transactionId"`
@@ -66,7 +66,7 @@ type PatronSubscriptionInput struct {
 }
 
 type PatronSubscriptionPaymentAsset struct {
-	AssetCode   string `gorm:"primaryKey" json:"assetCode"`
-	AssetIssuer string `json:"assetIssuer"`
-	Inactive    uint   `gorm:"default:0" json:"-"`
+	AssetCode       string `gorm:"primaryKey" json:"assetCode"`
+	ContractAddress string `json:"contractAddress"`
+	Inactive        uint   `gorm:"default:0" json:"-"`
 }

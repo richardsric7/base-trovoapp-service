@@ -594,7 +594,7 @@ func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.H
 			trovAsset := gc.GetCuratedAssetByCode("TROV")
 			cngnAsset := gc.GetCuratedAssetByCode("CNGN")
 
-			// orderBookTrov, err := gc.GetOrderBook(trovAsset.AssetCode, trovAsset.AssetIssuer, cngnAsset.AssetCode, cngnAsset.AssetIssuer)
+			// orderBookTrov, err := gc.GetOrderBook(trovAsset.AssetCode, trovAsset.ContractAddress, cngnAsset.AssetCode, cngnAsset.ContractAddress)
 
 			// if err != nil {
 			// 	gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch orderbook request for [%v]/[%v]. Err: %v\n", trovAsset.AssetCode, cngnAsset.AssetCode, err))
@@ -613,7 +613,7 @@ func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.H
 			//get the price of trov
 			// priceOfTrov := orderBookTrov.Asks[0].Price
 
-			// orderBookGas, err := gc.GetOrderBook(os.Getenv("NATIVE_ASSET_CODE"), "", cngnAsset.AssetCode, cngnAsset.AssetIssuer)
+			// orderBookGas, err := gc.GetOrderBook(os.Getenv("NATIVE_ASSET_CODE"), "", cngnAsset.AssetCode, cngnAsset.ContractAddress)
 
 			// if err != nil {
 			// 	gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] unable to fetch orderbook request for [%v]/[%v]. Err: %v\n", os.Getenv("NATIVE_ASSET_CODE"), cngnAsset.AssetCode, err))
@@ -632,8 +632,8 @@ func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.H
 			// priceOfGas := orderBookGas.Asks[0].Price
 			// trovToDispense := trovAmount.Div(decimal.RequireFromString(priceOfTrov)).Truncate(7)
 			// gasToDispense := gasAmount.Div(decimal.RequireFromString(priceOfGas)).Truncate(7)
-			trovToDispense := userServices.GetSwapEstimate(cngnAsset.AssetCode, cngnAsset.AssetIssuer, trovAmount.String(), trovAsset.AssetCode, trovAsset.AssetIssuer, gc)
-			gasToDispense := userServices.GetSwapEstimate(cngnAsset.AssetCode, cngnAsset.AssetIssuer, gasAmount.String(), os.Getenv("NATIVE_ASSET_CODE"), "", gc)
+			trovToDispense := userServices.GetSwapEstimate(cngnAsset.AssetCode, cngnAsset.ContractAddress, trovAmount.String(), trovAsset.AssetCode, trovAsset.ContractAddress, gc)
+			gasToDispense := userServices.GetSwapEstimate(cngnAsset.AssetCode, cngnAsset.ContractAddress, gasAmount.String(), os.Getenv("NATIVE_ASSET_CODE"), "", gc)
 			// get faucet foir activation
 			faucet, err := userServices.GetFaucetConfigByUserCase("ACTIVATION", gc)
 			if err != nil {
@@ -664,11 +664,11 @@ func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.H
 
 			////////////////////////START GAS
 			payGas := payments.PaymentInfo{
-				Destination: user.Username,
-				Memo:        "ACTIVATION",
-				AssetIssuer: "",
-				AssetCode:   os.Getenv("NATIVE_ASSET_CODE"),
-				Amount:      gasToDispense,
+				Destination:     user.Username,
+				Memo:            "ACTIVATION",
+				ContractAddress: "",
+				AssetCode:       os.Getenv("NATIVE_ASSET_CODE"),
+				Amount:          gasToDispense,
 			}
 
 			rpg, _, err := userServices.Pay(&signerUser, &sourceWallet, &payGas, gc)
@@ -707,11 +707,11 @@ func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.H
 
 			////////////////////////START TROV
 			payTrov := payments.PaymentInfo{
-				Destination: user.Username,
-				Memo:        "ACTIVATION",
-				AssetIssuer: trovAsset.AssetIssuer,
-				AssetCode:   trovAsset.AssetCode,
-				Amount:      trovToDispense,
+				Destination:     user.Username,
+				Memo:            "ACTIVATION",
+				ContractAddress: trovAsset.ContractAddress,
+				AssetCode:       trovAsset.AssetCode,
+				Amount:          trovToDispense,
 			}
 
 			rpt, _, err := userServices.Pay(&signerUser, &sourceWallet, &payTrov, gc)

@@ -52,7 +52,7 @@ type UserRegistrationInfo struct {
 type PaymentInfo struct {
 	Destination             string            `json:"destination"`
 	Memo                    string            `json:"memo"`
-	AssetIssuer             string            `json:"assetIssuer"`
+	ContractAddress         string            `json:"contractAddress"`
 	AssetCode               string            `json:"assetCode"`
 	Amount                  string            `json:"amount"`
 	Transaction             string            `json:"transaction"`
@@ -192,7 +192,7 @@ type CuratedSwapAsset struct {
 	UpdatedAt                   time.Time  `json:"-"`
 	AssetCode                   string     `gorm:"size:12;unique;not null" json:"assetCode"`
 	AssetName                   string     `gorm:"size:50;null" json:"assetName"`
-	AssetIssuer                 string     `gorm:"size:56;not null;" json:"assetIssuer"`
+	ContractAddress             string     `gorm:"size:56;not null;" json:"contractAddress"`
 	Description                 string     `gorm:"size:200; not null" json:"description"`
 	ImageURL                    string     `gorm:"null" json:"imageUrl"`
 	Website                     string     `gorm:"null;size:100" json:"website"`
@@ -254,12 +254,12 @@ type ThirdPartyWalletAccess struct {
 
 // Balance model for user
 type Balance struct {
-	AssetIssuer string          `json:"assetIssuer"`
-	AssetCode   string          `json:"assetCode"`
-	Amount      decimal.Decimal `json:"amount"`
-	QRCode      string          `json:"qrCode"`
-	UsdPrice    string          `json:"usdPrice"`
-	NativePrice string          `json:"nativePrice"`
+	ContractAddress string          `json:"contractAddress"`
+	AssetCode       string          `json:"assetCode"`
+	Amount          decimal.Decimal `json:"amount"`
+	QRCode          string          `json:"qrCode"`
+	UsdPrice        string          `json:"usdPrice"`
+	NativePrice     string          `json:"nativePrice"`
 }
 
 // Signer model for user
@@ -288,15 +288,15 @@ type NFTBalances struct {
 	NFTs []NFT `json:"nfts"`
 }
 type NFT struct {
-	AssetIssuer    string `json:"assetIssuer"`
-	AssetCode      string `json:"assetCode"`
-	NFTName        string `json:"nftName"`
-	NFTDescription string `json:"nftDescription"`
-	NFTImageURI    string `json:"nftImageURI"`
+	ContractAddress string `json:"contractAddress"`
+	AssetCode       string `json:"assetCode"`
+	NFTName         string `json:"nftName"`
+	NFTDescription  string `json:"nftDescription"`
+	NFTImageURI     string `json:"nftImageURI"`
 }
 type DefaultAsset struct {
-	AssetCode   string `gorm:"size:12" json:"assetCode"`
-	AssetIssuer string `gorm:"size:56" json:"assetIssuer"`
+	AssetCode       string `gorm:"size:12" json:"assetCode"`
+	ContractAddress string `gorm:"size:56" json:"contractAddress"`
 }
 type PaymentHistoryJSON struct {
 	TransactionDate time.Time `json:"transactionDate"`
@@ -306,7 +306,7 @@ type PaymentHistoryJSON struct {
 	To              string    `json:"to"` //trovoWallet alias and name
 	ToAddress       string    `json:"toAddress"`
 	Memo            string    `json:"memo"`
-	AssetIssuer     string    `json:"assetIssuer"`
+	ContractAddress string    `json:"contractAddress"`
 	AssetCode       string    `json:"assetCode"`
 	Amount          string    `json:"amount"`
 	TransactionID   string    `json:"transactionId"`
@@ -314,7 +314,7 @@ type PaymentHistoryJSON struct {
 type PatronSubscriptionInput struct {
 	PatronMembershipGradeID uint64   `json:"patronMembershipGradeId"`
 	PaymentAssetCode        string   `json:"paymentAssetCode"`
-	PaymentAssetIssuer      string   `json:"paymentAssetIssuer"`
+	PaymentContractAddress  string   `json:"paymentContractAddress"`
 	Transaction             string   `json:"transaction"`
 	TransactionSignature    string   `json:"transactionSignature"`
 	TransactionID           string   `json:"transactionId"`
@@ -330,18 +330,18 @@ type PaginatedPaymentHistory struct {
 }
 
 type SwapSendInfo struct {
-	DestinationAssetCode   string   `json:"destinationAssetCode"`
-	DestinationAssetIssuer string   `json:"destinationAssetIssuer"`
-	SwappedEstimate        string   `json:"swappedEstimate"`
-	SourceAssetCode        string   `json:"sourceAssetCode"`
-	SourceAssetIssuer      string   `json:"sourceAssetIssuer"`
-	SourceAmount           string   `json:"sourceAmount" `
-	Transaction            string   `json:"transaction"`
-	TransactionSignature   string   `json:"transactionSignature"`
-	TransactionID          string   `json:"transactionId"`
-	NetworkPassPhrase      string   `json:"networkPassPhrase"`
-	Messages               []string `json:"messages"`
-	Memo                   string   `json:"memo"`
+	DestinationAssetCode       string   `json:"destinationAssetCode"`
+	DestinationContractAddress string   `json:"destinationContractAddress"`
+	SwappedEstimate            string   `json:"swappedEstimate"`
+	SourceAssetCode            string   `json:"sourceAssetCode"`
+	SourceContractAddress      string   `json:"sourceContractAddress"`
+	SourceAmount               string   `json:"sourceAmount" `
+	Transaction                string   `json:"transaction"`
+	TransactionSignature       string   `json:"transactionSignature"`
+	TransactionID              string   `json:"transactionId"`
+	NetworkPassPhrase          string   `json:"networkPassPhrase"`
+	Messages                   []string `json:"messages"`
+	Memo                       string   `json:"memo"`
 }
 
 type SecurityQuestion struct {
@@ -444,7 +444,7 @@ type RejectPayload struct {
 type MarketOfferRequest struct {
 	OfferType            string   `json:"offerType"`
 	AssetCode            string   `json:"assetCode"`
-	AssetIssuer          string   `json:"assetIssuer"`
+	ContractAddress      string   `json:"contractAddress"`
 	CurrencyCode         string   `json:"currencyCode"`
 	CurrencyIssuer       string   `json:"currencyIssuer"`
 	PricePerUnit         string   `json:"pricePerUnit"`
@@ -1354,11 +1354,11 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	}
 
 	paymentPayload := PaymentInfo{
-		Destination: "uchemukolo",
-		Memo:        "Test Payment",
-		Amount:      "100000",
-		AssetCode:   "",
-		AssetIssuer: "",
+		Destination:     "uchemukolo",
+		Memo:            "Test Payment",
+		Amount:          "100000",
+		AssetCode:       "",
+		ContractAddress: "",
 	}
 
 	// paymentPayload := PaymentInfo{
@@ -1366,7 +1366,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	// 	Memo:        "Test Payment",
 	// 	Amount:      "10",
 	// 	AssetCode:   "YAM",
-	// 	AssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
+	// 	ContractAddress: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
 	// }
 
 	// paymentPayload := PaymentInfo{
@@ -1374,7 +1374,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	// 	Memo:        "Test Payment",
 	// 	Amount:      "2000",
 	// 	AssetCode:   "ABC",
-	// 	AssetIssuer: "GAD3DZNQY4SXJEUJOPLJZEK3OWTASEUK2LZYT3V7C52UN5QYOFP3PM5P",
+	// 	ContractAddress: "GAD3DZNQY4SXJEUJOPLJZEK3OWTASEUK2LZYT3V7C52UN5QYOFP3PM5P",
 	// }
 
 	// paymentPayload := PaymentInfo{
@@ -1382,7 +1382,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	// 	Memo:        "Test Payment",
 	// 	Amount:      "100",
 	// 	AssetCode:   "LUMI",
-	// 	AssetIssuer: "GBGUHXVAK32BZTWRBML7RNIQ3532QDR5RRXOJ2P2MGEPHC3YJREMRTLE",
+	// 	ContractAddress: "GBGUHXVAK32BZTWRBML7RNIQ3532QDR5RRXOJ2P2MGEPHC3YJREMRTLE",
 	// }
 	errorResponse := new(ErrorResponse)
 	payResponse := new(PaymentInfo)
@@ -1712,11 +1712,11 @@ func TestSwapFromSubWalletMultiAccessDisabled(t *testing.T) {
 	}
 
 	swapPayload := SwapSendInfo{
-		DestinationAssetCode:   "YAM",
-		DestinationAssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
-		SourceAssetCode:        "",
-		SourceAssetIssuer:      "",
-		SourceAmount:           "1700",
+		DestinationAssetCode:       "YAM",
+		DestinationContractAddress: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
+		SourceAssetCode:            "",
+		SourceContractAddress:      "",
+		SourceAmount:               "1700",
 	}
 	errorResponse := new(ErrorResponse)
 	swapResponse := new(SwapSendInfo)
@@ -2940,7 +2940,7 @@ func TestCreateMarketOffer(t *testing.T) {
 	// payload := MarketOfferRequest{
 	// 	OfferType:      "BUY",
 	// 	AssetCode:      "TROV",
-	// 	AssetIssuer:    "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
+	// 	ContractAddress:    "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
 	// 	CurrencyCode:   "USDT",
 	// 	CurrencyIssuer: "GDZU5X5QPC73ZNZKW7KX5PCIKJCE3ENJ52KAOHOSAFWGG33J34ZNPJ7J",
 	// 	PricePerUnit:   "0.48",
@@ -2950,7 +2950,7 @@ func TestCreateMarketOffer(t *testing.T) {
 	// payload := MarketOfferRequest{
 	// 	OfferType:      "SELL",
 	// 	AssetCode:      "ETH",
-	// 	AssetIssuer:    "GARTWVI3BY3DTPOKBQGJXTQVUISIVND6GTKXNRDYHLFSJJODZYFPEK2U",
+	// 	ContractAddress:    "GARTWVI3BY3DTPOKBQGJXTQVUISIVND6GTKXNRDYHLFSJJODZYFPEK2U",
 	// 	CurrencyCode:   "USDT",
 	// 	CurrencyIssuer: "GDZU5X5QPC73ZNZKW7KX5PCIKJCE3ENJ52KAOHOSAFWGG33J34ZNPJ7J",
 	// 	PricePerUnit:   "1690",
@@ -2960,7 +2960,7 @@ func TestCreateMarketOffer(t *testing.T) {
 	// payload := MarketOfferRequest{
 	// 	OfferType:      "SELL",
 	// 	AssetCode:      "BTC",
-	// 	AssetIssuer:    "GBDXEA7IUBYYSCS5V3253EXEXMXLSFQG6M3QUZFFIBFIINEMH35BRAVI",
+	// 	ContractAddress:    "GBDXEA7IUBYYSCS5V3253EXEXMXLSFQG6M3QUZFFIBFIINEMH35BRAVI",
 	// 	CurrencyCode:   "TROV",
 	// 	CurrencyIssuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
 	// 	PricePerUnit:   "48600",
@@ -2970,7 +2970,7 @@ func TestCreateMarketOffer(t *testing.T) {
 	// payload := MarketOfferRequest{
 	// 	OfferType:      "BUY",
 	// 	AssetCode:      "ETH",
-	// 	AssetIssuer:    "GARTWVI3BY3DTPOKBQGJXTQVUISIVND6GTKXNRDYHLFSJJODZYFPEK2U",
+	// 	ContractAddress:    "GARTWVI3BY3DTPOKBQGJXTQVUISIVND6GTKXNRDYHLFSJJODZYFPEK2U",
 	// 	CurrencyCode:   "TROV",
 	// 	CurrencyIssuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
 	// 	PricePerUnit:   "3250",
@@ -2980,7 +2980,7 @@ func TestCreateMarketOffer(t *testing.T) {
 	// payload := MarketOfferRequest{
 	// 	OfferType:      "BUY",
 	// 	AssetCode:      "CNGN",
-	// 	AssetIssuer:    "GAE7E56N3XIC6JGJI54SD3VN4EDY3OZVFA7CLHXAMMTHLU4LIFYJMFSI",
+	// 	ContractAddress:    "GAE7E56N3XIC6JGJI54SD3VN4EDY3OZVFA7CLHXAMMTHLU4LIFYJMFSI",
 	// 	CurrencyCode:   "USDT",
 	// 	CurrencyIssuer: "GDZU5X5QPC73ZNZKW7KX5PCIKJCE3ENJ52KAOHOSAFWGG33J34ZNPJ7J",
 	// 	PricePerUnit:   "",
@@ -2988,13 +2988,13 @@ func TestCreateMarketOffer(t *testing.T) {
 	// }
 
 	payload := MarketOfferRequest{
-		OfferType:      "BUY",
-		CurrencyCode:   "CNGN",
-		CurrencyIssuer: "GAE7E56N3XIC6JGJI54SD3VN4EDY3OZVFA7CLHXAMMTHLU4LIFYJMFSI",
-		AssetCode:      "USDT",
-		AssetIssuer:    "GDZU5X5QPC73ZNZKW7KX5PCIKJCE3ENJ52KAOHOSAFWGG33J34ZNPJ7J",
-		PricePerUnit:   "1600",
-		Quantity:       "2",
+		OfferType:       "BUY",
+		CurrencyCode:    "CNGN",
+		CurrencyIssuer:  "GAE7E56N3XIC6JGJI54SD3VN4EDY3OZVFA7CLHXAMMTHLU4LIFYJMFSI",
+		AssetCode:       "USDT",
+		ContractAddress: "GDZU5X5QPC73ZNZKW7KX5PCIKJCE3ENJ52KAOHOSAFWGG33J34ZNPJ7J",
+		PricePerUnit:    "1600",
+		Quantity:        "2",
 	}
 
 	errorResponse := new(ErrorResponse)
@@ -3428,7 +3428,7 @@ func TestPatronSubscription(t *testing.T) {
 	payload := PatronSubscriptionInput{
 		PatronMembershipGradeID: 9,
 		PaymentAssetCode:        "GAS",
-		PaymentAssetIssuer:      "",
+		PaymentContractAddress:  "",
 	}
 
 	errorResponse := new(ErrorResponse)

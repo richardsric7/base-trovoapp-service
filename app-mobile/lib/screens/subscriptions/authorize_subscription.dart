@@ -61,7 +61,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
             overflow: TextOverflow.visible,
           ),
           value:
-              '${getAssetCode(asset.assetCode)}|${getAssetIssuer(asset.assetIssuer)}',
+              '${getAssetCode(asset.assetCode)}|${getContractAddress(asset.contractAddress)}',
         ),
       );
     }
@@ -469,7 +469,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
       Map map = {
         'patronMembershipGradeId': patronTier.id,
         'paymentAssetCode': selectedAsset?.split('|')[0],
-        'paymentAssetIssuer': selectedAsset?.split('|')[0] == 'ETH'
+        'paymentContractAddress': selectedAsset?.split('|')[0] == 'ETH'
             ? ''
             : selectedAsset?.split('|')[1],
       };

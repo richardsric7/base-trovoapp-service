@@ -6,7 +6,7 @@ export interface ExpressedInterest {
     tokenizedAssetId:   string;
     tokenizedAssetInfo: TokenizedAsset;
     assetCode:          string;
-    assetIssuer:        string;
+    contractAddress:        string;
     amount:             number;
     price:              number;
     subscriberUsername: string;

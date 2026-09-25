@@ -8,7 +8,7 @@ import (
 type PaymentInfo struct {
 	Destination             string            `json:"destination"`
 	Memo                    string            `json:"memo"`
-	AssetIssuer             string            `json:"assetIssuer"`
+	ContractAddress         string            `json:"contractAddress"`
 	AssetCode               string            `json:"assetCode"`
 	Amount                  string            `json:"amount"`
 	Transaction             string            `json:"transaction"`
@@ -42,7 +42,7 @@ type PaymentLog struct {
 	Destination          string   `gorm:"size:100;not null"`
 	ChannelAccount       *string  `gorm:"size:56;null"`
 	Memo                 *string  `gorm:"size:60;null"`
-	AssetIssuer          *string  `gorm:"size:56;null"`
+	ContractAddress      *string  `gorm:"size:56;null"`
 	AssetCode            *string  `gorm:"size:12;null"`
 	Amount               string   `gorm:"size:100;not null"`
 	Transaction          *string  `gorm:"null"`

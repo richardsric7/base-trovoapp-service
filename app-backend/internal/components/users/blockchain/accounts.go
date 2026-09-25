@@ -128,7 +128,7 @@ func BlockchainAssetIssuedByIssuer(issuerAddress, assetCode string) bool {
 		return false
 	}
 	var count int64
-	db.Table("curated_assets").Where("asset_issuer = ? AND asset_code = ?", issuerAddress, assetCode).Count(&count)
+	db.Table("curated_assets").Where("contract_address = ? AND asset_code = ?", issuerAddress, assetCode).Count(&count)
 	if count > 0 {
 		return true
 	}
@@ -147,7 +147,7 @@ func BlockchainAssetLastPaymentSource(toAddress, assetCode, issuerAddress string
 		To              *string   `json:"to" gorm:"size:56;index:idx_payment_history_to;null"` //trovoWallet alias and name
 		ToAddress       string    `json:"toAddress" gorm:"size:56;index:idx_payment_history_to_pk;not null;index:idx_payment_history_unique_key,unique"`
 		Memo            *string   `json:"memo" gorm:"size:28;null"`
-		AssetIssuer     *string   `json:"assetIssuer" gorm:"size:56;null;"`
+		ContractAddress *string   `json:"contractAddress" gorm:"size:56;null;"`
 		AssetCode       string    `json:"assetCode" gorm:"size:12;not null;index:idx_payment_history_unique_key,unique"`
 		Amount          string    `json:"amount" gorm:"index:idx_payment_history_unique_key,unique"`
 		TransactionID   string    `json:"transactionId" gorm:"size:70;not null;index:idx_payment_history_txid;index:idx_payment_history_unique_key,unique"`
@@ -155,7 +155,7 @@ func BlockchainAssetLastPaymentSource(toAddress, assetCode, issuerAddress string
 	}
 
 	var ph PaymentHistory
-	e := gc.DB.Order("transaction_date DESC").Where("to_address = ? AND asset_code = ? AND (CASE WHEN asset_issuer IS NULL THEN '' ELSE asset_issuer END) = ?", toAddress, assetCode, issuerAddress).First(&ph).Error
+	e := gc.DB.Order("transaction_date DESC").Where("to_address = ? AND asset_code = ? AND (CASE WHEN contract_address IS NULL THEN '' ELSE contract_address END) = ?", toAddress, assetCode, issuerAddress).First(&ph).Error
 	if e == nil {
 		return ph.FromAddress
 	}

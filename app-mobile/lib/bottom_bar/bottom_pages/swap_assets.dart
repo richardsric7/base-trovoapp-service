@@ -362,7 +362,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         var splitNewValue = newValue!.split('|');
                         sourceAsset = wallet.claimedAssets!.firstWhere(
                           (asset) =>
-                              asset.assetIssuer == splitNewValue[0] &&
+                              asset.contractAddress == splitNewValue[0] &&
                               asset.assetCode == splitNewValue[1],
                         );
                         sourceErr = false;
@@ -385,7 +385,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                           if (claimedAssets
                               .where(
                                 (asset) =>
-                                    asset.assetIssuer == splitNewValue[0] &&
+                                    asset.contractAddress == splitNewValue[0] &&
                                     asset.assetCode == splitNewValue[1],
                               )
                               .isNotEmpty) {
@@ -501,12 +501,12 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                           destinationAsset = claimedAssets.firstWhere(
                             (asset) =>
                                 asset.assetCode == splitNewValue[1] &&
-                                asset.assetIssuer == splitNewValue[0],
+                                asset.contractAddress == splitNewValue[0],
                             orElse: () {
                               // must be a curated swap item
                               return Asset(
                                 assetCode: splitNewValue[1],
-                                assetIssuer: splitNewValue[0],
+                                contractAddress: splitNewValue[0],
                               );
                             },
                           );
@@ -545,9 +545,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
       // following credentials
       Map map = {
         "destinationAssetCode": destinationAsset!.assetCode,
-        "destinationAssetIssuer": destinationAsset!.assetIssuer,
+        "destinationContractAddress": destinationAsset!.contractAddress,
         "sourceAssetCode": sourceAsset!.assetCode,
-        "sourceAssetIssuer": sourceAsset!.assetIssuer,
+        "sourceContractAddress": sourceAsset!.contractAddress,
         "sourceAmount": amount.toStringAsFixed(4),
       };
 
@@ -622,19 +622,19 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     if (isDestination) {
       // add the default assets to the list of destination assets
       appState.curatedSwapList.forEach((asset) {
-        assetsMap['${asset.assetIssuer}|${asset.assetCode}'] =
+        assetsMap['${asset.contractAddress}|${asset.assetCode}'] =
             '${asset.assetCode}|${asset.imageUrl}';
       });
     } else {
       assets.forEach((asset) {
-        assetsMap['${asset.assetIssuer}|${asset.assetCode}'] =
+        assetsMap['${asset.contractAddress}|${asset.assetCode}'] =
             '${asset.assetCode}|${asset.imageUrl}';
       });
     }
 
     // remove the ones already selected as source or destination asset
     if (assetToSkip != null) {
-      assetsMap.remove('${assetToSkip.assetIssuer}|${assetToSkip.assetCode}');
+      assetsMap.remove('${assetToSkip.contractAddress}|${assetToSkip.assetCode}');
     }
 
     assetsMap.forEach((key, value) {
@@ -642,8 +642,8 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
       dropDownItems.add(
         DropdownMenuItem<String>(
           // to make each asset in the list unique we combine both the assetCode
-          // and the assetIssuer using '|' as the separator so we get something like
-          // "asset|assetIssuer" as the value of each dropdown item
+          // and the contractAddress using '|' as the separator so we get something like
+          // "asset|contractAddress" as the value of each dropdown item
           value: key,
           child: Row(
             children: [

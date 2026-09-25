@@ -1,5 +1,5 @@
 export type DefaultAsset = {
-    assetIssuer: string,
+    contractAddress: string,
     assetCode: string,
     imageUrl: string,
 }

@@ -42,7 +42,7 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+          asset.contractAddress == appState.viewData!['contractAddress'],
     );
   }
 
@@ -172,7 +172,7 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
         appState.viewData = {
           'walletAddress': wallet.address,
           'assetCode': asset.assetCode,
-          'assetIssuer': asset.assetIssuer,
+          'contractAddress': asset.contractAddress,
         };
 
         appState.currentAction = PageAction(

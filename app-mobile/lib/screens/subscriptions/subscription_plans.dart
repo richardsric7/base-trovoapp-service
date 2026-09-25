@@ -153,7 +153,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                         paymentAssetsList.add(
                           Asset(
                             assetCode: asset['assetCode'],
-                            assetIssuer: asset['assetIssuer'],
+                            contractAddress: asset['contractAddress'],
                           ),
                         );
                       }

@@ -15,7 +15,7 @@ import (
 
 type Asset struct {
 	ID              string  `gorm:"size:12;primaryKey;check:,length(id) > 2" json:"id"`
-	AssetIssuer     *string `gorm:"size:56;null" json:"-"`
+	ContractAddress *string `gorm:"size:56;null" json:"-"`
 	ImageThumbnail  *string `gorm:"null" json:"imageThumbnail"`
 	Inactive        uint    `gorm:"not null;default:0" json:"-"`
 	ShowMarketPrice uint    `gorm:"not null;default:0" json:"-"`

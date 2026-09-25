@@ -204,7 +204,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	signForFeeTrustLine := 0
 	{ //add fee for transaction
 
-		usdPrice, _, _ := blockchain.GetDollarPrice(ACCOUNT_RECOVERY_FEE.FeeAssetCode, ACCOUNT_RECOVERY_FEE.FeeAssetIssuer, gc, true)
+		usdPrice, _, _ := blockchain.GetDollarPrice(ACCOUNT_RECOVERY_FEE.FeeAssetCode, ACCOUNT_RECOVERY_FEE.FeeContractAddress, gc, true)
 
 		serviceFee := decimal.NewFromFloat(ACCOUNT_RECOVERY_FEE.FeeFixed)
 		if e != nil {
@@ -229,7 +229,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 			}
 			feeAddress := feeKeypair.Address()
 
-			feeAsset := basetxn.CreditAsset{Code: ACCOUNT_RECOVERY_FEE.FeeAssetCode, Issuer: ACCOUNT_RECOVERY_FEE.FeeAssetIssuer}
+			feeAsset := basetxn.CreditAsset{Code: ACCOUNT_RECOVERY_FEE.FeeAssetCode, Issuer: ACCOUNT_RECOVERY_FEE.FeeContractAddress}
 			_, _, _, assetBalance, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, user.Address, feeAsset)
 			if assetBalance.LessThan(serviceFee) {
 				return &tErrors.CustomError{Param: "username", Err: "error-primary-wallet-underfunded", ErrMessage: fmt.Sprintf("%v %v is required on wallet %v to pay for fees for this service. Please first fund the wallet with at least %v %v.", serviceFee.String(), ACCOUNT_RECOVERY_FEE.FeeAssetCode, user.Username, serviceFee.Sub(assetBalance), ACCOUNT_RECOVERY_FEE.FeeAssetCode)}

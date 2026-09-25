@@ -10,7 +10,7 @@ class TransactionInfo {
   String? toAddress;
   String? memo;
   String? assetCode;
-  String? assetIssuer;
+  String? contractAddress;
   double? amount;
   String? transactionId;
 
@@ -24,7 +24,7 @@ class TransactionInfo {
     this.toAddress,
     this.memo,
     this.assetCode,
-    this.assetIssuer,
+    this.contractAddress,
     this.amount,
     this.transactionId,
   });
@@ -39,7 +39,7 @@ class TransactionInfo {
       "toAddress": toAddress,
       "memo": memo,
       "assetCode": assetCode,
-      "assetIssuer": assetIssuer,
+      "contractAddress": contractAddress,
       "amount": amount,
       "transactionId": transactionId,
     };
@@ -55,7 +55,7 @@ class TransactionInfo {
       toAddress: m["toAddress"],
       memo: m["memo"],
       assetCode: m["assetCode"],
-      assetIssuer: m["assetIssuer"],
+      contractAddress: m["contractAddress"],
       amount: double.tryParse(m["amount"]),
       transactionId: m["transactionId"],
     );

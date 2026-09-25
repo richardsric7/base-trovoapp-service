@@ -11,13 +11,13 @@ import (
 
 // OrderBookRequestInput holds orderbook request input bindings
 type OrderBookRequestInput struct {
-	SellingAssetType   string `json:"selling_asset_type" form:"selling_asset_type"`
-	SellingAssetCode   string `json:"selling_asset_code" form:"selling_asset_code"`
-	SellingAssetIssuer string `json:"selling_asset_issuer" form:"selling_asset_issuer"`
-	BuyingAssetType    string `json:"buying_asset_type" form:"buying_asset_type"`
-	BuyingAssetCode    string `json:"buying_asset_code" form:"buying_asset_code"`
-	BuyingAssetIssuer  string `json:"buying_asset_issuer" form:"buying_asset_issuer"`
-	Limit              string `json:"limit" form:"limit"`
+	SellingAssetType       string `json:"selling_asset_type" form:"selling_asset_type"`
+	SellingAssetCode       string `json:"selling_asset_code" form:"selling_asset_code"`
+	SellingContractAddress string `json:"selling_contract_address" form:"selling_contract_address"`
+	BuyingAssetType        string `json:"buying_asset_type" form:"buying_asset_type"`
+	BuyingAssetCode        string `json:"buying_asset_code" form:"buying_asset_code"`
+	BuyingContractAddress  string `json:"buying_contract_address" form:"buying_contract_address"`
+	Limit                  string `json:"limit" form:"limit"`
 }
 
 // PriceLevel is the Base equivalent of Stellar's horizon.PriceLevel.
@@ -43,7 +43,7 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary Ord
 }
 
 // GetDollarAskPrice dollar ask price using USDB
-func GetDollarAskPrice(sellingAssetCode, sellingAssetIssuer string) (usdPrice string, err error) {
+func GetDollarAskPrice(sellingAssetCode, sellingContractAddress string) (usdPrice string, err error) {
 	var input OrderBookRequestInput
 	var errAssetCode string
 	if sellingAssetCode == "" {
@@ -52,14 +52,14 @@ func GetDollarAskPrice(sellingAssetCode, sellingAssetIssuer string) (usdPrice st
 		errAssetCode = sellingAssetCode
 	}
 	input.SellingAssetCode = sellingAssetCode
-	input.SellingAssetIssuer = sellingAssetIssuer
+	input.SellingContractAddress = sellingContractAddress
 	if os.Getenv("DOLLAR_ASSET") != "" {
 		asset := strings.Split(os.Getenv("DOLLAR_ASSET"), ":")
 		input.BuyingAssetCode = asset[0]
-		input.BuyingAssetIssuer = asset[1]
+		input.BuyingContractAddress = asset[1]
 	} else {
 		input.BuyingAssetCode = "USDB"
-		input.BuyingAssetIssuer = os.Getenv("USDB_B20_TOKEN_ADDRESS")
+		input.BuyingContractAddress = os.Getenv("USDB_B20_TOKEN_ADDRESS")
 	}
 	orderBook, err := getBantuOrderBookSummary(input)
 	if err != nil {
@@ -76,7 +76,7 @@ func GetDollarAskPrice(sellingAssetCode, sellingAssetIssuer string) (usdPrice st
 }
 
 // GetAvalableMarketQuantity
-func GetAvalableMarketQuantity(sellingAssetCode, sellingAssetIssuer, buyingAssetCode, buyingAssetIssuer string) (sellingQuantity, buyingQuantity string, err error) {
+func GetAvalableMarketQuantity(sellingAssetCode, sellingContractAddress, buyingAssetCode, buyingContractAddress string) (sellingQuantity, buyingQuantity string, err error) {
 	var input OrderBookRequestInput
 	sellingQuantity = "0"
 	buyingQuantity = "0"
@@ -92,10 +92,10 @@ func GetAvalableMarketQuantity(sellingAssetCode, sellingAssetIssuer, buyingAsset
 		errBuyingAssetCode = sellingAssetCode
 	}
 	input.SellingAssetCode = sellingAssetCode
-	input.SellingAssetIssuer = sellingAssetIssuer
+	input.SellingContractAddress = sellingContractAddress
 
 	input.BuyingAssetCode = buyingAssetCode
-	input.BuyingAssetIssuer = buyingAssetIssuer
+	input.BuyingContractAddress = buyingContractAddress
 
 	orderBook, err := getBantuOrderBookSummary(input)
 	if err != nil {

@@ -50,13 +50,13 @@ class _AssetDetailsState extends State<AssetDetails>
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+          asset.contractAddress == appState.viewData!['contractAddress'],
     );
 
     curatedAsset = appState.curatedSwapList.firstWhereOrNull(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+          asset.contractAddress == appState.viewData!['contractAddress'],
     );
 
     // free the memory..... lol
@@ -77,7 +77,7 @@ class _AssetDetailsState extends State<AssetDetails>
 
     if (asset == null) {
       asset = wallet.claimedAssets!.firstWhere(
-        (asset) => asset.assetCode == '' && asset.assetIssuer == '',
+        (asset) => asset.assetCode == '' && asset.contractAddress == '',
       );
       selectedAsset = '';
     }
@@ -85,12 +85,12 @@ class _AssetDetailsState extends State<AssetDetails>
     this.curatedAsset = appState.curatedSwapList.firstWhereOrNull(
       (curatedAsset) =>
           curatedAsset.assetCode == asset!.assetCode &&
-          curatedAsset.assetIssuer == asset!.assetIssuer,
+          curatedAsset.contractAddress == asset!.contractAddress,
     );
 
     if (selectedAsset.isEmpty) {
       selectedAsset =
-          "${getAssetCode(asset!.assetCode)}|${getAssetIssuer(asset!.assetIssuer)}";
+          "${getAssetCode(asset!.assetCode)}|${getContractAddress(asset!.contractAddress)}";
     }
 
     return ScreenUtilInit(
@@ -128,7 +128,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     appState.viewData = {
                       'walletAddress': wallet.address,
                       'assetCode': asset!.assetCode,
-                      'assetIssuer': asset!.assetIssuer,
+                      'contractAddress': asset!.contractAddress,
                     };
 
                     appState.currentAction = PageAction(
@@ -165,7 +165,7 @@ class _AssetDetailsState extends State<AssetDetails>
 
                         this.asset = wallet.claimedAssets!.firstWhereOrNull(
                           (x) =>
-                              "${getAssetCode(x.assetCode)}|${getAssetIssuer(x.assetIssuer)}" ==
+                              "${getAssetCode(x.assetCode)}|${getContractAddress(x.contractAddress)}" ==
                               selectedAsset,
                         );
 
@@ -180,7 +180,7 @@ class _AssetDetailsState extends State<AssetDetails>
                           for (var asset in wallet.claimedAssets!) {
                             var splitNewValue = newValue.toString().split('|');
                             if (asset.assetCode == splitNewValue[0] &&
-                                asset.assetIssuer == splitNewValue[1]) {
+                                asset.contractAddress == splitNewValue[1]) {
                               this.asset = asset;
                             }
                           }
@@ -287,7 +287,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   appState.viewData = {
                     'walletAddress': wallet.address,
                     'assetCode': asset!.assetCode,
-                    'assetIssuer': asset!.assetIssuer,
+                    'contractAddress': asset!.contractAddress,
                   };
 
                   appState.currentAction = PageAction(
@@ -310,7 +310,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   appState.viewData = {
                     'walletAddress': wallet.address,
                     'assetCode': asset!.assetCode,
-                    'assetIssuer': asset!.assetIssuer,
+                    'contractAddress': asset!.contractAddress,
                   };
 
                   appState.currentAction = PageAction(
@@ -334,7 +334,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   appState.viewData = {
                     'walletAddress': wallet.address,
                     'assetCode': asset!.assetCode,
-                    'assetIssuer': asset!.assetIssuer,
+                    'contractAddress': asset!.contractAddress,
                   };
 
                   appState.currentAction = PageAction(
@@ -354,7 +354,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   appState.viewData = {
                     'walletAddress': wallet.address,
                     'assetCode': asset!.assetCode,
-                    'assetIssuer': asset!.assetIssuer,
+                    'contractAddress': asset!.contractAddress,
                   };
 
                   appState.currentAction = PageAction(
@@ -372,7 +372,7 @@ class _AssetDetailsState extends State<AssetDetails>
                       appState.viewData = {
                         'walletAddress': wallet.address,
                         'assetCode': asset!.assetCode,
-                        'assetIssuer': asset!.assetIssuer,
+                        'contractAddress': asset!.contractAddress,
                       };
 
                       appState.currentAction = PageAction(
@@ -386,7 +386,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   appState.viewData = {
                     'walletAddress': wallet.address,
                     'assetCode': asset!.assetCode,
-                    'assetIssuer': asset!.assetIssuer,
+                    'contractAddress': asset!.contractAddress,
                   };
 
                   appState.currentAction = PageAction(
@@ -543,7 +543,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     ),
                   ),
                   SizedBox(height: height / 50),
-                  if (asset!.assetIssuer.toString().isNotEmpty) ...[
+                  if (asset!.contractAddress.toString().isNotEmpty) ...[
                     Text(
                       "issuerpubkey".tr(),
                       style: TextStyle(
@@ -566,9 +566,9 @@ class _AssetDetailsState extends State<AssetDetails>
                                 horizontal: 20.0,
                               ),
                               child: Text(
-                                truncate(asset!.assetIssuer!, length: 5) +
-                                    asset!.assetIssuer!.toString().substring(
-                                      asset!.assetIssuer!.toString().length - 5,
+                                truncate(asset!.contractAddress!, length: 5) +
+                                    asset!.contractAddress!.toString().substring(
+                                      asset!.contractAddress!.toString().length - 5,
                                     ),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
@@ -585,7 +585,7 @@ class _AssetDetailsState extends State<AssetDetails>
                               padding: EdgeInsets.zero,
                               onPressed: () => {
                                 Clipboard.setData(
-                                  ClipboardData(text: asset!.assetIssuer!),
+                                  ClipboardData(text: asset!.contractAddress!),
                                 ),
                                 showSnackBar("issuerpubkey".tr(), context),
                               },
@@ -720,7 +720,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     ),
                   ),
                   SizedBox(height: height / 50),
-                  if (asset!.assetIssuer!.toString().isNotEmpty) ...[
+                  if (asset!.contractAddress!.toString().isNotEmpty) ...[
                     Text(
                       "issuerpubkey".tr(),
                       style: TextStyle(
@@ -741,9 +741,9 @@ class _AssetDetailsState extends State<AssetDetails>
                                 horizontal: 20.0,
                               ),
                               child: Text(
-                                truncate(asset!.assetIssuer!, length: 5) +
-                                    asset!.assetIssuer!.toString().substring(
-                                      asset!.assetIssuer!.toString().length - 5,
+                                truncate(asset!.contractAddress!, length: 5) +
+                                    asset!.contractAddress!.toString().substring(
+                                      asset!.contractAddress!.toString().length - 5,
                                     ),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
@@ -760,7 +760,7 @@ class _AssetDetailsState extends State<AssetDetails>
                               padding: EdgeInsets.zero,
                               onPressed: () => {
                                 Clipboard.setData(
-                                  ClipboardData(text: asset!.assetIssuer!),
+                                  ClipboardData(text: asset!.contractAddress!),
                                 ),
                                 showSnackBar("issuerpubkey".tr(), context),
                               },

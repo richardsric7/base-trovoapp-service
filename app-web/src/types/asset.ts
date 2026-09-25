@@ -1,5 +1,5 @@
 export type Asset = {
-    assetIssuer: string,
+    contractAddress: string,
     assetCode: string,
     amount: number,
     inTrade: {

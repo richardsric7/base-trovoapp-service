@@ -66,7 +66,7 @@ export default function WalletView() {
   const fiatRates = useSelector((state: RootState) => state.cache.fiatRates);
   const [selectedAsset, setSelectedAsset] = useState<Asset>(
     activeWallet?.claimedAssets.find(
-      (a) => a.assetCode === '' && a.assetIssuer === '',
+      (a) => a.assetCode === '' && a.contractAddress === '',
     )!,
   );
   const [passwordErr, setPasswordErr] = useState('');
@@ -78,7 +78,7 @@ export default function WalletView() {
   const [currentTabIndex, setCurrentTabIndex] = useState(1);
   const [gas, setGas] = useState(
     activeWallet?.claimedAssets.find(
-      (a) => a.assetCode === '' && a.assetIssuer === '',
+      (a) => a.assetCode === '' && a.contractAddress === '',
     )?.amount!,
   );
 
@@ -180,7 +180,7 @@ export default function WalletView() {
     if (filtered[targetIndex]) {
       setActiveWallet(filtered[targetIndex]);
       const nativeAsset = filtered[targetIndex].claimedAssets.find(
-        (a) => a.assetCode === '' && a.assetIssuer === '',
+        (a) => a.assetCode === '' && a.contractAddress === '',
       );
       if (nativeAsset) {
         setSelectedAsset(nativeAsset);
@@ -204,7 +204,7 @@ export default function WalletView() {
   useEffect(() => {
     setGas(
       activeWallet?.claimedAssets.find(
-        (a) => a.assetCode === '' && a.assetIssuer === '',
+        (a) => a.assetCode === '' && a.contractAddress === '',
       )?.amount!,
     );
   }, [activeWallet, walletActionMode]);
@@ -438,7 +438,7 @@ export default function WalletView() {
                       }
                       setSelectedAsset(
                         activeWallet?.claimedAssets.find(
-                          (a) => a.assetCode === '' && a.assetIssuer === '',
+                          (a) => a.assetCode === '' && a.contractAddress === '',
                         )!,
                       );
                       const ref = itemRefs.current[activeWalletIndex - 1];
@@ -465,7 +465,7 @@ export default function WalletView() {
                       setActiveWallet(wallets[activeWalletIndex + 1]);
                       setSelectedAsset(
                         activeWallet?.claimedAssets.find(
-                          (a) => a.assetCode === '' && a.assetIssuer === '',
+                          (a) => a.assetCode === '' && a.contractAddress === '',
                         )!,
                       );
 
@@ -553,7 +553,7 @@ export default function WalletView() {
                             currency={appUser.currency}
                             onclick={() => {
                               navigate(
-                                `/dashboard/asset-details?wallet=${activeWallet.address}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
+                                `/dashboard/asset-details?wallet=${activeWallet.address}&assetCode=${asset.assetCode}&contractAddress=${asset.contractAddress}`,
                               );
                             }}
                           />
@@ -573,7 +573,7 @@ export default function WalletView() {
                             currency={appUser.currency}
                             onclick={() => {
                               navigate(
-                                `/dashboard/asset-details?wallet=${activeWallet.address}&assetCode=${asset.assetCode}&assetIssuer=${asset.assetIssuer}`,
+                                `/dashboard/asset-details?wallet=${activeWallet.address}&assetCode=${asset.assetCode}&contractAddress=${asset.contractAddress}`,
                               );
                             }}
                           />
@@ -597,7 +597,7 @@ export default function WalletView() {
               setActiveWalletIndex(index);
               setSelectedAsset(
                 activeWallet?.claimedAssets.find(
-                  (a) => a.assetCode === '' && a.assetIssuer === '',
+                  (a) => a.assetCode === '' && a.contractAddress === '',
                 )!,
               );
               const ref = itemRefs.current[index];

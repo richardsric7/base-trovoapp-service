@@ -13,18 +13,18 @@ import (
 )
 
 // //DoFaucetBlockchainPayment makes payment from faucet on server
-// func DoFaucetBlockchainPayment(faucetSecret, receiver, assetCode, assetIssuer, amount, memo string, db *gorm.DB) (returnedPaymentInfo *paymentModels.PaymentInfo, err error) {
+// func DoFaucetBlockchainPayment(faucetSecret, receiver, assetCode, contractAddress, amount, memo string, db *gorm.DB) (returnedPaymentInfo *paymentModels.PaymentInfo, err error) {
 // 	var paymentInfo paymentModels.PaymentInfo
 // 	var asset basetxn.Asset
 // 	kp := evmkeypair.MustParseFull(faucetSecret)
 
 // 	// faucetPK := kp.Address()
 // 	paymentInfo = paymentModels.PaymentInfo{
-// 		Destination: receiver, Memo: memo, AssetIssuer: assetIssuer,
+// 		Destination: receiver, Memo: memo, ContractAddress: contractAddress,
 // 		AssetCode: assetCode, Amount: amount,
 // 	}
-// 	if len(assetIssuer) == 42 {
-// 		asset = basetxn.CreditAsset{Code: assetCode, Issuer: assetIssuer}
+// 	if len(contractAddress) == 42 {
+// 		asset = basetxn.CreditAsset{Code: assetCode, Issuer: contractAddress}
 // 	} else {
 // 		asset = basetxn.NativeAsset{}
 // 	}
@@ -181,13 +181,13 @@ func AlertFaucetLowBalance(faucetKP *evmkeypair.Full) {
 }
 
 // //DoFaucetPaymentWithChannelAccount makes payment from faucet with channel account on server
-// func DoFaucetPaymentWithChannelAccount(faucetSecret, receiver, assetCode, assetIssuer, amount, memo string, db *gorm.DB) (returnedPaymentInfo *paymentModels.PaymentInfo, err error) {
+// func DoFaucetPaymentWithChannelAccount(faucetSecret, receiver, assetCode, contractAddress, amount, memo string, db *gorm.DB) (returnedPaymentInfo *paymentModels.PaymentInfo, err error) {
 // 	var paymentInfo paymentModels.PaymentInfo
 // 	kp := evmkeypair.MustParseFull(faucetSecret)
 
 // 	faucetPK := kp.Address()
 // 	paymentInfo = paymentModels.PaymentInfo{
-// 		Destination: receiver, Memo: memo, AssetIssuer: assetIssuer,
+// 		Destination: receiver, Memo: memo, ContractAddress: contractAddress,
 // 		AssetCode: assetCode, Amount: amount,
 // 	}
 // 	AlertFaucetLowBalance(kp)
@@ -218,13 +218,13 @@ func AlertFaucetLowBalance(faucetKP *evmkeypair.Full) {
 // }
 
 // //DoFaucetPayment makes payment from faucet on server
-// func DoFaucetPayment(faucetSecret, receiver, assetCode, assetIssuer, amount, memo string, db *gorm.DB) (returnedPaymentInfo *paymentModels.PaymentInfo, err error) {
+// func DoFaucetPayment(faucetSecret, receiver, assetCode, contractAddress, amount, memo string, db *gorm.DB) (returnedPaymentInfo *paymentModels.PaymentInfo, err error) {
 // 	var paymentInfo paymentModels.PaymentInfo
 // 	kp := evmkeypair.MustParseFull(faucetSecret)
 
 // 	faucetPK := kp.Address()
 // 	paymentInfo = paymentModels.PaymentInfo{
-// 		Destination: receiver, Memo: memo, AssetIssuer: assetIssuer,
+// 		Destination: receiver, Memo: memo, ContractAddress: contractAddress,
 // 		AssetCode: assetCode, Amount: amount,
 // 	}
 

@@ -222,7 +222,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                     toAddress: viewData['destinationAddress'],
                     transactionDirection: TransactionDirection.Send,
                     assetCode: getAssetCode(viewData['assetCode']),
-                    assetIssuer: viewData['assetIssuer'].toString(),
+                    contractAddress: viewData['contractAddress'].toString(),
                     amount: double.parse(viewData['amount']),
                     memo: viewData['memo'],
                     transactionId: viewData['transactionId'],
