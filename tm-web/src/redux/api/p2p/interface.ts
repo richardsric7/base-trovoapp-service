@@ -131,7 +131,7 @@ export interface P2PUserListQueryParams {
   first_name?: string;
   last_name?: string;
   city?: string;
-  public_key?: string;
+  address?: string;
   suspended?: number;
   kyc_level?: number;
   admin_level?: number;

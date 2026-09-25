@@ -6,40 +6,40 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// errorInvalidAuthenticationPublicKey holds error of public key
-const errorInvalidAuthenticationPublicKey = "error-invalid-authentication-public-key"
+// errorInvalidAuthenticationAddress holds error of public key
+const errorInvalidAuthenticationAddress = "error-invalid-authentication-public-key"
 
-// ErrorInvalidAuthenticationPublicKey is struct for returning error
-type ErrorInvalidAuthenticationPublicKey struct {
-	PublicKey string
+// ErrorInvalidAuthenticationAddress is struct for returning error
+type ErrorInvalidAuthenticationAddress struct {
+	Address string
 }
 
 // Error returns the error string
-func (e *ErrorInvalidAuthenticationPublicKey) Error() string {
-	return errorInvalidPublicKey
+func (e *ErrorInvalidAuthenticationAddress) Error() string {
+	return errorInvalidAddress
 }
 
 // ErrorType returns error type as string
-func (e *ErrorInvalidAuthenticationPublicKey) ErrorType() string {
-	return errorInvalidAuthenticationPublicKey
+func (e *ErrorInvalidAuthenticationAddress) ErrorType() string {
+	return errorInvalidAuthenticationAddress
 }
 
 // Data returns data of the error
-func (e *ErrorInvalidAuthenticationPublicKey) Data() string {
+func (e *ErrorInvalidAuthenticationAddress) Data() string {
 	return "X-BANTUPAY-PUBLIC-KEY"
 }
 
 // Message returns tring message of error
-func (e *ErrorInvalidAuthenticationPublicKey) Message() string {
-	return "Invalid Header: [X-BANTUPAY-PUBLIC-KEY= " + e.PublicKey + "]"
+func (e *ErrorInvalidAuthenticationAddress) Message() string {
+	return "Invalid Header: [X-BANTUPAY-PUBLIC-KEY= " + e.Address + "]"
 }
 
 // JSONError returns json of the error
-func (e *ErrorInvalidAuthenticationPublicKey) JSONError() gin.H {
+func (e *ErrorInvalidAuthenticationAddress) JSONError() gin.H {
 	return gin.H{"error": e.ErrorType(), "data": e.Data(), "message": e.Message()}
 }
 
 // HTTPCode returns http status code
-func (e *ErrorInvalidAuthenticationPublicKey) HTTPCode() int {
+func (e *ErrorInvalidAuthenticationAddress) HTTPCode() int {
 	return http.StatusUnauthorized
 }

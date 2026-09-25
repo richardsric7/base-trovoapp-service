@@ -19,7 +19,7 @@ func RegisterUser(userInfo models.UserRegistrationInfo, db *gorm.DB, pool *smtpp
 	if len(os.Getenv("REGISTRATION_ERROR_WEBHOOK")) > 50 {
 		discord.WebhookURL = os.Getenv("REGISTRATION_ERROR_WEBHOOK")
 	}
-	if banned, errBanned := users.PublicKeyIsBanned(userInfo.PublicKey, db); banned {
+	if banned, errBanned := users.AddressIsBanned(userInfo.Address, db); banned {
 		return userInfo, false, errBanned
 	}
 	if len(userInfo.Mobile) > 0 {

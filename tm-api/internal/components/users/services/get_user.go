@@ -35,7 +35,7 @@ func GetUser(userID string, db *gorm.DB) (userInfo models.UserInfo, err error) {
 	userInfo = models.UserInfo{
 		ID:        user.ID,
 		Username:  user.Username,
-		PublicKey: user.PublicKey,
+		Address:   user.Address,
 		Email:     user.Email,
 		LastName:  user.LastName,
 		FirstName: user.FirstName,
@@ -99,7 +99,7 @@ func GetUserByTelegramID(ID int64, db *gorm.DB) (userInfo models.UserInfo, err e
 	userInfo = models.UserInfo{
 		ID:        user.ID,
 		Username:  user.Username,
-		PublicKey: user.PublicKey,
+		Address:   user.Address,
 		Email:     user.Email,
 		LastName:  user.LastName,
 		FirstName: user.FirstName,

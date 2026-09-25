@@ -27,7 +27,7 @@ type ServiceLinksUser struct {
 	FirstName             string    `json:"firstName"`
 	LastName              *string   `json:"lastName"`
 	Mobile                *string   `json:"mobile"`
-	PublicKey             string    `json:"publicKey"`
+	Address               string    `json:"publicKey"`
 	PrimarySigner         string    `json:"primarySigner"`
 	PushNotificationToken *string   `json:"pushNotificationToken"`
 	Corporate             int       `json:"corporate"`
@@ -161,7 +161,7 @@ type TokenizedAssetJSON struct {
 	OfferingType                                string    `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
 	SecApproval                                 int       `gorm:"default:0" json:"secApproval"`
 	SecApprovalIdNumber                         string    `json:"secApprovalIdNumber"`
-	IssuingWalletPublicKey                      string    `gorm:"size:60" json:"issuingWalletPublicKey"`
+	IssuingWalletAddress                        string    `gorm:"size:60" json:"issuingWalletAddress"`
 	IssuingWalletAlias                          string    `gorm:"size:60" json:"issuingWalletAlias"`
 	MarketMakingWallet                          string    `json:"marketMakingWallet"`
 	AssetDescription                            string    `json:"assetDescription"`

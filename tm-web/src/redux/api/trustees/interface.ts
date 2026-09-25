@@ -298,7 +298,7 @@ export interface ITrusteeDistributionBreakdown {
 
 export interface ITrusteeDistributionPayoutRecord {
   id: string;
-  beneficiary_public_key: string;
+  beneficiary_address: string;
   confirmed_token_balance: string;
   amount: string;
   currency: string;

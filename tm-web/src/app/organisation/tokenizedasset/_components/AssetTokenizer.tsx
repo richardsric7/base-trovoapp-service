@@ -13,7 +13,7 @@ const dummyUser = {
   first_name: "Ayo",
   last_name: "Ogunleye",
   email: "ayo@brikkle.co",
-  public_key: "GAYBKWD76M7L7OFXQCTE6NGKQQQ5Y54DWSVDK4DNC4DZ7FW6KBZAAJEF",
+  address: "GAYBKWD76M7L7OFXQCTE6NGKQQQ5Y54DWSVDK4DNC4DZ7FW6KBZAAJEF",
   verified: true,
 };
 
@@ -72,7 +72,7 @@ const AssetTokenizer: React.FC = () => {
 
           <div>
             <Title>Wallet Address</Title>
-            <Text>{dummyUser.public_key}</Text>
+            <Text>{dummyUser.address}</Text>
           </div>
         </UserDetails>
       </Wrapper>

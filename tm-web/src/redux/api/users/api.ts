@@ -51,8 +51,8 @@ export const usersApi = baseApi.injectEndpoints({
     }),
 
     getWalletBalances: builder.query<WalletBalancesResponse, string>({
-      query: (walletPublicKey) => ({
-        url: `/wallet-balances/${walletPublicKey}`,
+      query: (walletAddress) => ({
+        url: `/wallet-balances/${walletAddress}`,
         method: "GET",
       }),
     }),

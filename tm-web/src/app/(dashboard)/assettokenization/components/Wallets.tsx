@@ -13,16 +13,16 @@ interface WalletProps {
 const Wallets: React.FC<WalletProps> = ({ asset }) => {
   // console.log("Asset prop:", asset);
 
-  const issuingWalletPublicKey = asset?.issuingWalletPublicKey;
+  const issuingWalletAddress = asset?.issuingWalletAddress;
   const marketMakingWallet = asset?.marketMakingWallet;
   const holdingWallet = asset?.walletToHoldAssetsNotForSale;
-  // console.log("Using wallet key:", issuingWalletPublicKey);
+  // console.log("Using wallet key:", issuingWalletAddress);
 
   // Fetch wallet data
   const { data: issuingWalletData } = useGetWalletBalancesQuery(
-    issuingWalletPublicKey!,
+    issuingWalletAddress!,
     {
-      skip: !issuingWalletPublicKey,
+      skip: !issuingWalletAddress,
     }
   );
   const { data: marketMakingWalletData } = useGetWalletBalancesQuery(

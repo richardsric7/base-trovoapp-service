@@ -292,7 +292,7 @@ func (s *FinancialService) DistributionPayoutCSV(ctx context.Context, auth AuthC
 	var output bytes.Buffer
 	writer := csv.NewWriter(&output)
 	if err := writer.Write([]string{
-		"payout_id", "beneficiary_public_key", "confirmed_token_balance", "amount", "currency",
+		"payout_id", "beneficiary_address", "confirmed_token_balance", "amount", "currency",
 		"cannot_receive_asset", "paid", "created_at",
 	}); err != nil {
 		return nil, fmt.Errorf("write payout CSV header: %w", err)
@@ -300,7 +300,7 @@ func (s *FinancialService) DistributionPayoutCSV(ctx context.Context, auth AuthC
 	for _, payout := range detail.Payout.Payouts {
 		if err := writer.Write([]string{
 			payout.ID,
-			payout.BeneficiaryPublicKey,
+			payout.BeneficiaryAddress,
 			payout.ConfirmedTokenBalance,
 			payout.Amount,
 			payout.Currency,

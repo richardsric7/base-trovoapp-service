@@ -103,7 +103,7 @@ type AssignedStakeholderResponse struct {
 }
 
 type AssetWalletDetails struct {
-	IssuingWalletPublicKey             string `json:"issuing_wallet_public_key,omitempty"`
+	IssuingWalletAddress               string `json:"issuing_wallet_address,omitempty"`
 	IssuingWalletAlias                 string `json:"issuing_wallet_alias,omitempty"`
 	MarketMakingWallet                 string `json:"market_making_wallet,omitempty"`
 	InitialOwnerPreferredWalletAddress string `json:"initial_owner_preferred_wallet_address,omitempty"`
@@ -295,7 +295,7 @@ type DistributionBreakdownResponse struct {
 
 type DistributionPayoutRecordResponse struct {
 	ID                    string    `json:"id"`
-	BeneficiaryPublicKey  string    `json:"beneficiary_public_key"`
+	BeneficiaryAddress    string    `json:"beneficiary_address"`
 	ConfirmedTokenBalance string    `json:"confirmed_token_balance"`
 	Amount                string    `json:"amount"`
 	Currency              string    `json:"currency"`

@@ -10,7 +10,7 @@ const errorAccountIsBanned = "error-Account-is-banned"
 
 // ErrorAccountIsBanned is returned during registration when a username already exists
 type ErrorAccountIsBanned struct {
-	PublicKey string
+	Address string
 }
 
 // Error returns the error string

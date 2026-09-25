@@ -26,7 +26,7 @@ const ManagedSecretAssignmentsPage = () => {
         <FaAngleLeft /> Managed Secrets
       </BackLink>
       <Title>{secret ? secret.label : "Assignments"}</Title>
-      {secret && <Subtitle>{secret.wallet_public_key}</Subtitle>}
+      {secret && <Subtitle>{secret.wallet_address}</Subtitle>}
       <AssignmentsTable managedSecretId={managedSecretId} />
     </PageContainer>
   );

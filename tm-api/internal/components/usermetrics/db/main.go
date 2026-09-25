@@ -339,7 +339,7 @@ func GetRecentRegistrations(request models.UserRequestDTO, walletDB *gorm.DB) ([
 	for _, user := range users {
 		recentRegistrations = append(recentRegistrations, models.UserDTO{
 			Username:    user.Username,
-			PublicKey:   user.PublicKey,
+			Address:     user.Address,
 			FullName:    user.FirstName + " " + user.LastName,
 			Email:       user.Email,
 			PhoneNumber: user.Mobile,
@@ -362,7 +362,7 @@ func GetRecentRegistrations(request models.UserRequestDTO, walletDB *gorm.DB) ([
 //		for _, user := range users {
 //			recentRegistrations = append(recentRegistrations, UserDTO{
 //				Username:    user.Username,
-//				PublicKey:   user.PublicKey,
+//				Address:     user.Address,
 //				FullName:    user.FirstName + " " + user.LastName,
 //				Email:       user.Email,
 //				PhoneNumber: *user.Mobile,
@@ -1252,8 +1252,8 @@ func GetUserList(request models.UserRequestDTO, walletDB *gorm.DB) ([]models.Use
 		query = query.Where("LOWER(city) ILIKE LOWER(?)", request.City)
 	}
 
-	if request.PublicKey != "" {
-		query = query.Where("LOWER(public_key) ILIKE LOWER(?)", request.PublicKey)
+	if request.Address != "" {
+		query = query.Where("LOWER(address) ILIKE LOWER(?)", request.Address)
 	}
 	if request.Search != "" {
 		searchTerm := "%" + strings.ToLower(request.Search) + "%"
@@ -1271,7 +1271,7 @@ func GetUserList(request models.UserRequestDTO, walletDB *gorm.DB) ([]models.Use
 				Or("LOWER(COALESCE(time_zone, '')) ILIKE ?", searchTerm).
 				Or("LOWER(COALESCE(isp, '')) ILIKE ?", searchTerm).
 				Or("LOWER(COALESCE(public_ip, '')) ILIKE ?", searchTerm).
-				Or("LOWER(COALESCE(public_key, '')) ILIKE ?", searchTerm).
+				Or("LOWER(COALESCE(address, '')) ILIKE ?", searchTerm).
 				Or("LOWER(COALESCE(country_code, '')) ILIKE ?", searchTerm).
 				Or("LOWER(COALESCE(referrer, '')) ILIKE ?", searchTerm).
 				Or("LOWER(COALESCE(referral_link, '')) ILIKE ?", searchTerm).
@@ -1314,7 +1314,7 @@ func GetUserList(request models.UserRequestDTO, walletDB *gorm.DB) ([]models.Use
 			TimeZone:    user.TimeZone,
 			ISP:         user.ISP,
 			PublicIP:    user.PublicIP,
-			PublicKey:   user.PublicKey,
+			Address:     user.Address,
 			//BantuTalk:             user.BantuTalk,
 			Suspended: uint(user.Suspended),
 			//KYCLevel:              user.KYCLevel,

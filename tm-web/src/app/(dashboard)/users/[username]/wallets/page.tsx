@@ -54,7 +54,7 @@ export default function AllWallets() {
       <WalletsContainer>
         {sortedWallets.map((wallet) => (
           <StyledLink
-            key={wallet.publicKey}
+            key={wallet.address}
             href={`/users/${username}/wallets/${wallet.alias}`}
           >
             <WalletCard blueBackground={wallet.primaryWallet === 1}>

@@ -7,8 +7,9 @@ import (
 	"net/url"
 	"os"
 
+	"admin-panel-dashboard/internal/evmkeypair"
+
 	"github.com/dghubble/sling"
-	"github.com/stellar/go/keypair"
 )
 
 func (s *ServiceLink) JwtTokenVerify(jwtToken string) (jwtresponse *JwtVerifyResponse, err error) {
@@ -259,7 +260,12 @@ func (s *ServiceLink) VerifyAuthorizationRequest(trovoUser, authID string) (auth
 
 }
 
-func (s *ServiceLink) GetUserInfo(trovoUser string) (userInfo *ServiceLinkUserInfo, err error) {
+// GetUserInfo returns the target user's flat profile - app-backend's
+// GET /v1/servicelinks/:ownerUsername/:targetUser/userinfo returns
+// servicelinkServices.GetUserForServiceLink's result directly (a flat
+// ServiceLinksUser), not wrapped in the {userData, wallet} shape
+// ServiceLinkUserInfo/LoginVerifyResponse use for the login flow.
+func (s *ServiceLink) GetUserInfo(trovoUser string) (userInfo *ServiceLinksUser, err error) {
 
 	if len(trovoUser) == 0 {
 		err = errors.New("trovoUser is empty")
@@ -279,7 +285,7 @@ func (s *ServiceLink) GetUserInfo(trovoUser string) (userInfo *ServiceLinkUserIn
 	fullPath := fmt.Sprintf("/v1/servicelinks/%v/%v/userinfo", s.ServiceUsername, trovoUser)
 
 	errorResponse := new(ErrorResponse)
-	userInfo = new(ServiceLinkUserInfo)
+	userInfo = new(ServiceLinksUser)
 	_, err = sling.New().Set("User-Agent", "TROVO-WALLET Go SDK").
 		Set("X-TW-SERVICE-LINK-API-KEY", s.ApiKey).
 		Base(s.ApiBaseUrl).
@@ -454,7 +460,12 @@ func (s *ServiceLink) SendEventRequest(trovoUser, eventDescription, deviceInfo, 
 		ValidityInMinutes: validityInMinutes,
 	}
 
-	fullPath := fmt.Sprintf("/v1/servicelinks/events/request/%v", trovoUser)
+	// app-backend's /v1/servicelinks/events/request no longer takes a
+	// :targetUser path segment - events aren't targeted at one user, so
+	// there is nothing per-user to put in the URL (trovoUser is still
+	// required above as an input-validation gate, matching the other
+	// Send* methods' shape, even though it isn't sent to the server).
+	fullPath := "/v1/servicelinks/events/request"
 
 	errorResponse := new(ErrorResponse)
 	eventData = new(TrovoWalletEventData)
@@ -507,7 +518,10 @@ func (s *ServiceLink) SendPushNotification(trovoUser, title, message, imageUri, 
 		Action:   action, //login, payment, 2fa, event
 	}
 
-	fullPath := fmt.Sprintf("/v1/servicelinks/events/request/%v", trovoUser)
+	// The real push-notification endpoint - was previously pointed at the
+	// events/request path, which doesn't accept a push notification body
+	// and doesn't identify a target user at all.
+	fullPath := fmt.Sprintf("/v1/servicelinks/%v/%v/push", s.ServiceUsername, trovoUser)
 
 	errorResponse := new(ErrorResponse)
 	pnr = new(PNSResponse)
@@ -566,7 +580,7 @@ func (s *ServiceLink) GetPaymentData(trovoUser, paymentDestination, assetCode, a
 		return nil, errors.New("amount is empty")
 	}
 	if len(assetIssuer) > 0 {
-		_, e := keypair.ParseAddress(assetIssuer)
+		_, e := evmkeypair.ParseAddress(assetIssuer)
 		if e != nil {
 			return nil, errors.New("invalid assetIssuer")
 		}

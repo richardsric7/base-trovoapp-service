@@ -16,7 +16,7 @@ import (
 type fundSummarySubscriptionFixture struct {
 	ID               string `gorm:"primaryKey"`
 	TokenizedAssetID string
-	WalletPublicKey  string
+	WalletAddress    string
 	Amount           float64
 }
 
@@ -57,8 +57,8 @@ func TestTrusteeFundManagementSummaryUsesScopedCanonicalSources(t *testing.T) {
 		t.Fatalf("seed wallet assets: %v", err)
 	}
 	if err := walletDB.Create(&[]fundSummarySubscriptionFixture{
-		{ID: "subscription-1", TokenizedAssetID: "asset-1", WalletPublicKey: "wallet-1", Amount: 1000},
-		{ID: "subscription-hidden", TokenizedAssetID: "asset-hidden", WalletPublicKey: "wallet-hidden", Amount: 9000},
+		{ID: "subscription-1", TokenizedAssetID: "asset-1", WalletAddress: "wallet-1", Amount: 1000},
+		{ID: "subscription-hidden", TokenizedAssetID: "asset-hidden", WalletAddress: "wallet-hidden", Amount: 9000},
 	}).Error; err != nil {
 		t.Fatalf("seed primary sales: %v", err)
 	}

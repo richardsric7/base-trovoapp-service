@@ -30,10 +30,10 @@ const ManagedSecretsTable = () => {
       render: (_: unknown, record: IManagedSecretWithAssignments) => record.managedSecret.label,
     },
     {
-      title: "Wallet Public Key",
-      dataIndex: "walletPublicKey",
+      title: "Wallet Address",
+      dataIndex: "walletAddress",
       render: (_: unknown, record: IManagedSecretWithAssignments) => (
-        <TruncatedText text={record.managedSecret.wallet_public_key} maxLength={16} />
+        <TruncatedText text={record.managedSecret.wallet_address} maxLength={16} />
       ),
     },
     {

@@ -11,7 +11,7 @@ import (
 type UserInfo struct {
 	ID                    string          `json:"-"`
 	Username              string          `json:"username"`
-	PublicKey             string          `json:"-"`
+	Address               string          `json:"-"`
 	Email                 string          `json:"email"`
 	PublicIP              string          `json:"-"`
 	LastName              string          `json:"lastName"`

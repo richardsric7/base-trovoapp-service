@@ -31,7 +31,7 @@ export interface TokenizationRecord {
   closedGroupInfo: ClosedGroupInfo;
   secApproval: number;
   secApprovalIdNumber: string;
-  issuingWalletPublicKey: string;
+  issuingWalletAddress: string;
   issuingWalletAlias: string;
   marketMakingWallet: string;
   assetDescription: string;
@@ -467,7 +467,7 @@ export interface TokenizationDetailResponse {
   insurancePolicyNumber: string;
   investorAccreditationRequired: number;
   issuingWalletAlias: string;
-  issuingWalletPublicKey: string;
+  issuingWalletAddress: string;
   lastUpdatedBy: string;
   legalAdvisor: string;
   marketMakingWallet: string;
@@ -658,7 +658,7 @@ export interface UpdateTokenizationPayload {
   id?: string;
   initiatorUsername?: string;
   issuingWalletAlias?: string;
-  issuingWalletPublicKey?: string;
+  issuingWalletAddress?: string;
   lastUpdatedBy?: string;
   maxNumberOfTokenAvailableForSale?: number;
   tokenizationFee?: TokenizationFee;

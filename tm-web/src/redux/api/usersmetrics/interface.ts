@@ -51,7 +51,7 @@ export interface RecentRegistration {
   id: string;
   username: string;
   email: string;
-  public_key: string;
+  address: string;
   phone_number: string;
   full_name: string;
   date: string;

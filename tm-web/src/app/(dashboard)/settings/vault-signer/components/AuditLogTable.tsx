@@ -33,13 +33,13 @@ const AuditLogTable = () => {
         record.position != null ? `Position ${record.position}` : record.vault_key ?? "—",
     },
     {
-      title: "Stellar Tx",
-      dataIndex: "stellarTx",
+      title: "Base Tx",
+      dataIndex: "baseTx",
       render: (_: unknown, record: IAuditLogRow) =>
-        record.stellar_tx_hash ? (
+        record.base_tx_hash ? (
           <TxWrapper>
-            <TruncatedText text={record.stellar_tx_hash} maxLength={12} />
-            <TxStatus status={record.stellar_tx_status}>{record.stellar_tx_status}</TxStatus>
+            <TruncatedText text={record.base_tx_hash} maxLength={12} />
+            <TxStatus status={record.base_tx_status}>{record.base_tx_status}</TxStatus>
           </TxWrapper>
         ) : (
           "—"

@@ -115,7 +115,7 @@ type TokenizedAsset struct {
 	TrusteeFeeValue                          float64   `gorm:"column:trustee_fee_value" json:"trusteeFeeValue"`
 	VATValue                                 float64   `gorm:"column:vat_value" json:"vatValue"`
 	InitiatorUsername                        string    `gorm:"column:initiator_username" json:"initiatorUsername"`
-	IssuingWalletPublicKey                   string    `gorm:"column:issuing_wallet_public_key" json:"issuingWalletPublicKey"`
+	IssuingWalletAddress                     string    `gorm:"column:issuing_wallet_address" json:"issuingWalletAddress"`
 	IssuingWalletAlias                       string    `gorm:"column:issuing_wallet_alias" json:"issuingWalletAlias"`
 	MarketMakingWallet                       string    `gorm:"column:market_making_wallet" json:"marketMakingWallet"`
 	InitialOwnerPreferredWalletAddress       string    `gorm:"column:initial_owner_preferred_wallet_address" json:"initialOwnerPreferredWalletAddress"`
@@ -330,7 +330,7 @@ func (c *GormTokenizationReadClient) GetAssetRelatedData(ctx context.Context, as
 
 func withTokenHolderCount(query *gorm.DB) *gorm.DB {
 	return query.Select(`tokenized_assets.*,
-		(SELECT COUNT(DISTINCT wallet_public_key)
+		(SELECT COUNT(DISTINCT wallet_address)
 		 FROM tokenized_asset_subscriptions
 		 WHERE tokenized_asset_id = tokenized_assets.id) AS token_holder_count`)
 }

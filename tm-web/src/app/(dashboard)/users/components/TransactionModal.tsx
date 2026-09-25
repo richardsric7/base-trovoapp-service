@@ -121,9 +121,9 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
           <DetailsSection>
             <Label>Public Key</Label>
             <CopyableTextBlue
-              onClick={() => handleCopy(transaction.toPublicKey)}
+              onClick={() => handleCopy(transaction.toAddress)}
             >
-              {transaction.toPublicKey.substring(0, 12)}...{" "}
+              {transaction.toAddress.substring(0, 12)}...{" "}
               <MdOutlineContentCopy size={20} />
             </CopyableTextBlue>
           </DetailsSection>
@@ -145,9 +145,9 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
           <DetailsSection>
             <Label>Public Key</Label>
             <CopyableTextBlue
-              onClick={() => handleCopy(transaction.fromPublicKey)}
+              onClick={() => handleCopy(transaction.fromAddress)}
             >
-              {transaction.fromPublicKey?.substring(0, 12)}...
+              {transaction.fromAddress?.substring(0, 12)}...
               <MdOutlineContentCopy size={20} />
             </CopyableTextBlue>
           </DetailsSection>

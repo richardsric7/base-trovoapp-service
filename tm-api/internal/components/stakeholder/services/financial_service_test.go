@@ -179,7 +179,7 @@ func TestGetDistributionReturnsCanonicalTokenBreakdown(t *testing.T) {
 	service.payouts = &fakeDistributionPayoutClient{payout: &models.DistributionPayoutResponse{
 		DistributionID: distribution.ID, TokenizedAssetID: distribution.AssetID, Amount: "1250", Currency: "CNGN",
 		Payouts: []models.DistributionPayoutRecordResponse{{
-			ID: "payout-1", BeneficiaryPublicKey: "GBENEFICIARY", ConfirmedTokenBalance: "10",
+			ID: "payout-1", BeneficiaryAddress: "GBENEFICIARY", ConfirmedTokenBalance: "10",
 			Amount: "25", Currency: "CNGN", Paid: true, CreatedAt: time.Date(2026, time.September, 3, 6, 30, 0, 0, time.UTC),
 		}},
 	}}
@@ -188,7 +188,7 @@ func TestGetDistributionReturnsCanonicalTokenBreakdown(t *testing.T) {
 		t.Fatalf("export payout CSV: %v", err)
 	}
 	csvText := string(csvContent)
-	if !strings.Contains(csvText, "payout_id,beneficiary_public_key,confirmed_token_balance,amount,currency,cannot_receive_asset,paid,created_at") ||
+	if !strings.Contains(csvText, "payout_id,beneficiary_address,confirmed_token_balance,amount,currency,cannot_receive_asset,paid,created_at") ||
 		!strings.Contains(csvText, "payout-1,GBENEFICIARY,10,25,CNGN,false,true,2026-09-03T06:30:00Z") {
 		t.Fatalf("unexpected payout CSV:\n%s", csvText)
 	}

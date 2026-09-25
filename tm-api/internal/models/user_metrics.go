@@ -63,7 +63,7 @@ type ReferrerCount struct {
 
 type UserDTO struct {
 	Username    string    `json:"username"`
-	PublicKey   string    `json:"public_key"`
+	Address     string    `json:"address"`
 	FullName    string    `json:"full_name"`
 	Email       string    `json:"email"`
 	PhoneNumber string    `json:"phone_number"`
@@ -171,7 +171,7 @@ type UserDto struct {
 	TimeZone              string    `json:"time_zone"`
 	ISP                   string    `json:"isp"`
 	PublicIP              string    `json:"public_ip"`
-	PublicKey             string    `json:"public_key"`
+	Address               string    `json:"address"`
 	BantuTalk             string    `json:"bantu_talk"`
 	Suspended             uint      `json:"suspended"`
 	KYCLevel              uint      `json:"kyc_level"`
@@ -218,7 +218,7 @@ type UserRequestDTO struct {
 	LastName  string `json:"last_name"`
 	Search    string `json:"search"`
 	City      string `json:"city"`
-	PublicKey string `json:"public_key"`
+	Address   string `json:"address"`
 }
 
 type UserProfile struct {
@@ -229,7 +229,7 @@ type UserProfile struct {
 }
 
 type UserWalletDTO struct {
-	ID            string `json:"publicKey"`
+	ID            string `json:"address"`
 	Alias         string `json:"alias"`
 	Signer        string `json:"signer"`
 	UserID        string `json:"userId"`

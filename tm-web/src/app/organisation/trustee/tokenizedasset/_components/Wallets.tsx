@@ -43,7 +43,7 @@ const Wallets: React.FC<WalletsProps> = ({ wallets }) => {
     walletOwner:
       wallet.id === 1
         ? wallets?.issuing_wallet_alias ||
-          wallets?.issuing_wallet_public_key ||
+          wallets?.issuing_wallet_address ||
           wallet.walletOwner
         : wallet.id === 2
           ? wallets?.market_making_wallet || wallet.walletOwner

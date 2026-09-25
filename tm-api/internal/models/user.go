@@ -114,7 +114,7 @@ type User struct {
 	FirstName                string    `json:"first_name" db:"first_name"`
 	LastName                 string    `json:"last_name,omitempty" db:"last_name"`
 	Mobile                   string    `json:"mobile,omitempty" db:"mobile"`
-	PublicKey                string    `json:"public_key,omitempty" db:"public_key"`
+	Address                  string    `json:"address,omitempty" db:"address"`
 	PrimarySigner            string    `json:"primary_signer,omitempty" db:"primary_signer"`
 	Referrer                 string    `json:"referrer,omitempty" db:"referrer"`
 	ReferralLink             string    `json:"referral_link,omitempty" db:"referral_link"`
@@ -162,7 +162,7 @@ type UserWallet struct {
 	CreatedAt               time.Time          `json:"createdAt"`
 	UpdatedAt               time.Time          `json:"updatedAt"`
 	ID                      string             `gorm:"size:56" json:"publicKey"`
-	TempPublicKey           *string            `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
+	TempAddress             *string            `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
 	Tag                     *string            `gorm:"null;size:12" json:"tag"`
 	Description             *string            `gorm:"null;size:100" json:"description"`
 	Alias                   string             `gorm:"size:30; index:idx_unique_alias, unique" json:"alias"` // primaryUsername_tag for sub wallets
@@ -173,19 +173,19 @@ type UserWallet struct {
 	PrimaryWallet           int                `gorm:"type:integer;not null;default:0" json:"primaryWallet"`
 	NumberOfApprovalsNeeded int                `gorm:"type:integer; default:0" json:"numberOfApprovalsNeeded"`
 	WalletType              int                `gorm:"type:integer; default:0" json:"walletType"` // 0=normal, 1= assetIssuing, 2= marketMaking, 3 = bulkPayment
-	Permissions             []WalletPermission `gorm:"foreignKey:WalletPublicKey;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"permissions"`
+	Permissions             []WalletPermission `gorm:"foreignKey:WalletAddress;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"permissions"`
 	SharedAccessCreatedAt   time.Time          `json:"sharedAccessCreatedAt"`
 	SharedAccessUpdatedAt   time.Time          `json:"sharedAccessUpdatedAt"`
 	FeeDisabled             int                `gorm:"type:integer; not null; default:0" json:"feeDisabled"`
 }
 
 type WalletPermission struct {
-	CreatedAt       time.Time `json:"createdAt"`
-	UpdatedAt       time.Time `json:"updatedAt"`
-	ID              string    `json:"id"`
-	WalletPublicKey string    `gorm:"size:90;not null; index:access_level_permission,unique;index:idx_public_key_shared" json:"walletPublicKey"`
-	TargetUsername  string    `gorm:"size:16;not null; index:access_level_permission,unique;" json:"targetUsername"`
-	Permission      string    `gorm:"size:10;not null; index:access_level_permission,unique" json:"permission"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+	ID             string    `json:"id"`
+	WalletAddress  string    `gorm:"size:90;not null; index:access_level_permission,unique;index:idx_address_shared" json:"walletAddress"`
+	TargetUsername string    `gorm:"size:16;not null; index:access_level_permission,unique;" json:"targetUsername"`
+	Permission     string    `gorm:"size:10;not null; index:access_level_permission,unique" json:"permission"`
 }
 
 // // GetUser gets user information

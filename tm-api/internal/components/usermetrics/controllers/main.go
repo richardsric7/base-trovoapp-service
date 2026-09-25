@@ -29,7 +29,7 @@ func Init(router *gin.Engine, s *serverModels.Server) {
 	apiV1.GET("/orders/trade/list", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetTradeListByUserName(s.TrovoWalletDB, s.P2P))
 	apiV1.GET("/users", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetUserList(s.TrovoWalletDB))
 	apiV1.GET("/users/profile", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetUserProfile(s.TrovoWalletDB))
-	apiV1.GET("/wallet-balances/:walletPublicKey", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetWalletBalances(s.TrovoWalletDB))
+	apiV1.GET("/wallet-balances/:walletAddress", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetWalletBalances(s.TrovoWalletDB))
 	apiV1.GET("/fiat/payments", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetFiatPayments(s.TrovoWalletDB))
 
 	// Fee Management endpoints

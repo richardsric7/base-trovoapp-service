@@ -16,14 +16,13 @@ import (
 
 	"github.com/ecnepsnai/discord"
 	"gorm.io/driver/postgres"
-
-	// "gorm.io/driver/sqlite"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
 var sqlDB *sql.DB // Set package-wide, but not exported
-var onceAdmin sync.Once
+var onceAdmin, onceAdminSQLite sync.Once
 
 // func OpenDb() (*gorm.DB, error) {
 // 	dbType := os.Getenv("DB_TYPE")
@@ -106,13 +105,22 @@ func AdminDB() (gormDB *gorm.DB, err error) {
 		return nil, errors.New("empty connection string. Check env variable: ADMIN_CONNECTION_STRING")
 	}
 
-	// var err error
-
-	// if dbType == "sqlite" {
-	// 	gormDB, err = gorm.Open(sqlite.Open(dbConnectionString), &gorm.Config{
-	// 		QueryFields: true,
-	// 	})
-	// }
+	// SQLite (plain gorm.io/driver/sqlite, mattn/go-sqlite3) - for local
+	// dev/testing without a Postgres instance, matching app-backend's
+	// OpenDb. ADMIN_CONNECTION_STRING is a file path (or ":memory:") in
+	// this mode, not a Postgres DSN.
+	if dbType == "sqlite" {
+		onceAdminSQLite.Do(func() {
+			gormDB, err = gorm.Open(sqlite.Open(dbConnectionString), &gorm.Config{
+				Logger:      logger.Default.LogMode(logger.Silent),
+				QueryFields: true,
+			})
+		})
+		if err != nil {
+			log.Printf("[AdminDB]failed to connect sqlite database, %s\n", err)
+			return nil, err
+		}
+	}
 
 	if dbType == "postgres" {
 		var maxoconn, idleCon string

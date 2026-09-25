@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/big"
 	"net/http"
 	"os"
 	"strings"
@@ -13,17 +14,18 @@ import (
 	vaultsignermodels "admin-panel-dashboard/internal/components/vaultsigner/models"
 	"admin-panel-dashboard/internal/components/vaultsigner/vaultclient"
 	tErrors "admin-panel-dashboard/internal/errors"
+	"admin-panel-dashboard/internal/evmkeypair"
+	"admin-panel-dashboard/internal/gnosissafe"
 	"admin-panel-dashboard/internal/middleware"
 	coreModels "admin-panel-dashboard/internal/models"
 	"admin-panel-dashboard/internal/network"
 
 	"github.com/ecnepsnai/discord"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/google/uuid"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/stellar/go/clients/horizonclient"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -261,8 +263,8 @@ type DeleteAssignmentResult struct {
 	RenumberedCount  int
 	VaultCollapsed   bool
 	OnChainAttempted bool
-	StellarTxHash    string
-	StellarTxStatus  string // "success" | "failed", only meaningful if OnChainAttempted
+	BaseTxHash       string
+	BaseTxStatus     string // "success" | "failed", only meaningful if OnChainAttempted
 }
 
 // ErrCSVFloorViolation means the deletion would bring the CSV below the
@@ -379,11 +381,11 @@ func DeleteAssignment(ctx context.Context, db *gorm.DB, vc *vaultapi.Client, ass
 
 	// Full path: the deleted position holds a real key.
 	onChainNeeded := index < secret.ActiveSigningCount && validKeypairCount > secret.ActiveSigningCount
-	removedKP, parseErr := keypair.ParseFull(strings.TrimSpace(parts[index]))
+	removedKP, parseErr := evmkeypair.ParseFull(strings.TrimSpace(parts[index]))
 	if parseErr != nil {
 		return nil, fmt.Errorf("re-parsing target key: %w", parseErr) // can't happen — targetIsValidKey already confirmed this
 	}
-	removedPublicKey := removedKP.Address()
+	removedAddress := common.HexToAddress(removedKP.Address())
 
 	err = db.Transaction(func(tx *gorm.DB) error {
 		if err := deleteAndRenumber(tx, managedSecretID, position, result); err != nil {
@@ -391,54 +393,52 @@ func DeleteAssignment(ctx context.Context, db *gorm.DB, vc *vaultapi.Client, ass
 		}
 
 		client := network.GetBlockchainClient()
-		var capturedWeight int32
+		var capturedThreshold *big.Int
 		onChainRemovalHappened := false
 
 		if onChainNeeded {
 			result.OnChainAttempted = true
-			account, err := client.AccountDetail(horizonclient.AccountRequest{AccountID: secret.WalletPublicKey})
+			safe, err := gnosissafe.New(client, secret.WalletAddress)
 			if err != nil {
-				return fmt.Errorf("fetching wallet account detail: %w", err)
+				return fmt.Errorf("resolving safe address: %w", err)
 			}
-			found := false
-			for _, s := range account.Signers {
-				if s.Key == removedPublicKey {
-					capturedWeight = int32(s.Weight)
-					found = true
-					break
-				}
+			owners, err := safe.Owners(ctx)
+			if err != nil {
+				return fmt.Errorf("fetching safe owners: %w", err)
 			}
-			if !found {
-				return fmt.Errorf("signer %s is not currently registered on wallet %s", removedPublicKey, secret.WalletPublicKey)
+			prevOwner, err := gnosissafe.PrevOwner(owners, removedAddress)
+			if err != nil {
+				return fmt.Errorf("signer %s is not currently registered on safe %s: %w", removedAddress.Hex(), secret.WalletAddress, err)
 			}
+			// The threshold is preserved as-is across the removal (not
+			// lowered) — the Safe contract itself will revert if this is
+			// invalid, matching this codebase's established "submit and let
+			// the network reject invalid state" pattern.
+			threshold, err := safe.Threshold(ctx)
+			if err != nil {
+				return fmt.Errorf("fetching safe threshold: %w", err)
+			}
+			capturedThreshold = threshold
 
 			signers, err := GatherActiveSigners(ctx, vc, secret, index)
 			if err != nil {
 				return err
 			}
-			removeTx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
-				SourceAccount:        &account,
-				IncrementSequenceNum: true,
-				BaseFee:              txnbuild.MinBaseFee,
-				Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewTimeout(300)},
-				Operations: []txnbuild.Operation{
-					&txnbuild.SetOptions{Signer: &txnbuild.Signer{Address: removedPublicKey, Weight: 0}},
-				},
-			})
+			innerCalldata, err := gnosissafe.RemoveOwnerCalldata(prevOwner, removedAddress, threshold)
 			if err != nil {
-				return fmt.Errorf("building removal transaction: %w", err)
+				return fmt.Errorf("encoding removeOwner call: %w", err)
 			}
-			removeTx, err = removeTx.Sign(network.GetBlockchainNetworkPassPhrase(), signers...)
-			if err != nil {
-				return fmt.Errorf("signing removal transaction: %w", err)
-			}
-			txResp, submitErr := SubmitSetOptionsTransaction(client, removeTx)
+			execResult, submitErr := submitSafeOwnerChange(ctx, safe, innerCalldata, signers)
 			if submitErr != nil {
-				result.StellarTxStatus = "failed"
+				result.BaseTxStatus = "failed"
 				return submitErr // nothing has touched Vault yet — a clean rollback
 			}
-			result.StellarTxHash = txResp.Hash
-			result.StellarTxStatus = "success"
+			result.BaseTxHash = execResult.TxHash
+			if !execResult.Success {
+				result.BaseTxStatus = "failed"
+				return fmt.Errorf("execTransaction for removeOwner reverted on-chain (tx %s)", execResult.TxHash)
+			}
+			result.BaseTxStatus = "success"
 			onChainRemovalHappened = true
 		}
 
@@ -451,24 +451,23 @@ func DeleteAssignment(ctx context.Context, db *gorm.DB, vc *vaultapi.Client, ass
 			// Vault failed on its own, nothing on-chain to reverse.
 			return collapseErr
 		} else {
-			return reverseOnChainRemoval(client, secret, index, removedPublicKey, capturedWeight, collapseErr)
+			return reverseOnChainRemoval(ctx, client, secret, index, removedAddress, capturedThreshold, collapseErr)
 		}
 	})
 
 	return result, err
 }
 
-// reverseOnChainRemoval re-adds removedPublicKey at its original weight —
-// the compensating action for a successful on-chain removal followed by a
-// Vault write that couldn't be reached (Section 5e).
-func reverseOnChainRemoval(client *horizonclient.Client, secret vaultsignermodels.VaultSignerManagedSecret, index int, removedPublicKey string, capturedWeight int32, collapseErr error) error {
-	ctx := context.Background()
-	// The account's sequence number moved forward after the removal
-	// transaction — a fresh fetch is required, not the one from before.
-	account, acctErr := client.AccountDetail(horizonclient.AccountRequest{AccountID: secret.WalletPublicKey})
-	if acctErr != nil {
-		alertDoubleFailure(collapseErr, acctErr)
-		return fmt.Errorf("vault write failed and could not refetch account to reverse on-chain removal: %w", acctErr)
+// reverseOnChainRemoval re-adds removedAddress to the safe at
+// capturedThreshold — the compensating action for a successful on-chain
+// removal followed by a Vault write that couldn't be reached (Section 5e).
+// Safe has no "undo removeOwner" primitive, so reversal is a distinct
+// addOwnerWithThreshold call, not a replay of the removal.
+func reverseOnChainRemoval(ctx context.Context, client *ethclient.Client, secret vaultsignermodels.VaultSignerManagedSecret, index int, removedAddress common.Address, capturedThreshold *big.Int, collapseErr error) error {
+	safe, safeErr := gnosissafe.New(client, secret.WalletAddress)
+	if safeErr != nil {
+		alertDoubleFailure(collapseErr, safeErr)
+		return fmt.Errorf("vault write failed and could not resolve safe to reverse on-chain removal: %w", safeErr)
 	}
 
 	vc, vcErr := vaultclient.NewClient()
@@ -482,33 +481,25 @@ func reverseOnChainRemoval(client *horizonclient.Client, secret vaultsignermodel
 		return sigErr
 	}
 
-	reAddTx, buildErr := txnbuild.NewTransaction(txnbuild.TransactionParams{
-		SourceAccount:        &account,
-		IncrementSequenceNum: true,
-		BaseFee:              txnbuild.MinBaseFee,
-		Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewTimeout(300)},
-		Operations: []txnbuild.Operation{
-			&txnbuild.SetOptions{Signer: &txnbuild.Signer{Address: removedPublicKey, Weight: txnbuild.Threshold(capturedWeight)}},
-		},
-	})
-	if buildErr != nil {
-		alertDoubleFailure(collapseErr, buildErr)
-		return buildErr
+	innerCalldata, encErr := gnosissafe.AddOwnerCalldata(removedAddress, capturedThreshold)
+	if encErr != nil {
+		alertDoubleFailure(collapseErr, encErr)
+		return fmt.Errorf("encoding addOwnerWithThreshold call to reverse removal: %w", encErr)
 	}
-	reAddTx, signErr := reAddTx.Sign(network.GetBlockchainNetworkPassPhrase(), signers...)
-	if signErr != nil {
-		alertDoubleFailure(collapseErr, signErr)
-		return signErr
-	}
-
-	if _, reAddErr := SubmitSetOptionsTransaction(client, reAddTx); reAddErr != nil {
+	execResult, submitErr := submitSafeOwnerChange(ctx, safe, innerCalldata, signers)
+	if submitErr != nil {
 		// The genuine residual risk (Section 5e): on-chain removal
 		// succeeded, Vault failed, and the reversal also failed. Bounded
 		// retries belong here in production; for now this alerts loudly and
 		// leaves the assignment uncommitted rather than guessing which
 		// system to trust.
-		alertDoubleFailure(collapseErr, reAddErr)
-		return fmt.Errorf("vault write failed and on-chain reversal also failed — manual reconciliation required: %w", reAddErr)
+		alertDoubleFailure(collapseErr, submitErr)
+		return fmt.Errorf("vault write failed and on-chain reversal also failed — manual reconciliation required: %w", submitErr)
+	}
+	if !execResult.Success {
+		revertErr := fmt.Errorf("execTransaction for addOwnerWithThreshold (reversal) reverted on-chain (tx %s)", execResult.TxHash)
+		alertDoubleFailure(collapseErr, revertErr)
+		return fmt.Errorf("vault write failed and on-chain reversal also failed — manual reconciliation required: %w", revertErr)
 	}
 
 	// Reversal succeeded — the wallet is back to where it started. Returning

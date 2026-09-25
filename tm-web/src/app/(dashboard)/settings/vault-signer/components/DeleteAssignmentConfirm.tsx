@@ -43,7 +43,7 @@ const DeleteAssignmentConfirm: React.FC<DeleteAssignmentConfirmProps> = ({
         const onChain = info.onChainRemoval;
         showSuccessToast(
           onChain?.attempted
-            ? `Assignment removed — signer removed on-chain (${onChain.stellarTxStatus}, tx ${onChain.stellarTxHash?.slice(0, 10)}...)`
+            ? `Assignment removed — signer removed on-chain (${onChain.baseTxStatus}, tx ${onChain.baseTxHash?.slice(0, 10)}...)`
             : `Assignment removed — position ${info.deletedPosition} renumbered, no on-chain signer to remove`,
         );
       }

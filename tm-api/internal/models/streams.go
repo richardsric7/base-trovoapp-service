@@ -12,10 +12,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/clients/horizonclient"
-	"github.com/stellar/go/keypair"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -38,12 +37,11 @@ type GlobalConfig struct {
 	TelegramDeleteList          TelegramDeleteList
 	TelegramNextDelete          map[int64]map[string]StoredMessage
 	Mutex                       *sync.Mutex
-	ChannelAccounts             chan *keypair.Full
 	Cache                       *cache.RedisCache
 	TrovoWalletDB               *gorm.DB
 	P2PDB                       *gorm.DB
 	CallbackACL                 map[string]string
-	BlockchainClient            *horizonclient.Client
+	BlockchainClient            *ethclient.Client
 	BlockchainPassphrase        string
 }
 

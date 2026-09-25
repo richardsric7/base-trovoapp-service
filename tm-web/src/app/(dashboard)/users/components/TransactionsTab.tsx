@@ -240,8 +240,8 @@ const TransactionsTab = () => {
       to: record.to,
       from: record.from,
       assetCode: record.assetCode,
-      fromPublicKey: record.fromPublicKey,
-      toPublicKey: record.toPublicKey,
+      fromAddress: record.fromAddress,
+      toAddress: record.toAddress,
       transactionType: record.transactionType,
     }));
   }, [data, isLoading]);

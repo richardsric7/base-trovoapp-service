@@ -28,7 +28,7 @@ import (
 // @Param first_name query string false "Filter by user first_name"
 // @Param last_name query string false "Filter by user last name"
 // @Param city query string false "Filter by user city"
-// @Param public_key query string false "Filter by public_key"
+// @Param address query string false "Filter by address"
 // @Param suspended query int false "Filter by suspension status (0 or 1)"
 // @Param kyc_level query int false "Filter by KYC level"
 // @Param admin_level query int false "Filter by admin level"
@@ -63,7 +63,7 @@ func GetP2PUserList(walletDb, p2pdb *gorm.DB) gin.HandlerFunc {
 			FirstName:            c.Query("first_name"),
 			LastName:             c.Query("last_name"),
 			City:                 c.Query("city"),
-			PublicKey:            c.Query("public_key"),
+			Address:              c.Query("address"),
 			Suspended:            c.DefaultQuery("suspended", ""),
 			KYCLevel:             c.DefaultQuery("kyc_level", ""),
 			AdminLevel:           c.DefaultQuery("admin_level", ""),
@@ -113,8 +113,8 @@ func fetchP2PUsers(filters P2PUserRequestDTO, db *gorm.DB) ([]P2PUserDTO, int64,
 	if filters.City != "" {
 		query = query.Where("LOWER(city) ILIKE LOWER(?)", filters.City)
 	}
-	if filters.PublicKey != "" {
-		query = query.Where("LOWER(public_key) ILIKE LOWER(?)", filters.PublicKey)
+	if filters.Address != "" {
+		query = query.Where("LOWER(address) ILIKE LOWER(?)", filters.Address)
 	}
 	if filters.Suspended != "" {
 		suspended, _ := strconv.Atoi(filters.Suspended)
@@ -182,7 +182,7 @@ type P2PUserRequestDTO struct {
 	FirstName            string `json:"first_name"`
 	LastName             string `json:"last_name"`
 	City                 string `json:"city"`
-	PublicKey            string `json:"public_key"`
+	Address              string `json:"address"`
 	Suspended            string `json:"suspended"`
 	KYCLevel             string `json:"kyc_level"`
 	AdminLevel           string `json:"admin_level"`
@@ -235,7 +235,7 @@ type user struct {
 	TimeZone              *string    `json:"time_zone"`              // character varying, nullable
 	ISP                   *string    `json:"isp"`                    // character varying, nullable
 	PublicIP              *string    `json:"public_ip"`              // character varying, nullable
-	PublicKey             *string    `json:"public_key"`             // character varying, nullable
+	Address               *string    `json:"address"`                // character varying, nullable
 	BantuTalk             *string    `json:"bantu_talk"`             // character varying, nullable
 	Suspended             int        `json:"suspended"`              // integer, not nullable, default 0
 	KYCLevel              int        `json:"kyc_level"`              // integer, not nullable, default 0

@@ -21,7 +21,7 @@ export interface iUsers {
   time_zone: string;
   isp: string;
   public_ip: number;
-  public_key: string;
+  address: string;
   bantu_talk: string;
   suspended: number;
   kyc_level: number;
@@ -68,7 +68,7 @@ export interface IUserInfo {
   mobile: string;
   mobile_verified: boolean;
   public_iP: string;
-  public_key: string;
+  address: string;
   primary_signer: string;
   push_notification_token: string;
   referral_link: string;
@@ -84,7 +84,7 @@ export interface IUserInfo {
 }
 
 export interface IWallet {
-  publicKey: string;
+  address: string;
   alias: string;
   signer: string;
   userId: string;
@@ -125,9 +125,9 @@ export interface Transaction {
   transactionDate: string;
   transactionType: string;
   from: string;
-  fromPublicKey: string;
+  fromAddress: string;
   to: string;
-  toPublicKey: string;
+  toAddress: string;
   memo: string;
   assetIssuer: string;
   assetCode: string;
@@ -144,7 +144,7 @@ export interface PaymentHistoryResponse {
 }
 // Define the type for each deposit address object
 export interface CryptoWalletDepositAddress {
-  TrovoWalletPublicKey: string;
+  trovoWalletAddress: string;
   createdAt: string;
   currency: string;
   depositAddress: string;

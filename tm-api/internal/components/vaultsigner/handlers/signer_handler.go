@@ -137,8 +137,8 @@ func (h *Handler) PutMySecretValue(c *gin.Context) {
 		var txHash, txStatus *string
 		if result.Swapped {
 			kind = "signer_swap"
-			txHash = stringPtr(result.StellarTxHash)
-			txStatus = stringPtr(result.StellarTxStatus)
+			txHash = stringPtr(result.BaseTxHash)
+			txStatus = stringPtr(result.BaseTxStatus)
 		}
 		writeAuditLog(h.db, vaultsignermodels.VaultSignerAuditLog{
 			Kind:               kind,
@@ -148,13 +148,13 @@ func (h *Handler) PutMySecretValue(c *gin.Context) {
 			ActorType:          userType,
 			VaultVersionBefore: intPtr(result.VaultVersionBefore),
 			VaultVersionAfter:  intPtr(result.VaultVersionAfter),
-			StellarTxHash:      txHash,
-			StellarTxStatus:    txStatus,
+			BaseTxHash:         txHash,
+			BaseTxStatus:       txStatus,
 		})
 		resp := gin.H{"vaultVersion": result.VaultVersionAfter}
 		if result.Swapped {
-			resp["stellarTxHash"] = txHash
-			resp["stellarTxStatus"] = result.StellarTxStatus
+			resp["baseTxHash"] = txHash
+			resp["baseTxStatus"] = result.BaseTxStatus
 			if result.SwapError != nil {
 				resp["error"] = result.SwapError.Error()
 			}
@@ -192,7 +192,7 @@ type registerManagedSecretRequest struct {
 	VaultMount         string `json:"vaultMount" binding:"required"`
 	VaultPath          string `json:"vaultPath" binding:"required"`
 	VaultField         string `json:"vaultField" binding:"required"`
-	WalletPublicKey    string `json:"walletPublicKey" binding:"required"`
+	WalletAddress      string `json:"walletAddress" binding:"required"`
 	ActiveSigningCount int    `json:"activeSigningCount" binding:"required"`
 }
 
@@ -209,7 +209,7 @@ func (h *Handler) RegisterManagedSecret(c *gin.Context) {
 		VaultMount:         req.VaultMount,
 		VaultPath:          req.VaultPath,
 		VaultField:         req.VaultField,
-		WalletPublicKey:    req.WalletPublicKey,
+		WalletAddress:      req.WalletAddress,
 		ActiveSigningCount: req.ActiveSigningCount,
 		CreatedAt:          time.Now(),
 	}
@@ -369,10 +369,10 @@ func (h *Handler) DeleteAssignment(c *gin.Context) {
 			return
 		}
 		writeAuditLog(h.db, vaultsignermodels.VaultSignerAuditLog{
-			Kind:            "assignment_delete",
-			ActorID:         c.GetString("current_user_id"),
-			ActorType:       c.GetString("user_type"),
-			StellarTxStatus: stringPtr("failed"),
+			Kind:         "assignment_delete",
+			ActorID:      c.GetString("current_user_id"),
+			ActorType:    c.GetString("user_type"),
+			BaseTxStatus: stringPtr("failed"),
 		})
 		if he, ok := err.(httpError); ok { // e.g. ErrVaultUnreachableReverted
 			c.JSON(he.HTTPCode(), he.JSONError())
@@ -395,8 +395,8 @@ func (h *Handler) DeleteAssignment(c *gin.Context) {
 			}
 			return intPtr(result.DeletedPosition)
 		}(),
-		StellarTxHash:   stringPtr(result.StellarTxHash),
-		StellarTxStatus: stringPtr(result.StellarTxStatus),
+		BaseTxHash:   stringPtr(result.BaseTxHash),
+		BaseTxStatus: stringPtr(result.BaseTxStatus),
 	})
 
 	if result.DeletedPosition == 0 {
@@ -406,7 +406,7 @@ func (h *Handler) DeleteAssignment(c *gin.Context) {
 	}
 	var onChainRemoval interface{}
 	if result.OnChainAttempted {
-		onChainRemoval = gin.H{"attempted": true, "stellarTxHash": result.StellarTxHash, "stellarTxStatus": result.StellarTxStatus}
+		onChainRemoval = gin.H{"attempted": true, "baseTxHash": result.BaseTxHash, "baseTxStatus": result.BaseTxStatus}
 	}
 	c.JSON(http.StatusOK, gin.H{"data": gin.H{
 		"claimed":         true,

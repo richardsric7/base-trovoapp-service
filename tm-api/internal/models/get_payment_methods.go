@@ -8,10 +8,10 @@ import (
 	"os"
 	"time"
 
+	"admin-panel-dashboard/internal/evmkeypair"
 	p2pErrors "admin-panel-dashboard/internal/errors"
 	"strings"
 
-	"github.com/stellar/go/keypair"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -26,7 +26,7 @@ func (p PaymentCast) GeneratePaymentMethodID(owner, destinationAccount, paymentC
 func (p PaymentCast) CreatePaymentMethod(owner string, paymentMethodInput PaymentMethodJSON, db *gorm.DB) (paymentMethod PaymentMethod, err error) {
 
 	if strings.Contains(strings.ToLower(paymentMethodInput.PaymentChannelID), "bantu") {
-		_, e := keypair.ParseAddress(paymentMethodInput.DestinationAccount)
+		_, e := evmkeypair.ParseAddress(paymentMethodInput.DestinationAccount)
 		if e != nil {
 			return paymentMethod, &p2pErrors.ErrorActionNotAllowed{
 				Param:      "destinationAccount",

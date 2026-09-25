@@ -37,8 +37,8 @@ const WalletDetailsPage = () => {
 
   if (!wallet) return <div>No wallet found with alias: {alias}</div>;
 
-  // Get the wallet's public key from the fetched data.
-  const publicKey = wallet.publicKey;
+  // Get the wallet's address from the fetched data.
+  const publicKey = wallet.address;
 
   const access = [
     {

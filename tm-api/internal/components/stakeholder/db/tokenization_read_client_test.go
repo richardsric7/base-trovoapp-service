@@ -12,7 +12,7 @@ import (
 type tokenizedAssetSubscriptionFixture struct {
 	ID               string `gorm:"primaryKey"`
 	TokenizedAssetID string
-	WalletPublicKey  string
+	WalletAddress    string
 }
 
 func (tokenizedAssetSubscriptionFixture) TableName() string { return "tokenized_asset_subscriptions" }
@@ -65,9 +65,9 @@ func TestListAssetsFiltersWalletStakeholderAssignments(t *testing.T) {
 		t.Fatalf("seed payment proof: %v", err)
 	}
 	if err := database.Create(&[]tokenizedAssetSubscriptionFixture{
-		{ID: "sub-1", TokenizedAssetID: "asset-1", WalletPublicKey: "wallet-a"},
-		{ID: "sub-2", TokenizedAssetID: "asset-1", WalletPublicKey: "wallet-a"},
-		{ID: "sub-3", TokenizedAssetID: "asset-1", WalletPublicKey: "wallet-b"},
+		{ID: "sub-1", TokenizedAssetID: "asset-1", WalletAddress: "wallet-a"},
+		{ID: "sub-2", TokenizedAssetID: "asset-1", WalletAddress: "wallet-a"},
+		{ID: "sub-3", TokenizedAssetID: "asset-1", WalletAddress: "wallet-b"},
 	}).Error; err != nil {
 		t.Fatalf("seed subscriptions: %v", err)
 	}

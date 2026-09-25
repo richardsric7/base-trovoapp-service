@@ -66,8 +66,8 @@ const MySignerSecrets: React.FC<MySignerSecretsProps> = ({
       }).unwrap();
       const info = result.data;
       showSuccessToast(
-        info.stellarTxHash
-          ? `Signer value updated — on-chain swap submitted (tx ${info.stellarTxHash.slice(0, 10)}...)`
+        info.baseTxHash
+          ? `Signer value updated — on-chain swap submitted (tx ${info.baseTxHash.slice(0, 10)}...)`
           : "Signer value updated",
       );
       setActiveSecret(null);

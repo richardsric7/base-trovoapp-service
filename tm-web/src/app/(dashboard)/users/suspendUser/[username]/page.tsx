@@ -192,12 +192,12 @@ const SuspendedUserPage = () => {
             <PublicKeyContainer>
               <Text>Public Key</Text>
               <TagContainer>
-                <Tag>{data?.data?.user_info?.public_key}</Tag>
+                <Tag>{data?.data?.user_info?.address}</Tag>
                 <Image
                   src={copyIcon}
                   alt="copy-icon"
                   onClick={() =>
-                    handleCopy(data?.data?.user_info?.public_key || "N/A")
+                    handleCopy(data?.data?.user_info?.address || "N/A")
                   }
                   style={{ cursor: "pointer" }}
                 />

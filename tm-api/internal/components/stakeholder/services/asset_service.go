@@ -210,7 +210,7 @@ func (s *AssetService) GetAssetDetails(ctx context.Context, auth AuthContext, id
 		TokenizerUsername:      asset.InitiatorUsername,
 		AssignedStakeholders:   stakeholders,
 		Wallets: models.AssetWalletDetails{
-			IssuingWalletPublicKey:             asset.IssuingWalletPublicKey,
+			IssuingWalletAddress:               asset.IssuingWalletAddress,
 			IssuingWalletAlias:                 asset.IssuingWalletAlias,
 			MarketMakingWallet:                 asset.MarketMakingWallet,
 			InitialOwnerPreferredWalletAddress: asset.InitialOwnerPreferredWalletAddress,

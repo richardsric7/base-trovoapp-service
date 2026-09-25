@@ -125,7 +125,7 @@ func Init(router *gin.Engine, s *serverModels.Server) {
 			return
 		}
 
-		_, err = users.UpdateUser(identifier, middleware.ExtractPublicKey(c), userUpdateInfo, c.ClientIP(), s.P2P)
+		_, err = users.UpdateUser(identifier, middleware.ExtractAddress(c), userUpdateInfo, c.ClientIP(), s.P2P)
 
 		if err != nil {
 			var ex p2pErrors.GenericError
@@ -242,7 +242,7 @@ func Init(router *gin.Engine, s *serverModels.Server) {
 			}
 
 			userKYCBefore := userInfo.KYCLevel
-			_, err = users.UpdateUserKYC(identifier, middleware.ExtractPublicKey(c), userUpdateInfo, c.ClientIP(), s.P2P)
+			_, err = users.UpdateUserKYC(identifier, middleware.ExtractAddress(c), userUpdateInfo, c.ClientIP(), s.P2P)
 
 			if err != nil {
 				var ex p2pErrors.GenericError

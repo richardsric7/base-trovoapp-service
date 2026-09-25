@@ -164,19 +164,19 @@ func UsernameIsReserved(username string, db *gorm.DB) (reserved bool, err error)
 	return true, &trovowalletErrors.ErrorUsernameIsReserved{}
 }
 
-// PublicKeyIsBanned check if public key is banned.
-func PublicKeyIsBanned(publicKey string, db *gorm.DB) (banned bool, err error) {
+// AddressIsBanned check if address is banned.
+func AddressIsBanned(address string, db *gorm.DB) (banned bool, err error) {
 	// discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
 	// if len(os.Getenv("IMPORT_ERROR_WEBHOOK")) > 50 {
 	// 	discord.WebhookURL = os.Getenv("IMPORT_ERROR_WEBHOOK")
 	// }
-	publicKey = strings.TrimSpace(publicKey)
-	var bannedPublicKey models.BannedPublicKey
-	if err := db.Where("public_key = ?", strings.ToLower(strings.ReplaceAll(publicKey, " ", ""))).First(&bannedPublicKey).Error; err != nil {
+	address = strings.TrimSpace(address)
+	var bannedAddress models.BannedAddress
+	if err := db.Where("address = ?", strings.ToLower(strings.ReplaceAll(address, " ", ""))).First(&bannedAddress).Error; err != nil {
 
 		return false, nil
 	}
-	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
+	// discord.Say(fmt.Sprintf("[AddressIsBanned] address: %v is banned\n", address))
 
 	return true, &trovowalletErrors.ErrorAccountIsBanned{}
 }

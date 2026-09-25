@@ -62,8 +62,8 @@ export default function DistributionDetailsPage() {
       (payout?.payouts ?? []).map((item) => ({
         key: item.id,
         name: "Token Holder",
-        username: shortenWallet(item.beneficiary_public_key),
-        wallet: shortenWallet(item.beneficiary_public_key),
+        username: shortenWallet(item.beneficiary_address),
+        wallet: shortenWallet(item.beneficiary_address),
         tokens: Number(item.confirmed_token_balance).toLocaleString(),
         amount: money(item.amount, item.currency),
         status: item.cannot_receive_asset

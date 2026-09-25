@@ -3,7 +3,7 @@ package models
 import "time"
 
 // VaultSignerManagedSecret describes one shared, admin-registered signer-slot
-// secret: a CSV of Stellar keys stored in Vault, controlling a wallet
+// secret: a CSV of Base keys stored in Vault, controlling a Safe wallet
 // on-chain. CSV capacity is not tracked here — it's whatever the live CSV in
 // Vault actually holds, with a minimum of 4 entries enforced at write time.
 type VaultSignerManagedSecret struct {
@@ -12,7 +12,7 @@ type VaultSignerManagedSecret struct {
 	VaultMount         string    `gorm:"not null" json:"vault_mount"`
 	VaultPath          string    `gorm:"not null" json:"vault_path"`
 	VaultField         string    `gorm:"not null" json:"vault_field"`
-	WalletPublicKey    string    `gorm:"not null;index" json:"wallet_public_key"`
+	WalletAddress      string    `gorm:"not null;index" json:"wallet_address"`
 	ActiveSigningCount int       `gorm:"not null" json:"active_signing_count"`
 	CreatedAt          time.Time `json:"created_at"`
 }
@@ -93,8 +93,8 @@ type VaultSignerAuditLog struct {
 	ActorType          string    `gorm:"not null" json:"actor_type"`
 	VaultVersionBefore *int      `json:"vault_version_before,omitempty"`
 	VaultVersionAfter  *int      `json:"vault_version_after,omitempty"`
-	StellarTxHash      *string   `json:"stellar_tx_hash,omitempty"`
-	StellarTxStatus    *string   `json:"stellar_tx_status,omitempty"`
+	BaseTxHash         *string   `json:"base_tx_hash,omitempty"`
+	BaseTxStatus       *string   `json:"base_tx_status,omitempty"`
 	ChangedAt          time.Time `json:"changed_at"`
 	IPAddress          *string   `json:"ip_address,omitempty"`
 }

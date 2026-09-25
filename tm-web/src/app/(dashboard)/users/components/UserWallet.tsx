@@ -45,7 +45,7 @@ const UserWallet: React.FC<UserWalletProps> = ({ wallets, userInfo }) => {
           >
             <WalletCard
               blueBackground={wallet.primaryWallet === 1}
-              key={wallet.publicKey}
+              key={wallet.address}
             >
               <WalletOwnerContainer>
                 <WalletOwner>{wallet.alias}</WalletOwner>

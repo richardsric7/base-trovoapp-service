@@ -51,13 +51,13 @@ const Payment: React.FC<PaymentProps> = ({ asset }) => {
     {
       id: 2,
       title: "Wallet Address",
-      subTitle: asset?.issuingWalletPublicKey || "N/A",
+      subTitle: asset?.issuingWalletAddress || "N/A",
     },
 
     {
       id: 3,
       title: "Amount",
-      subTitle: asset?.issuingWalletPublicKey || "N/A",
+      subTitle: asset?.issuingWalletAddress || "N/A",
     },
     {
       id: 4,

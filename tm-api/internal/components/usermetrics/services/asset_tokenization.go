@@ -27,13 +27,13 @@ type TradeLiabilities struct {
 }
 
 type CryptoWalletDepositAddress struct {
-	ID                   string    `json:"id"`
-	CreatedAt            time.Time `json:"createdAt"`
-	TrovoWalletPublicKey string    `json:"TrovoWalletPublicKey"`
-	Currency             string    `json:"currency"`
-	DepositAddress       string    `json:"depositAddress"`
-	Network              string    `json:"network"`
-	QRCode               *string   `json:"qrCode"`
+	ID                 string    `json:"id"`
+	CreatedAt          time.Time `json:"createdAt"`
+	TrovoWalletAddress string    `json:"trovoWalletAddress"`
+	Currency           string    `json:"currency"`
+	DepositAddress     string    `json:"depositAddress"`
+	Network            string    `json:"network"`
+	QRCode             *string   `json:"qrCode"`
 }
 
 type Balance struct {
@@ -128,7 +128,7 @@ type TokenizedAsset struct {
 	ClosedGroup                                 ClosedGroup                     `json:"closedGroupInfo"`
 	SecApproval                                 int                             `json:"secApproval"`
 	SecApprovalIdNumber                         string                          `json:"secApprovalIdNumber"`
-	IssuingWalletPublicKey                      string                          `json:"issuingWalletPublicKey"`
+	IssuingWalletAddress                        string                          `json:"issuingWalletAddress"`
 	IssuingWalletAlias                          string                          `json:"issuingWalletAlias"`
 	MarketMakingWallet                          string                          `json:"marketMakingWallet"`
 	AssetDescription                            string                          `json:"assetDescription"`
@@ -441,7 +441,7 @@ func validateLogo(file *multipart.FileHeader) error {
 
 // makeRequest makes a request to the Trovo Wallet API
 // method: HTTP method (GET, POST, etc.)
-// endpoint: API endpoint (e.g., "/wallet-balances/{walletPublicKey}")
+// endpoint: API endpoint (e.g., "/wallet-balances/{walletAddress}")
 // token: JWT token for authorization
 // body: request body for POST/PUT requests (can be nil for GET requests)
 // result: pointer to the struct where the response will be unmarshaled
@@ -509,7 +509,7 @@ func makeRequest(method, endpoint, token string, body interface{}, result interf
 
 // makeRequest makes a request to the Trovo Wallet API
 // method: HTTP method (GET, POST, etc.)
-// endpoint: API endpoint (e.g., "/wallet-balances/{walletPublicKey}")
+// endpoint: API endpoint (e.g., "/wallet-balances/{walletAddress}")
 // token: JWT token for authorization
 // body: request body for POST/PUT requests (can be nil for GET requests)
 // result: pointer to the struct where the response will be unmarshaled
@@ -570,18 +570,18 @@ func makeRequestWithRaw(method, endpoint, token string, body []byte) (result []b
 }
 
 // @Summary Get wallet balances
-// @Description Get the wallet balances of the walletPublicKey submitted in the URI request
+// @Description Get the wallet balances of the walletAddress submitted in the URI request
 // @ID GetWalletBalances
 // @Tags Wallets
 // @Security JwtTokenAuth
 // @Produce json
 // @Param Authorization header string true "JWT Token" default(Bearer <your-token>)
-// @Param walletPublicKey path string true "Wallet Public Key"
+// @Param walletAddress path string true "Wallet Address"
 // @Success 200 {object} AssetBalances
 // @Failure 400 {object} models.ErrorResponse "Invalid request parameters"
 // @Failure 401 {object} models.ErrorResponse "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse "Internal server error"
-// @Router /wallet-balances/{walletPublicKey} [get]
+// @Router /wallet-balances/{walletAddress} [get]
 func GetWalletBalances(walletDB *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Extract JWT token metadata
@@ -614,14 +614,14 @@ func GetWalletBalances(walletDB *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		walletPublicKey := c.Param("walletPublicKey")
-		if walletPublicKey == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "wallet public key is required"})
+		walletAddress := c.Param("walletAddress")
+		if walletAddress == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "wallet address is required"})
 			return
 		}
 
 		// Use the makeRequestWithRaw function to fetch wallet balances
-		endpoint := fmt.Sprintf("/wallet-balances/%s", walletPublicKey)
+		endpoint := fmt.Sprintf("/wallet-balances/%s", walletAddress)
 		result, err := makeRequestWithRaw(http.MethodGet, endpoint, c.GetHeader("Authorization"), nil)
 		if err != nil {
 			log.Printf("[METRICS] error fetching wallet balances: %v", err)

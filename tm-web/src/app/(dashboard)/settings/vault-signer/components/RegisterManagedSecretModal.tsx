@@ -19,7 +19,7 @@ const emptyForm: IRegisterManagedSecretRequest = {
   vaultMount: "",
   vaultPath: "",
   vaultField: "",
-  walletPublicKey: "",
+  walletAddress: "",
   activeSigningCount: 3,
 };
 
@@ -60,8 +60,8 @@ const RegisterManagedSecretModal: React.FC<RegisterManagedSecretModalProps> = ({
           <Input id="label" value={form.label} onChange={update("label")} placeholder="e.g. Mainnet Payment Signers" required />
         </Field>
         <Field>
-          <Label htmlFor="walletPublicKey">Wallet Public Key</Label>
-          <Input id="walletPublicKey" value={form.walletPublicKey} onChange={update("walletPublicKey")} placeholder="G..." required />
+          <Label htmlFor="walletAddress">Wallet Address</Label>
+          <Input id="walletAddress" value={form.walletAddress} onChange={update("walletAddress")} placeholder="0x..." required />
         </Field>
         <Row>
           <Field>
@@ -70,7 +70,7 @@ const RegisterManagedSecretModal: React.FC<RegisterManagedSecretModalProps> = ({
           </Field>
           <Field>
             <Label htmlFor="vaultPath">Vault Path</Label>
-            <Input id="vaultPath" value={form.vaultPath} onChange={update("vaultPath")} placeholder="stellar/mainnet-signers" required />
+            <Input id="vaultPath" value={form.vaultPath} onChange={update("vaultPath")} placeholder="base/mainnet-signers" required />
           </Field>
         </Row>
         <Row>

@@ -16,7 +16,7 @@ import (
 type UserRegistrationInfo struct {
 	ID               string
 	Username         string
-	PublicKey        string
+	Address          string
 	Email            string
 	PublicIP         string
 	VerificationCode string

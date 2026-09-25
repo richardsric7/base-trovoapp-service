@@ -5,10 +5,10 @@ import (
 	"admin-panel-dashboard/internal/models"
 	serverModels "admin-panel-dashboard/internal/server/models"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/stellar/go/support/log"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -84,13 +84,13 @@ func BulkCreateOrUpdateConfigurations(s *serverModels.Server) gin.HandlerFunc {
 			switch item.Type {
 			case "role":
 				err = processRoleConfiguration(s, item.Data, userInfo)
-				log.Debug("Processing role configuration", "data", item.Data, "error", err)
+				log.Printf("Processing role configuration: data=%v error=%v", item.Data, err)
 			case "suspensionReason":
 				err = processSuspensionReasonConfiguration(s, item.Data, userInfo)
-				log.Debug("Processing suspension configuration", "data", item.Data, "error", err)
+				log.Printf("Processing suspension configuration: data=%v error=%v", item.Data, err)
 			case "currency":
 				err = processCurrencyConfiguration(s, item.Data, userInfo)
-				log.Debug("Processing currency configuration", "data", item.Data, "error", err)
+				log.Printf("Processing currency configuration: data=%v error=%v", item.Data, err)
 			default:
 				c.JSON(http.StatusBadRequest, ErrorResponse{Error: fmt.Sprintf("Unknown configuration type: %s", item.Type)})
 				return

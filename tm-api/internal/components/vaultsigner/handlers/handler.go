@@ -25,9 +25,8 @@ func NewHandler(db *gorm.DB, vc *vaultapi.Client, personalEnvPrefixes []services
 }
 
 // httpError is implemented by every internal/errors type (CustomError,
-// ErrorInvalidPublicKey, ErrorBlockchainAccountNotActivated, ...) — reusing
-// their HTTPCode()/JSONError() rather than inventing a second error
-// envelope for this feature (Section 6).
+// ErrorInvalidAddress, ...) — reusing their HTTPCode()/JSONError() rather
+// than inventing a second error envelope for this feature (Section 6).
 type httpError interface {
 	HTTPCode() int
 	JSONError() gin.H

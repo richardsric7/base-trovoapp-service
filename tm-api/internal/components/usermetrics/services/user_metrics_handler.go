@@ -844,7 +844,7 @@ func GetTradeListByUserName(walletDB, p2pDB *gorm.DB) gin.HandlerFunc {
 // @Param first_name query string false "Filter by user first_name"
 // @Param last_name query string false "Filter by user last name"
 // @Param city query string false "Filter by user city"
-// @Param public_key query string false "Filter by public_key"
+// @Param address query string false "Filter by address"
 // @Param search query string false "General search across multiple fields"
 // @Success 200 {object} response.Data
 // @Failure 400 {object} models.ErrorResponse
@@ -897,7 +897,7 @@ func GetUserList(walletDB *gorm.DB) gin.HandlerFunc {
 		lastName := c.Query("last_name")
 		search := c.Query("search")
 		city := c.Query("city")
-		publicKey := c.Query("public_key")
+		address := c.Query("address")
 
 		// Retrieve data with pagination and filtering
 		req := models.UserRequestDTO{
@@ -910,7 +910,7 @@ func GetUserList(walletDB *gorm.DB) gin.HandlerFunc {
 			LastName:  lastName,
 			City:      city,
 			Search:    search,
-			PublicKey: publicKey,
+			Address:   address,
 		}
 		tradeList, total, err := usermetricsDB.GetUserList(req, walletDB)
 		if err != nil {

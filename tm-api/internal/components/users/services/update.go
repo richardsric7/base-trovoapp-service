@@ -9,7 +9,7 @@ import (
 )
 
 // UpdateUser registers user information
-func UpdateUser(identifier string, authenticatedPublicKey string, userInfo models.UserUpdateInfo, publicIP string, db *gorm.DB) (models.UserUpdateInfo, error) {
+func UpdateUser(identifier string, authenticatedAddress string, userInfo models.UserUpdateInfo, publicIP string, db *gorm.DB) (models.UserUpdateInfo, error) {
 
 	user, err := usersdb.GetUserInfo(identifier, db)
 
@@ -32,7 +32,7 @@ func UpdateUser(identifier string, authenticatedPublicKey string, userInfo model
 }
 
 // UpdateUserKYC registers user information
-func UpdateUserKYC(identifier string, authenticatedPublicKey string, userInfo models.KYCUpdateInfo, publicIP string, db *gorm.DB) (models.KYCUpdateInfo, error) {
+func UpdateUserKYC(identifier string, authenticatedAddress string, userInfo models.KYCUpdateInfo, publicIP string, db *gorm.DB) (models.KYCUpdateInfo, error) {
 
 	user, err := usersdb.GetUserInfo(identifier, db)
 

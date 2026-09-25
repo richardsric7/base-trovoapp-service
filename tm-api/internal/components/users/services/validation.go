@@ -166,7 +166,7 @@ func ValidateUserRegistrationInfo(user models.UserRegistrationInfo) error {
 
 		}
 
-		if len(user.PublicKey) == 0 {
+		if len(user.Address) == 0 {
 			var x errors.ErrorMissingParameter
 			x.Parameter = "publicKey"
 			return &x

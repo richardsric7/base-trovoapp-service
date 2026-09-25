@@ -113,7 +113,7 @@ export interface IStakeholderAssetAssignedStakeholder {
 }
 
 export interface IStakeholderAssetWallets {
-  issuing_wallet_public_key?: string;
+  issuing_wallet_address?: string;
   issuing_wallet_alias?: string;
   market_making_wallet?: string;
   wallet_to_hold_assets_not_for_sale?: string;

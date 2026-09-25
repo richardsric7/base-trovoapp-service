@@ -505,7 +505,7 @@ func VerifyLoginID(c *gin.Context, s *serverModels.Server) {
 
 				FirstName: userData.FirstName,
 				Email:     userData.Email,
-				PublicKey: userData.PublicKey,
+				Address:   userData.Address,
 				// Verified:  userData.Verified,
 				PublicIP: clientIP,
 			}
@@ -572,7 +572,7 @@ func VerifyLoginID(c *gin.Context, s *serverModels.Server) {
 				user.Email = userData.Email
 			}
 
-			user.PublicKey = userData.PublicKey
+			user.Address = userData.Address
 
 			lastLoginData := user.AppendGeoInfo()
 			// err = db.Save(&user).Error

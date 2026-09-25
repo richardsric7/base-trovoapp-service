@@ -79,7 +79,7 @@ const AssetTokenizer: React.FC<AssetTokenizerProps> = ({ asset }) => {
           <div>
             <Title>Wallet Address</Title>
             {userData?.data?.user_info?.email && (
-              <Text>{userData.data.user_info.public_key}</Text>
+              <Text>{userData.data.user_info.address}</Text>
             )}
           </div>
         </UserDetails>

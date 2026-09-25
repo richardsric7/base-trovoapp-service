@@ -52,11 +52,11 @@ const RecentRegistration = () => {
 
     {
       title: "Public key",
-      dataIndex: "public_key",
-      key: "public_key",
+      dataIndex: "address",
+      key: "address",
       render: (_: any, record: any) => (
         <PublicKey>
-          <TruncatedText text={record.public_key} maxLength={15} />
+          <TruncatedText text={record.address} maxLength={15} />
         </PublicKey>
       ),
     },
@@ -100,7 +100,7 @@ const RecentRegistration = () => {
       key: user.id,
       full_name: user.full_name,
       username: user.username,
-      public_key: user.public_key,
+      address: user.address,
       email: user.email,
       phone_number: user.phone_number,
       date: user.date,

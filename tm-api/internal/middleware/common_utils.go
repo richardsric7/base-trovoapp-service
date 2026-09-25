@@ -2,11 +2,11 @@ package middleware
 
 import "github.com/gin-gonic/gin"
 
-func ExtractPublicKey(c *gin.Context) string {
+func ExtractAddress(c *gin.Context) string {
 
-	publicKey := c.GetHeader("X-TW-PUBLIC-KEY")
+	address := c.GetHeader("X-TW-PUBLIC-KEY")
 
-	return publicKey
+	return address
 }
 
 func ExtractSigner(c *gin.Context) string {

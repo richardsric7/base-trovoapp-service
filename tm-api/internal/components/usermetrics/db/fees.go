@@ -13,7 +13,7 @@ type FeeCollection struct {
 	CreatedAt                  time.Time `json:"created_at"`
 	UpdatedAt                  time.Time `json:"updated_at"`
 	FromUsername               string    `json:"from_username"`
-	FromWalletPublicKey        string    `json:"from_wallet_public_key"`
+	FromWalletAddress          string    `json:"from_wallet_address"`
 	FromWalletAlias            string    `json:"from_wallet_alias"`
 	BelongsToEnterpriseProfile string    `json:"belongs_to_enterprise_profile"`
 	FeeType                    string    `json:"fee_type"`

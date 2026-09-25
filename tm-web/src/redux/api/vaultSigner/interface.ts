@@ -29,8 +29,8 @@ export interface IPutSecretRequest {
 
 export interface IPutSecretResponseData {
   vaultVersion: number;
-  stellarTxHash?: string;
-  stellarTxStatus?: string;
+  baseTxHash?: string;
+  baseTxStatus?: string;
   error?: string;
 }
 
@@ -75,7 +75,7 @@ export interface IManagedSecret {
   vault_mount: string;
   vault_path: string;
   vault_field: string;
-  wallet_public_key: string;
+  wallet_address: string;
   active_signing_count: number;
   created_at: string;
 }
@@ -104,7 +104,7 @@ export interface IRegisterManagedSecretRequest {
   vaultMount: string;
   vaultPath: string;
   vaultField: string;
-  walletPublicKey: string;
+  walletAddress: string;
   activeSigningCount: number;
 }
 
@@ -127,8 +127,8 @@ export interface IAssignmentResponse {
 
 export interface IOnChainRemoval {
   attempted: boolean;
-  stellarTxHash?: string;
-  stellarTxStatus?: string;
+  baseTxHash?: string;
+  baseTxStatus?: string;
 }
 
 export interface IDeleteAssignmentResponseData {
@@ -153,8 +153,8 @@ export interface IAuditLogRow {
   actor_type: string;
   vault_version_before?: number;
   vault_version_after?: number;
-  stellar_tx_hash?: string;
-  stellar_tx_status?: string;
+  base_tx_hash?: string;
+  base_tx_status?: string;
   changed_at: string;
   ip_address?: string;
 }

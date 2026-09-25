@@ -3,21 +3,16 @@ package services
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
 	"strings"
 
 	vaultsignermodels "admin-panel-dashboard/internal/components/vaultsigner/models"
 	"admin-panel-dashboard/internal/components/vaultsigner/vaultclient"
-	tErrors "admin-panel-dashboard/internal/errors"
+	"admin-panel-dashboard/internal/evmkeypair"
+	"admin-panel-dashboard/internal/gnosissafe"
 	"admin-panel-dashboard/internal/network"
 
-	"github.com/ecnepsnai/discord"
+	"github.com/ethereum/go-ethereum/common"
 	vaultapi "github.com/hashicorp/vault/api"
-	"github.com/stellar/go/clients/horizonclient"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/protocols/horizon"
-	"github.com/stellar/go/txnbuild"
 )
 
 // SwapResult is what the handler needs to build the PUT /me/vault-signer/secrets/:secretId
@@ -26,8 +21,8 @@ type SwapResult struct {
 	VaultVersionBefore int
 	VaultVersionAfter  int
 	Swapped            bool // true if an on-chain swap was attempted
-	StellarTxHash      string
-	StellarTxStatus    string // "success" | "failed", only meaningful if Swapped
+	BaseTxHash         string
+	BaseTxStatus       string // "success" | "failed", only meaningful if Swapped
 	SwapError          error  // non-nil if Swapped and submission failed
 }
 
@@ -36,23 +31,31 @@ type SwapResult struct {
 // assigned to the caller) are the handler's responsibility — this function
 // assumes the caller is already authorized and focuses purely on the
 // Vault/on-chain mechanics.
+//
+// The managed secret's WalletAddress is expected to be a deployed Safe
+// (Safe{Wallet}, formerly Gnosis Safe) contract's address: Base EOAs have
+// no native multisig/weight concept the way a Stellar account did, so
+// "swap this wallet's signer" now means calling the Safe's own
+// swapOwner(prevOwner, oldOwner, newOwner) through execTransaction, with
+// enough of the Safe's other current owners co-signing to meet its
+// threshold - see internal/gnosissafe's package doc.
 func SwapSigner(ctx context.Context, vc *vaultapi.Client, secret vaultsignermodels.VaultSignerManagedSecret, targetIndex int, newValueRaw string) (SwapResult, error) {
 	// Step 2 (Section 5d/original 4d): validate the new key through the full
 	// Section 5c pipeline.
-	newPublicKey, err := ValidateSignerValue(newValueRaw)
+	newAddressStr, err := ValidateSignerValue(newValueRaw)
 	if err != nil {
 		return SwapResult{}, err
 	}
 	newValueTrimmed := strings.TrimSpace(newValueRaw)
 
 	// Step 3: validate the old key currently at targetIndex — structural
-	// check only, no Horizon re-check.
+	// check only, no on-chain re-check.
 	currentValue, _, err := vaultclient.ReadValue(ctx, vc, secret, targetIndex)
 	if err != nil {
 		return SwapResult{}, err
 	}
 	oldValueTrimmed := strings.TrimSpace(currentValue)
-	oldKP, oldErr := keypair.ParseFull(oldValueTrimmed)
+	oldKP, oldErr := evmkeypair.ParseFull(oldValueTrimmed)
 
 	// Step 4: if the old value isn't a valid keypair, or new == old, skip the
 	// on-chain swap entirely and fall through to a plain Vault write.
@@ -64,25 +67,24 @@ func SwapSigner(ctx context.Context, vc *vaultapi.Client, secret vaultsignermode
 		return SwapResult{VaultVersionBefore: versionBefore, VaultVersionAfter: versionAfter, Swapped: false}, nil
 	}
 
-	// Step 5: fetch the wallet's current on-chain state — the old key's
-	// current signer weight (preserving threshold math) and sequence number.
+	oldAddress := common.HexToAddress(oldKP.Address())
+	newAddress := common.HexToAddress(newAddressStr)
+
+	// Step 5: fetch the Safe's current owner set and confirm the old key is
+	// actually still one of them - the Base equivalent of reading the
+	// wallet's current signer weight off the Stellar account.
 	client := network.GetBlockchainClient()
-	account, err := client.AccountDetail(horizonclient.AccountRequest{AccountID: secret.WalletPublicKey})
+	safe, err := gnosissafe.New(client, secret.WalletAddress)
 	if err != nil {
-		return SwapResult{}, fmt.Errorf("fetching wallet account detail: %w", err)
+		return SwapResult{}, fmt.Errorf("resolving safe address: %w", err)
 	}
-	oldPublicKey := oldKP.Address()
-	var oldWeight int32
-	found := false
-	for _, s := range account.Signers {
-		if s.Key == oldPublicKey {
-			oldWeight = int32(s.Weight)
-			found = true
-			break
-		}
+	owners, err := safe.Owners(ctx)
+	if err != nil {
+		return SwapResult{}, fmt.Errorf("fetching safe owners: %w", err)
 	}
-	if !found {
-		return SwapResult{}, fmt.Errorf("old signer %s is not currently registered on wallet %s", oldPublicKey, secret.WalletPublicKey)
+	prevOwner, err := gnosissafe.PrevOwner(owners, oldAddress)
+	if err != nil {
+		return SwapResult{}, fmt.Errorf("old signer %s is not currently registered on safe %s: %w", oldAddress.Hex(), secret.WalletAddress, err)
 	}
 
 	// Step 6: update Vault first, per the established (accepted-risk) order.
@@ -93,51 +95,39 @@ func SwapSigner(ctx context.Context, vc *vaultapi.Client, secret vaultsignermode
 
 	// Step 7: gather signing keys — every active index except targetIndex,
 	// read from the now-updated CSV. The new value is deliberately not used
-	// to sign — it isn't a registered on-chain signer yet.
+	// to sign — it isn't a registered Safe owner yet.
 	signers, err := GatherActiveSigners(ctx, vc, secret, targetIndex)
 	if err != nil {
 		return SwapResult{VaultVersionBefore: versionBefore, VaultVersionAfter: versionAfter}, err
 	}
 
-	// Step 8: build the two-operation SetOptions transaction.
-	tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
-		SourceAccount:        &account,
-		IncrementSequenceNum: true,
-		BaseFee:              txnbuild.MinBaseFee,
-		Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewTimeout(300)},
-		Operations: []txnbuild.Operation{
-			&txnbuild.SetOptions{Signer: &txnbuild.Signer{Address: oldPublicKey, Weight: 0}},
-			&txnbuild.SetOptions{Signer: &txnbuild.Signer{Address: newPublicKey, Weight: txnbuild.Threshold(oldWeight)}},
-		},
-	})
+	// Step 8-9: build the swapOwner call, collect one signature per
+	// gathered signer over the Safe's own getTransactionHash, and submit.
+	innerCalldata, err := gnosissafe.SwapOwnerCalldata(prevOwner, oldAddress, newAddress)
 	if err != nil {
-		return SwapResult{VaultVersionBefore: versionBefore, VaultVersionAfter: versionAfter}, fmt.Errorf("building swap transaction: %w", err)
+		return SwapResult{VaultVersionBefore: versionBefore, VaultVersionAfter: versionAfter}, fmt.Errorf("encoding swapOwner call: %w", err)
 	}
-
-	// Step 9: sign with every gathered active signer except targetIndex.
-	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), signers...)
-	if err != nil {
-		return SwapResult{VaultVersionBefore: versionBefore, VaultVersionAfter: versionAfter}, fmt.Errorf("signing swap transaction: %w", err)
-	}
-
-	// Step 10: submit, following this repo's established Horizon submission
-	// error-handling shape (internal/network/main.go's SubmitXdrWithSignature*).
 	result := SwapResult{VaultVersionBefore: versionBefore, VaultVersionAfter: versionAfter, Swapped: true}
-	txResp, submitErr := SubmitSetOptionsTransaction(client, tx)
+	execResult, submitErr := submitSafeOwnerChange(ctx, safe, innerCalldata, signers)
 	if submitErr != nil {
-		result.StellarTxStatus = "failed"
+		result.BaseTxStatus = "failed"
 		result.SwapError = submitErr
 		return result, nil // Vault already updated — the mismatch is a documented, accepted risk (Section 5d)
 	}
-	result.StellarTxHash = txResp.Hash
-	result.StellarTxStatus = "success"
+	result.BaseTxHash = execResult.TxHash
+	if execResult.Success {
+		result.BaseTxStatus = "success"
+	} else {
+		result.BaseTxStatus = "failed"
+		result.SwapError = fmt.Errorf("execTransaction for swapOwner reverted on-chain (tx %s)", execResult.TxHash)
+	}
 	return result, nil
 }
 
 // GatherActiveSigners reads the now-updated CSV and parses every active
 // index (0..ActiveSigningCount-1) except targetIndex into a signing keypair.
-func GatherActiveSigners(ctx context.Context, vc *vaultapi.Client, secret vaultsignermodels.VaultSignerManagedSecret, targetIndex int) ([]*keypair.Full, error) {
-	var signers []*keypair.Full
+func GatherActiveSigners(ctx context.Context, vc *vaultapi.Client, secret vaultsignermodels.VaultSignerManagedSecret, targetIndex int) ([]*evmkeypair.Full, error) {
+	var signers []*evmkeypair.Full
 	for i := 0; i < secret.ActiveSigningCount; i++ {
 		if i == targetIndex {
 			continue
@@ -146,7 +136,7 @@ func GatherActiveSigners(ctx context.Context, vc *vaultapi.Client, secret vaults
 		if err != nil {
 			return nil, fmt.Errorf("reading active signer at index %d: %w", i, err)
 		}
-		kp, err := keypair.ParseFull(strings.TrimSpace(value))
+		kp, err := evmkeypair.ParseFull(strings.TrimSpace(value))
 		if err != nil {
 			return nil, fmt.Errorf("active signer at index %d is not a valid keypair: %w", i, err)
 		}
@@ -155,46 +145,38 @@ func GatherActiveSigners(ctx context.Context, vc *vaultapi.Client, secret vaults
 	return signers, nil
 }
 
-// SubmitSetOptionsTransaction submits a freshly-built SetOptions transaction,
-// mirroring internal/network/main.go's SubmitXdrWithSignature* error
-// handling (horizonclient.Error inspection, Discord alert on connectivity
-// failure) even though this submits a transaction this service itself built,
-// not a pre-signed XDR from a caller.
-func SubmitSetOptionsTransaction(client *horizonclient.Client, tx *txnbuild.Transaction) (result horizon.Transaction, err error) {
-	xdrBase64, err := tx.Base64()
+// submitSafeOwnerChange is the shared "gather one signature per active
+// signer over the Safe's current transaction hash, then submit and wait
+// for the receipt" tail end SwapSigner and DeleteAssignment's full path
+// both need, given an already-ABI-encoded swapOwner/removeOwner call. The
+// first gathered signer pays gas and is the execTransaction's msg.sender —
+// execTransaction doesn't require the caller to be an owner, only that
+// signatures satisfy the Safe's threshold, and Vault-managed signer keys
+// are already expected to hold enough Base ETH to act as transaction
+// senders elsewhere in this system.
+func submitSafeOwnerChange(ctx context.Context, safe *gnosissafe.Safe, innerCalldata []byte, signers []*evmkeypair.Full) (gnosissafe.ExecResult, error) {
+	if len(signers) == 0 {
+		return gnosissafe.ExecResult{}, fmt.Errorf("no active signers available to co-sign or submit this change")
+	}
+
+	nonce, err := safe.Nonce(ctx)
 	if err != nil {
-		return result, fmt.Errorf("encoding swap transaction: %w", err)
+		return gnosissafe.ExecResult{}, fmt.Errorf("fetching safe nonce: %w", err)
+	}
+	safeTxHash, err := safe.TransactionHash(ctx, safe.Address, innerCalldata, nonce)
+	if err != nil {
+		return gnosissafe.ExecResult{}, fmt.Errorf("computing safe transaction hash: %w", err)
 	}
 
-	txnResult, submitErr := client.SubmitTransactionXDR(xdrBase64)
-	if submitErr != nil {
-		if strings.Contains(submitErr.Error(), "timeout") || strings.Contains(submitErr.Error(), "handshake") ||
-			strings.Contains(submitErr.Error(), "read tcp") || strings.Contains(submitErr.Error(), "connection reset by peer") ||
-			strings.Contains(submitErr.Error(), "dial tcp") || strings.Contains(submitErr.Error(), "no such host") {
-			discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
-			if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
-				discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
-			}
-			if sayErr := discord.Say(fmt.Sprintf("[vaultsigner.SwapSigner] error connecting to expansion service: %v\nXDR: %v", submitErr, xdrBase64)); sayErr != nil {
-				log.Println("[vaultsigner.SwapSigner] discord alert failed:", sayErr)
-			}
+	sigs := make(map[common.Address][]byte, len(signers))
+	for _, signer := range signers {
+		sig, sigErr := gnosissafe.SignTransactionHash(signer.PrivateKey(), safeTxHash)
+		if sigErr != nil {
+			return gnosissafe.ExecResult{}, fmt.Errorf("signing safe transaction hash: %w", sigErr)
 		}
-
-		if horizonException, ok := submitErr.(*horizonclient.Error); ok {
-			for key, val := range horizonException.Problem.Extras {
-				log.Printf("[vaultsigner.SwapSigner] Extras: %v is %v\n", key, val)
-			}
-			if resultCodes, codesErr := horizonException.ResultCodes(); codesErr == nil {
-				for key, val := range resultCodes.OperationCodes {
-					log.Printf("[vaultsigner.SwapSigner] Result code: %v is %v\n", key, val)
-				}
-			}
-		} else {
-			log.Printf("[vaultsigner.SwapSigner] not horizon error: %v\n", submitErr)
-		}
-
-		return result, &tErrors.CustomError{Param: "publicKey", Err: "error operation failed", ErrMessage: "Operation Failed", Code: 500}
+		sigs[common.HexToAddress(signer.Address())] = sig
 	}
+	signatures := gnosissafe.ConcatSignatures(sigs)
 
-	return txnResult, nil
+	return safe.SubmitOwnerChange(ctx, signers[0].PrivateKey(), innerCalldata, signatures, network.GetBlockchainChainID())
 }
