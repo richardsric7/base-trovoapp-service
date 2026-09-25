@@ -16,6 +16,35 @@ import (
 // is deleted (Section 5e).
 const MinCSVEntries = 4
 
+// Separator delimits entries in a managed secret's stored CSV value. ";"
+// rather than "," - a Base signer value is commonly pasted in from a
+// wallet's mnemonic recovery phrase, and some wallets export that phrase
+// comma-separated rather than space-separated, so a comma can appear
+// inside a single entry. A semicolon can't collide with anything a pasted
+// mnemonic or hex private key ever contains.
+const Separator = ";"
+
+// legacySeparator is the delimiter every managed secret's CSV used before
+// the Base port (Stellar secret seeds never contained a comma, so it was
+// safe at the time). SplitCSV falls back to it on read so a managed secret
+// registered before the cutover keeps parsing correctly; the next write
+// through WriteAtIndex/CollapseCSV always rejoins with Separator, migrating
+// that one managed secret's CSV in place with no separate migration step.
+const legacySeparator = ","
+
+// SplitCSV splits a managed secret's stored value into its entries. It
+// tries Separator first; only when the value contains no Separator at all
+// but does contain legacySeparator does it fall back to the pre-cutover
+// format - a single entry (hex private key or mnemonic) never legitimately
+// contains either character, so a bare comma with no semicolon anywhere in
+// the value is unambiguously the old format, not part of one entry.
+func SplitCSV(raw string) []string {
+	if !strings.Contains(raw, Separator) && strings.Contains(raw, legacySeparator) {
+		return strings.Split(raw, legacySeparator)
+	}
+	return strings.Split(raw, Separator)
+}
+
 var (
 	// ErrIndexOutOfRange means the requested index has no corresponding CSV
 	// entry — checked against the live CSV length, since capacity isn't a
@@ -67,7 +96,7 @@ func ReadValue(ctx context.Context, client *vaultapi.Client, secret vaultsignerm
 	if err != nil {
 		return "", 0, err
 	}
-	parts := strings.Split(csvValue, ",")
+	parts := SplitCSV(csvValue)
 	if index < 0 || index >= len(parts) {
 		return "", 0, ErrIndexOutOfRange
 	}
@@ -91,7 +120,7 @@ func WriteAtIndex(ctx context.Context, client *vaultapi.Client, secret vaultsign
 	if err != nil {
 		return 0, 0, err
 	}
-	parts := strings.Split(csvValue, ",")
+	parts := SplitCSV(csvValue)
 	if index < 0 || index >= len(parts) {
 		return 0, 0, ErrIndexOutOfRange
 	}
@@ -99,7 +128,7 @@ func WriteAtIndex(ctx context.Context, client *vaultapi.Client, secret vaultsign
 		return 0, 0, ErrCSVBelowMinimum
 	}
 	parts[index] = newValue
-	newVersion, err := putCSV(ctx, client, secret, strings.Join(parts, ","), version)
+	newVersion, err := putCSV(ctx, client, secret, strings.Join(parts, Separator), version)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -112,16 +141,16 @@ func WriteAtIndex(ctx context.Context, client *vaultapi.Client, secret vaultsign
 // needs that same read for its own pre-collapse snapshot before this
 // function ever runs. Returns the version the collapse produced.
 func CollapseCSV(ctx context.Context, client *vaultapi.Client, secret vaultsignermodels.VaultSignerManagedSecret, csvValue string, version, index int) (newVersion int, err error) {
-	parts := strings.Split(csvValue, ",")
+	parts := SplitCSV(csvValue)
 	if index < 0 || index >= len(parts) {
 		return 0, ErrIndexOutOfRange
 	}
 	parts = append(parts[:index], parts[index+1:]...)
-	return putCSV(ctx, client, secret, strings.Join(parts, ","), version)
+	return putCSV(ctx, client, secret, strings.Join(parts, Separator), version)
 }
 
 // CountValidKeypairs reports how many entries in parts are structurally
-// valid Stellar keypairs — the Section 5e trigger for whether an assignment
+// valid Base keypairs — the Section 5e trigger for whether an assignment
 // deletion needs to touch the chain at all.
 func CountValidKeypairs(parts []string, isValidKeypair func(string) bool) int {
 	count := 0
