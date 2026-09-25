@@ -1323,7 +1323,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 	if !fee.IsZero() {
 		if paymentInfo.Multiparty == 1 {
 			//process service fee
-			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 42 {
+			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_CONTRACT_ADDRESS")) != 42 {
 				ops = append(ops, &basetxn.Payment{
 					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
@@ -1337,7 +1337,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
 					SourceAccount: sourceWallet.ID,
-					Asset:         basetxn.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+					Asset:         basetxn.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_CONTRACT_ADDRESS")},
 				})
 				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), sourceWallet.Alias))
 

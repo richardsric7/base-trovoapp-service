@@ -164,8 +164,8 @@ func AlertFaucetLowBalance(faucetKP *evmkeypair.Full) {
 			LogDiscordFaucetLowBalance(fmt.Sprintf("REWARD FAUCET: %v has low GAS minimum balance %v. the balance is: %v", faucetPK, rewardFaucetGASMin, nativeBalance.String()))
 		}
 
-		if os.Getenv("REWARD_ASSET_CODE") != "" && os.Getenv("REWARD_ASSET_ISSUER") != "" {
-			rewardAsset := basetxn.CreditAsset{Code: os.Getenv("REWARD_ASSET_CODE"), Issuer: os.Getenv("REWARD_ASSET_ISSUER")}
+		if os.Getenv("REWARD_ASSET_CODE") != "" && os.Getenv("REWARD_ASSET_CONTRACT_ADDRESS") != "" {
+			rewardAsset := basetxn.CreditAsset{Code: os.Getenv("REWARD_ASSET_CODE"), Issuer: os.Getenv("REWARD_ASSET_CONTRACT_ADDRESS")}
 			_, _, _, rewardBalance, _, e := network.BlockchainAccountProperties(client, faucetPK, rewardAsset)
 			if e == nil {
 				rewardFaucetMin := "200000"

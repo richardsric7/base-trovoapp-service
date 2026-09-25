@@ -532,7 +532,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 
 		//get swap the asset amount to TROV.
 		pathInput := swapModel.SwapSendPathInput{
-			DestinationAssets:     "TROV:" + os.Getenv("TROV_ASSET_ISSUER"),
+			DestinationAssets:     "TROV:" + os.Getenv("TROV_ASSET_CONTRACT_ADDRESS"),
 			SourceAssetCode:       patronSubInput.PaymentAssetCode,
 			SourceContractAddress: patronSubInput.PaymentContractAddress,
 			SourceAmount:          requiredSourceQuantity,
@@ -558,7 +558,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 				SendAsset:     sendAsset,
 				SendAmount:    estimatedTrov,
 				Destination:   patronFeeKP.Address(),
-				DestAsset:     basetxn.CreditAsset{Code: "TROV", Issuer: os.Getenv("TROV_ASSET_ISSUER")},
+				DestAsset:     basetxn.CreditAsset{Code: "TROV", Issuer: os.Getenv("TROV_ASSET_CONTRACT_ADDRESS")},
 				DestMin:       "0.0000001",
 				Path:          path,
 				SourceAccount: owner.Address, //primary wallet
@@ -569,7 +569,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 		ops = append(ops, &basetxn.Payment{
 			Destination:   patronFeeKP.Address(),
 			Amount:        requiredSourceQuantity,
-			Asset:         basetxn.CreditAsset{Code: "TROV", Issuer: os.Getenv("TROV_ASSET_ISSUER")},
+			Asset:         basetxn.CreditAsset{Code: "TROV", Issuer: os.Getenv("TROV_ASSET_CONTRACT_ADDRESS")},
 			SourceAccount: owner.Address, //primary wallet
 		})
 	}

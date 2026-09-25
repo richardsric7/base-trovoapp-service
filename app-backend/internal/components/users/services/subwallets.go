@@ -341,7 +341,7 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 			}
 			if os.Getenv("ENABLE_TROV_ASSET_BY_DEFAULT") != "0" {
 
-				issuer := os.Getenv("TROV_ASSET_ISSUER")
+				issuer := os.Getenv("TROV_ASSET_CONTRACT_ADDRESS")
 				if issuer != "" {
 					trovAsset := basetxn.CreditAsset{Code: "TROV", Issuer: issuer}
 					_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.Address, trovAsset)
@@ -518,7 +518,7 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 
 				if os.Getenv("ENABLE_TROV_ASSET_BY_DEFAULT") != "0" {
 
-					issuer := os.Getenv("TROV_ASSET_ISSUER")
+					issuer := os.Getenv("TROV_ASSET_CONTRACT_ADDRESS")
 					if issuer != "" {
 						trovAsset := basetxn.CreditAsset{Code: "TROV", Issuer: issuer}
 						_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, linkedWallet.ID, trovAsset)

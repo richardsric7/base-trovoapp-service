@@ -143,7 +143,7 @@ func generateClosedGroupXdr(owner *userModels.User, closedGroupInput *userModels
 	}
 	if cgFeeAmountUSD > 0 {
 		cgFeeAssetCode = "TROV"
-		cgFeeContractAddress = os.Getenv("TROV_ASSET_ISSUER")
+		cgFeeContractAddress = os.Getenv("TROV_ASSET_CONTRACT_ADDRESS")
 	}
 	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 	cgFeeKP := evmkeypair.MustParseFull(CLOSED_GROUP_FEE.FeeWalletSecretKey)
