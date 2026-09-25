@@ -1,0 +1,5 @@
+{
+  "action": "fund_release.approve",
+  "entity_id": "<FUND_RELEASE_APPROVE_ID_FROM_CREATE_RESPONSE>",
+  "entity_type": "fund_release_request"
+}

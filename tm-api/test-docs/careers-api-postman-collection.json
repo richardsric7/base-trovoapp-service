@@ -1,0 +1,272 @@
+{
+  "info": {
+    "name": "Careers Module API",
+    "description": "API collection for Careers and Job Module endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Career Role",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"heading\": \"Head of People Operations (HPO)\",\n  \"company_overview\": \"Trovotech Ltd is a SEC - regulated digital asset and tokenization platform building secure, compliant, and accessible investment infrastructure for real-world assets.\",\n  \"sections\": {\n    \"The Role\": [\n      \"This is a strategic leadership role, not an administrative HR position.\",\n      \"You'll design and own hiring, onboarding, performance management, policy custodian and culture frameworks that support a fast-growing, regulated fintech.\"\n    ],\n    \"What You'll Own\": [\n      \"End-to-end people operations and HR strategy\",\n      \"Hiring and onboarding systems across technical, compliance, and growth roles\"\n    ],\n    \"What We're Looking For\": [\n      \"7+ years HR / People Ops experience (startup, fintech, or regulated environment preferred)\",\n      \"Proven experience building people systems from scratch\"\n    ],\n    \"What Success Looks Like\": [\n      \"6 months: Hiring and performance systems fully operational\",\n      \"12 months: Strong retention, engagement, and leadership depth\"\n    ]\n  },\n  \"application\": {\n    \"location\": \"Nigeria preferred - Remote/Hybrid\",\n    \"apply\": \"Send CV + Short Note to hiring@trovotech.io\",\n    \"subject\": \"Head of People Operations - Trovotech\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/careers/roles",
+          "host": ["{{baseUrl}}"],
+          "path": ["careers", "roles"]
+        }
+      }
+    },
+    {
+      "name": "Get All Career Roles (Public)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/careers/roles",
+          "host": ["{{baseUrl}}"],
+          "path": ["careers", "roles"]
+        }
+      }
+    },
+    {
+      "name": "Get All Career Roles (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/careers/roles",
+          "host": ["{{baseUrl}}"],
+          "path": ["careers", "roles"]
+        }
+      }
+    },
+    {
+      "name": "Get Career Role by ID (Public)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/careers/roles/:id",
+          "host": ["{{baseUrl}}"],
+          "path": ["careers", "roles", ":id"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{roleId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Career Role by ID (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/careers/roles/:id",
+          "host": ["{{baseUrl}}"],
+          "path": ["careers", "roles", ":id"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{roleId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Career Role",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"heading\": \"Head of People Operations (HPO) - Updated\",\n  \"company_overview\": \"Updated company overview\",\n  \"sections\": {\n    \"The Role\": [\"Updated role description\"],\n    \"What You'll Own\": [\"Updated responsibilities\"],\n    \"What We're Looking For\": [\"Updated requirements\"],\n    \"What Success Looks Like\": [\"Updated success metrics\"]\n  },\n  \"application\": {\n    \"location\": \"Nigeria preferred - Remote/Hybrid\",\n    \"apply\": \"Send CV + Short Note to hiring@trovotech.io\",\n    \"subject\": \"Head of People Operations - Trovotech\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/careers/roles/:id",
+          "host": ["{{baseUrl}}"],
+          "path": ["careers", "roles", ":id"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{roleId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Delete Career Role",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/careers/roles/:id",
+          "host": ["{{baseUrl}}"],
+          "path": ["careers", "roles", ":id"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{roleId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Publish Career Role",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/careers/roles/:id/publish",
+          "host": ["{{baseUrl}}"],
+          "path": ["careers", "roles", ":id", "publish"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{roleId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Enable Career Role",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"published\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/careers/roles/:id/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["careers", "roles", ":id", "status"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{roleId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Disable Career Role",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"disabled\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/careers/roles/:id/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["careers", "roles", ":id", "status"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{roleId}}"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8082/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "roleId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

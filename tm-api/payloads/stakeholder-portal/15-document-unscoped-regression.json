@@ -1,0 +1,10 @@
+{
+  "category": "internal",
+  "title": "Unscoped document leak regression",
+  "file_url": "https://example.com/staging/unscoped.pdf",
+  "mime_type": "application/pdf",
+  "version": 1,
+  "access_roles": [
+    "asset_manager"
+  ]
+}

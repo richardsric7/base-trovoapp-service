@@ -1,0 +1,250 @@
+{
+  "careers_api_examples": {
+    "description": "Example JSON requests for Careers Module API endpoints",
+    
+    "1_create_career_role": {
+      "endpoint": "POST /api/v1/careers/roles",
+      "method": "POST",
+      "description": "Create a new career role (defaults to draft status)",
+      "headers": {
+        "Authorization": "Bearer <your-jwt-token>",
+        "Content-Type": "application/json"
+      },
+      "request_body": {
+        "heading": "Head of People Operations (HPO)",
+        "company_overview": "Trovotech Ltd is a SEC - regulated digital asset and tokenization platform building secure, compliant, and accessible investment infrastructure for real-world assets. Our mission is to build compliant, intuitive, and scalable technology that enables the tokenization, management and trade of real-world assets, expanding access to capital and investment opportunities within emerging and global markets.",
+        "sections": {
+          "The Role": [
+            "This is a strategic leadership role, not an administrative HR position.",
+            "You'll design and own hiring, onboarding, performance management, policy custodian and culture frameworks that support a fast-growing, regulated fintech."
+          ],
+          "What You'll Own": [
+            "End-to-end people operations and HR strategy",
+            "Hiring and onboarding systems across technical, compliance, and growth roles",
+            "Performance, accountability, and leadership development frameworks",
+            "Culture, values, and employee experience"
+          ],
+          "What We're Looking For": [
+            "7+ years HR / People Ops experience (startup, fintech, or regulated environment preferred)",
+            "Proven experience building people systems from scratch",
+            "High integrity, sound judgment, and strong leadership presence"
+          ],
+          "What Success Looks Like": [
+            "6 months: Hiring and performance systems fully operational",
+            "12 months: Strong retention, engagement, and leadership depth"
+          ]
+        },
+        "application": {
+          "location": "Nigeria preferred - Remote/Hybrid",
+          "apply": "Send CV + Short Note to hiring@trovotech.io",
+          "subject": "Head of People Operations - Trovotech"
+        }
+      },
+      "example_curl": "curl -X POST 'http://localhost:8082/api/v1/careers/roles' \\\n  -H 'Authorization: Bearer <your-jwt-token>' \\\n  -H 'Content-Type: application/json' \\\n  -d @careers-api-examples.json"
+    },
+
+    "2_get_all_career_roles_public": {
+      "endpoint": "GET /api/v1/careers/roles",
+      "method": "GET",
+      "description": "Get all published career roles (public endpoint, no auth required)",
+      "headers": {},
+      "query_parameters": {},
+      "example_curl": "curl -X GET 'http://localhost:8082/api/v1/careers/roles'"
+    },
+
+    "3_get_all_career_roles_admin": {
+      "endpoint": "GET /api/v1/careers/roles",
+      "method": "GET",
+      "description": "Get all career roles including drafts (admin endpoint, requires auth)",
+      "headers": {
+        "Authorization": "Bearer <your-jwt-token>"
+      },
+      "query_parameters": {},
+      "example_curl": "curl -X GET 'http://localhost:8082/api/v1/careers/roles' \\\n  -H 'Authorization: Bearer <your-jwt-token>'"
+    },
+
+    "4_get_career_role_by_id_public": {
+      "endpoint": "GET /api/v1/careers/roles/:id",
+      "method": "GET",
+      "description": "Get a specific career role by ID (public, only if published)",
+      "headers": {},
+      "path_parameters": {
+        "id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "example_curl": "curl -X GET 'http://localhost:8082/api/v1/careers/roles/550e8400-e29b-41d4-a716-446655440000'"
+    },
+
+    "5_get_career_role_by_id_admin": {
+      "endpoint": "GET /api/v1/careers/roles/:id",
+      "method": "GET",
+      "description": "Get a specific career role by ID (admin, includes drafts)",
+      "headers": {
+        "Authorization": "Bearer <your-jwt-token>"
+      },
+      "path_parameters": {
+        "id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "example_curl": "curl -X GET 'http://localhost:8082/api/v1/careers/roles/550e8400-e29b-41d4-a716-446655440000' \\\n  -H 'Authorization: Bearer <your-jwt-token>'"
+    },
+
+    "6_update_career_role": {
+      "endpoint": "PUT /api/v1/careers/roles/:id",
+      "method": "PUT",
+      "description": "Update an existing career role",
+      "headers": {
+        "Authorization": "Bearer <your-jwt-token>",
+        "Content-Type": "application/json"
+      },
+      "path_parameters": {
+        "id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "request_body": {
+        "heading": "Head of People Operations (HPO) - Updated",
+        "company_overview": "Updated company overview text...",
+        "sections": {
+          "The Role": [
+            "Updated role description"
+          ],
+          "What You'll Own": [
+            "Updated responsibilities"
+          ],
+          "What We're Looking For": [
+            "Updated requirements"
+          ],
+          "What Success Looks Like": [
+            "Updated success metrics"
+          ]
+        },
+        "application": {
+          "location": "Nigeria preferred - Remote/Hybrid",
+          "apply": "Send CV + Short Note to hiring@trovotech.io",
+          "subject": "Head of People Operations - Trovotech"
+        }
+      },
+      "example_curl": "curl -X PUT 'http://localhost:8082/api/v1/careers/roles/550e8400-e29b-41d4-a716-446655440000' \\\n  -H 'Authorization: Bearer <your-jwt-token>' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"heading\":\"Updated Title\",\"sections\":{...},\"application\":{...}}'"
+    },
+
+    "7_delete_career_role": {
+      "endpoint": "DELETE /api/v1/careers/roles/:id",
+      "method": "DELETE",
+      "description": "Delete a career role",
+      "headers": {
+        "Authorization": "Bearer <your-jwt-token>"
+      },
+      "path_parameters": {
+        "id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "example_curl": "curl -X DELETE 'http://localhost:8082/api/v1/careers/roles/550e8400-e29b-41d4-a716-446655440000' \\\n  -H 'Authorization: Bearer <your-jwt-token>'"
+    },
+
+    "8_publish_career_role": {
+      "endpoint": "PUT /api/v1/careers/roles/:id/publish",
+      "method": "PUT",
+      "description": "Publish a draft career role (changes status from draft to published)",
+      "headers": {
+        "Authorization": "Bearer <your-jwt-token>"
+      },
+      "path_parameters": {
+        "id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "request_body": null,
+      "example_curl": "curl -X PUT 'http://localhost:8082/api/v1/careers/roles/550e8400-e29b-41d4-a716-446655440000/publish' \\\n  -H 'Authorization: Bearer <your-jwt-token>'"
+    },
+
+    "9_enable_career_role": {
+      "endpoint": "PUT /api/v1/careers/roles/:id/status",
+      "method": "PUT",
+      "description": "Enable a disabled career role (changes status from disabled to published)",
+      "headers": {
+        "Authorization": "Bearer <your-jwt-token>",
+        "Content-Type": "application/json"
+      },
+      "path_parameters": {
+        "id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "request_body": {
+        "status": "published"
+      },
+      "example_curl": "curl -X PUT 'http://localhost:8082/api/v1/careers/roles/550e8400-e29b-41d4-a716-446655440000/status' \\\n  -H 'Authorization: Bearer <your-jwt-token>' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"status\":\"published\"}'"
+    },
+
+    "10_disable_career_role": {
+      "endpoint": "PUT /api/v1/careers/roles/:id/status",
+      "method": "PUT",
+      "description": "Disable a published career role (changes status from published to disabled)",
+      "headers": {
+        "Authorization": "Bearer <your-jwt-token>",
+        "Content-Type": "application/json"
+      },
+      "path_parameters": {
+        "id": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "request_body": {
+        "status": "disabled"
+      },
+      "example_curl": "curl -X PUT 'http://localhost:8082/api/v1/careers/roles/550e8400-e29b-41d4-a716-446655440000/status' \\\n  -H 'Authorization: Bearer <your-jwt-token>' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"status\":\"disabled\"}'"
+    },
+
+    "additional_examples": {
+      "backend_developer_example": {
+        "heading": "Back End Developer",
+        "company_overview": "Trovotech Ltd is a SEC - regulated digital asset and tokenization platform building secure, compliant, and accessible investment infrastructure for real-world assets.",
+        "sections": {
+          "The Role": [
+            "This is a hands on technical role, not a support or maintenance position.",
+            "As Backend Developer, you will design, develop, and maintain Trovotech's core backend systems, ensuring they are secure, scalable, and performant to handle investor transactions and asset management operations."
+          ],
+          "What You'll Own": [
+            "Design, implement, and maintain backend systems, APIs, and databases",
+            "Ensure security, scalability, and reliability of backend services",
+            "Collaborate with Frontend and Blockchain developers to integrate APIs and services"
+          ],
+          "What We're Looking For": [
+            "5+ years experience in backend development (Node.js, Python, Go, Java, or similar)",
+            "Strong experience with relational and NoSQL databases",
+            "Experience designing and implementing RESTful APIs and microservices architecture"
+          ],
+          "What Success Looks Like": [
+            "6 months: Reliable, secure, and maintainable backend systems fully operational",
+            "12 months: Scalable backend architecture supporting high-volume transactions and new product launches"
+          ]
+        },
+        "application": {
+          "location": "Nigeria preferred - Remote/Hybrid",
+          "apply": "Send CV + Short Note (Include Portfolio/GitHub) to hiring@trovotech.io",
+          "subject": "Backend Developer - Trovotech"
+        }
+      },
+
+      "product_manager_example": {
+        "heading": "Product Manager",
+        "company_overview": "Trovotech Ltd is a SEC - regulated digital asset and tokenization platform building secure, compliant, and accessible investment infrastructure for real-world assets.",
+        "sections": {
+          "The Role": [
+            "This is a core product leadership role.",
+            "As Product Manager, you will own the product vision, roadmap, and execution for key components of the Trovotech platform."
+          ],
+          "What You'll Own": [
+            "Product vision, roadmap, and prioritization aligned with company strategy",
+            "Translation of business and regulatory requirements into clear product specifications",
+            "Ownership of product discovery, user research, and requirements definition"
+          ],
+          "What We're Looking For": [
+            "5+ years experience as a Product Manager in fintech, financial services, or technology-driven platforms",
+            "Strong understanding of agile product development and SDLC",
+            "Experience working on regulated or compliance-sensitive products"
+          ],
+          "What Success Looks Like": [
+            "6 months: Clear product roadmap in place; predictable delivery rhythm established",
+            "12 months: Measurable improvements in product adoption, user experience, and platform reliability"
+          ]
+        },
+        "application": {
+          "location": "Nigeria preferred - Remote/Hybrid",
+          "apply": "Send CV + Short Note to hiring@trovotech.io",
+          "subject": "Product Manager - Trovotech"
+        }
+      }
+    }
+  }
+}

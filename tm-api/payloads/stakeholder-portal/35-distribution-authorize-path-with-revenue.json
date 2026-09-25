@@ -1,0 +1,10 @@
+{
+  "amount": "2500.00000000",
+  "asset_id": "87ed319d-dce7-4419-afd7-eea3fc1e4864",
+  "currency": "NGN",
+  "revenue_record_ids": [
+    "<REVENUE_RECORD_ID_FROM_ROW_11>"
+  ],
+  "scheduled_date": "2026-07-15",
+  "source": "rent"
+}

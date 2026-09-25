@@ -1,0 +1,188 @@
+### Careers Module API Test Requests
+### Use with REST Client extension in VS Code or similar tools
+### Replace <your-jwt-token> with actual JWT token
+### Replace <role-id> with actual role ID from create response
+
+@baseUrl = http://localhost:8081/api/v1
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjRmNTYyNDljLTBlOTAtNGQwMi05YTllLThmMzAzNTI5MTUyZiIsImF1dGhvcml6ZWQiOnRydWUsImV4cCI6MTc3MDA0OTU5NiwidXNlcl9pZCI6IjIzNzRmNTMxLTc2NmMtNDEyYS1iOTE0LTE5NTQ3MzY2MzU2MiJ9.5TrRLbqdf2RNNqEE7NGinnJMktC9GoShnfso7Jacs3Y
+@roleId = <role-id>
+
+### 1. Create Career Role (Admin - Creates as draft)
+POST {{baseUrl}}/careers/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "heading": "Head of People Operations (HPO)",
+  "company_overview": "Trovotech Ltd is a SEC - regulated digital asset and tokenization platform building secure, compliant, and accessible investment infrastructure for real-world assets. Our mission is to build compliant, intuitive, and scalable technology that enables the tokenization, management and trade of real-world assets, expanding access to capital and investment opportunities within emerging and global markets.",
+  "sections": {
+    "The Role": [
+      "This is a strategic leadership role, not an administrative HR position.",
+      "You'll design and own hiring, onboarding, performance management, policy custodian and culture frameworks that support a fast-growing, regulated fintech."
+    ],
+    "What You'll Own": [
+      "End-to-end people operations and HR strategy",
+      "Hiring and onboarding systems across technical, compliance, and growth roles",
+      "Performance, accountability, and leadership development frameworks",
+      "Culture, values, and employee experience"
+    ],
+    "What We're Looking For": [
+      "7+ years HR / People Ops experience (startup, fintech, or regulated environment preferred)",
+      "Proven experience building people systems from scratch",
+      "High integrity, sound judgment, and strong leadership presence"
+    ],
+    "What Success Looks Like": [
+      "6 months: Hiring and performance systems fully operational",
+      "12 months: Strong retention, engagement, and leadership depth"
+    ]
+  },
+  "application": {
+    "location": "Nigeria preferred - Remote/Hybrid",
+    "apply": "Send CV + Short Note to hiring@trovotech.io",
+    "subject": "Head of People Operations - Trovotech"
+  }
+}
+
+### 2. Get All Career Roles (Public - Only Published)
+GET {{baseUrl}}/careers/roles
+
+### 3. Get All Career Roles (Admin - Includes Drafts)
+GET {{baseUrl}}/careers/roles
+Authorization: Bearer {{token}}
+
+### 4. Get Career Role by ID (Public - Only if Published)
+GET {{baseUrl}}/careers/roles/{{roleId}}
+
+### 5. Get Career Role by ID (Admin - Includes Drafts)
+GET {{baseUrl}}/careers/roles/{{roleId}}
+Authorization: Bearer {{token}}
+
+### 6. Update Career Role
+PUT {{baseUrl}}/careers/roles/{{roleId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "heading": "Head of People Operations (HPO) - Updated",
+  "company_overview": "Updated company overview text...",
+  "sections": {
+    "The Role": [
+      "Updated role description"
+    ],
+    "What You'll Own": [
+      "Updated responsibilities"
+    ],
+    "What We're Looking For": [
+      "Updated requirements"
+    ],
+    "What Success Looks Like": [
+      "Updated success metrics"
+    ]
+  },
+  "application": {
+    "location": "Nigeria preferred - Remote/Hybrid",
+    "apply": "Send CV + Short Note to hiring@trovotech.io",
+    "subject": "Head of People Operations - Trovotech"
+  }
+}
+
+### 7. Publish Career Role (Draft -> Published)
+PUT {{baseUrl}}/careers/roles/{{roleId}}/publish
+Authorization: Bearer {{token}}
+
+### 8. Enable Career Role (Disabled -> Published)
+PUT {{baseUrl}}/careers/roles/{{roleId}}/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "published"
+}
+
+### 9. Disable Career Role (Published -> Disabled)
+PUT {{baseUrl}}/careers/roles/{{roleId}}/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "disabled"
+}
+
+### 10. Delete Career Role
+DELETE {{baseUrl}}/careers/roles/{{roleId}}
+Authorization: Bearer {{token}}
+
+### Example: Backend Developer Role
+POST {{baseUrl}}/careers/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "heading": "Back End Developer",
+  "company_overview": "Trovotech Ltd is a SEC - regulated digital asset and tokenization platform building secure, compliant, and accessible investment infrastructure for real-world assets.",
+  "sections": {
+    "The Role": [
+      "This is a hands on technical role, not a support or maintenance position.",
+      "As Backend Developer, you will design, develop, and maintain Trovotech's core backend systems, ensuring they are secure, scalable, and performant to handle investor transactions and asset management operations."
+    ],
+    "What You'll Own": [
+      "Design, implement, and maintain backend systems, APIs, and databases",
+      "Ensure security, scalability, and reliability of backend services",
+      "Collaborate with Frontend and Blockchain developers to integrate APIs and services",
+      "Optimize system performance and implement monitoring, logging, and troubleshooting"
+    ],
+    "What We're Looking For": [
+      "5+ years experience in backend development (Node.js, Python, Go, Java, or similar)",
+      "Strong experience with relational and NoSQL databases",
+      "Experience designing and implementing RESTful APIs and microservices architecture",
+      "Familiarity with cloud platforms (AWS, GCP, Azure) and CI/CD pipelines"
+    ],
+    "What Success Looks Like": [
+      "6 months: Reliable, secure, and maintainable backend systems fully operational",
+      "12 months: Scalable backend architecture supporting high-volume transactions and new product launches"
+    ]
+  },
+  "application": {
+    "location": "Nigeria preferred - Remote/Hybrid",
+    "apply": "Send CV + Short Note (Include Portfolio/GitHub) to hiring@trovotech.io",
+    "subject": "Backend Developer - Trovotech"
+  }
+}
+
+### Example: Product Manager Role
+POST {{baseUrl}}/careers/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "heading": "Product Manager",
+  "company_overview": "Trovotech Ltd is a SEC - regulated digital asset and tokenization platform building secure, compliant, and accessible investment infrastructure for real-world assets.",
+  "sections": {
+    "The Role": [
+      "This is a core product leadership role.",
+      "As Product Manager, you will own the product vision, roadmap, and execution for key components of the Trovotech platform.",
+      "You will act as the bridge between business, compliance, engineering, and users, ensuring that product decisions are commercially sound, technically feasible, and regulatorily compliant."
+    ],
+    "What You'll Own": [
+      "Product vision, roadmap, and prioritization aligned with company strategy",
+      "Translation of business and regulatory requirements into clear product specifications",
+      "Ownership of product discovery, user research, and requirements definition",
+      "Backlog management, sprint planning, and delivery alignment with engineering teams"
+    ],
+    "What We're Looking For": [
+      "5+ years experience as a Product Manager in fintech, financial services, or technology-driven platforms",
+      "Strong understanding of agile product development and SDLC",
+      "Experience working on regulated or compliance-sensitive products",
+      "Ability to translate complex requirements into intuitive user experiences"
+    ],
+    "What Success Looks Like": [
+      "6 months: Clear product roadmap in place; predictable delivery rhythm established; strong cross-functional alignment",
+      "12 months: Measurable improvements in product adoption, user experience, and platform reliability supporting business growth"
+    ]
+  },
+  "application": {
+    "location": "Nigeria preferred - Remote/Hybrid",
+    "apply": "Send CV + Short Note to hiring@trovotech.io",
+    "subject": "Product Manager - Trovotech"
+  }
+}

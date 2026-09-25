@@ -1,0 +1,8 @@
+*.sqlite
+.DS_Store
+.env
+trovo-wallet-api
+.idea
+/evidence/
+/tmp/
+coverage.out

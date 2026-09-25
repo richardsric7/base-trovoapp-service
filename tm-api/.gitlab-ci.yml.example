@@ -1,0 +1,47 @@
+# Example GitLab CI configuration
+# Copy this to .gitlab-ci.yml and customize for your needs
+
+stages:
+  - build
+  - deploy
+
+variables:
+  GO_VERSION: "1.21"
+
+build:
+  stage: build
+  image: golang:${GO_VERSION}-alpine
+  before_script:
+    - apk add --no-cache git make bash
+    - go install github.com/swaggo/swag/cmd/swag@latest
+    - export PATH=$PATH:$(go env GOPATH)/bin
+  script:
+    - make swagger-clean
+    - |
+      if ! head -1 docs/swagger.yaml | grep -q "^swagger:"; then
+        echo "Error: swagger.yaml structure is incorrect"
+        exit 1
+      fi
+      echo "✅ swagger.yaml structure is correct"
+    - docker build -t admin-dashboard-api:dev .
+  artifacts:
+    paths:
+      - docs/
+    expire_in: 1 hour
+  only:
+    - develop
+    - main
+
+deploy-dev:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - echo "Deploying to dev environment..."
+    # Add your deployment commands here
+    # docker push your-registry/admin-dashboard-api:dev
+  only:
+    - develop
+  when: manual
+

@@ -1,0 +1,5 @@
+{
+  "action": "distribution.authorize",
+  "entity_id": "<DISTRIBUTION_AUTHORIZE_ID_FROM_SUBMIT_DISTRIBUTION_RESPONSE>",
+  "entity_type": "distribution"
+}

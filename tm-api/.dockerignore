@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+!.env.example
+*.sqlite
+*.log
+tmp/
+evidence/
+.idea
+.vscode
+.DS_Store

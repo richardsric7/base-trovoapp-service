@@ -1,0 +1,8 @@
+{
+  "asset_id": "b57c9a37-050b-4431-a9be-09b0780ad5b9",
+  "asset_code": "WSP",
+  "trustee_org_id": "sp-verify-trustee-org",
+  "asset_manager_org_id": "sp-verify-manager-org",
+  "custodian_org_id": "sp-verify-custodian-org",
+  "status": "active"
+}

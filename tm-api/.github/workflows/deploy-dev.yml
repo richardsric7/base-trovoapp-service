@@ -1,0 +1,49 @@
+name: Deploy to Dev
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Install swag
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Generate Swagger docs
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          make swagger-clean
+
+      - name: Verify swagger.yaml structure
+        run: |
+          if ! head -1 docs/swagger.yaml | grep -q "^swagger:"; then
+            echo "Error: swagger.yaml structure is incorrect"
+            exit 1
+          fi
+          echo "✅ swagger.yaml structure is correct"
+
+      - name: Build Docker image
+        run: |
+          docker build -t admin-dashboard-api:dev .
+
+      - name: Deploy to dev
+        # Add your deployment steps here
+        # For example, push to registry, deploy to server, etc.
+        run: |
+          echo "Deploying to dev environment..."
+          # docker push your-registry/admin-dashboard-api:dev
+          # or deploy using your deployment method
+
