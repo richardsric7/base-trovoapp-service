@@ -9,6 +9,8 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/p2p_merchant_gate.dart';
+import 'package:trovo_app/widgets/p2p_payment_method_select.dart';
+import 'package:trovo_app/widgets/p2p_wallet_payout_select.dart';
 import 'package:trovo_app/widgets/popups.dart';
 
 // P2PCreateOfferView (Plan Section 95.12): merchant offer creation, a
@@ -36,10 +38,9 @@ class _P2PCreateOfferViewState extends State<P2PCreateOfferView> {
   final minOrderAmount = TextEditingController();
   final maxOrderAmount = TextEditingController();
   final availableLiquidity = TextEditingController();
-  final paymentChannel = TextEditingController();
-  final provider = TextEditingController();
-  final account = TextEditingController();
   final remark = TextEditingController();
+  String? paymentMethodId;
+  String? merchantPayoutAddress;
   bool submitting = false;
 
   @override
@@ -52,17 +53,22 @@ class _P2PCreateOfferViewState extends State<P2PCreateOfferView> {
 
   Future<void> _submit() async {
     if (!formKey.currentState!.validate()) return;
+    if (offerType == 'SELL' && (paymentMethodId == null || paymentMethodId!.isEmpty)) {
+      popup(context, title: 'p2pcouldnotcreateoffer'.tr(), message: 'p2pselectpaymentmethod'.tr());
+      return;
+    }
+    if (offerType == 'BUY' && (merchantPayoutAddress == null || merchantPayoutAddress!.isEmpty)) {
+      popup(context, title: 'p2pcouldnotcreateoffer'.tr(), message: 'p2pselectwallet'.tr());
+      return;
+    }
     setState(() => submitting = true);
     showLoader(context);
     try {
       final response = await api.createOffer({
         'offerType': offerType,
         'asset': asset.text.trim().toUpperCase(),
-        'paymentMethod': {
-          'paymentChannel': paymentChannel.text.trim(),
-          'provider': provider.text.trim(),
-          'account': account.text.trim(),
-        },
+        if (offerType == 'SELL') 'paymentMethodId': paymentMethodId,
+        if (offerType == 'BUY') 'merchantPayoutAddress': merchantPayoutAddress,
         'country': country.text.trim(),
         'countryCode': countryCode.text.trim().toUpperCase(),
         'currency': currency.text.trim().toUpperCase(),
@@ -143,10 +149,17 @@ class _P2PCreateOfferViewState extends State<P2PCreateOfferView> {
               _field('country'.tr(), country),
               _field('p2pcountrycode'.tr(), countryCode),
               const SizedBox(height: P2PTheme.space2),
-              Text('p2ppaymentmethod'.tr(), style: const TextStyle(fontWeight: FontWeight.w600)),
-              _field('p2ppaymentchannel'.tr(), paymentChannel),
-              _field('p2pproviderlabel'.tr(), provider),
-              _field('p2paccountdetails'.tr(), account),
+              offerType == 'SELL'
+                  ? P2PPaymentMethodSelect(
+                      api: api,
+                      value: paymentMethodId,
+                      onChanged: (v) => setState(() => paymentMethodId = v),
+                    )
+                  : P2PWalletPayoutSelect(
+                      value: merchantPayoutAddress,
+                      onChanged: (v) => setState(() => merchantPayoutAddress = v),
+                    ),
+              const SizedBox(height: P2PTheme.space3),
               _field('p2premark'.tr(), remark, required: false),
               const SizedBox(height: P2PTheme.space4),
               SizedBox(

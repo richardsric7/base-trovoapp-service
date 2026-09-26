@@ -675,6 +675,10 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating StablerailAssetWithdrawalRequest: ", errMigrate)
 		}
 
+		errMigrate = gormDB.AutoMigrate(&p2pModels.MerchantPaymentMethod{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating P2P MerchantPaymentMethod: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&p2pModels.Offer{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating P2P Offer: ", errMigrate)

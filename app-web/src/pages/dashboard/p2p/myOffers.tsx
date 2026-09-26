@@ -46,13 +46,21 @@ export default function P2PMyOffers() {
       <Header />
       <div className="flex items-center justify-between px-2">
         <h1 className="text-xl font-bold text-primary-800">My offers</h1>
-        <button
-          onClick={() => navigate('/dashboard/p2p/create-offer')}
-          className="text-sm font-semibold text-white px-4 py-2 rounded-xl"
-          style={{ backgroundColor: p2p.brandDark }}
-        >
-          + New offer
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => navigate('/dashboard/p2p/payment-methods')}
+            className="text-sm font-semibold text-primary-800 underline"
+          >
+            Payment methods
+          </button>
+          <button
+            onClick={() => navigate('/dashboard/p2p/create-offer')}
+            className="text-sm font-semibold text-white px-4 py-2 rounded-xl"
+            style={{ backgroundColor: p2p.brandDark }}
+          >
+            + New offer
+          </button>
+        </div>
       </div>
 
       <P2PMerchantGate>

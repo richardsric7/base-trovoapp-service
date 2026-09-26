@@ -115,6 +115,7 @@ import 'package:trovo_app/screens/p2p/p2p_my_orders_view.dart';
 import 'package:trovo_app/screens/p2p/p2p_my_offers_view.dart';
 import 'package:trovo_app/screens/p2p/p2p_my_refunds_view.dart';
 import 'package:trovo_app/screens/p2p/p2p_edit_offer_view.dart';
+import 'package:trovo_app/screens/p2p/p2p_payment_methods_view.dart';
 import 'package:trovo_app/screens/send_and_recieve/yield_history.dart';
 import 'package:trovo_app/screens/shared_access/add_shared_access_details.dart';
 import 'package:trovo_app/screens/shared_access/approval_details.dart';
@@ -705,6 +706,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.P2PEditOfferView:
           _addPageData(P2PEditOfferView(), P2PEditOfferViewPageConfig);
           break;
+        case Pages.P2PPaymentMethodsView:
+          _addPageData(P2PPaymentMethodsView(), P2PPaymentMethodsViewPageConfig);
+          break;
         default:
           break;
       }
@@ -1059,6 +1063,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.P2PEditOfferView:
         P2PEditOfferViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.P2PPaymentMethodsView:
+        P2PPaymentMethodsViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

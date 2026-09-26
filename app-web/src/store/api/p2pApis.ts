@@ -5,7 +5,7 @@ import {
   P2POrder,
   P2PDispute,
   P2POrderFeeQuote,
-  P2PPaymentMethod,
+  P2PMerchantPaymentMethod,
   P2PRefund,
   P2PMerchantPerformance,
   P2PCustomerPerformance,
@@ -25,7 +25,10 @@ type WithCreds<T> = T & { creds: P2PCreds };
 export type CreateOfferBody = {
   offerType: 'BUY' | 'SELL';
   asset: string;
-  paymentMethod: P2PPaymentMethod;
+  // SELL only - one of the merchant's own saved payment methods.
+  paymentMethodId?: string;
+  // BUY only - the merchant's own wallet/subwallet to receive the asset.
+  merchantPayoutAddress?: string;
   country: string;
   countryCode: string;
   currency: string;
@@ -36,6 +39,12 @@ export type CreateOfferBody = {
   maxOrderAmount: string;
   availableLiquidity?: string;
   remark?: string;
+};
+
+export type PaymentMethodBody = {
+  paymentChannel: string;
+  provider: string;
+  account: string;
 };
 
 export const p2pApi = baseApi.injectEndpoints({
@@ -142,6 +151,47 @@ export const p2pApi = baseApi.injectEndpoints({
         data: { creds },
       }),
       providesTags: [tagTypes.p2pOffer],
+    }),
+
+    // ---- Payment methods (a merchant's own saved fiat settlement
+    // channels, selectable from a SELL offer by id) ----
+    listMyP2PPaymentMethods: builder.query<{ data: P2PMerchantPaymentMethod[] }, WithCreds<{}>>({
+      query: ({ creds }) => ({
+        url: '/v1/p2p/payment-methods',
+        method: 'GET',
+        data: { creds },
+      }),
+      providesTags: [tagTypes.p2pPaymentMethod],
+    }),
+    createP2PPaymentMethod: builder.mutation<P2PMerchantPaymentMethod, WithCreds<{ body: PaymentMethodBody }>>({
+      query: ({ creds, body }) => ({
+        url: '/v1/p2p/payment-methods',
+        method: 'POST',
+        data: { payload: body, creds },
+      }),
+      invalidatesTags: [tagTypes.p2pPaymentMethod],
+    }),
+    updateP2PPaymentMethod: builder.mutation<
+      P2PMerchantPaymentMethod,
+      WithCreds<{ paymentMethodId: string; body: PaymentMethodBody }>
+    >({
+      query: ({ creds, paymentMethodId, body }) => ({
+        url: `/v1/p2p/payment-methods/${paymentMethodId}`,
+        method: 'PUT',
+        data: { payload: body, creds },
+      }),
+      invalidatesTags: [tagTypes.p2pPaymentMethod, tagTypes.p2pOffer],
+    }),
+    setP2PPaymentMethodActive: builder.mutation<
+      P2PMerchantPaymentMethod,
+      WithCreds<{ paymentMethodId: string; active: boolean }>
+    >({
+      query: ({ creds, paymentMethodId, active }) => ({
+        url: `/v1/p2p/payment-methods/${paymentMethodId}/active`,
+        method: 'PUT',
+        data: { payload: { active }, creds },
+      }),
+      invalidatesTags: [tagTypes.p2pPaymentMethod],
     }),
 
     // ---- Orders ----
@@ -373,6 +423,10 @@ export const {
   useUpdateP2POfferMutation,
   useCloseP2POfferMutation,
   useListMyP2POffersQuery,
+  useListMyP2PPaymentMethodsQuery,
+  useCreateP2PPaymentMethodMutation,
+  useUpdateP2PPaymentMethodMutation,
+  useSetP2PPaymentMethodActiveMutation,
   useCreateP2POrderMutation,
   useListMyP2POrdersQuery,
   useGetP2POrderQuery,

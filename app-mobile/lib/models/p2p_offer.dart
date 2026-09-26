@@ -28,6 +28,8 @@ class P2POffer {
   String? asset;
   String? contractAddress;
   P2PPaymentMethod? paymentMethod;
+  String? paymentMethodId;
+  String? merchantPayoutAddress;
   String? country;
   String? countryCode;
   String? currency;
@@ -53,6 +55,8 @@ class P2POffer {
     this.asset,
     this.contractAddress,
     this.paymentMethod,
+    this.paymentMethodId,
+    this.merchantPayoutAddress,
     this.country,
     this.countryCode,
     this.currency,
@@ -83,6 +87,8 @@ class P2POffer {
       asset: m['asset'],
       contractAddress: m['contractAddress'],
       paymentMethod: P2PPaymentMethod().deserializeJson(m['paymentMethod']),
+      paymentMethodId: m['paymentMethodId'],
+      merchantPayoutAddress: m['merchantPayoutAddress'],
       country: m['country'],
       countryCode: m['countryCode'],
       currency: m['currency'],
@@ -132,4 +138,45 @@ class MarketplaceFacets {
   final List<String> currencies;
 
   MarketplaceFacets({required this.assets, required this.currencies});
+}
+
+// MerchantPaymentMethod is a merchant's own saved fiat settlement channel
+// (see backend doc), selectable from a SELL offer by id. Never
+// hard-deleted - only deactivated (isActive) - and cannot be deactivated
+// while a live offer still references it.
+class MerchantPaymentMethod {
+  String? id;
+  String? paymentChannel;
+  String? provider;
+  String? account;
+  bool isActive;
+
+  MerchantPaymentMethod({
+    this.id,
+    this.paymentChannel,
+    this.provider,
+    this.account,
+    this.isActive = true,
+  });
+
+  MerchantPaymentMethod deserializeJson(Map<String, dynamic>? m) {
+    if (m == null) return this;
+    return MerchantPaymentMethod(
+      id: m['id'],
+      paymentChannel: m['paymentChannel'],
+      provider: m['provider'],
+      account: m['account'],
+      isActive: m['isActive'] ?? true,
+    );
+  }
+
+  static List<MerchantPaymentMethod> deserializeList(List? m) {
+    var list = <MerchantPaymentMethod>[];
+    if (m != null) {
+      for (var i = 0; i < m.length; i++) {
+        list.add(MerchantPaymentMethod().deserializeJson(m[i]));
+      }
+    }
+    return list;
+  }
 }

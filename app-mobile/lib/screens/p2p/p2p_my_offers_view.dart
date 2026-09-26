@@ -102,6 +102,16 @@ class _P2PMyOffersViewState extends State<P2PMyOffersView> {
         iconTheme: IconThemeData(color: notifier.getblck),
         actions: [
           IconButton(
+            icon: const Icon(Icons.account_balance_wallet_outlined),
+            tooltip: 'p2ppaymentmethodstitle'.tr(),
+            onPressed: () {
+              appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: P2PPaymentMethodsViewPageConfig,
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
               appState.currentAction = PageAction(

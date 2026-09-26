@@ -5,6 +5,8 @@ import { useCreateP2POfferMutation } from '../../../store/api/p2pApis';
 import { useP2PIdentity } from '../../../hooks/useP2PIdentity';
 import { p2p } from '../../../components/p2p/P2PTheme';
 import P2PMerchantGate from '../../../components/p2p/P2PMerchantGate';
+import PaymentMethodSelect from '../../../components/p2p/PaymentMethodSelect';
+import WalletPayoutSelect from '../../../components/p2p/WalletPayoutSelect';
 
 // P2PCreateOffer (Plan Section 96.12): merchant offer creation - per Plan
 // Section 92, whether this introduces react-hook-form/zod or follows the
@@ -27,9 +29,8 @@ export default function P2PCreateOffer() {
   const [availableLiquidity, setAvailableLiquidity] = useState('');
   const [country, setCountry] = useState('');
   const [countryCode, setCountryCode] = useState('');
-  const [paymentChannel, setPaymentChannel] = useState('');
-  const [provider, setProvider] = useState('');
-  const [account, setAccount] = useState('');
+  const [paymentMethodId, setPaymentMethodId] = useState('');
+  const [merchantPayoutAddress, setMerchantPayoutAddress] = useState('');
   const [remark, setRemark] = useState('');
 
   const submit = async () => {
@@ -42,7 +43,8 @@ export default function P2PCreateOffer() {
         body: {
           offerType,
           asset: asset.toUpperCase(),
-          paymentMethod: { paymentChannel, provider, account },
+          paymentMethodId: offerType === 'SELL' ? paymentMethodId : undefined,
+          merchantPayoutAddress: offerType === 'BUY' ? merchantPayoutAddress : undefined,
           country,
           countryCode: countryCode.toUpperCase(),
           currency: currency.toUpperCase(),
@@ -88,10 +90,11 @@ export default function P2PCreateOffer() {
       <Field label="Available liquidity" value={availableLiquidity} onChange={setAvailableLiquidity} numeric />
       <Field label="Country" value={country} onChange={setCountry} />
       <Field label="Country code (ISO-3)" value={countryCode} onChange={setCountryCode} />
-      <p className="font-semibold">Payment method</p>
-      <Field label="Payment channel (e.g. BANK_TRANSFER)" value={paymentChannel} onChange={setPaymentChannel} />
-      <Field label="Provider (e.g. GTBANK)" value={provider} onChange={setProvider} />
-      <Field label="Account details" value={account} onChange={setAccount} />
+      {offerType === 'SELL' ? (
+        <PaymentMethodSelect creds={creds} ready={ready} value={paymentMethodId} onChange={setPaymentMethodId} />
+      ) : (
+        <WalletPayoutSelect value={merchantPayoutAddress} onChange={setMerchantPayoutAddress} />
+      )}
       <Field label="Remark (optional)" value={remark} onChange={setRemark} />
 
       {error && <div className="text-red-600">{error}</div>}

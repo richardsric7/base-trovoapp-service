@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	p2pModels "trovo-wallet-api/internal/components/p2p/models"
 	p2pServices "trovo-wallet-api/internal/components/p2p/services"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -30,19 +29,20 @@ func writeError(c *gin.Context, err error) {
 }
 
 type createOfferRequest struct {
-	OfferType          string                  `json:"offerType"`
-	Asset              string                  `json:"asset"`
-	PaymentMethod      p2pModels.PaymentMethod `json:"paymentMethod"`
-	Country            string                  `json:"country"`
-	CountryCode        string                  `json:"countryCode"`
-	Currency           string                  `json:"currency"`
-	PriceType          string                  `json:"priceType"`
-	Price              string                  `json:"price"`
-	PriceMargin        string                  `json:"priceMargin"`
-	MinOrderAmount     string                  `json:"minOrderAmount"`
-	MaxOrderAmount     string                  `json:"maxOrderAmount"`
-	AvailableLiquidity string                  `json:"availableLiquidity"`
-	Remark             string                  `json:"remark"`
+	OfferType             string `json:"offerType"`
+	Asset                 string `json:"asset"`
+	PaymentMethodID       string `json:"paymentMethodId"`
+	MerchantPayoutAddress string `json:"merchantPayoutAddress"`
+	Country               string `json:"country"`
+	CountryCode           string `json:"countryCode"`
+	Currency              string `json:"currency"`
+	PriceType             string `json:"priceType"`
+	Price                 string `json:"price"`
+	PriceMargin           string `json:"priceMargin"`
+	MinOrderAmount        string `json:"minOrderAmount"`
+	MaxOrderAmount        string `json:"maxOrderAmount"`
+	AvailableLiquidity    string `json:"availableLiquidity"`
+	Remark                string `json:"remark"`
 }
 
 func postOffersHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
@@ -59,19 +59,20 @@ func postOffersHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 			return
 		}
 		offer, err := p2pServices.CreateOffer(gc, user.Username, user.ID, p2pServices.CreateOfferInput{
-			OfferType:          req.OfferType,
-			Asset:              req.Asset,
-			PaymentMethod:      req.PaymentMethod,
-			Country:            req.Country,
-			CountryCode:        req.CountryCode,
-			Currency:           req.Currency,
-			PriceType:          req.PriceType,
-			Price:              req.Price,
-			PriceMargin:        req.PriceMargin,
-			MinOrderAmount:     req.MinOrderAmount,
-			MaxOrderAmount:     req.MaxOrderAmount,
-			AvailableLiquidity: req.AvailableLiquidity,
-			Remark:             req.Remark,
+			OfferType:             req.OfferType,
+			Asset:                 req.Asset,
+			PaymentMethodID:       req.PaymentMethodID,
+			MerchantPayoutAddress: req.MerchantPayoutAddress,
+			Country:               req.Country,
+			CountryCode:           req.CountryCode,
+			Currency:              req.Currency,
+			PriceType:             req.PriceType,
+			Price:                 req.Price,
+			PriceMargin:           req.PriceMargin,
+			MinOrderAmount:        req.MinOrderAmount,
+			MaxOrderAmount:        req.MaxOrderAmount,
+			AvailableLiquidity:    req.AvailableLiquidity,
+			Remark:                req.Remark,
 		})
 		if err != nil {
 			writeError(c, err)
@@ -82,14 +83,15 @@ func postOffersHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 }
 
 type updateOfferRequest struct {
-	PaymentMethod      p2pModels.PaymentMethod `json:"paymentMethod"`
-	PriceType          string                  `json:"priceType"`
-	Price              string                  `json:"price"`
-	PriceMargin        string                  `json:"priceMargin"`
-	MinOrderAmount     string                  `json:"minOrderAmount"`
-	MaxOrderAmount     string                  `json:"maxOrderAmount"`
-	AvailableLiquidity string                  `json:"availableLiquidity"`
-	Remark             string                  `json:"remark"`
+	PaymentMethodID       string `json:"paymentMethodId"`
+	MerchantPayoutAddress string `json:"merchantPayoutAddress"`
+	PriceType             string `json:"priceType"`
+	Price                 string `json:"price"`
+	PriceMargin           string `json:"priceMargin"`
+	MinOrderAmount        string `json:"minOrderAmount"`
+	MaxOrderAmount        string `json:"maxOrderAmount"`
+	AvailableLiquidity    string `json:"availableLiquidity"`
+	Remark                string `json:"remark"`
 }
 
 func putOfferHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
@@ -106,14 +108,15 @@ func putOfferHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 			return
 		}
 		offer, err := p2pServices.UpdateOffer(gc, c.Param("offerID"), user.ID, p2pServices.UpdateOfferInput{
-			PaymentMethod:      req.PaymentMethod,
-			PriceType:          req.PriceType,
-			Price:              req.Price,
-			PriceMargin:        req.PriceMargin,
-			MinOrderAmount:     req.MinOrderAmount,
-			MaxOrderAmount:     req.MaxOrderAmount,
-			AvailableLiquidity: req.AvailableLiquidity,
-			Remark:             req.Remark,
+			PaymentMethodID:       req.PaymentMethodID,
+			MerchantPayoutAddress: req.MerchantPayoutAddress,
+			PriceType:             req.PriceType,
+			Price:                 req.Price,
+			PriceMargin:           req.PriceMargin,
+			MinOrderAmount:        req.MinOrderAmount,
+			MaxOrderAmount:        req.MaxOrderAmount,
+			AvailableLiquidity:    req.AvailableLiquidity,
+			Remark:                req.Remark,
 		})
 		if err != nil {
 			writeError(c, err)
