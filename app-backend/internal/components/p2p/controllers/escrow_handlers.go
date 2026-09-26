@@ -75,3 +75,22 @@ func postEscrowDepositHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 		c.JSON(http.StatusAccepted, result)
 	}
 }
+
+// postRegenerateEscrowShortlinkHandler lets the escrow-deposit screen
+// retry shortlink generation if the best-effort attempt made during
+// AcceptOrder failed and left EscrowDepositShortlink empty.
+func postRegenerateEscrowShortlinkHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user, err := currentUser(c, gc)
+		if err != nil {
+			writeError(c, err)
+			return
+		}
+		order, err := p2pServices.RegenerateEscrowShortlink(gc, c.Param("orderID"), user.ID)
+		if err != nil {
+			writeError(c, err)
+			return
+		}
+		c.JSON(http.StatusOK, order)
+	}
+}

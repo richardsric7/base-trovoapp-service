@@ -97,6 +97,7 @@ type Order struct {
 	MerchantPaymentDetailsSnapshot   string     `json:"merchantPaymentDetailsSnapshot" gorm:"type:text"`
 	ExpiresAt                        *time.Time `json:"expiresAt"`
 	CompletedAt                      *time.Time `json:"completedAt"`
+	PaymentSentAt                    *time.Time `json:"paymentSentAt"`
 	PaymentConfirmedAt               *time.Time `json:"paymentConfirmedAt"`
 	AssetReleasedAt                  *time.Time `json:"assetReleasedAt"`
 

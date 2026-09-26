@@ -328,7 +328,34 @@ func CancelOrder(gc *sharedconfig.GlobalConfig, orderID, customerUserID string) 
 		return order, err
 	}
 	RecordAuditEvent(gc, order.ID, order.OfferID, p2pModels.EventOrderCancelled, customerUserID, order)
+	RecordOrderCancelled(gc, order, false)
 	NotifyUsername(gc, order.MerchantUsername, "Trovo P2P: Order Cancelled", "The customer cancelled an order before escrow deposit.", map[string]string{"orderId": order.ID, "type": "P2P_ORDER_CANCELLED"})
+	return order, nil
+}
+
+// MerchantCancelOrder lets the merchant back out after accepting but before
+// the depositor has put anything into escrow (Plan Section 26 only covers
+// Accept/Reject at AWAITING_APPROVAL; once escrow is deposited, funds have
+// moved and backing out must go through the dispute/refund flow instead of
+// a plain cancel).
+func MerchantCancelOrder(gc *sharedconfig.GlobalConfig, orderID, merchantUserID string) (p2pModels.Order, error) {
+	order, err := GetOrderByID(gc.DB, orderID)
+	if err != nil {
+		return order, &tErrors.CustomError{Param: "orderId", Err: "error-order-not-found", ErrMessage: "Order not found"}
+	}
+	if order.MerchantUserID != merchantUserID {
+		return order, &tErrors.CustomError{Param: "orderId", Err: "error-forbidden", ErrMessage: "You are not the merchant on this order", Code: 403}
+	}
+	if order.OrderStatus != p2pModels.OrderStatusAwaitingEscrowDeposit {
+		return order, &tErrors.CustomError{Param: "orderId", Err: "error-invalid-order-state", ErrMessage: "This order can no longer be cancelled by the merchant"}
+	}
+	order.OrderStatus = p2pModels.OrderStatusCancelled
+	if err := releaseReservedLiquidityAndSave(gc, &order); err != nil {
+		return order, err
+	}
+	RecordAuditEvent(gc, order.ID, order.OfferID, p2pModels.EventOrderCancelled, merchantUserID, order)
+	RecordOrderCancelled(gc, order, true)
+	NotifyUsername(gc, order.CustomerUsername, "Trovo P2P: Order Cancelled", "The merchant cancelled this order before escrow deposit.", map[string]string{"orderId": order.ID, "type": "P2P_ORDER_CANCELLED"})
 	return order, nil
 }
 
@@ -377,6 +404,7 @@ func ExpireStaleOrders(gc *sharedconfig.GlobalConfig) (int, error) {
 				continue
 			}
 			RecordAuditEvent(gc, order.ID, order.OfferID, p2pModels.EventOrderExpired, "", order)
+			RecordOrderExpired(gc, order)
 			NotifyUsername(gc, order.CustomerUsername, "Trovo P2P: Order Expired", "Your order expired before the merchant responded in time.", map[string]string{"orderId": order.ID, "type": "P2P_ORDER_EXPIRED"})
 			NotifyUsername(gc, order.MerchantUsername, "Trovo P2P: Order Expired", "An order expired before it reached escrow deposit.", map[string]string{"orderId": order.ID, "type": "P2P_ORDER_EXPIRED"})
 
@@ -428,6 +456,7 @@ func expireAwaitingPaymentOrder(gc *sharedconfig.GlobalConfig, order *p2pModels.
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 	RecordAuditEvent(gc, order.ID, order.OfferID, p2pModels.EventOrderExpired, "", order)
+	RecordOrderExpired(gc, *order)
 	RecordAuditEvent(gc, order.ID, order.OfferID, p2pModels.EventRefundIssued, deposit.Sender, refund)
 	NotifyUsername(gc, order.CustomerUsername, "Trovo P2P: Order Expired", "Your order was cancelled because payment was not completed in time. Any escrowed deposit is refundable.", map[string]string{"orderId": order.ID, "type": "P2P_ORDER_EXPIRED"})
 	NotifyUsername(gc, order.MerchantUsername, "Trovo P2P: Order Expired", "An order was cancelled because payment was not completed in time.", map[string]string{"orderId": order.ID, "type": "P2P_ORDER_EXPIRED"})
@@ -460,6 +489,7 @@ func escalateStalePaymentConfirmationToDispute(gc *sharedconfig.GlobalConfig, or
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 	RecordAuditEvent(gc, order.ID, order.OfferID, p2pModels.EventDisputeOpened, "SYSTEM", dispute)
+	RecordDisputeOpened(gc, *order)
 	NotifyUsername(gc, order.CustomerUsername, "Trovo P2P: Dispute Opened", "The payment confirmation window expired, so this order was flagged for review.", map[string]string{"orderId": order.ID, "type": "P2P_DISPUTE_OPENED"})
 	NotifyUsername(gc, order.MerchantUsername, "Trovo P2P: Dispute Opened", "The payment confirmation window expired, so this order was flagged for review.", map[string]string{"orderId": order.ID, "type": "P2P_DISPUTE_OPENED"})
 	return nil

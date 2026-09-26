@@ -67,6 +67,7 @@ func OpenDispute(gc *sharedconfig.GlobalConfig, orderID, openedByUserID, subject
 		return dispute, &tErrors.ErrorTemporaryServerError{}
 	}
 	RecordAuditEvent(gc, order.ID, order.OfferID, p2pModels.EventDisputeOpened, openedByUserID, dispute)
+	RecordDisputeOpened(gc, order)
 
 	counterparty := order.MerchantUserID
 	if openedByUserID == order.MerchantUserID {
@@ -95,7 +96,7 @@ func MerchantConfirmsPayment(gc *sharedconfig.GlobalConfig, disputeID, merchantU
 	if err != nil {
 		return order, err
 	}
-	if err := closeDispute(gc, &dispute, p2pModels.DisputeResolutionInFavorOfSeller, merchantUserID); err != nil {
+	if err := closeDispute(gc, &dispute, order, p2pModels.DisputeResolutionInFavorOfSeller, merchantUserID); err != nil {
 		return order, err
 	}
 	return releaseAndCompleteOrder(gc, &order)
@@ -109,7 +110,7 @@ func BuyerConfirmsPaymentNotMade(gc *sharedconfig.GlobalConfig, disputeID, buyer
 	if err != nil {
 		return order, err
 	}
-	if err := closeDispute(gc, &dispute, p2pModels.DisputeResolutionInFavorOfSeller, buyerUserID); err != nil {
+	if err := closeDispute(gc, &dispute, order, p2pModels.DisputeResolutionInFavorOfSeller, buyerUserID); err != nil {
 		return order, err
 	}
 	order.OrderStatus = p2pModels.OrderStatusAwaitingPayment
@@ -136,7 +137,7 @@ func AdminResolveDispute(gc *sharedconfig.GlobalConfig, disputeID, resolution, r
 	if err != nil {
 		return order, &tErrors.CustomError{Param: "orderId", Err: "error-order-not-found", ErrMessage: "Order not found"}
 	}
-	if err := closeDispute(gc, &dispute, resolution, resolvedByAdminID); err != nil {
+	if err := closeDispute(gc, &dispute, order, resolution, resolvedByAdminID); err != nil {
 		return order, err
 	}
 	switch resolution {
@@ -196,13 +197,14 @@ func loadDisputeAndOrderForResolution(gc *sharedconfig.GlobalConfig, disputeID, 
 	return dispute, order, nil
 }
 
-func closeDispute(gc *sharedconfig.GlobalConfig, dispute *p2pModels.Dispute, resolution, resolvedBy string) error {
+func closeDispute(gc *sharedconfig.GlobalConfig, dispute *p2pModels.Dispute, order p2pModels.Order, resolution, resolvedBy string) error {
 	now := time.Now().UTC()
+	resolutionTime := now.Sub(dispute.OpenedAt)
 	dispute.Status = p2pModels.DisputeStatusResolved
 	dispute.Resolution = resolution
 	dispute.ResolvedAt = &now
 	dispute.ResolvedBy = resolvedBy
-	dispute.ResolutionTimeSeconds = int64(now.Sub(dispute.OpenedAt).Seconds())
+	dispute.ResolutionTimeSeconds = int64(resolutionTime.Seconds())
 	if err := gc.DB.Save(dispute).Error; err != nil {
 		return &tErrors.ErrorTemporaryServerError{}
 	}
@@ -210,5 +212,6 @@ func closeDispute(gc *sharedconfig.GlobalConfig, dispute *p2pModels.Dispute, res
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 	RecordAuditEvent(gc, dispute.OrderID, "", p2pModels.EventDisputeResolved, resolvedBy, dispute)
+	RecordDisputeResolved(gc, order, resolution, resolutionTime)
 	return nil
 }
