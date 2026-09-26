@@ -62,8 +62,15 @@ func Init(router *gin.Engine, s *serverModels.Server) {
 	apiV1.POST("/fee/configs", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventFeeConfigChange, models.AccessCategoryConfig, accesslog.BodyField("service_link_id")), userMetricServices.SaveServiceLinkServiceFeeHandler(s.TrovoWalletDB))
 	apiV1.DELETE("/fee/configs/:id", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventFeeConfigDelete, models.AccessCategoryConfig, accesslog.Param("id")), userMetricServices.DeleteServiceLinkServiceFeeHandler(s.TrovoWalletDB))
 
-	// Service Link endpoints
+	// Service Link endpoints - white-label partner integration accounts.
+	// app-backend has never exposed a create/edit endpoint for these
+	// (every existing row was provisioned by a direct DB insert), so
+	// tm-api writes to service_links directly, the same admin/config
+	// pattern as curated assets.
 	apiV1.GET("/service-links", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetServiceLinksHandler(s.TrovoWalletDB))
+	apiV1.GET("/service-links/:id", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetServiceLinkByIDHandler(s.TrovoWalletDB))
+	apiV1.POST("/service-links", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventServiceLinkChange, models.AccessCategoryAccount, accesslog.BodyField("ownerUsername")), userMetricServices.SaveServiceLinkHandler(s.TrovoWalletDB))
+	apiV1.PUT("/service-links/:id/inactive", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventServiceLinkChange, models.AccessCategoryAccount, accesslog.Param("id")), userMetricServices.SetServiceLinkInactiveHandler(s.TrovoWalletDB))
 
 	// Tokenization endpoints
 	// apiV1.GET("/public/tokenization", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetPublicTokenization(s.TrovoWalletDB))

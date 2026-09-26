@@ -50,6 +50,11 @@ export const SideBar = () => {
       icon: AdminManagement,
       link: "/admin-users",
     },
+    {
+      title: "Service Links",
+      icon: VaultSignerIcon,
+      link: "/servicelinks",
+    },
 
     { title: "Revenue", icon: Revenue, link: "/revenue" },
 

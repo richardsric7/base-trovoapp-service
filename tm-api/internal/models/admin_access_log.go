@@ -102,6 +102,9 @@ const (
 	EventMintingUserGrant    = "minting_user.grant"
 	EventMintingUserRevoke   = "minting_user.revoke"
 	EventComplianceCreate    = "compliance.create"
+
+	// partner (white-label service link integrations)
+	EventServiceLinkChange = "service_link.change"
 )
 
 // Access-log status values (canonical lowercase; the UI filter's title-case is
