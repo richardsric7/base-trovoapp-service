@@ -11,6 +11,7 @@ import (
 	"time"
 	announcementModels "trovo-wallet-api/internal/components/announcements/models"
 	assetModels "trovo-wallet-api/internal/components/assets/models"
+	p2pModels "trovo-wallet-api/internal/components/p2p/models"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	users "trovo-wallet-api/internal/components/users/models"
@@ -672,6 +673,59 @@ func MigrateDB(gormDB *gorm.DB) {
 		errMigrate = gormDB.AutoMigrate(&users.StablerailAssetWithdrawalRequest{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating StablerailAssetWithdrawalRequest: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&p2pModels.Offer{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating P2P Offer: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&p2pModels.Order{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating P2P Order: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&p2pModels.OfferRankingSnapshot{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating P2P OfferRankingSnapshot: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&p2pModels.MerchantPerformance{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating P2P MerchantPerformance: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&p2pModels.MerchantOfferPerformance{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating P2P MerchantOfferPerformance: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&p2pModels.CustomerPerformance{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating P2P CustomerPerformance: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&p2pModels.Dispute{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating P2P Dispute: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&p2pModels.P2PEscrowPaymentRequest{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating P2P P2PEscrowPaymentRequest: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&p2pModels.BlockchainDeposit{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating P2P BlockchainDeposit: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&p2pModels.Refund{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating P2P Refund: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&p2pModels.TradeFeeConfiguration{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating P2P TradeFeeConfiguration: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&p2pModels.FeeCollectionWalletConfiguration{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating P2P FeeCollectionWalletConfiguration: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&p2pModels.P2PAuditEvent{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating P2P P2PAuditEvent: ", errMigrate)
 		}
 
 		// errMigrate = UserTriggers(gormDB)

@@ -22,6 +22,7 @@ import (
 
 	msc "trovo-wallet-api/internal/components/announcements/controllers"
 	callbacks "trovo-wallet-api/internal/components/callbacks/controllers"
+	p2p "trovo-wallet-api/internal/components/p2p/controllers"
 	payments "trovo-wallet-api/internal/components/payments/controllers"
 	rates "trovo-wallet-api/internal/components/rates/controllers"
 	root "trovo-wallet-api/internal/components/root/controllers"
@@ -945,6 +946,8 @@ func main() {
 	msc.Init(router, &globalConfig)
 	log.Println("##announcements/version services initialized##")
 	callbacks.Init(router, callBackRetryChan, &globalConfig)
+
+	p2p.Init(router, &globalConfig)
 	log.Println("##callbacks services initialized##")
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	log.Println("##swagger UI initialized##")
