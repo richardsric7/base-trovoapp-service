@@ -137,6 +137,22 @@ func postCancelOrderHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+func postMerchantCancelOrderHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user, err := currentUser(c, gc)
+		if err != nil {
+			writeError(c, err)
+			return
+		}
+		order, err := p2pServices.MerchantCancelOrder(gc, c.Param("orderID"), user.ID)
+		if err != nil {
+			writeError(c, err)
+			return
+		}
+		c.JSON(http.StatusOK, order)
+	}
+}
+
 func postPaymentSentHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)

@@ -11,9 +11,10 @@ import (
 )
 
 // Init registers every P2P route under /v1/p2p/... (Plan Section 12's
-// prefix correction) and starts the two background sweeps this module
+// prefix correction) and starts the three background sweeps this module
 // needs in the absence of a Deposit Router event indexer / job scheduler:
-// order-expiry and escrow-deposit reconciliation (Plan Sections 24, 33/42).
+// order-expiry, escrow-deposit reconciliation, and marketplace ranking
+// (Plan Sections 24, 33/42, 14).
 func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	auth := middleware.AuthenticationMiddlewareUsingTimestamp()
 
@@ -22,8 +23,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.GET("/v1/p2p/offers", auth, getMarketplaceOffersHandler(gc))
 	router.GET("/v1/p2p/offers/:offerID", auth, getOfferHandler(gc))
 	router.GET("/v1/p2p/offers/:offerID/quote", auth, getOfferQuoteHandler(gc))
+	router.PUT("/v1/p2p/offers/:offerID", auth, putOfferHandler(gc))
 	router.POST("/v1/p2p/offers/:offerID/activate", auth, postActivateOfferHandler(gc))
 	router.POST("/v1/p2p/offers/:offerID/pause", auth, postPauseOfferHandler(gc))
+	router.POST("/v1/p2p/offers/:offerID/close", auth, postCloseOfferHandler(gc))
 	router.GET("/v1/p2p/my-offers", auth, getMyOffersHandler(gc))
 
 	// Orders
@@ -33,9 +36,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.POST("/v1/p2p/orders/:orderID/accept", auth, postAcceptOrderHandler(gc))
 	router.POST("/v1/p2p/orders/:orderID/reject", auth, postRejectOrderHandler(gc))
 	router.POST("/v1/p2p/orders/:orderID/cancel", auth, postCancelOrderHandler(gc))
+	router.POST("/v1/p2p/orders/:orderID/merchant-cancel", auth, postMerchantCancelOrderHandler(gc))
 
 	// Escrow deposit
 	router.POST("/v1/p2p/orders/:orderID/escrow-deposit", auth, postEscrowDepositHandler(gc))
+	router.POST("/v1/p2p/orders/:orderID/escrow-deposit/regenerate-shortlink", auth, postRegenerateEscrowShortlinkHandler(gc))
 
 	// Fiat payment stage
 	router.POST("/v1/p2p/orders/:orderID/payment-sent", auth, postPaymentSentHandler(gc))
@@ -58,13 +63,18 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.GET("/v1/p2p/refunds", auth, getMyRefundsHandler(gc))
 	router.POST("/v1/p2p/refunds/:refundID/claim", auth, postClaimRefundHandler(gc))
 
+	// Performance / trust signals
+	router.GET("/v1/p2p/merchants/:merchantID/performance", auth, getMerchantPerformanceHandler(gc))
+	router.GET("/v1/p2p/my-performance", auth, getMyPerformanceHandler(gc))
+
 	startBackgroundSweeps(gc)
 }
 
-// startBackgroundSweeps runs the order-expiry and escrow-deposit
-// reconciliation sweeps on a fixed interval. There is no job-scheduler
-// primitive in app-backend beyond plain ticker goroutines (the same pattern
-// payments/controllers/main.go uses for callback retries).
+// startBackgroundSweeps runs the order-expiry, escrow-deposit
+// reconciliation, and marketplace ranking sweeps on a fixed interval. There
+// is no job-scheduler primitive in app-backend beyond plain ticker
+// goroutines (the same pattern payments/controllers/main.go uses for
+// callback retries).
 func startBackgroundSweeps(gc *sharedconfig.GlobalConfig) {
 	go func() {
 		ticker := time.NewTicker(1 * time.Minute)
@@ -82,6 +92,15 @@ func startBackgroundSweeps(gc *sharedconfig.GlobalConfig) {
 		defer ticker.Stop()
 		for range ticker.C {
 			p2pServices.RunEscrowReconciliationSweep(gc)
+		}
+	}()
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			if err := p2pServices.CalculateRanking(gc); err != nil {
+				log.Printf("[p2p:CalculateRanking] error: %v\n", err)
+			}
 		}
 	}()
 }

@@ -53,6 +53,31 @@ func GenerateEscrowShortlink(gc *sharedconfig.GlobalConfig, order *p2pModels.Ord
 	return nil
 }
 
+// RegenerateEscrowShortlink retries shortlink generation for the depositor
+// when the best-effort attempt AcceptOrder makes inline failed (Plan Section
+// 26's own note that a shortlink failure must not fail acceptance itself) -
+// the escrow-deposit screen calls this if it loads an order with no
+// shortlink yet.
+func RegenerateEscrowShortlink(gc *sharedconfig.GlobalConfig, orderID, callerUserID string) (p2pModels.Order, error) {
+	order, err := GetOrderByID(gc.DB, orderID)
+	if err != nil {
+		return order, &tErrors.CustomError{Param: "orderId", Err: "error-order-not-found", ErrMessage: "Order not found"}
+	}
+	if order.AssetDepositor != callerUserID {
+		return order, &tErrors.CustomError{Param: "orderId", Err: "error-forbidden", ErrMessage: "You are not the escrow depositor on this order", Code: 403}
+	}
+	if order.OrderStatus != p2pModels.OrderStatusAwaitingEscrowDeposit {
+		return order, &tErrors.CustomError{Param: "orderId", Err: "error-invalid-order-state", ErrMessage: "This order is not awaiting an escrow deposit"}
+	}
+	if order.EscrowDepositShortlink != "" {
+		return order, nil
+	}
+	if err := GenerateEscrowShortlink(gc, &order); err != nil {
+		return order, err
+	}
+	return order, nil
+}
+
 // DepositEscrowInput proxies the same two-phase build-then-commit contract
 // userServices.Pay/postUsersPaymentHandler already use (Plan Section 28/29):
 // the first call (no Transaction/Commit) returns an unsigned transaction for

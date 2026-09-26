@@ -131,6 +131,102 @@ func PauseOffer(gc *sharedconfig.GlobalConfig, offerID, merchantUserID string) (
 	return offer, nil
 }
 
+// UpdateOfferInput is the client-supplied shape for editing an existing
+// offer. OfferType/Asset are intentionally not editable here - they drive
+// the curated-asset validation and role mapping (Plan Section 11) done at
+// creation time, so changing either is a new offer, not an edit.
+type UpdateOfferInput struct {
+	PaymentMethod      p2pModels.PaymentMethod
+	PriceType          string
+	Price              string
+	PriceMargin        string
+	MinOrderAmount     string
+	MaxOrderAmount     string
+	AvailableLiquidity string
+	Remark             string
+}
+
+// UpdateOffer edits an existing offer's terms. Allowed from any
+// non-terminal status (DRAFT/ACTIVE/PAUSED/OUT_OF_LIQUIDITY) - a CLOSED or
+// EXPIRED offer cannot be revived by editing it, it must be recreated.
+func UpdateOffer(gc *sharedconfig.GlobalConfig, offerID, merchantUserID string, in UpdateOfferInput) (p2pModels.Offer, error) {
+	offer, err := GetOfferByID(gc.DB, offerID)
+	if err != nil {
+		return offer, &tErrors.CustomError{Param: "offerId", Err: "error-offer-not-found", ErrMessage: "Offer not found"}
+	}
+	if offer.MerchantUserID != merchantUserID {
+		return offer, &tErrors.CustomError{Param: "offerId", Err: "error-forbidden", ErrMessage: "You do not own this offer", Code: 403}
+	}
+	if offer.Status == p2pModels.OfferStatusClosed || offer.Status == p2pModels.OfferStatusExpired {
+		return offer, &tErrors.CustomError{Param: "offerId", Err: "error-invalid-offer-state", ErrMessage: "This offer can no longer be edited"}
+	}
+	if _, e := decimal.NewFromString(in.Price); e != nil {
+		return offer, &tErrors.CustomError{Param: "price", Err: "error-invalid-price", ErrMessage: "price must be a valid decimal number"}
+	}
+	minAmt, e := decimal.NewFromString(in.MinOrderAmount)
+	if e != nil {
+		return offer, &tErrors.CustomError{Param: "minOrderAmount", Err: "error-invalid-min-order-amount", ErrMessage: "minOrderAmount must be a valid decimal number"}
+	}
+	maxAmt, e := decimal.NewFromString(in.MaxOrderAmount)
+	if e != nil {
+		return offer, &tErrors.CustomError{Param: "maxOrderAmount", Err: "error-invalid-max-order-amount", ErrMessage: "maxOrderAmount must be a valid decimal number"}
+	}
+	if maxAmt.LessThan(minAmt) {
+		return offer, &tErrors.CustomError{Param: "maxOrderAmount", Err: "error-max-below-min", ErrMessage: "maxOrderAmount cannot be less than minOrderAmount"}
+	}
+
+	offer.PaymentMethod = in.PaymentMethod
+	offer.PriceType = orDefaultStr(in.PriceType, offer.PriceType)
+	offer.Price = in.Price
+	offer.PriceMargin = orDefaultStr(in.PriceMargin, "0")
+	offer.MinOrderAmount = in.MinOrderAmount
+	offer.MaxOrderAmount = in.MaxOrderAmount
+	// AvailableLiquidity is only raised/lowered by the merchant's own
+	// top-up amount, not overwritten wholesale - a live offer may already
+	// have some of its liquidity reserved by in-flight orders, and a plain
+	// overwrite here could either strand a reservation or double count it.
+	if in.AvailableLiquidity != "" {
+		delta, e := decimal.NewFromString(in.AvailableLiquidity)
+		if e != nil {
+			return offer, &tErrors.CustomError{Param: "availableLiquidity", Err: "error-invalid-liquidity", ErrMessage: "availableLiquidity must be a valid decimal number"}
+		}
+		offer.AvailableLiquidity = decimal.RequireFromString(orDefaultStr(offer.AvailableLiquidity, "0")).Add(delta).String()
+	}
+	offer.Remark = in.Remark
+	offer.Version++
+
+	if err := gc.DB.Save(&offer).Error; err != nil {
+		return offer, &tErrors.ErrorTemporaryServerError{}
+	}
+	RecordAuditEvent(gc, "", offer.ID, p2pModels.EventOfferUpdated, merchantUserID, offer)
+	return offer, nil
+}
+
+// CloseOffer permanently retires an offer (Plan Section 13's implied
+// merchant control over listing lifecycle) - unlike Pause, a closed offer
+// cannot be reactivated. Orders already in flight reference their own
+// snapshot of the offer's terms taken at creation time, so closing does
+// not affect them.
+func CloseOffer(gc *sharedconfig.GlobalConfig, offerID, merchantUserID string) (p2pModels.Offer, error) {
+	offer, err := GetOfferByID(gc.DB, offerID)
+	if err != nil {
+		return offer, &tErrors.CustomError{Param: "offerId", Err: "error-offer-not-found", ErrMessage: "Offer not found"}
+	}
+	if offer.MerchantUserID != merchantUserID {
+		return offer, &tErrors.CustomError{Param: "offerId", Err: "error-forbidden", ErrMessage: "You do not own this offer", Code: 403}
+	}
+	if offer.Status == p2pModels.OfferStatusClosed {
+		return offer, &tErrors.CustomError{Param: "offerId", Err: "error-invalid-offer-state", ErrMessage: "This offer is already closed"}
+	}
+	offer.Status = p2pModels.OfferStatusClosed
+	offer.AvailabilityStatus = p2pModels.OfferAvailabilityOffline
+	if err := gc.DB.Save(&offer).Error; err != nil {
+		return offer, &tErrors.ErrorTemporaryServerError{}
+	}
+	RecordAuditEvent(gc, "", offer.ID, p2pModels.EventOfferUpdated, merchantUserID, offer)
+	return offer, nil
+}
+
 // GetOfferByID fetches a single offer.
 func GetOfferByID(db *gorm.DB, offerID string) (p2pModels.Offer, error) {
 	var offer p2pModels.Offer
@@ -176,7 +272,11 @@ func ListMarketplaceOffers(db *gorm.DB, f MarketplaceFilter) ([]p2pModels.Offer,
 		return nil, 0, err
 	}
 	var offers []p2pModels.Offer
-	err := q.Order("availability_status desc, updated_at desc").
+	// Online offers first; within each group, a ranked offer (CalculateRanking's
+	// periodic sweep, Plan Section 14) sorts by its rank ascending (1 = best),
+	// and an offer with no snapshot yet falls back to newest-first.
+	err := q.Joins("LEFT JOIN offer_ranking_snapshots ON offer_ranking_snapshots.offer_id = offers.id").
+		Order("offers.availability_status desc, offer_ranking_snapshots.rank IS NULL, offer_ranking_snapshots.rank ASC, offers.updated_at desc").
 		Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).Find(&offers).Error
 	return offers, total, err
 }
