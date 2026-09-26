@@ -14,45 +14,55 @@ import "time"
 // displays, not a full mirror of every column app-backend defines.
 
 type P2POffer struct {
-	ID                 string `json:"id"`
-	MerchantUsername   string `json:"merchantUsername"`
-	MerchantUserID     string `json:"merchantUserId"`
-	OfferType          string `json:"offerType"`
-	Asset              string `json:"asset"`
-	Price              string `json:"price"`
-	Currency           string `json:"currency"`
-	Status             string `json:"status"`
-	AvailabilityStatus string `json:"availabilityStatus"`
+	ID                 string    `json:"id"`
+	MerchantUsername   string    `json:"merchantUsername"`
+	MerchantUserID     string    `json:"merchantUserId"`
+	OfferType          string    `json:"offerType"`
+	Asset              string    `json:"asset"`
+	Price              string    `json:"price"`
+	Currency           string    `json:"currency"`
+	CountryCode        string    `json:"countryCode"`
+	Status             string    `json:"status"`
+	AvailabilityStatus string    `json:"availabilityStatus"`
 	CreatedAt          time.Time `json:"createdAt"`
 }
 
 func (P2POffer) TableName() string { return "offers" }
 
 type P2POrder struct {
-	ID                   string    `json:"id"`
-	OfferID              string    `json:"offerId"`
-	CustomerUserID       string    `json:"customerUserId"`
-	CustomerUsername     string    `json:"customerUsername"`
-	MerchantUserID       string    `json:"merchantUserId"`
-	MerchantUsername     string    `json:"merchantUsername"`
-	OfferType            string    `json:"offerType"`
-	Asset                string    `json:"asset"`
-	Currency             string    `json:"currency"`
-	Price                string    `json:"price"`
-	SpecifiedAssetAmount string    `json:"specifiedAssetAmount"`
-	PaymentAmount        string    `json:"paymentAmount"`
-	OrderStatus          string    `json:"orderStatus"`
-	IsDisputed           bool      `json:"isDisputed"`
-	CreatedAt            time.Time `json:"createdAt"`
+	ID                    string     `json:"id"`
+	OfferID               string     `json:"offerId"`
+	CustomerUserID        string     `json:"customerUserId"`
+	CustomerUsername      string     `json:"customerUsername"`
+	MerchantUserID        string     `json:"merchantUserId"`
+	MerchantUsername      string     `json:"merchantUsername"`
+	OfferType             string     `json:"offerType"`
+	Asset                 string     `json:"asset"`
+	Currency              string     `json:"currency"`
+	CountryCode           string     `json:"countryCode"`
+	Price                 string     `json:"price"`
+	SpecifiedAssetAmount  string     `json:"specifiedAssetAmount"`
+	PaymentAmount         string     `json:"paymentAmount"`
+	CombinedPlatformFee   string     `json:"combinedPlatformFee"`
+	CombinedRegulatoryFee string     `json:"combinedRegulatoryFee"`
+	CombinedVat           string     `json:"combinedVat"`
+	OrderStatus           string     `json:"orderStatus"`
+	IsDisputed            bool       `json:"isDisputed"`
+	CreatedAt             time.Time  `json:"createdAt"`
+	CompletedAt           *time.Time `json:"completedAt"`
 }
 
 func (P2POrder) TableName() string { return "orders" }
 
 type P2PDispute struct {
-	ID       string    `json:"id"`
-	OrderID  string    `json:"orderId"`
-	Status   string    `json:"status"`
-	OpenedAt time.Time `json:"openedAt"`
+	ID                    string     `json:"id"`
+	OrderID               string     `json:"orderId"`
+	Subject               string     `json:"subject"`
+	Status                string     `json:"status"`
+	Resolution            string     `json:"resolution"`
+	OpenedAt              time.Time  `json:"openedAt"`
+	ResolvedAt            *time.Time `json:"resolvedAt"`
+	ResolutionTimeSeconds int64      `json:"resolutionTimeSeconds"`
 }
 
 func (P2PDispute) TableName() string { return "disputes" }
@@ -63,12 +73,17 @@ func (P2PDispute) TableName() string { return "disputes" }
 // performance from here instead of the dead legacy P2P schema's
 // maker_stats/taker_reputations tables.
 type MerchantPerformance struct {
-	MerchantID       string `json:"merchantId"`
-	MerchantUsername string `json:"merchantUsername"`
-	CompletedTrades  int64  `json:"completedTrades"`
-	CompletionRate   string `json:"completionRate"`
-	DisputesOpened   int64  `json:"disputesOpened"`
-	DisputesResolvedAgainstMerchant int64 `json:"disputesResolvedAgainstMerchant"`
+	MerchantID                        string     `json:"merchantId"`
+	MerchantUsername                  string     `json:"merchantUsername"`
+	CompletedTrades                   int64      `json:"completedTrades"`
+	CompletedTradeVolume              string     `json:"completedTradeVolume"`
+	CompletionRate                    string     `json:"completionRate"`
+	AverageOrderCompletionTimeSeconds int64      `json:"averageOrderCompletionTime"`
+	CancelledOrders                   int64      `json:"cancelledOrders"`
+	ExpiredOrders                     int64      `json:"expiredOrders"`
+	DisputesOpened                    int64      `json:"disputesOpened"`
+	DisputesResolvedAgainstMerchant   int64      `json:"disputesResolvedAgainstMerchant"`
+	LastActivityAt                    *time.Time `json:"lastActivityAt"`
 }
 
 func (MerchantPerformance) TableName() string { return "merchant_performances" }

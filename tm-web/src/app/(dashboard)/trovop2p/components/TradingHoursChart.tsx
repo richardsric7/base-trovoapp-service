@@ -1,32 +1,23 @@
-import React, { useState } from "react";
+import React from "react";
 import dynamic from "next/dynamic";
 import styled from "styled-components";
-import { DropdownSelect } from "@/components";
+import { useP2pHourlyActivityReportQuery } from "@/redux/api/p2p";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
+const formatHour = (h: number) => `${h.toString().padStart(2, "0")}:00`;
+
 const TradingHoursChart = () => {
-  const [selectedOption, setSelectedOption] =
-    useState<string>("Thu 21 Sept, 2023");
+  // 90 days gives a representative sample of "which hour is usually
+  // busiest" without needing a date picker - the underlying report can
+  // take a `range` param if a narrower/wider window is ever needed here.
+  const { data, isLoading } = useP2pHourlyActivityReportQuery({ range: "90d" });
+  const report = data?.data;
 
   const series = [
     {
-      name: "Trading Hours",
-      data: [
-        { x: "0:00", y: 2000 },
-        { x: "1:00", y: 2500 },
-        { x: "2:00", y: 3000 },
-        { x: "3:00", y: 4500 },
-        { x: "4:00", y: 4000 },
-        { x: "5:00", y: 3500 },
-        { x: "6:00", y: 3800 },
-        { x: "7:00", y: 4200 },
-        { x: "8:00", y: 3900 },
-        { x: "9:00", y: 4300 },
-        { x: "10:00", y: 4800 },
-        { x: "11:00", y: 4100 },
-        { x: "12:00", y: 3700 },
-      ],
+      name: "Orders",
+      data: (report?.series ?? []).map((p) => ({ x: formatHour(p.hour), y: p.count })),
     },
   ];
 
@@ -49,21 +40,6 @@ const TradingHoursChart = () => {
     },
     xaxis: {
       type: "category",
-      categories: [
-        "0:00",
-        "1:00",
-        "2:00",
-        "3:00",
-        "4:00",
-        "5:00",
-        "6:00",
-        "7:00",
-        "8:00",
-        "9:00",
-        "10:00",
-        "11:00",
-        "12:00",
-      ],
       labels: {
         style: {
           colors: "#828282",
@@ -79,11 +55,7 @@ const TradingHoursChart = () => {
       },
     },
     yaxis: {
-      min: 1000,
-      max: 5000,
-      tickAmount: 4,
       labels: {
-        formatter: (value) => `${value / 1000}k`,
         style: {
           colors: "#828282",
           fontSize: "12px",
@@ -91,11 +63,8 @@ const TradingHoursChart = () => {
       },
     },
     tooltip: {
-      x: {
-        format: "HH:mm",
-      },
       y: {
-        formatter: (value) => `${value.toLocaleString()} hours`,
+        formatter: (value) => `${value.toLocaleString()} order${value === 1 ? "" : "s"}`,
       },
     },
     fill: {
@@ -144,24 +113,12 @@ const TradingHoursChart = () => {
     <Container>
       <FlexContent>
         <div>
-          <div>
-            <Text>Statistics</Text>
-            <TotalUsers>Trading Hours</TotalUsers>
-          </div>
+          <Text>Statistics</Text>
+          <TotalUsers>Trading Hours (UTC, last 90 days)</TotalUsers>
         </div>
-        <DropdownSelect
-          options={["Thu 21 Sept, 2023", "Thu 21 Sept, 2024"]}
-          placeholder="Select Date"
-          labelText=""
-          value={selectedOption}
-          onSelect={(item) => setSelectedOption(item)}
-          backgroundColor="#F2F6F9"
-          borderless={true}
-          iconColor="#00225A"
-        />
       </FlexContent>
       <Status>
-        Peak Trading Hours: <StyledSpan>10:00</StyledSpan>
+        Peak Trading Hour: <StyledSpan>{isLoading ? "-" : formatHour(report?.peakHour ?? 0)}</StyledSpan>
       </Status>
       <Chart options={options} series={series} type="area" height={380} />
     </Container>

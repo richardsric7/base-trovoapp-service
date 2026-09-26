@@ -25,6 +25,17 @@ func Init(router *gin.Engine, s *serverModels.Server) {
 	apiV1.GET("/p2p/statistics", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetP2PStatistics(s.TrovoWalletDB, s.P2P))
 	apiV1.GET("/trades/statistics", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetTradeStatistics(s.TrovoWalletDB, s.P2P))
 	apiV1.GET("/orders/trade", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetTradeList(s.TrovoWalletDB, s.P2P))
+
+	// P2P Market Reports - gated on the ACCESS_REPORTS permission (see
+	// reportsPermission in usermetrics/services/reports_handler.go), not
+	// just "any logged-in admin" like the statistics endpoints above.
+	apiV1.GET("/p2p/reports/volume", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetP2PVolumeReportHandler(s.AdminDB, s.P2P))
+	apiV1.GET("/p2p/reports/distribution", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetP2PDistributionReportHandler(s.AdminDB, s.P2P))
+	apiV1.GET("/p2p/reports/disputes", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetP2PDisputeReportHandler(s.AdminDB, s.P2P))
+	apiV1.GET("/p2p/reports/revenue", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetP2PRevenueReportHandler(s.AdminDB, s.P2P))
+	apiV1.GET("/p2p/reports/growth", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetP2PGrowthReportHandler(s.AdminDB, s.P2P))
+	apiV1.GET("/p2p/reports/hourly-activity", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetP2PHourlyActivityReportHandler(s.AdminDB, s.P2P))
+	apiV1.GET("/p2p/reports/merchants", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetP2PMerchantLeaderboardHandler(s.AdminDB, s.P2P))
 	apiV1.GET("/users", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetUserList(s.TrovoWalletDB))
 	apiV1.GET("/users/profile", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetUserProfile(s.TrovoWalletDB))
 	apiV1.GET("/wallet-balances/:walletAddress", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetWalletBalances(s.TrovoWalletDB))

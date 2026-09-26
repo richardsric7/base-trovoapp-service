@@ -116,3 +116,142 @@ export interface P2PUserListResponse {
   status: string;
   timestamp: string;
 }
+
+// --- P2P Market Reports ---
+// These mirror tm-api's /p2p/reports/* endpoints (usermetrics/db/reports.go),
+// gated server-side on the ACCESS_REPORTS admin permission.
+
+export type ReportRange = "7d" | "30d" | "90d" | "1y";
+
+export interface ReportRangeParams {
+  range?: ReportRange;
+}
+
+export interface IVolumeReportPoint {
+  date: string;
+  totalOrders: number;
+  completedOrders: number;
+  completedVolume: string;
+}
+
+export interface IVolumeReport {
+  series: IVolumeReportPoint[];
+  totalOrders: number;
+  completedOrders: number;
+  completedVolume: string;
+}
+
+export interface ICountItem {
+  key: string;
+  count: number;
+}
+
+export interface IVolumeItem {
+  key: string;
+  count: number;
+  volume: string;
+}
+
+export interface IDistributionReport {
+  byAsset: IVolumeItem[];
+  byCurrency: IVolumeItem[];
+  byCountry: IVolumeItem[];
+  byStatus: ICountItem[];
+}
+
+export interface IDisputeReportPoint {
+  date: string;
+  opened: number;
+  resolved: number;
+}
+
+export interface IDisputeReport {
+  series: IDisputeReportPoint[];
+  totalOpened: number;
+  totalResolved: number;
+  stillOpen: number;
+  resolutionRate: number;
+  averageResolutionTimeSeconds: number;
+  bySubject: ICountItem[];
+  byResolution: ICountItem[];
+}
+
+export interface IRevenueReportPoint {
+  date: string;
+  platformFee: string;
+  regulatoryFee: string;
+  vat: string;
+  total: string;
+}
+
+export interface IRevenueReport {
+  series: IRevenueReportPoint[];
+  totalPlatformFee: string;
+  totalRegulatoryFee: string;
+  totalVat: string;
+  totalRevenue: string;
+}
+
+export interface IGrowthReportPoint {
+  date: string;
+  newOffers: number;
+  newMerchants: number;
+}
+
+export interface IGrowthReport {
+  series: IGrowthReportPoint[];
+  totalNewOffers: number;
+  totalNewMerchants: number;
+}
+
+export interface IMerchantLeaderboardEntry {
+  merchantId: string;
+  merchantUsername: string;
+  completedTrades: number;
+  completedTradeVolume: string;
+  completionRate: string;
+  averageOrderCompletionTime: number;
+  cancelledOrders: number;
+  expiredOrders: number;
+  disputesOpened: number;
+  disputesResolvedAgainstMerchant: number;
+  lastActivityAt: string | null;
+}
+
+export interface MerchantLeaderboardQueryParams {
+  page?: number;
+  pageSize?: number;
+  sortBy?: "completedTrades" | "completedVolume" | "completionRate" | "disputesOpened";
+}
+
+export interface MerchantLeaderboardResponse {
+  message: string;
+  data: {
+    data: IMerchantLeaderboardEntry[];
+    total: number;
+    page: number;
+    pageSize: number;
+  };
+  status: string;
+  timestamp: string;
+}
+
+export interface IHourlyActivityPoint {
+  hour: number;
+  count: number;
+}
+
+export interface IHourlyActivityReport {
+  series: IHourlyActivityPoint[];
+  peakHour: number;
+}
+
+// A generic wrapper for the single-payload report responses (volume,
+// distribution, disputes, revenue, growth, hourly activity) - all share
+// tm-api's serverResponse.JSON envelope shape.
+export interface ReportResponse<T> {
+  message: string;
+  data: T;
+  status: string;
+  timestamp: string;
+}
