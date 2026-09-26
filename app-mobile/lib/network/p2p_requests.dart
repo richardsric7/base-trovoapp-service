@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:trovo_app/models/p2p_offer.dart';
 import 'package:trovo_app/models/p2p_order.dart';
+import 'package:trovo_app/models/p2p_refund.dart';
 import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/storage/state.dart';
 
@@ -181,4 +182,14 @@ class P2PApi {
 
   Future<Map> buyerConfirmsNotPaid(String disputeId) =>
       _post('/v1/p2p/disputes/$disputeId/buyer-confirms-not-paid', {});
+
+  // ---- Refunds ----
+
+  Future<List<P2PRefund>> listMyRefunds() async {
+    var response = await _get('/v1/p2p/refunds');
+    return P2PRefund.deserializeList(response['data']?['data']);
+  }
+
+  Future<Map> claimRefund(String refundId, {required String address}) =>
+      _post('/v1/p2p/refunds/$refundId/claim', {}, address: address);
 }

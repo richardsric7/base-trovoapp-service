@@ -109,6 +109,20 @@ export type P2PDispute = {
   resolvedBy: string;
 };
 
+export type P2PRefund = {
+  id: string;
+  orderId: string;
+  sender: string;
+  token: string;
+  contractAddress: string;
+  amount: string;
+  reason: string;
+  claimed: boolean;
+  claimedAt: string | null;
+  transactionHash: string;
+  createdAt: string;
+};
+
 export type P2POrderFeeQuote = {
   offerId: string;
   specifiedAssetAmount: string;

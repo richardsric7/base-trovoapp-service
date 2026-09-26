@@ -23,6 +23,7 @@ const (
 	EventDisputeOpened         = "DISPUTE_OPENED"
 	EventDisputeResolved       = "DISPUTE_RESOLVED"
 	EventRefundIssued          = "REFUND_ISSUED"
+	EventRefundClaimed         = "REFUND_CLAIMED"
 )
 
 // P2PAuditEvent is an append-only audit trail row. app-backend has no

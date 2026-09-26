@@ -20,7 +20,9 @@ func MarkFiatPaymentSent(gc *sharedconfig.GlobalConfig, orderID, callerUserID st
 	if order.OrderStatus != p2pModels.OrderStatusAwaitingPayment {
 		return order, &tErrors.CustomError{Param: "orderId", Err: "error-invalid-order-state", ErrMessage: "This order is not awaiting fiat payment"}
 	}
+	confirmationDeadline := time.Now().UTC().Add(paymentConfirmationWindow)
 	order.OrderStatus = p2pModels.OrderStatusAwaitingPaymentConfirmation
+	order.ExpiresAt = &confirmationDeadline
 	if err := gc.DB.Save(&order).Error; err != nil {
 		return order, &tErrors.ErrorTemporaryServerError{}
 	}

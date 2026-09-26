@@ -37,6 +37,12 @@ export default function P2PMarketplace() {
           >
             My offers
           </button>
+          <button
+            className="text-sm font-semibold text-primary-800 underline"
+            onClick={() => navigate('/dashboard/p2p/my-refunds')}
+          >
+            My refunds
+          </button>
         </div>
       </div>
 

@@ -88,6 +88,16 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
               );
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.savings_outlined),
+            tooltip: 'My Refunds',
+            onPressed: () {
+              appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: P2PMyRefundsViewPageConfig,
+              );
+            },
+          ),
         ],
       ),
       body: Column(
