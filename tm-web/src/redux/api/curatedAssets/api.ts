@@ -44,6 +44,15 @@ export const curatedAssetsApi = baseApi.injectEndpoints({
       invalidatesTags: ["curatedAssets"],
     }),
 
+    setCuratedAssetInactive: builder.mutation<CuratedAssetResponse, { id: number; inactive: boolean }>({
+      query: ({ id, inactive }) => ({
+        url: `/assets/curated/${id}/inactive`,
+        method: "PUT",
+        data: { inactive },
+      }),
+      invalidatesTags: ["curatedAssets"],
+    }),
+
     getAssetClasses: builder.query<AssetClassListResponse, void>({
       query: () => ({
         url: "/asset-classes",
@@ -58,5 +67,6 @@ export const {
   useGetCuratedAssetByIdQuery,
   useSaveCuratedAssetMutation,
   useSetCuratedAssetP2PEnabledMutation,
+  useSetCuratedAssetInactiveMutation,
   useGetAssetClassesQuery,
 } = curatedAssetsApi;

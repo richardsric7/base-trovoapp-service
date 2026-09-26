@@ -44,6 +44,10 @@ func Init(router *gin.Engine, s *serverModels.Server) {
 	apiV1.GET("/assets/curated/:id", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetCuratedAssetByIDHandler(s.TrovoWalletDB))
 	apiV1.POST("/assets/curated", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventAssetCurationChange, models.AccessCategoryAsset, accesslog.BodyField("assetCode")), userMetricServices.SaveCuratedAssetHandler(s.TrovoWalletDB))
 	apiV1.PUT("/assets/curated/:id/p2p-enabled", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventAssetCurationChange, models.AccessCategoryAsset, accesslog.Param("id")), userMetricServices.SetCuratedAssetP2PEnabledHandler(s.TrovoWalletDB))
+	// Deactivate/reactivate - the supported way to retire a curated asset;
+	// there is intentionally no delete endpoint, since existing wallets,
+	// offers and orders can still reference the asset by code.
+	apiV1.PUT("/assets/curated/:id/inactive", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventAssetCurationChange, models.AccessCategoryAsset, accesslog.Param("id")), userMetricServices.SetCuratedAssetInactiveHandler(s.TrovoWalletDB))
 	apiV1.GET("/asset-classes", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetAssetClassesHandler(s.TrovoWalletDB))
 	apiV1.GET("/p2p/reports/merchants", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetP2PMerchantLeaderboardHandler(s.AdminDB, s.P2P))
 	apiV1.GET("/users", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetUserList(s.TrovoWalletDB))
