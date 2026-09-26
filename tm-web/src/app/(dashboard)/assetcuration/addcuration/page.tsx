@@ -1,14 +1,44 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import styled from "styled-components";
-import PrimaryButton from "@/components/PrimaryButton";
 import Link from "next/link";
-
 import { FaArrowLeft } from "react-icons/fa6";
-import AddCurationTable from "../components/AddCurationTable";
-import CompleteCurationModal from "../components/CompleteCurationModal";
-const AddCurationpage = () => {
-  const [openModal, setOpenModal] = useState<boolean>(false);
+import { useRouter } from "next/navigation";
+import { showErrorToast, showSuccessToast } from "@/components";
+import { useSaveCuratedAssetMutation } from "@/redux/api/curatedAssets";
+import CuratedAssetForm, { CuratedAssetFormValues } from "../components/CuratedAssetForm";
+
+const AddCurationPage = () => {
+  const router = useRouter();
+  const [saveCuratedAsset, { isLoading }] = useSaveCuratedAssetMutation();
+
+  const handleSubmit = async (values: CuratedAssetFormValues) => {
+    try {
+      await saveCuratedAsset({
+        action: "create",
+        assetCode: values.assetCode.trim().toUpperCase(),
+        assetName: values.assetName,
+        contractAddress: values.contractAddress,
+        assetClassId: values.assetClassId,
+        decimalPlaces: values.decimalPlaces,
+        priority: values.priority,
+        assetLimit: values.assetLimit,
+        description: values.description,
+        website: values.website,
+        organization: values.organization,
+        contactEmail: values.contactEmail,
+        withdrawable: values.withdrawable,
+        generateDepositAddress: values.generateDepositAddress,
+        inactive: values.inactive,
+        p2pEnabled: values.p2pEnabled,
+      }).unwrap();
+      showSuccessToast("Curated asset created");
+      router.push("/assetcuration");
+    } catch (e: any) {
+      showErrorToast(e?.data?.error || "Could not create curated asset");
+    }
+  };
+
   return (
     <PageContainer>
       <BackLink href="/assetcuration">
@@ -17,37 +47,20 @@ const AddCurationpage = () => {
 
       <Header>
         <TitleSection>
-          <Title>Asset Curation</Title>
+          <Title>Add curated asset</Title>
           <Text>
-            Please tick all the assets you would like to add to your curation
+            Add a new asset to the platform catalog. Turn on &quot;Available on P2P
+            marketplace&quot; if merchants should be able to trade it right away.
           </Text>
         </TitleSection>
-
-        <PrimaryButton
-          buttonStyle={{
-            width: "auto",
-            padding: "10px 20px",
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-          }}
-          onClick={() => setOpenModal(!openModal)}
-        >
-          Continue
-        </PrimaryButton>
       </Header>
-      <AddCurationTable />
-      {openModal && (
-        <CompleteCurationModal
-          openModal={openModal}
-          setOpenModal={setOpenModal}
-        />
-      )}
+
+      <CuratedAssetForm submitLabel="Create asset" submitting={isLoading} onSubmit={handleSubmit} />
     </PageContainer>
   );
 };
 
-export default AddCurationpage;
+export default AddCurationPage;
 
 const PageContainer = styled.section`
   background: #ffffff;

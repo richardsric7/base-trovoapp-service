@@ -29,6 +29,15 @@ type CuratedAsset struct {
 	RealAssetImageURL           *string    `gorm:"null;" json:"realAssetImageUrl"`
 	Inactive                    uint64     `gorm:"type:integer;not null;default:0" json:"-"`
 	ClosedGroup                 *string    `gorm:"null;" json:"closedGroup"`
+	// P2PEnabled gates this asset's availability on the P2P marketplace,
+	// independent of Withdrawable/Inactive (which gate unrelated wallet
+	// features) - curated from the admin panel (tm-api). An asset with
+	// this unset cannot be selected when creating a P2P offer, and any
+	// existing offer for it disappears from marketplace search.
+	// column:p2p_enabled is explicit because GORM's default namer splits
+	// "P2PEnabled" on the digit (p2_p_enabled), not into the p2p_enabled
+	// column name every other P2P table/query in this codebase expects.
+	P2PEnabled bool `gorm:"column:p2p_enabled;not null;default:false" json:"p2pEnabled"`
 }
 
 // CuratedAsset model struct for CuratedAsset.

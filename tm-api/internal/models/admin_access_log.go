@@ -93,13 +93,14 @@ const (
 	EventWalletLink      = "wallet.link"
 
 	// asset
-	EventAssetAssignment  = "asset_assignment.create"
-	EventTokenizationMint = "tokenization.mint"
-	EventTokenizationVet  = "tokenization.vet"
-	EventTokenizationFail = "tokenization.fail"
-	EventMintingUserGrant = "minting_user.grant"
-	EventMintingUserRevoke = "minting_user.revoke"
-	EventComplianceCreate  = "compliance.create"
+	EventAssetAssignment     = "asset_assignment.create"
+	EventAssetCurationChange = "asset_curation.change"
+	EventTokenizationMint    = "tokenization.mint"
+	EventTokenizationVet     = "tokenization.vet"
+	EventTokenizationFail    = "tokenization.fail"
+	EventMintingUserGrant    = "minting_user.grant"
+	EventMintingUserRevoke   = "minting_user.revoke"
+	EventComplianceCreate    = "compliance.create"
 )
 
 // Access-log status values (canonical lowercase; the UI filter's title-case is

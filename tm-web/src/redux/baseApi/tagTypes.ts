@@ -19,4 +19,5 @@ export const tagTypes = {
   COMPLIANCE_REQUIREMENTS: "complianceRequirements",
   AUDIT_TRAIL: "auditTrail",
   OBSERVABILITY: "observability",
+  CURATED_ASSETS: "curatedAssets",
 };

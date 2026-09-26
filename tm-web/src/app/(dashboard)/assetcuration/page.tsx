@@ -1,30 +1,104 @@
 "use client";
 import React, { useState } from "react";
-import { SearchBar } from "@/components";
 import styled from "styled-components";
-import AssetCurationFilter from "./components/AssetCurationFilter";
-import AssetCurationTable from "./components/AssetCurationTable";
-import PrimaryButton from "@/components/PrimaryButton";
-import { FaPlus } from "react-icons/fa6";
 import Link from "next/link";
+import { FaPlus } from "react-icons/fa6";
+import { SearchBar } from "@/components";
+import { DropdownSelect } from "@/components/Dropdown";
+import PrimaryButton from "@/components/PrimaryButton";
+import ToggleSwitch from "@/components/ToggleSwitch";
+import CustomTable from "@/components/CustomTable";
+import {
+  ICuratedAsset,
+  useGetCuratedAssetsQuery,
+  useSetCuratedAssetP2PEnabledMutation,
+} from "@/redux/api/curatedAssets";
+
+const P2P_FILTER_OPTIONS = ["All assets", "P2P enabled", "P2P disabled"];
+const PAGE_SIZE = 20;
 
 const AssetCurationPage = () => {
+  const [search, setSearch] = useState("");
+  const [searchTrigger, setSearchTrigger] = useState("");
+  const [p2pFilter, setP2pFilter] = useState(P2P_FILTER_OPTIONS[0]);
+  const [page, setPage] = useState(1);
+
+  const p2pEnabled =
+    p2pFilter === "P2P enabled" ? "true" : p2pFilter === "P2P disabled" ? "false" : undefined;
+
+  const { data, isLoading } = useGetCuratedAssetsQuery({
+    page,
+    pageSize: PAGE_SIZE,
+    assetCode: searchTrigger || undefined,
+    p2pEnabled,
+  });
+  const [setP2PEnabled] = useSetCuratedAssetP2PEnabledMutation();
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    if (e.target.value.trim() === "") setSearchTrigger("");
+  };
+  const handleSearch = () => {
+    setPage(1);
+    setSearchTrigger(search);
+  };
+
+  const columns = [
+    {
+      title: "Asset",
+      dataIndex: "assetCode",
+      render: (_: any, record: ICuratedAsset) => (
+        <div>
+          <AssetCode>{record.assetCode}</AssetCode>
+          <AssetName>{record.assetName || "—"}</AssetName>
+        </div>
+      ),
+    },
+    { title: "Class ID", dataIndex: "assetClassId" },
+    { title: "Decimals", dataIndex: "decimalPlaces" },
+    {
+      title: "Withdrawable",
+      dataIndex: "withdrawable",
+      render: (v: number) => (v ? "Yes" : "No"),
+    },
+    {
+      title: "Inactive",
+      dataIndex: "inactive",
+      render: (v: number) => (v ? "Yes" : "No"),
+    },
+    {
+      title: "P2P Enabled",
+      dataIndex: "p2pEnabled",
+      render: (_: any, record: ICuratedAsset) => (
+        <ToggleSwitch
+          checked={record.p2pEnabled}
+          onChange={(checked) => setP2PEnabled({ id: record.id, p2pEnabled: checked })}
+        />
+      ),
+    },
+    {
+      title: "Actions",
+      dataIndex: "actions",
+      render: (_: any, record: ICuratedAsset) => (
+        <StyledLink href={`/assetcuration/${record.id}`}>Edit</StyledLink>
+      ),
+    },
+  ];
+
   return (
     <PageContainer>
       <Header>
         <TitleSection>
-          <Title> Curated Assets</Title>
-
+          <Title>Curated Assets</Title>
           <AssetCount>
-            Total: <HighlightedText>50 Curations</HighlightedText>
+            Total: <HighlightedText>{data?.data?.total ?? 0} assets</HighlightedText>
           </AssetCount>
-
           <Text>
-            Drag the assets to rearrange them in your desired order on the Trovo
-            app, or use the move icon in the Actions column
+            An asset must be P2P Enabled here before it can be used to create a P2P offer or be
+            found in marketplace search.
           </Text>
         </TitleSection>
-        <StyledLink href="assetcuration/addcuration">
+        <StyledButtonLink href="/assetcuration/addcuration">
           <PrimaryButton
             buttonStyle={{
               width: "auto",
@@ -34,17 +108,36 @@ const AssetCurationPage = () => {
               gap: "4px",
             }}
           >
-            Curate Assets <FaPlus />
+            Add Asset <FaPlus />
           </PrimaryButton>
-        </StyledLink>
+        </StyledButtonLink>
       </Header>
 
       <FiltersSection>
-        <SearchBar />
-        <AssetCurationFilter />
+        <SearchBar value={search} onChange={handleSearchInputChange} handleSearch={handleSearch} />
+        <DropdownSelect
+          value={p2pFilter}
+          options={P2P_FILTER_OPTIONS}
+          onSelect={(item) => {
+            setPage(1);
+            setP2pFilter(item);
+          }}
+          placeholder="Filter"
+          labelText=""
+          backgroundColor="#F2F6F9"
+          borderless
+          iconColor="#00225A"
+        />
       </FiltersSection>
 
-      <AssetCurationTable />
+      <CustomTable
+        columns={columns}
+        dataSource={data?.data?.data ?? []}
+        totalItems={data?.data?.total ?? 0}
+        pageSize={PAGE_SIZE}
+        isLoading={isLoading}
+        onPageChange={setPage}
+      />
     </PageContainer>
   );
 };
@@ -60,7 +153,7 @@ const PageContainer = styled.section`
 
 const Header = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
 `;
 
@@ -85,11 +178,11 @@ const AssetCount = styled.p`
 `;
 
 const Text = styled.p`
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   color: #828282;
   margin: 0;
-  line-height: 28px;
+  line-height: 22px;
   width: 90%;
 `;
 
@@ -106,7 +199,30 @@ const FiltersSection = styled.div`
   margin: 10px 0 30px 0;
 `;
 
-const StyledLink = styled(Link)`
+const StyledButtonLink = styled(Link)`
   text-decoration: none;
-  width: 20%;
+`;
+
+const StyledLink = styled(Link)`
+  color: #007cdf;
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const AssetCode = styled.p`
+  font-weight: 600;
+  font-size: 14px;
+  color: #00225a;
+  margin: 0;
+`;
+
+const AssetName = styled.p`
+  font-size: 12px;
+  color: #828282;
+  margin: 0;
 `;
