@@ -72,6 +72,13 @@ func CreateOffer(gc *sharedconfig.GlobalConfig, merchantUsername, merchantUserID
 	if err != nil || curatedAsset.AssetCode == "" {
 		return p2pModels.Offer{}, &tErrors.CustomError{Param: "asset", Err: "error-unsupported-asset", ErrMessage: "This asset is not supported on the P2P marketplace."}
 	}
+	// P2PEnabled is curated separately from Withdrawable/Inactive (which
+	// gate unrelated wallet features) - an asset must be explicitly opted
+	// into the P2P marketplace from the admin panel before any offer can
+	// be created for it.
+	if !curatedAsset.P2PEnabled {
+		return p2pModels.Offer{}, &tErrors.CustomError{Param: "asset", Err: "error-asset-not-p2p-enabled", ErrMessage: "This asset is not currently available on the P2P marketplace."}
+	}
 
 	if _, e := decimal.NewFromString(in.Price); e != nil {
 		return p2pModels.Offer{}, &tErrors.CustomError{Param: "price", Err: "error-invalid-price", ErrMessage: "price must be a valid decimal number"}
@@ -399,7 +406,8 @@ func ListMarketplaceOffers(db *gorm.DB, f MarketplaceFilter) ([]p2pModels.Offer,
 	q := db.Model(&p2pModels.Offer{}).
 		Joins("JOIN users ON users.id = offers.merchant_user_id").
 		Where("offers.status = ? AND offers.availability_status = ? AND users.is_merchant = ? AND users.merchant_online = ?",
-			p2pModels.OfferStatusActive, p2pModels.OfferAvailabilityOnline, true, true)
+			p2pModels.OfferStatusActive, p2pModels.OfferAvailabilityOnline, true, true).
+		Where("offers.asset IN (?)", db.Table("curated_assets").Select("asset_code").Where("p2p_enabled = ?", true))
 	if f.OfferType != "" {
 		q = q.Where("offers.offer_type = ?", f.OfferType)
 	}
@@ -478,7 +486,8 @@ func ListMarketplaceFacets(db *gorm.DB) (MarketplaceFacets, error) {
 	base := db.Model(&p2pModels.Offer{}).
 		Joins("JOIN users ON users.id = offers.merchant_user_id").
 		Where("offers.status = ? AND offers.availability_status = ? AND users.is_merchant = ? AND users.merchant_online = ?",
-			p2pModels.OfferStatusActive, p2pModels.OfferAvailabilityOnline, true, true)
+			p2pModels.OfferStatusActive, p2pModels.OfferAvailabilityOnline, true, true).
+		Where("offers.asset IN (?)", db.Table("curated_assets").Select("asset_code").Where("p2p_enabled = ?", true))
 	// curated_assets carries each asset code's asset_class_id - joined in
 	// (rather than resolved client-side) so a category-dependent asset
 	// filter needs no second request when the category changes. LEFT JOIN:
