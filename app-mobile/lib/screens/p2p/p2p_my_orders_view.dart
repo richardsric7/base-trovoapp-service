@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
@@ -53,7 +54,7 @@ class _P2PMyOrdersViewState extends State<P2PMyOrdersView> {
       appBar: AppBar(
         backgroundColor: notifier.getwihitecolor,
         elevation: 0,
-        title: Text('My orders', style: TextStyle(color: notifier.getblck)),
+        title: Text('p2pmyorderstitle'.tr(), style: TextStyle(color: notifier.getblck)),
         iconTheme: IconThemeData(color: notifier.getblck),
       ),
       body: Column(
@@ -62,11 +63,11 @@ class _P2PMyOrdersViewState extends State<P2PMyOrdersView> {
             padding: const EdgeInsets.all(P2PTheme.space4),
             child: Row(
               children: [
-                _tab('', 'All'),
+                _tab('', 'p2pall'.tr()),
                 const SizedBox(width: P2PTheme.space2),
-                _tab('customer', 'Buying/Selling as customer'),
+                _tab('customer', 'p2pasacustomer'.tr()),
                 const SizedBox(width: P2PTheme.space2),
-                _tab('merchant', 'As merchant'),
+                _tab('merchant', 'p2pasmerchant'.tr()),
               ],
             ),
           ),
@@ -76,8 +77,8 @@ class _P2PMyOrdersViewState extends State<P2PMyOrdersView> {
                 : orders.isEmpty
                     ? P2PEmptyState(
                         icon: Icons.receipt_long_outlined,
-                        message: 'You have no orders yet.',
-                        ctaLabel: 'Browse the marketplace',
+                        message: 'p2pnoordersyet'.tr(),
+                        ctaLabel: 'p2pbrowsemarketplace'.tr(),
                         onCta: () {
                           appState.currentAction = PageAction(
                             state: PageState.pop,
@@ -146,7 +147,7 @@ class _P2PMyOrdersViewState extends State<P2PMyOrdersView> {
               children: [
                 Text('${o.specifiedAssetAmount} ${o.asset}', style: const TextStyle(fontWeight: FontWeight.w700)),
                 const SizedBox(height: P2PTheme.space1),
-                Text('with $counterparty', style: const TextStyle(color: Colors.black54, fontSize: 12)),
+                Text('p2pwithcounterparty'.tr(args: [counterparty ?? '']), style: const TextStyle(color: Colors.black54, fontSize: 12)),
               ],
             ),
           ),

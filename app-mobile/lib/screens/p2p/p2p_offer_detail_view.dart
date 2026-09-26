@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
@@ -23,6 +24,7 @@ class _P2POfferDetailViewState extends State<P2POfferDetailView> {
   late P2PApi api;
   String? offerId;
   P2POffer? offer;
+  Map<String, dynamic>? merchantPerf;
   bool loading = true;
   bool loaded = false;
 
@@ -45,6 +47,10 @@ class _P2POfferDetailViewState extends State<P2POfferDetailView> {
       offer = result;
       loading = false;
     });
+    if (result?.merchantUserId != null) {
+      final perf = await api.getMerchantPerformance(result!.merchantUserId!);
+      if (mounted) setState(() => merchantPerf = perf);
+    }
   }
 
   @override
@@ -57,15 +63,15 @@ class _P2POfferDetailViewState extends State<P2POfferDetailView> {
       appBar: AppBar(
         backgroundColor: notifier.getwihitecolor,
         elevation: 0,
-        title: Text('Offer details', style: TextStyle(color: notifier.getblck)),
+        title: Text('p2pofferdetailstitle'.tr(), style: TextStyle(color: notifier.getblck)),
         iconTheme: IconThemeData(color: notifier.getblck),
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : offer == null
-              ? const P2PEmptyState(
+              ? P2PEmptyState(
                   icon: Icons.error_outline,
-                  message: 'This offer could not be found.',
+                  message: 'p2poffernotfound'.tr(),
                 )
               : _content(offer!),
     );
@@ -102,11 +108,11 @@ class _P2POfferDetailViewState extends State<P2POfferDetailView> {
                         ],
                       ),
                       const SizedBox(height: P2PTheme.space4),
-                      _row('Price', '${o.price} ${o.currency}'),
-                      _row('Available', '${o.availableLiquidity} ${o.asset}'),
-                      _row('Limits', '${o.minOrderAmount} - ${o.maxOrderAmount} ${o.asset}'),
-                      _row('Payment method', o.paymentMethod?.paymentChannel ?? '-'),
-                      _row('Provider', o.paymentMethod?.provider ?? '-'),
+                      _row('p2pprice'.tr(), '${o.price} ${o.currency}'),
+                      _row('p2pavailable'.tr(), '${o.availableLiquidity} ${o.asset}'),
+                      _row('p2plimits'.tr(), '${o.minOrderAmount} - ${o.maxOrderAmount} ${o.asset}'),
+                      _row('p2ppaymentmethod'.tr(), o.paymentMethod?.paymentChannel ?? '-'),
+                      _row('p2pprovider'.tr(), o.paymentMethod?.provider ?? '-'),
                       if (o.remark != null && o.remark!.isNotEmpty) ...[
                         const SizedBox(height: P2PTheme.space2),
                         Text(o.remark!, style: const TextStyle(color: Colors.black54)),
@@ -114,6 +120,37 @@ class _P2POfferDetailViewState extends State<P2POfferDetailView> {
                     ],
                   ),
                 ),
+                if (merchantPerf != null &&
+                    (merchantPerf!['completedTrades'] ?? 0) > 0) ...[
+                  const SizedBox(height: P2PTheme.space3),
+                  P2PListCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'p2pmerchantperformance'.tr(),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: P2PTheme.space2),
+                        _row(
+                          'p2pcompletedtrades'.tr(),
+                          '${merchantPerf!['completedTrades']}',
+                        ),
+                        _row(
+                          'p2pcompletionrate'.tr(),
+                          '${merchantPerf!['completionRate']}%',
+                        ),
+                        if ((merchantPerf!['disputesResolvedAgainstMerchant'] ??
+                                0) >
+                            0)
+                          _row(
+                            'p2pdisputesagainstmerchant'.tr(),
+                            '${merchantPerf!['disputesResolvedAgainstMerchant']}',
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -138,7 +175,7 @@ class _P2POfferDetailViewState extends State<P2POfferDetailView> {
                 );
               },
               child: Text(
-                isCustomerBuying ? 'Sell to this offer' : 'Buy from this offer',
+                isCustomerBuying ? 'p2pselltooffer'.tr() : 'p2pbuyfromoffer'.tr(),
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
               ),
             ),

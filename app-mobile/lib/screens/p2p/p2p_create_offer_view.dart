@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
@@ -46,7 +47,7 @@ class _P2PCreateOfferViewState extends State<P2PCreateOfferView> {
     api = P2PApi(appState);
   }
 
-  String? _required(String? v) => (v == null || v.trim().isEmpty) ? 'Required' : null;
+  String? _required(String? v) => (v == null || v.trim().isEmpty) ? 'p2prequired'.tr() : null;
 
   Future<void> _submit() async {
     if (!formKey.currentState!.validate()) return;
@@ -81,14 +82,14 @@ class _P2PCreateOfferViewState extends State<P2PCreateOfferView> {
       } else {
         popup(
           context,
-          title: 'Could not create offer',
-          message: response['data']?['message'] ?? 'Please check your inputs and try again.',
+          title: 'p2pcouldnotcreateoffer'.tr(),
+          message: response['data']?['message'] ?? 'p2pcheckinputsretry'.tr(),
         );
       }
     } catch (e) {
       hideLoader(context);
       setState(() => submitting = false);
-      popup(context, title: 'Error', message: e.toString());
+      popup(context, title: 'error'.tr(), message: e.toString());
     }
   }
 
@@ -102,7 +103,7 @@ class _P2PCreateOfferViewState extends State<P2PCreateOfferView> {
       appBar: AppBar(
         backgroundColor: notifier.getwihitecolor,
         elevation: 0,
-        title: Text('Create offer', style: TextStyle(color: notifier.getblck)),
+        title: Text('p2pcreateoffertitle'.tr(), style: TextStyle(color: notifier.getblck)),
         iconTheme: IconThemeData(color: notifier.getblck),
       ),
       body: Form(
@@ -118,7 +119,7 @@ class _P2PCreateOfferViewState extends State<P2PCreateOfferView> {
                     child: RadioListTile<String>(
                       value: 'SELL',
                       groupValue: offerType,
-                      title: const Text('Sell'),
+                      title: Text('p2psell'.tr()),
                       onChanged: (v) => setState(() => offerType = v!),
                     ),
                   ),
@@ -126,26 +127,26 @@ class _P2PCreateOfferViewState extends State<P2PCreateOfferView> {
                     child: RadioListTile<String>(
                       value: 'BUY',
                       groupValue: offerType,
-                      title: const Text('Buy'),
+                      title: Text('p2pbuy'.tr()),
                       onChanged: (v) => setState(() => offerType = v!),
                     ),
                   ),
                 ],
               ),
-              _field('Asset code (e.g. USDC)', asset),
-              _field('Price per unit', price, numeric: true),
-              _field('Currency (e.g. NGN)', currency),
-              _field('Min order amount', minOrderAmount, numeric: true),
-              _field('Max order amount', maxOrderAmount, numeric: true),
-              _field('Available liquidity', availableLiquidity, numeric: true),
-              _field('Country', country),
-              _field('Country code (ISO-3)', countryCode),
+              _field('p2passetcodelabel'.tr(), asset),
+              _field('p2ppriceperunit'.tr(), price, numeric: true),
+              _field('p2pcurrencylabel'.tr(), currency),
+              _field('p2pminorderamount'.tr(), minOrderAmount, numeric: true),
+              _field('p2pmaxorderamount'.tr(), maxOrderAmount, numeric: true),
+              _field('p2pavailableliquidity'.tr(), availableLiquidity, numeric: true),
+              _field('country'.tr(), country),
+              _field('p2pcountrycode'.tr(), countryCode),
               const SizedBox(height: P2PTheme.space2),
-              const Text('Payment method', style: TextStyle(fontWeight: FontWeight.w600)),
-              _field('Payment channel (e.g. BANK_TRANSFER)', paymentChannel),
-              _field('Provider (e.g. GTBANK)', provider),
-              _field('Account details', account),
-              _field('Remark (optional)', remark, required: false),
+              Text('p2ppaymentmethod'.tr(), style: const TextStyle(fontWeight: FontWeight.w600)),
+              _field('p2ppaymentchannel'.tr(), paymentChannel),
+              _field('p2pproviderlabel'.tr(), provider),
+              _field('p2paccountdetails'.tr(), account),
+              _field('p2premark'.tr(), remark, required: false),
               const SizedBox(height: P2PTheme.space4),
               SizedBox(
                 width: double.infinity,
@@ -155,9 +156,9 @@ class _P2PCreateOfferViewState extends State<P2PCreateOfferView> {
                     padding: const EdgeInsets.symmetric(vertical: P2PTheme.space4),
                   ),
                   onPressed: submitting ? null : _submit,
-                  child: const Text(
-                    'Create offer',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  child: Text(
+                    'p2pcreateofferbutton'.tr(),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),

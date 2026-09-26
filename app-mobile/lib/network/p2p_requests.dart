@@ -35,6 +35,16 @@ class P2PApi {
     );
   }
 
+  Future<Map> _put(String uri, Map body, {String address = ''}) {
+    return makePutRequest(
+      uri: uri,
+      body: jsonEncode(body),
+      signer: _signer,
+      secretKey: _secretKey,
+      address: address.isEmpty ? appState.primaryWallet.address! : address,
+    );
+  }
+
   // ---- Offers / marketplace ----
 
   Future<Map<String, dynamic>> listMarketplaceOffers({
@@ -77,11 +87,17 @@ class P2PApi {
 
   Future<Map> createOffer(Map body) => _post('/v1/p2p/offers', body);
 
+  Future<Map> updateOffer(String offerId, Map body) =>
+      _put('/v1/p2p/offers/$offerId', body);
+
   Future<Map> activateOffer(String offerId) =>
       _post('/v1/p2p/offers/$offerId/activate', {});
 
   Future<Map> pauseOffer(String offerId) =>
       _post('/v1/p2p/offers/$offerId/pause', {});
+
+  Future<Map> closeOffer(String offerId) =>
+      _post('/v1/p2p/offers/$offerId/close', {});
 
   Future<List<P2POffer>> listMyOffers() async {
     var response = await _get('/v1/p2p/my-offers');
@@ -131,6 +147,9 @@ class P2PApi {
   Future<Map> cancelOrder(String orderId, {required String address}) =>
       _post('/v1/p2p/orders/$orderId/cancel', {}, address: address);
 
+  Future<Map> merchantCancelOrder(String orderId, {required String address}) =>
+      _post('/v1/p2p/orders/$orderId/merchant-cancel', {}, address: address);
+
   // ---- Escrow deposit (two-phase build -> sign -> commit, same contract
   // as /v1/users/payment) ----
 
@@ -147,6 +166,15 @@ class P2PApi {
     'transactionSignature': transactionSignature,
     'commit': 1,
   }, address: address);
+
+  Future<Map> regenerateEscrowShortlink(
+    String orderId, {
+    required String address,
+  }) => _post(
+    '/v1/p2p/orders/$orderId/escrow-deposit/regenerate-shortlink',
+    {},
+    address: address,
+  );
 
   // ---- Fiat payment stage ----
 
@@ -192,4 +220,28 @@ class P2PApi {
 
   Future<Map> claimRefund(String refundId, {required String address}) =>
       _post('/v1/p2p/refunds/$refundId/claim', {}, address: address);
+
+  // ---- Performance / trust signals ----
+
+  Future<Map<String, dynamic>?> getMerchantPerformance(
+    String merchantId,
+  ) async {
+    var response = await _get('/v1/p2p/merchants/$merchantId/performance');
+    if (response['statusCode'] != 200) return null;
+    return response['data'];
+  }
+
+  Future<Map<String, dynamic>?> getCustomerPerformance(
+    String customerId,
+  ) async {
+    var response = await _get('/v1/p2p/customers/$customerId/performance');
+    if (response['statusCode'] != 200) return null;
+    return response['data'];
+  }
+
+  Future<Map<String, dynamic>?> getMyPerformance() async {
+    var response = await _get('/v1/p2p/my-performance');
+    if (response['statusCode'] != 200) return null;
+    return response['data'];
+  }
 }

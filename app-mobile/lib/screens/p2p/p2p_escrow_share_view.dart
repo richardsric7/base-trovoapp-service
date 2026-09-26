@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -46,10 +47,10 @@ class _P2PEscrowShareViewState extends State<P2PEscrowShareView> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text('Share escrow deposit', style: TextStyle(color: Colors.white)),
+        title: Text('p2pshareescrowdeposit'.tr(), style: const TextStyle(color: Colors.white)),
       ),
       body: order == null
-          ? const P2PEmptyState(icon: Icons.error_outline, message: 'No order selected.')
+          ? P2PEmptyState(icon: Icons.error_outline, message: 'p2pnoorderselected'.tr())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(P2PTheme.space6),
               child: Column(
@@ -59,7 +60,7 @@ class _P2PEscrowShareViewState extends State<P2PEscrowShareView> {
                     style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: P2PTheme.space1),
-                  const Text('Anyone with this link or QR can fund this deposit.', style: TextStyle(color: Colors.white70)),
+                  Text('p2panyonewithlink'.tr(), style: const TextStyle(color: Colors.white70)),
                   const SizedBox(height: P2PTheme.space8),
                   if (order!.escrowDepositQrCode != null && order!.escrowDepositQrCode!.isNotEmpty)
                     Container(
@@ -91,7 +92,7 @@ class _P2PEscrowShareViewState extends State<P2PEscrowShareView> {
                           onPressed: () {
                             Clipboard.setData(ClipboardData(text: order!.escrowDepositShortlink ?? ''));
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Link copied')),
+                              SnackBar(content: Text('p2plinkcopied'.tr())),
                             );
                           },
                         ),
@@ -107,7 +108,7 @@ class _P2PEscrowShareViewState extends State<P2PEscrowShareView> {
                         padding: const EdgeInsets.symmetric(vertical: P2PTheme.space4),
                       ),
                       icon: const Icon(Icons.share, color: P2PTheme.brandDark),
-                      label: const Text('Share', style: TextStyle(color: P2PTheme.brandDark, fontWeight: FontWeight.w600)),
+                      label: Text('p2psharebutton'.tr(), style: const TextStyle(color: P2PTheme.brandDark, fontWeight: FontWeight.w600)),
                       onPressed: () {
                         Share.share(order!.escrowDepositShortlink ?? '');
                       },
@@ -116,7 +117,7 @@ class _P2PEscrowShareViewState extends State<P2PEscrowShareView> {
                   const SizedBox(height: P2PTheme.space2),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Back to order', style: TextStyle(color: Colors.white70)),
+                    child: Text('p2pbacktoorder'.tr(), style: const TextStyle(color: Colors.white70)),
                   ),
                 ],
               ),

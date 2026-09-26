@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../../components/header';
-import { useListP2PMarketplaceOffersQuery } from '../../../store/api/p2pApis';
+import { useListP2PMarketplaceOffersQuery, useGetMerchantP2PPerformanceQuery, P2PCreds } from '../../../store/api/p2pApis';
 import { useP2PIdentity } from '../../../hooks/useP2PIdentity';
 import { P2PListCard, P2PEmptyState, p2p } from '../../../components/p2p/P2PTheme';
 
@@ -100,10 +100,25 @@ export default function P2PMarketplace() {
                   </span>
                 )}
               </div>
+              <MerchantPerformanceBadge creds={creds} merchantId={offer.merchantUserId} ready={ready} />
             </P2PListCard>
           ))
         )}
       </div>
     </div>
+  );
+}
+
+// MerchantPerformanceBadge shows the marketplace trust signal (Plan
+// Section 8/26) on each offer card - RTK Query dedupes this per
+// merchantId, so browsing a page of offers from the same handful of
+// merchants only fetches each merchant's performance once.
+function MerchantPerformanceBadge({ creds, merchantId, ready }: { creds: P2PCreds; merchantId: string; ready: boolean }) {
+  const { data: perf } = useGetMerchantP2PPerformanceQuery({ creds, merchantId }, { skip: !ready || !merchantId });
+  if (!perf || perf.completedTrades === 0) return null;
+  return (
+    <p className="text-xs text-gray-400 mt-1">
+      {perf.completedTrades} trade{perf.completedTrades === 1 ? '' : 's'} · {perf.completionRate}% completion
+    </p>
   );
 }

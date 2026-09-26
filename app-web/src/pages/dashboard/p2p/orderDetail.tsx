@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import Header from '../../../components/header';
 import {
   useGetP2POrderQuery,
@@ -7,17 +8,23 @@ import {
   useAcceptP2POrderMutation,
   useRejectP2POrderMutation,
   useCancelP2POrderMutation,
+  useMerchantCancelP2POrderMutation,
   useEscrowDepositBuildMutation,
   useEscrowDepositCommitMutation,
+  useRegenerateEscrowShortlinkMutation,
   useMarkP2PPaymentSentMutation,
   useConfirmP2PPaymentReceivedMutation,
   useMerchantConfirmsP2PPaymentMutation,
   useBuyerConfirmsP2PNotPaidMutation,
+  useGetCustomerP2PPerformanceQuery,
+  P2PCreds,
 } from '../../../store/api/p2pApis';
 import { useP2PIdentity } from '../../../hooks/useP2PIdentity';
 import { isCustomer, isMerchant, isAssetDepositor, isFiatPayer, isFiatRecipient, P2POrder } from '../../../types/p2p';
 import { P2PListCard, P2PEmptyState, P2PStatusPill, P2PBanner, p2p, statusLabel } from '../../../components/p2p/P2PTheme';
 import { signBase64Txn } from '../../../utils/trovoSDK';
+import { getExplorerBaseUrl } from '../../../utils/utilities';
+import { RootState } from '../../../store/reduxStore';
 
 const STEPS: P2POrder['orderStatus'][] = [
   'AWAITING_APPROVAL',
@@ -44,11 +51,14 @@ export default function P2POrderDetail() {
     { skip: !ready || !orderId || !order?.isDisputed },
   );
 
+  const walletMode = useSelector((state: RootState) => state.appState!.walletMode);
   const [accept] = useAcceptP2POrderMutation();
   const [reject] = useRejectP2POrderMutation();
   const [cancel] = useCancelP2POrderMutation();
+  const [merchantCancel] = useMerchantCancelP2POrderMutation();
   const [buildDeposit] = useEscrowDepositBuildMutation();
   const [commitDeposit] = useEscrowDepositCommitMutation();
+  const [regenerateShortlink] = useRegenerateEscrowShortlinkMutation();
   const [markPaymentSent] = useMarkP2PPaymentSentMutation();
   const [confirmPayment] = useConfirmP2PPaymentReceivedMutation();
   const [merchantConfirms] = useMerchantConfirmsP2PPaymentMutation();
@@ -139,10 +149,13 @@ export default function P2POrderDetail() {
 
       {order.orderStatus === 'AWAITING_APPROVAL' && (
         isMerchant(order, username) ? (
-          <div className="flex gap-3">
-            <ActionButton label="Accept order" onClick={() => run(() => accept({ creds, orderId: order.id }).unwrap())} busy={busy} />
-            <ActionButton label="Reject" secondary onClick={() => run(() => reject({ creds, orderId: order.id }).unwrap())} busy={busy} />
-          </div>
+          <>
+            <CustomerPerformanceBadge creds={creds} customerId={order.customerUserId} ready={ready} />
+            <div className="flex gap-3">
+              <ActionButton label="Accept order" onClick={() => run(() => accept({ creds, orderId: order.id }).unwrap())} busy={busy} />
+              <ActionButton label="Reject" secondary onClick={() => run(() => reject({ creds, orderId: order.id }).unwrap())} busy={busy} />
+            </div>
+          </>
         ) : (
           <>
             <p className="text-gray-500">Waiting for the merchant to accept your order.</p>
@@ -159,17 +172,35 @@ export default function P2POrderDetail() {
             </p>
             <div className="flex gap-3">
               <ActionButton label="Deposit from my wallet" onClick={depositFromOwnWallet} busy={busy} />
-              <ActionButton
-                label="Share deposit link"
-                secondary
-                onClick={() => navigate(`/dashboard/p2p/order/${order.id}/escrow-share`)}
-                busy={busy}
-              />
+              {order.escrowDepositShortlink ? (
+                <ActionButton
+                  label="Share deposit link"
+                  secondary
+                  onClick={() => navigate(`/dashboard/p2p/order/${order.id}/escrow-share`)}
+                  busy={busy}
+                />
+              ) : (
+                <ActionButton
+                  label="Generate deposit link"
+                  secondary
+                  onClick={() => run(() => regenerateShortlink({ creds, orderId: order.id }).unwrap())}
+                  busy={busy}
+                />
+              )}
             </div>
           </>
         ) : (
           <p className="text-gray-500">Waiting for the escrow deposit.</p>
         )
+      )}
+
+      {order.orderStatus === 'AWAITING_ESCROW_DEPOSIT' && isMerchant(order, username) && (
+        <ActionButton
+          label="Cancel order"
+          secondary
+          onClick={() => run(() => merchantCancel({ creds, orderId: order.id }).unwrap())}
+          busy={busy}
+        />
       )}
 
       {order.orderStatus === 'AWAITING_PAYMENT' && (
@@ -213,8 +244,12 @@ export default function P2POrderDetail() {
       {order.orderStatus === 'COMPLETED' && (
         <>
           <p className="text-gray-500">This order is complete.</p>
-          {order.assetReleaseTransactionHash && <TxHash label="Asset release" hash={order.assetReleaseTransactionHash} />}
-          {order.escrowDepositTransactionHash && <TxHash label="Escrow deposit" hash={order.escrowDepositTransactionHash} />}
+          {order.assetReleaseTransactionHash && (
+            <TxHash label="Asset release" hash={order.assetReleaseTransactionHash} walletMode={walletMode} />
+          )}
+          {order.escrowDepositTransactionHash && (
+            <TxHash label="Escrow deposit" hash={order.escrowDepositTransactionHash} walletMode={walletMode} />
+          )}
         </>
       )}
 
@@ -239,6 +274,19 @@ export default function P2POrderDetail() {
         </P2PListCard>
       )}
     </div>
+  );
+}
+
+// CustomerPerformanceBadge lets a merchant see the customer's trading
+// history before deciding to accept their order (Plan Section 8/26).
+function CustomerPerformanceBadge({ creds, customerId, ready }: { creds: P2PCreds; customerId: string; ready: boolean }) {
+  const { data: perf } = useGetCustomerP2PPerformanceQuery({ creds, customerId }, { skip: !ready || !customerId });
+  if (!perf || perf.completedTrades === 0) return null;
+  return (
+    <p className="text-xs text-gray-400">
+      This customer has completed {perf.completedTrades} trade{perf.completedTrades === 1 ? '' : 's'} ({perf.completionRate}%
+      completion rate).
+    </p>
   );
 }
 
@@ -267,11 +315,19 @@ function DisputeLink({ onClick }: { onClick: () => void }) {
   );
 }
 
-function TxHash({ label, hash }: { label: string; hash: string }) {
+function TxHash({ label, hash, walletMode }: { label: string; hash: string; walletMode: string }) {
   return (
     <p className="text-sm">
       <span className="text-gray-500">{label}: </span>
-      <span className="font-mono">{hash}</span>
+      <a
+        href={`${getExplorerBaseUrl(walletMode)}${hash}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-mono underline"
+        style={{ color: p2p.brandDark }}
+      >
+        {hash.substring(0, 10)}...{hash.substring(hash.length - 6)}
+      </a>
     </p>
   );
 }

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
@@ -49,6 +50,23 @@ class _P2PMyOffersViewState extends State<P2PMyOffersView> {
     _load();
   }
 
+  Future<void> _close(P2POffer offer) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('p2pclosethisoffer'.tr()),
+        content: Text('p2pcannotbeundone'.tr()),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('cancel'.tr())),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('p2pcloseofferbutton'.tr())),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await api.closeOffer(offer.id!);
+    _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
@@ -59,7 +77,7 @@ class _P2PMyOffersViewState extends State<P2PMyOffersView> {
       appBar: AppBar(
         backgroundColor: notifier.getwihitecolor,
         elevation: 0,
-        title: Text('My offers', style: TextStyle(color: notifier.getblck)),
+        title: Text('p2pmyofferstitle'.tr(), style: TextStyle(color: notifier.getblck)),
         iconTheme: IconThemeData(color: notifier.getblck),
         actions: [
           IconButton(
@@ -78,8 +96,8 @@ class _P2PMyOffersViewState extends State<P2PMyOffersView> {
           : offers.isEmpty
               ? P2PEmptyState(
                   icon: Icons.storefront_outlined,
-                  message: 'You have no offers yet.',
-                  ctaLabel: 'Create your first offer',
+                  message: 'p2pnooffersyet'.tr(),
+                  ctaLabel: 'p2pcreatefirstoffer'.tr(),
                   onCta: () {
                     appState.currentAction = PageAction(
                       state: PageState.addPage,
@@ -94,26 +112,58 @@ class _P2PMyOffersViewState extends State<P2PMyOffersView> {
                     itemCount: offers.length,
                     itemBuilder: (context, i) {
                       final o = offers[i];
+                      final isClosed = o.status == 'CLOSED';
                       return P2PListCard(
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('${o.offerType} ${o.asset}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                                      const SizedBox(height: P2PTheme.space1),
+                                      Text('${o.price} ${o.currency}', style: const TextStyle(color: Colors.black54)),
+                                      const SizedBox(height: P2PTheme.space1),
+                                      Text(o.status ?? '', style: const TextStyle(fontSize: 12, color: Colors.black38)),
+                                    ],
+                                  ),
+                                ),
+                                if (!isClosed)
+                                  Switch(
+                                    value: o.isOnline,
+                                    activeColor: P2PTheme.success,
+                                    onChanged: (_) => _toggle(o),
+                                  ),
+                              ],
+                            ),
+                            if (!isClosed) ...[
+                              const SizedBox(height: P2PTheme.space2),
+                              Row(
                                 children: [
-                                  Text('${o.offerType} ${o.asset}', style: const TextStyle(fontWeight: FontWeight.w700)),
-                                  const SizedBox(height: P2PTheme.space1),
-                                  Text('${o.price} ${o.currency}', style: const TextStyle(color: Colors.black54)),
-                                  const SizedBox(height: P2PTheme.space1),
-                                  Text(o.status ?? '', style: const TextStyle(fontSize: 12, color: Colors.black38)),
+                                  TextButton(
+                                    onPressed: () {
+                                      appState.viewData ??= {};
+                                      appState.viewData![P2PEditOfferViewPageConfig.key] = {
+                                        'offer': o,
+                                      };
+                                      appState.currentAction = PageAction(
+                                        state: PageState.addPage,
+                                        page: P2PEditOfferViewPageConfig,
+                                      );
+                                    },
+                                    child: Text('edit'.tr()),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => _close(o),
+                                    style: TextButton.styleFrom(foregroundColor: P2PTheme.danger),
+                                    child: Text('close'.tr()),
+                                  ),
                                 ],
                               ),
-                            ),
-                            Switch(
-                              value: o.isOnline,
-                              activeColor: P2PTheme.success,
-                              onChanged: (_) => _toggle(o),
-                            ),
+                            ],
                           ],
                         ),
                       );

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
@@ -28,6 +29,18 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
   bool loading = true;
   String? error;
   List<P2POffer> offers = [];
+  final Map<String, Future<Map<String, dynamic>?>> _perfFutures = {};
+
+  // Cached per merchantId so scrolling the same offer list doesn't refetch
+  // performance for a merchant already fetched (Plan Section 8/26's trust
+  // signal, shown on every offer card).
+  Future<Map<String, dynamic>?> _perfFor(String? merchantId) {
+    if (merchantId == null || merchantId.isEmpty) return Future.value(null);
+    return _perfFutures.putIfAbsent(
+      merchantId,
+      () => api.getMerchantPerformance(merchantId),
+    );
+  }
 
   @override
   void didChangeDependencies() {
@@ -49,7 +62,7 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
       });
     } catch (e) {
       setState(() {
-        error = 'Could not load offers. Please try again.';
+        error = 'p2pcouldnotloadoffers'.tr();
         loading = false;
       });
     }
@@ -65,12 +78,12 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
       appBar: AppBar(
         backgroundColor: notifier.getwihitecolor,
         elevation: 0,
-        title: Text('P2P Marketplace', style: TextStyle(color: notifier.getblck)),
+        title: Text('p2pmarketplacetitle'.tr(), style: TextStyle(color: notifier.getblck)),
         iconTheme: IconThemeData(color: notifier.getblck),
         actions: [
           IconButton(
             icon: const Icon(Icons.receipt_long),
-            tooltip: 'My Orders',
+            tooltip: 'p2pmyorderstooltip'.tr(),
             onPressed: () {
               appState.currentAction = PageAction(
                 state: PageState.addPage,
@@ -80,7 +93,7 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
           ),
           IconButton(
             icon: const Icon(Icons.storefront),
-            tooltip: 'My Offers',
+            tooltip: 'p2pmyofferstooltip'.tr(),
             onPressed: () {
               appState.currentAction = PageAction(
                 state: PageState.addPage,
@@ -90,7 +103,7 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
           ),
           IconButton(
             icon: const Icon(Icons.savings_outlined),
-            tooltip: 'My Refunds',
+            tooltip: 'p2pmyrefundstooltip'.tr(),
             onPressed: () {
               appState.currentAction = PageAction(
                 state: PageState.addPage,
@@ -106,9 +119,9 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
             padding: const EdgeInsets.all(P2PTheme.space4),
             child: Row(
               children: [
-                Expanded(child: _toggleButton('BUY', 'Buy')),
+                Expanded(child: _toggleButton('BUY', 'p2pbuy'.tr())),
                 const SizedBox(width: P2PTheme.space2),
-                Expanded(child: _toggleButton('SELL', 'Sell')),
+                Expanded(child: _toggleButton('SELL', 'p2psell'.tr())),
               ],
             ),
           ),
@@ -152,15 +165,15 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
       return P2PEmptyState(
         icon: Icons.wifi_off,
         message: error!,
-        ctaLabel: 'Retry',
+        ctaLabel: 'retry'.tr(),
         onCta: _load,
       );
     }
     if (offers.isEmpty) {
       return P2PEmptyState(
         icon: Icons.storefront_outlined,
-        message: 'No offers match your filters right now.',
-        ctaLabel: 'Refresh',
+        message: 'p2pnoofferstext'.tr(),
+        ctaLabel: 'refresh'.tr(),
         onCta: _load,
       );
     }
@@ -226,8 +239,29 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
                 ),
                 const SizedBox(height: P2PTheme.space1),
                 Text(
-                  'Limit: ${offer.minOrderAmount} - ${offer.maxOrderAmount} ${offer.asset}',
+                  'p2plimitrange'.tr(args: [
+                    offer.minOrderAmount ?? '',
+                    offer.maxOrderAmount ?? '',
+                    offer.asset ?? '',
+                  ]),
                   style: const TextStyle(color: Colors.black38, fontSize: 12),
+                ),
+                FutureBuilder<Map<String, dynamic>?>(
+                  future: _perfFor(offer.merchantUserId),
+                  builder: (context, snapshot) {
+                    final perf = snapshot.data;
+                    final completedTrades = perf?['completedTrades'] ?? 0;
+                    if (perf == null || completedTrades == 0) {
+                      return const SizedBox.shrink();
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        'p2pperfsummary'.tr(args: ['$completedTrades', '${perf['completionRate']}']),
+                        style: const TextStyle(color: Colors.black38, fontSize: 11),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

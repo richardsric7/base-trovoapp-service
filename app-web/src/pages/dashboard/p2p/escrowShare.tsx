@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useGetP2POrderQuery } from '../../../store/api/p2pApis';
+import { useGetP2POrderQuery, useRegenerateEscrowShortlinkMutation } from '../../../store/api/p2pApis';
 import { useP2PIdentity } from '../../../hooks/useP2PIdentity';
 import { p2p } from '../../../components/p2p/P2PTheme';
 
@@ -11,9 +11,29 @@ export default function P2PEscrowShare() {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const { creds, ready } = useP2PIdentity();
-  const { data: order } = useGetP2POrderQuery({ creds, orderId: orderId! }, { skip: !ready || !orderId });
+  const { data: order, refetch } = useGetP2POrderQuery({ creds, orderId: orderId! }, { skip: !ready || !orderId });
+  const [regenerateShortlink, { isLoading: regenerating }] = useRegenerateEscrowShortlinkMutation();
 
   if (!order) return <div className="p-8 text-center text-gray-400">Loading...</div>;
+
+  if (!order.escrowDepositShortlink) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-8" style={{ backgroundColor: p2p.brandDark }}>
+        <p className="text-white text-center mb-6">This deposit link could not be generated yet.</p>
+        <button
+          disabled={regenerating}
+          onClick={() => regenerateShortlink({ creds, orderId: order.id }).then(() => refetch())}
+          className="w-full max-w-md py-4 rounded-2xl font-semibold disabled:opacity-50"
+          style={{ backgroundColor: 'white', color: p2p.brandDark }}
+        >
+          Generate deposit link
+        </button>
+        <button onClick={() => navigate(`/dashboard/p2p/order/${order.id}`)} className="text-white/70 mt-4">
+          Back to order
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8" style={{ backgroundColor: p2p.brandDark }}>

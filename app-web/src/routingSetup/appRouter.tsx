@@ -48,6 +48,7 @@ import {
 import P2PMarketplace from '../pages/dashboard/p2p/marketplace';
 import P2POfferDetail from '../pages/dashboard/p2p/offerDetail';
 import P2PCreateOffer from '../pages/dashboard/p2p/createOffer';
+import P2PEditOffer from '../pages/dashboard/p2p/editOffer';
 import P2PCreateOrder from '../pages/dashboard/p2p/createOrder';
 import P2POrderDetail from '../pages/dashboard/p2p/orderDetail';
 import P2PEscrowShare from '../pages/dashboard/p2p/escrowShare';
@@ -113,6 +114,7 @@ export default function AppRouter() {
             <Route path="p2p" element={<P2PMarketplace />} />
             <Route path="p2p/offer/:offerId" element={<P2POfferDetail />} />
             <Route path="p2p/create-offer" element={<P2PCreateOffer />} />
+            <Route path="p2p/offer/:offerId/edit" element={<P2PEditOffer />} />
             <Route path="p2p/create-order/:offerId" element={<P2PCreateOrder />} />
             <Route path="p2p/order/:orderId" element={<P2POrderDetail />} />
             <Route path="p2p/order/:orderId/escrow-share" element={<P2PEscrowShare />} />

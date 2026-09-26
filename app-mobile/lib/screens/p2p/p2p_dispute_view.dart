@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
@@ -30,15 +31,15 @@ class _P2PDisputeViewState extends State<P2PDisputeView> {
   String? orderId;
   bool submitting = false;
 
-  static const subjects = {
-    'NO_PAYMENT': 'No payment was made',
-    'UNDER_PAYMENT': 'Underpayment',
-    'OVER_PAYMENT': 'Overpayment',
-    'PAYMENT_NOT_RECEIVED': "Payment not received",
-    'PAYMENT_MARKED_SENT_IN_ERROR': 'Payment marked sent in error',
-    'WRONG_PAYMENT_AMOUNT': 'Wrong payment amount',
-    'OTHER': 'Other',
-  };
+  static Map<String, String> get subjects => {
+        'NO_PAYMENT': 'p2pdisputesubjectnopayment'.tr(),
+        'UNDER_PAYMENT': 'p2pdisputesubjectunderpayment'.tr(),
+        'OVER_PAYMENT': 'p2pdisputesubjectoverpayment'.tr(),
+        'PAYMENT_NOT_RECEIVED': 'p2pdisputesubjectpaymentnotreceived'.tr(),
+        'PAYMENT_MARKED_SENT_IN_ERROR': 'p2pdisputesubjectpaymentmarkedsentinerror'.tr(),
+        'WRONG_PAYMENT_AMOUNT': 'p2pdisputesubjectwrongpaymentamount'.tr(),
+        'OTHER': 'p2pdisputesubjectother'.tr(),
+      };
 
   @override
   void didChangeDependencies() {
@@ -68,12 +69,12 @@ class _P2PDisputeViewState extends State<P2PDisputeView> {
         appState.viewData![P2POrderDetailViewPageConfig.key] = {'orderId': orderId};
         appState.currentAction = PageAction(state: PageState.replace, page: P2POrderDetailViewPageConfig);
       } else {
-        popup(context, title: 'Could not open dispute', message: response['data']?['message'] ?? 'Please try again.');
+        popup(context, title: 'p2pcouldnotopendispute'.tr(), message: response['data']?['message'] ?? 'p2ppleasetryagain'.tr());
       }
     } catch (e) {
       hideLoader(context);
       setState(() => submitting = false);
-      popup(context, title: 'Error', message: e.toString());
+      popup(context, title: 'error'.tr(), message: e.toString());
     }
   }
 
@@ -87,7 +88,7 @@ class _P2PDisputeViewState extends State<P2PDisputeView> {
       appBar: AppBar(
         backgroundColor: notifier.getwihitecolor,
         elevation: 0,
-        title: Text('Raise a dispute', style: TextStyle(color: notifier.getblck)),
+        title: Text('p2praiseadispute'.tr(), style: TextStyle(color: notifier.getblck)),
         iconTheme: IconThemeData(color: notifier.getblck),
       ),
       body: Form(
@@ -97,7 +98,7 @@ class _P2PDisputeViewState extends State<P2PDisputeView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('What went wrong?', style: TextStyle(fontWeight: FontWeight.w600)),
+              Text('p2pwhatwentwrong'.tr(), style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: P2PTheme.space2),
               Container(
                 decoration: BoxDecoration(
@@ -115,16 +116,16 @@ class _P2PDisputeViewState extends State<P2PDisputeView> {
                 ),
               ),
               const SizedBox(height: P2PTheme.space4),
-              const Text('Describe what happened', style: TextStyle(fontWeight: FontWeight.w600)),
+              Text('p2pdescribewhathappened'.tr(), style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: P2PTheme.space2),
               TextFormField(
                 controller: description,
                 maxLines: 5,
-                validator: (v) => (v == null || v.trim().length < 10) ? 'Please add a few more details' : null,
+                validator: (v) => (v == null || v.trim().length < 10) ? 'p2pneedmoredetails'.tr() : null,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
-                  hintText: 'What happened, and what would resolve it?',
+                  hintText: 'p2pdisputehint'.tr(),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(P2PTheme.space2),
                     borderSide: BorderSide.none,
@@ -140,7 +141,7 @@ class _P2PDisputeViewState extends State<P2PDisputeView> {
                     padding: const EdgeInsets.symmetric(vertical: P2PTheme.space4),
                   ),
                   onPressed: submitting ? null : _submit,
-                  child: const Text('Submit dispute', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                  child: Text('p2psubmitdispute'.tr(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
                 ),
               ),
             ],
