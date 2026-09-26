@@ -57,38 +57,47 @@ export default function P2PMyOffers() {
 
       <P2PMerchantGate>
       {merchantStatus && (
-        <P2PListCard>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-bold">
-                You're currently {merchantStatus.merchantOnline ? 'online' : 'offline'}
-              </p>
-              <p className="text-sm text-gray-500">
-                {merchantStatus.merchantOnline
-                  ? 'Your offers are visible in marketplace search.'
-                  : 'All your offers are hidden from marketplace search until you go back online.'}
-              </p>
-            </div>
-            <label className="inline-flex items-center cursor-pointer shrink-0 ml-3">
-              <input
-                type="checkbox"
-                className="sr-only"
-                disabled={togglingMerchant}
-                checked={merchantStatus.merchantOnline}
-                onChange={toggleMerchantOnline}
-              />
-              <span
-                className="w-11 h-6 rounded-full relative transition-colors"
-                style={{ backgroundColor: merchantStatus.merchantOnline ? p2p.success : '#D1D5DB' }}
-              >
-                <span
-                  className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform"
-                  style={{ transform: merchantStatus.merchantOnline ? 'translateX(20px)' : 'none' }}
-                />
-              </span>
-            </label>
+        // Offline gets the same warning-tinted treatment as P2PBanner
+        // (not just a neutral card) so a merchant can't miss it - going
+        // offline silently hides every one of their offers from search,
+        // which is easy to forget about otherwise.
+        <div
+          className="flex items-center justify-between rounded-2xl p-4 mb-3"
+          style={
+            merchantStatus.merchantOnline
+              ? { backgroundColor: '#fff', boxShadow: p2p.cardShadow }
+              : { backgroundColor: `${p2p.danger}14`, border: `1px solid ${p2p.danger}4D` }
+          }
+        >
+          <div>
+            <p className="font-bold" style={{ color: merchantStatus.merchantOnline ? undefined : p2p.danger }}>
+              {merchantStatus.merchantOnline ? "You're online" : "⚠ You're offline"}
+            </p>
+            <p className="text-sm" style={{ color: merchantStatus.merchantOnline ? '#6B7280' : p2p.danger }}>
+              {merchantStatus.merchantOnline
+                ? 'Your offers are visible in marketplace search.'
+                : 'All your offers are hidden from marketplace search until you go back online.'}
+            </p>
           </div>
-        </P2PListCard>
+          <label className="inline-flex items-center cursor-pointer shrink-0 ml-3">
+            <input
+              type="checkbox"
+              className="sr-only"
+              disabled={togglingMerchant}
+              checked={merchantStatus.merchantOnline}
+              onChange={toggleMerchantOnline}
+            />
+            <span
+              className="w-11 h-6 rounded-full relative transition-colors"
+              style={{ backgroundColor: merchantStatus.merchantOnline ? p2p.success : p2p.danger }}
+            >
+              <span
+                className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform"
+                style={{ transform: merchantStatus.merchantOnline ? 'translateX(20px)' : 'none' }}
+              />
+            </span>
+          </label>
+        </div>
       )}
 
       {isLoading ? (

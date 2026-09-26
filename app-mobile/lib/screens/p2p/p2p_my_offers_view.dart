@@ -200,12 +200,24 @@ class _P2PMyOffersViewState extends State<P2PMyOffersView> {
     );
   }
 
+  // Offline gets the same warning-tinted treatment as a danger banner
+  // (not just a neutral card) so a merchant can't miss it - going
+  // offline silently hides every one of their offers from search, which
+  // is easy to forget about otherwise.
   Widget _merchantToggleCard() {
     if (merchantOnline == null) return const SizedBox.shrink();
     final online = merchantOnline!;
+    final textColor = online ? P2PTheme.brandDark : P2PTheme.danger;
     return Padding(
       padding: const EdgeInsets.fromLTRB(P2PTheme.space4, P2PTheme.space2, P2PTheme.space4, 0),
-      child: P2PListCard(
+      child: Container(
+        padding: const EdgeInsets.all(P2PTheme.space4),
+        decoration: BoxDecoration(
+          color: online ? Colors.white : P2PTheme.danger.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(P2PTheme.cardRadius),
+          border: online ? null : Border.all(color: P2PTheme.danger.withOpacity(0.3)),
+          boxShadow: online ? P2PTheme.cardShadow : null,
+        ),
         child: Row(
           children: [
             Expanded(
@@ -213,13 +225,13 @@ class _P2PMyOffersViewState extends State<P2PMyOffersView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    online ? 'p2pyouareonline'.tr() : 'p2pyouareoffline'.tr(),
-                    style: const TextStyle(fontWeight: FontWeight.w700),
+                    online ? 'p2pyouareonline'.tr() : '⚠ ${'p2pyouareoffline'.tr()}',
+                    style: TextStyle(fontWeight: FontWeight.w700, color: textColor),
                   ),
                   const SizedBox(height: P2PTheme.space1),
                   Text(
                     online ? 'p2ponlinehint'.tr() : 'p2pofflinehint'.tr(),
-                    style: const TextStyle(color: Colors.black54, fontSize: 13),
+                    style: TextStyle(color: online ? Colors.black54 : P2PTheme.danger, fontSize: 13),
                   ),
                 ],
               ),
