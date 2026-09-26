@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"os"
 	"strings"
+	"sync"
 	"time"
 	"trovo-wallet-api/internal/basetxn"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -117,11 +118,68 @@ func init() {
 	var err error
 	erc20ABI, err = abi.JSON(strings.NewReader(`[
 		{"constant":true,"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"},
-		{"constant":false,"inputs":[{"name":"to","type":"address"},{"name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"type":"function"}
+		{"constant":false,"inputs":[{"name":"to","type":"address"},{"name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"type":"function"},
+		{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"type":"function"}
 	]`))
 	if err != nil {
 		log.Panicf("[network] invalid embedded B20/ERC20 ABI: %v", err)
 	}
+}
+
+var (
+	assetDecimalsCache   = map[string]uint8{}
+	assetDecimalsCacheMu sync.RWMutex
+)
+
+// AssetDecimals returns asset's on-chain decimal precision: 18 for the
+// native asset (Base's ETH), or the B20 token contract's own decimals()
+// value, cached per contract address after the first successful lookup.
+// Unlike Stellar, where every asset shared one implicit 7-decimal
+// (stroop) precision, each B20/ERC-20-shaped token defines its own (e.g.
+// USDC/USDT use 6, WBTC uses 8, DAI/WETH use 18), so this must be
+// resolved per asset from the token contract itself rather than assumed -
+// see weiToDecimal/decimalToWei, which used to hardcode 18 for every
+// asset regardless of its real on-chain precision.
+func AssetDecimals(ctx context.Context, client *ethclient.Client, asset basetxn.Asset) (uint8, error) {
+	if asset.IsNative() {
+		return 18, nil
+	}
+	contract := strings.ToLower(asset.GetIssuer())
+	if !common.IsHexAddress(contract) {
+		return 0, fmt.Errorf("invalid B20 token contract address %q", asset.GetIssuer())
+	}
+
+	assetDecimalsCacheMu.RLock()
+	d, ok := assetDecimalsCache[contract]
+	assetDecimalsCacheMu.RUnlock()
+	if ok {
+		return d, nil
+	}
+
+	data, err := erc20ABI.Pack("decimals")
+	if err != nil {
+		return 0, err
+	}
+	to := common.HexToAddress(contract)
+	callCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+	result, err := client.CallContract(callCtx, ethereum.CallMsg{To: &to, Data: data}, nil)
+	if err != nil {
+		return 0, fmt.Errorf("querying decimals() for %s: %w", contract, err)
+	}
+	outputs, err := erc20ABI.Unpack("decimals", result)
+	if err != nil || len(outputs) == 0 {
+		return 0, fmt.Errorf("could not decode decimals() result for %s", contract)
+	}
+	decimals, ok := outputs[0].(uint8)
+	if !ok {
+		return 0, fmt.Errorf("unexpected decimals() result type for %s", contract)
+	}
+
+	assetDecimalsCacheMu.Lock()
+	assetDecimalsCache[contract] = decimals
+	assetDecimalsCacheMu.Unlock()
+	return decimals, nil
 }
 
 // BlockchainAccountProperties returns whether the account exists, whether
@@ -156,7 +214,7 @@ func BlockchainAccountProperties(client *ethclient.Client, destinationAddress st
 		log.Print("[BlockchainAccountProperties] error fetching native balance: ", err)
 		return destinationAccountExists, false, decimal.Zero, decimal.Zero, account, &tErrors.ErrorTemporaryServerError{}
 	}
-	nativeAccountBalance := weiToDecimal(weiBalance)
+	nativeAccountBalance := weiToDecimal(weiBalance, 18)
 
 	authorized := IsWalletAuthorizedForAsset(destinationAddress, asset)
 
@@ -164,7 +222,12 @@ func BlockchainAccountProperties(client *ethclient.Client, destinationAddress st
 		return destinationAccountExists, authorized, nativeAccountBalance, decimal.Zero, account, nil
 	}
 
-	assetBalance, err := B20BalanceOf(client, asset.GetIssuer(), destinationAddress)
+	assetDecimals, err := AssetDecimals(ctx, client, asset)
+	if err != nil {
+		log.Print("[BlockchainAccountProperties] error resolving B20 asset decimals: ", err)
+		return destinationAccountExists, authorized, nativeAccountBalance, decimal.Zero, account, &tErrors.ErrorTemporaryServerError{}
+	}
+	assetBalance, err := B20BalanceOf(client, asset.GetIssuer(), destinationAddress, assetDecimals)
 	if err != nil {
 		log.Print("[BlockchainAccountProperties] error fetching B20 balance: ", err)
 		return destinationAccountExists, authorized, nativeAccountBalance, decimal.Zero, account, &tErrors.ErrorTemporaryServerError{}
@@ -173,8 +236,10 @@ func BlockchainAccountProperties(client *ethclient.Client, destinationAddress st
 	return destinationAccountExists, authorized, nativeAccountBalance, assetBalance, account, nil
 }
 
-// B20BalanceOf calls the B20 (ERC-20-shaped) token contract's balanceOf.
-func B20BalanceOf(client *ethclient.Client, tokenContract, holder string) (decimal.Decimal, error) {
+// B20BalanceOf calls the B20 (ERC-20-shaped) token contract's balanceOf,
+// converting the raw uint256 result using the token's own on-chain
+// decimals (see AssetDecimals) rather than an assumed precision.
+func B20BalanceOf(client *ethclient.Client, tokenContract, holder string, decimals uint8) (decimal.Decimal, error) {
 	if !common.IsHexAddress(tokenContract) || !common.IsHexAddress(holder) {
 		return decimal.Zero, fmt.Errorf("invalid token contract or holder address")
 	}
@@ -197,15 +262,20 @@ func B20BalanceOf(client *ethclient.Client, tokenContract, holder string) (decim
 	if !ok {
 		return decimal.Zero, fmt.Errorf("unexpected balanceOf result type")
 	}
-	return weiToDecimal(raw), nil
+	return weiToDecimal(raw, decimals), nil
 }
 
-func weiToDecimal(wei *big.Int) decimal.Decimal {
-	return decimal.NewFromBigInt(wei, -18)
+// weiToDecimal/decimalToWei convert between a token's raw on-chain
+// uint256 unit and its human-readable decimal amount, using that
+// specific asset's own decimals (18 for native ETH; a B20 token's own
+// decimals() value - see AssetDecimals) rather than a single constant
+// assumed for every asset.
+func weiToDecimal(wei *big.Int, decimals uint8) decimal.Decimal {
+	return decimal.NewFromBigInt(wei, -int32(decimals))
 }
 
-func decimalToWei(amount decimal.Decimal) *big.Int {
-	return amount.Shift(18).BigInt()
+func decimalToWei(amount decimal.Decimal, decimals uint8) *big.Int {
+	return amount.Shift(int32(decimals)).BigInt()
 }
 
 // TxBuilder implements basetxn.Builder, turning a basetxn.Payment into an
@@ -239,20 +309,24 @@ func (b *TxBuilder) BuildPaymentTx(ctx context.Context, from common.Address, op 
 	if err != nil {
 		return nil, fmt.Errorf("invalid payment amount %q: %w", op.Amount, err)
 	}
+	decimals, err := AssetDecimals(ctx, b.Client, op.Asset)
+	if err != nil {
+		return nil, fmt.Errorf("resolving asset decimals: %w", err)
+	}
 
 	if op.Asset.IsNative() {
 		return types.NewTx(&types.DynamicFeeTx{
 			ChainID:   chainID,
 			Nonce:     nonce,
 			To:        &to,
-			Value:     decimalToWei(amount),
+			Value:     decimalToWei(amount, decimals),
 			Gas:       21000,
 			GasFeeCap: gasFeeCap,
 			GasTipCap: gasTipCap,
 		}), nil
 	}
 
-	data, err := erc20ABI.Pack("transfer", to, decimalToWei(amount))
+	data, err := erc20ABI.Pack("transfer", to, decimalToWei(amount, decimals))
 	if err != nil {
 		return nil, err
 	}

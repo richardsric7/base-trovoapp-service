@@ -2,11 +2,13 @@ package users
 
 import (
 	"bytes"
+	"context"
 	"encoding/csv"
 	"fmt"
 	"log"
 	"strings"
 	"time"
+	"trovo-wallet-api/internal/basetxn"
 	"trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
@@ -6709,7 +6711,12 @@ func (t *TokenizedAsset) GetMarketOffers(gc *sharedconfig.GlobalConfig) (marketO
 	tokenContract := *t.IssuingWalletAddress
 	client := network.GetBlockchainClient()
 
-	balance, e := network.B20BalanceOf(client, tokenContract, seller)
+	decimals, e := network.AssetDecimals(context.Background(), client, basetxn.CreditAsset{Issuer: tokenContract})
+	if e != nil {
+		log.Printf("[GetMarketOffers Network Failure]: %v\n", e)
+		return marketOffers, &tErrors.ErrorTemporaryServerError{}
+	}
+	balance, e := network.B20BalanceOf(client, tokenContract, seller, decimals)
 	if e != nil {
 		log.Printf("[GetMarketOffers Network Failure]: %v\n", e)
 		return marketOffers, &tErrors.ErrorTemporaryServerError{}

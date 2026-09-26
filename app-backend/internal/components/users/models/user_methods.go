@@ -777,7 +777,11 @@ func fetchAccountDetail(address string, gc *sharedconfig.GlobalConfig, cacheKey 
 
 	curatedAssets := assetsDB.GetCuratedAssets(false, gc)
 	for _, asset := range curatedAssets {
-		bal, e := network.B20BalanceOf(client, asset.ContractAddress, address)
+		decimals, e := network.AssetDecimals(context.Background(), client, basetxn.CreditAsset{Issuer: asset.ContractAddress})
+		if e != nil {
+			continue
+		}
+		bal, e := network.B20BalanceOf(client, asset.ContractAddress, address, decimals)
 		if e != nil {
 			continue
 		}
