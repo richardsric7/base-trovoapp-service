@@ -95,19 +95,19 @@ function SideBar({ mobileMode = false }: Props) {
               setActiveItem(5);
             }}
           />
-          {/* <SideBarItem
-          label="Market Trade"
-          icon={
-            activeItem === 6
-              ? '/images/marketTradeWhite.svg'
-              : '/images/marketTrade.svg'
-          }
-          url="/dashboard/market-trade"
-          isActive={activeItem === 6}
-          onSidebarClicked={() => {
-            setActiveItem(6);
-          }}
-        /> */}
+          <SideBarItem
+            label="P2P"
+            icon={
+              activeItem === 6
+                ? '/images/marketTradeWhite.svg'
+                : '/images/marketTrade.svg'
+            }
+            url="/dashboard/p2p"
+            isActive={activeItem === 6}
+            onSidebarClicked={() => {
+              setActiveItem(6);
+            }}
+          />
           <SideBarItem
             label="Trovo Patron"
             icon={
