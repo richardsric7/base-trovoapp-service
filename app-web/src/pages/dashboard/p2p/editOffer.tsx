@@ -5,6 +5,8 @@ import { useGetP2POfferQuery, useUpdateP2POfferMutation } from '../../../store/a
 import { useP2PIdentity } from '../../../hooks/useP2PIdentity';
 import { p2p } from '../../../components/p2p/P2PTheme';
 import P2PMerchantGate from '../../../components/p2p/P2PMerchantGate';
+import PaymentMethodSelect from '../../../components/p2p/PaymentMethodSelect';
+import WalletPayoutSelect from '../../../components/p2p/WalletPayoutSelect';
 
 // P2PEditOffer lets a merchant edit an existing offer's terms (Plan Section
 // 13's implied listing-management control). offerType/asset are fixed at
@@ -23,9 +25,8 @@ export default function P2PEditOffer() {
   const [minOrderAmount, setMinOrderAmount] = useState('');
   const [maxOrderAmount, setMaxOrderAmount] = useState('');
   const [addLiquidity, setAddLiquidity] = useState('');
-  const [paymentChannel, setPaymentChannel] = useState('');
-  const [provider, setProvider] = useState('');
-  const [account, setAccount] = useState('');
+  const [paymentMethodId, setPaymentMethodId] = useState('');
+  const [merchantPayoutAddress, setMerchantPayoutAddress] = useState('');
   const [remark, setRemark] = useState('');
 
   useEffect(() => {
@@ -33,9 +34,8 @@ export default function P2PEditOffer() {
     setPrice(offer.price);
     setMinOrderAmount(offer.minOrderAmount);
     setMaxOrderAmount(offer.maxOrderAmount);
-    setPaymentChannel(offer.paymentMethod?.paymentChannel ?? '');
-    setProvider(offer.paymentMethod?.provider ?? '');
-    setAccount(offer.paymentMethod?.account ?? '');
+    setPaymentMethodId(offer.paymentMethodId ?? '');
+    setMerchantPayoutAddress(offer.merchantPayoutAddress ?? '');
     setRemark(offer.remark ?? '');
   }, [offer]);
 
@@ -51,7 +51,8 @@ export default function P2PEditOffer() {
         body: {
           offerType: offer.offerType,
           asset: offer.asset,
-          paymentMethod: { paymentChannel, provider, account },
+          paymentMethodId: offer.offerType === 'SELL' ? paymentMethodId : undefined,
+          merchantPayoutAddress: offer.offerType === 'BUY' ? merchantPayoutAddress : undefined,
           country: offer.country,
           countryCode: offer.countryCode,
           currency: offer.currency,
@@ -89,10 +90,11 @@ export default function P2PEditOffer() {
         onChange={setAddLiquidity}
         numeric
       />
-      <p className="font-semibold">Payment method</p>
-      <Field label="Payment channel (e.g. BANK_TRANSFER)" value={paymentChannel} onChange={setPaymentChannel} />
-      <Field label="Provider (e.g. GTBANK)" value={provider} onChange={setProvider} />
-      <Field label="Account details" value={account} onChange={setAccount} />
+      {offer.offerType === 'SELL' ? (
+        <PaymentMethodSelect creds={creds} ready={ready} value={paymentMethodId} onChange={setPaymentMethodId} />
+      ) : (
+        <WalletPayoutSelect value={merchantPayoutAddress} onChange={setMerchantPayoutAddress} />
+      )}
       <Field label="Remark (optional)" value={remark} onChange={setRemark} />
 
       {error && <div className="text-red-600">{error}</div>}

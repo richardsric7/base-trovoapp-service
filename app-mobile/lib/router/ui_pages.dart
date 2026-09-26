@@ -39,6 +39,7 @@ const String P2PMyOrdersViewPath = '/p2pMyOrdersView';
 const String P2PMyOffersViewPath = '/p2pMyOffersView';
 const String P2PEditOfferViewPath = '/p2pEditOfferView';
 const String P2PMyRefundsViewPath = '/p2pMyRefundsView';
+const String P2PPaymentMethodsViewPath = '/p2pPaymentMethodsView';
 const String ProfileDetailsViewPath = '/ProfileDetailsView';
 const String ReferralInfoViewPath = '/ReferralInfoView';
 const String PasswordMgtViewPath = '/PasswordMgtView';
@@ -294,6 +295,7 @@ enum Pages {
   P2PMyOffersView,
   P2PMyRefundsView,
   P2PEditOfferView,
+  P2PPaymentMethodsView,
 }
 
 class PageConfiguration {
@@ -1121,5 +1123,11 @@ PageConfiguration P2PEditOfferViewPageConfig = PageConfiguration(
   key: 'P2PEditOfferView',
   path: P2PEditOfferViewPath,
   uiPage: Pages.P2PEditOfferView,
+  currentPageAction: null,
+);
+PageConfiguration P2PPaymentMethodsViewPageConfig = PageConfiguration(
+  key: 'P2PPaymentMethodsView',
+  path: P2PPaymentMethodsViewPath,
+  uiPage: Pages.P2PPaymentMethodsView,
   currentPageAction: null,
 );

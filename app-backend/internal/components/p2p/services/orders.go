@@ -164,27 +164,39 @@ func CreateOrder(gc *sharedconfig.GlobalConfig, customerUserID, customerUsername
 	// Role mapping (Plan Section 11).
 	assetDepositor, assetRecipient, fiatPayer, fiatRecipient := resolveTradeRoles(offer.OfferType, offer.MerchantUserID, customerUserID)
 
+	// A BUY offer's merchant already specified the wallet they want the
+	// asset released into (Offer.MerchantPayoutAddress) - copied onto the
+	// order once, at creation, so resolveAssetRecipientAddress's own
+	// settlement-time lookup never needs to re-derive it from a username.
+	// A SELL offer's customer never pre-selects a payout wallet through
+	// this flow, so BuyerPayoutAddress stays unset and settlement falls
+	// back to the customer's own primary wallet, as before.
+	buyerPayoutAddress := ""
+	if offer.OfferType == p2pModels.OfferTypeBuy {
+		buyerPayoutAddress = offer.MerchantPayoutAddress
+	}
+
 	feeCfgSnapshot, _ := json.Marshal(feeCfg)
 
 	expiresAt := time.Now().UTC().Add(defaultApprovalWindow)
 
 	order := p2pModels.Order{
-		ID:                   gc.GenerateUUIDString(),
-		OfferID:              offer.ID,
-		CustomerUserID:       customerUserID,
-		CustomerUsername:     customerUsername,
-		MerchantUserID:       offer.MerchantUserID,
-		MerchantUsername:     offer.MerchantUsername,
-		OfferType:            offer.OfferType,
-		Asset:                offer.Asset,
-		AssetContractAddress: offer.ContractAddress,
+		ID:                    gc.GenerateUUIDString(),
+		OfferID:               offer.ID,
+		CustomerUserID:        customerUserID,
+		CustomerUsername:      customerUsername,
+		MerchantUserID:        offer.MerchantUserID,
+		MerchantUsername:      offer.MerchantUsername,
+		OfferType:             offer.OfferType,
+		Asset:                 offer.Asset,
+		AssetContractAddress:  offer.ContractAddress,
 		PaymentMethodSnapshot: offer.PaymentMethod,
-		Country:              offer.Country,
-		CountryCode:          offer.CountryCode,
-		Currency:             offer.Currency,
-		Price:                offer.Price,
-		SpecifiedAssetAmount: specifiedAmount.Truncate(int32(assetDecimals)).String(),
-		PaymentAmount:        breakdown.PaymentAmount.String(),
+		Country:               offer.Country,
+		CountryCode:           offer.CountryCode,
+		Currency:              offer.Currency,
+		Price:                 offer.Price,
+		SpecifiedAssetAmount:  specifiedAmount.Truncate(int32(assetDecimals)).String(),
+		PaymentAmount:         breakdown.PaymentAmount.String(),
 
 		BuyerPlatformFee:      breakdown.BuyerPlatformFee.String(),
 		BuyerRegulatoryFee:    breakdown.BuyerRegulatoryFee.String(),
@@ -222,8 +234,9 @@ func CreateOrder(gc *sharedconfig.GlobalConfig, customerUserID, customerUsername
 		FiatPayer:      fiatPayer,
 		FiatRecipient:  fiatRecipient,
 
-		OrderStatus: p2pModels.OrderStatusAwaitingApproval,
-		ExpiresAt:   &expiresAt,
+		OrderStatus:        p2pModels.OrderStatusAwaitingApproval,
+		BuyerPayoutAddress: buyerPayoutAddress,
+		ExpiresAt:          &expiresAt,
 	}
 
 	dbTX := gc.DB.Begin()
@@ -237,7 +250,7 @@ func CreateOrder(gc *sharedconfig.GlobalConfig, customerUserID, customerUsername
 	if err := dbTX.Model(&p2pModels.Offer{}).Where("id = ?", offer.ID).
 		Updates(map[string]interface{}{
 			"available_liquidity": availableLiquidity.Sub(specifiedAmount).String(),
-			"reserved_liquidity":   decimal.RequireFromString(offer.ReservedLiquidity).Add(specifiedAmount).String(),
+			"reserved_liquidity":  decimal.RequireFromString(offer.ReservedLiquidity).Add(specifiedAmount).String(),
 		}).Error; err != nil {
 		dbTX.Rollback()
 		return p2pModels.Order{}, &tErrors.ErrorTemporaryServerError{}
@@ -528,7 +541,7 @@ func releaseReservedLiquidityAndSave(gc *sharedconfig.GlobalConfig, order *p2pMo
 		if err := dbTX.Model(&p2pModels.Offer{}).Where("id = ?", offer.ID).
 			Updates(map[string]interface{}{
 				"available_liquidity": available.String(),
-				"reserved_liquidity":   reserved.String(),
+				"reserved_liquidity":  reserved.String(),
 			}).Error; err != nil {
 			dbTX.Rollback()
 			return &tErrors.ErrorTemporaryServerError{}

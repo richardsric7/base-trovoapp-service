@@ -1,12 +1,17 @@
 package p2p
 
 import (
+	"strings"
+
+	"trovo-wallet-api/internal/basetxn"
 	assetsDB "trovo-wallet-api/internal/components/assets/db"
 	assetModels "trovo-wallet-api/internal/components/assets/models"
 	p2pModels "trovo-wallet-api/internal/components/p2p/models"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
+	userServices "trovo-wallet-api/internal/components/users/services"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/shopspring/decimal"
@@ -18,19 +23,25 @@ import (
 // backend resolves and validates the curated asset itself (Plan Section 6) -
 // the client cannot supply an arbitrary contract address.
 type CreateOfferInput struct {
-	OfferType          string
-	Asset              string // assetCode
-	PaymentMethod      p2pModels.PaymentMethod
-	Country            string
-	CountryCode        string
-	Currency           string
-	PriceType          string
-	Price              string
-	PriceMargin        string
-	MinOrderAmount     string
-	MaxOrderAmount     string
-	AvailableLiquidity string
-	Remark             string
+	OfferType string
+	Asset     string // assetCode
+	// PaymentMethodID selects one of the merchant's own saved payment
+	// methods (required for a SELL offer, see resolveSellPaymentMethod).
+	PaymentMethodID string
+	// MerchantPayoutAddress is the merchant's own wallet/subwallet to
+	// receive the asset (required for a BUY offer, see
+	// walletBelongsToMerchant/authorizeBuyPayoutWallet).
+	MerchantPayoutAddress string
+	Country               string
+	CountryCode           string
+	Currency              string
+	PriceType             string
+	Price                 string
+	PriceMargin           string
+	MinOrderAmount        string
+	MaxOrderAmount        string
+	AvailableLiquidity    string
+	Remark                string
 }
 
 // CreateOffer validates the input against the curated asset table and
@@ -77,35 +88,99 @@ func CreateOffer(gc *sharedconfig.GlobalConfig, merchantUsername, merchantUserID
 		return p2pModels.Offer{}, &tErrors.CustomError{Param: "maxOrderAmount", Err: "error-max-below-min", ErrMessage: "maxOrderAmount cannot be less than minOrderAmount"}
 	}
 
+	// A SELL offer settles fiat through one of the merchant's own saved
+	// payment methods, referenced by ID (not a bespoke per-offer value) so
+	// editing that payment method later can propagate here (Plan). A BUY
+	// offer instead needs a wallet the merchant owns to receive the asset
+	// into - validated (and, for a regulated asset, self-service authorized)
+	// only after the offer itself is persisted, so a failure here doesn't
+	// leave a half-created offer around; see the delete-on-failure below.
+	var paymentMethod p2pModels.PaymentMethod
+	var paymentMethodID string
+	if in.OfferType == p2pModels.OfferTypeSell {
+		pm, pmErr := resolveSellPaymentMethod(gc.DB, merchantUserID, in.PaymentMethodID)
+		if pmErr != nil {
+			return p2pModels.Offer{}, pmErr
+		}
+		paymentMethod = pm.ToPaymentMethod()
+		paymentMethodID = pm.ID
+	} else {
+		if in.MerchantPayoutAddress == "" {
+			return p2pModels.Offer{}, &tErrors.CustomError{Param: "merchantPayoutAddress", Err: "error-payout-wallet-required", ErrMessage: "A payout wallet is required for a BUY offer"}
+		}
+		if !walletBelongsToMerchant(gc, merchant, in.MerchantPayoutAddress) {
+			return p2pModels.Offer{}, &tErrors.CustomError{Param: "merchantPayoutAddress", Err: "error-wallet-not-owned", ErrMessage: "This wallet does not belong to you"}
+		}
+	}
+
 	offer := p2pModels.Offer{
-		ID:                 gc.GenerateUUIDString(),
-		MerchantUsername:   merchantUsername,
-		MerchantUserID:     merchantUserID,
-		OfferType:          in.OfferType,
-		Asset:              curatedAsset.AssetCode,
-		ContractAddress:    curatedAsset.ContractAddress,
-		PaymentMethod:      in.PaymentMethod,
-		Country:            in.Country,
-		CountryCode:        in.CountryCode,
-		Currency:           in.Currency,
-		PriceType:          orDefaultStr(in.PriceType, "FIXED"),
-		Price:              in.Price,
-		PriceMargin:        orDefaultStr(in.PriceMargin, "0"),
-		MinOrderAmount:     in.MinOrderAmount,
-		MaxOrderAmount:     in.MaxOrderAmount,
-		AvailableLiquidity: orDefaultStr(in.AvailableLiquidity, "0"),
-		ReservedLiquidity:  "0",
-		Remark:             in.Remark,
-		AvailabilityStatus: p2pModels.OfferAvailabilityOffline,
-		Status:             p2pModels.OfferStatusDraft,
-		Version:            1,
+		ID:                    gc.GenerateUUIDString(),
+		MerchantUsername:      merchantUsername,
+		MerchantUserID:        merchantUserID,
+		OfferType:             in.OfferType,
+		Asset:                 curatedAsset.AssetCode,
+		ContractAddress:       curatedAsset.ContractAddress,
+		PaymentMethod:         paymentMethod,
+		PaymentMethodID:       paymentMethodID,
+		MerchantPayoutAddress: in.MerchantPayoutAddress,
+		Country:               in.Country,
+		CountryCode:           in.CountryCode,
+		Currency:              in.Currency,
+		PriceType:             orDefaultStr(in.PriceType, "FIXED"),
+		Price:                 in.Price,
+		PriceMargin:           orDefaultStr(in.PriceMargin, "0"),
+		MinOrderAmount:        in.MinOrderAmount,
+		MaxOrderAmount:        in.MaxOrderAmount,
+		AvailableLiquidity:    orDefaultStr(in.AvailableLiquidity, "0"),
+		ReservedLiquidity:     "0",
+		Remark:                in.Remark,
+		AvailabilityStatus:    p2pModels.OfferAvailabilityOffline,
+		Status:                p2pModels.OfferStatusDraft,
+		Version:               1,
 	}
 
 	if err := gc.DB.Omit(clause.Associations).Create(&offer).Error; err != nil {
 		return p2pModels.Offer{}, &tErrors.ErrorTemporaryServerError{}
 	}
+
+	if in.OfferType == p2pModels.OfferTypeBuy && gc.IsValidTokenizedAsset(curatedAsset.AssetCode) {
+		if err := authorizeBuyPayoutWallet(offer.MerchantPayoutAddress, curatedAsset, merchantUserID, offer.ID); err != nil {
+			gc.DB.Delete(&offer)
+			return p2pModels.Offer{}, err
+		}
+	}
+
 	RecordAuditEvent(gc, "", offer.ID, p2pModels.EventOfferCreated, merchantUserID, offer)
 	return offer, nil
+}
+
+// walletBelongsToMerchant reports whether walletAddress is one of
+// merchant's own wallets or subwallets (Plan: "an ordered list of their
+// wallets") - reusing the same lookup the wallet-switcher UI's own backing
+// data comes from, rather than a new P2P-scoped one.
+func walletBelongsToMerchant(gc *sharedconfig.GlobalConfig, merchant userModels.User, walletAddress string) bool {
+	for _, w := range userServices.GetUserWallets(merchant, gc) {
+		if strings.EqualFold(w.ID, walletAddress) {
+			return true
+		}
+	}
+	return false
+}
+
+// authorizeBuyPayoutWallet self-service authorizes walletAddress to hold
+// curatedAsset on a BUY offer's creation/edit (Plan, explicitly confirmed):
+// unlike network.SetWalletAssetAuthorization's only other caller (a
+// manual, issuer-signed compliance approval), this is the merchant
+// granting their own already-KYC'd wallet authorization for an asset
+// they're about to buy - approvedBy/reason are tagged "p2p-self-service"
+// so the audit trail (WalletAssetAuthorizations) can always tell the two
+// grant paths apart.
+func authorizeBuyPayoutWallet(walletAddress string, curatedAsset assetModels.CuratedAsset, merchantUserID, offerID string) error {
+	asset := basetxn.CreditAsset{Code: strings.ToUpper(curatedAsset.AssetCode), Issuer: curatedAsset.ContractAddress}
+	if err := network.SetWalletAssetAuthorization(walletAddress, asset, true, "p2p-self-service:"+merchantUserID, "P2P merchant self-service authorization for BUY offer "+offerID); err != nil {
+		return &tErrors.CustomError{Param: "merchantPayoutAddress", Err: "error-wallet-authorization-failed", ErrMessage: "Could not authorize the selected wallet to hold this regulated asset. Please try again."}
+	}
+	return nil
 }
 
 func orDefaultStr(v, def string) string {
@@ -156,14 +231,22 @@ func PauseOffer(gc *sharedconfig.GlobalConfig, offerID, merchantUserID string) (
 // the curated-asset validation and role mapping (Plan Section 11) done at
 // creation time, so changing either is a new offer, not an edit.
 type UpdateOfferInput struct {
-	PaymentMethod      p2pModels.PaymentMethod
-	PriceType          string
-	Price              string
-	PriceMargin        string
-	MinOrderAmount     string
-	MaxOrderAmount     string
-	AvailableLiquidity string
-	Remark             string
+	// PaymentMethodID, if set and different from the offer's current one,
+	// switches a SELL offer onto a different saved payment method (Plan:
+	// "edit it to change the payment method" - the escape hatch that lets
+	// a merchant free up a payment method they want to disable).
+	PaymentMethodID string
+	// MerchantPayoutAddress, if set and different, switches a BUY offer
+	// onto a different payout wallet - re-validated and re-authorized
+	// exactly as at creation time.
+	MerchantPayoutAddress string
+	PriceType             string
+	Price                 string
+	PriceMargin           string
+	MinOrderAmount        string
+	MaxOrderAmount        string
+	AvailableLiquidity    string
+	Remark                string
 }
 
 // UpdateOffer edits an existing offer's terms. Allowed from any
@@ -195,7 +278,31 @@ func UpdateOffer(gc *sharedconfig.GlobalConfig, offerID, merchantUserID string, 
 		return offer, &tErrors.CustomError{Param: "maxOrderAmount", Err: "error-max-below-min", ErrMessage: "maxOrderAmount cannot be less than minOrderAmount"}
 	}
 
-	offer.PaymentMethod = in.PaymentMethod
+	if offer.OfferType == p2pModels.OfferTypeSell && in.PaymentMethodID != "" && in.PaymentMethodID != offer.PaymentMethodID {
+		pm, pmErr := resolveSellPaymentMethod(gc.DB, merchantUserID, in.PaymentMethodID)
+		if pmErr != nil {
+			return offer, pmErr
+		}
+		offer.PaymentMethodID = pm.ID
+		offer.PaymentMethod = pm.ToPaymentMethod()
+	}
+	if offer.OfferType == p2pModels.OfferTypeBuy && in.MerchantPayoutAddress != "" && in.MerchantPayoutAddress != offer.MerchantPayoutAddress {
+		merchant, mErr := usersDB.GetUser(merchantUserID, gc.DB, gc)
+		if mErr != nil {
+			return offer, mErr
+		}
+		if !walletBelongsToMerchant(gc, merchant, in.MerchantPayoutAddress) {
+			return offer, &tErrors.CustomError{Param: "merchantPayoutAddress", Err: "error-wallet-not-owned", ErrMessage: "This wallet does not belong to you"}
+		}
+		curatedAsset, cErr := userModels.Currency(offer.Asset).GetCurratedAsset(gc)
+		if cErr == nil && gc.IsValidTokenizedAsset(curatedAsset.AssetCode) {
+			if err := authorizeBuyPayoutWallet(in.MerchantPayoutAddress, curatedAsset, merchantUserID, offer.ID); err != nil {
+				return offer, err
+			}
+		}
+		offer.MerchantPayoutAddress = in.MerchantPayoutAddress
+	}
+
 	offer.PriceType = orDefaultStr(in.PriceType, offer.PriceType)
 	offer.Price = in.Price
 	offer.PriceMargin = orDefaultStr(in.PriceMargin, "0")

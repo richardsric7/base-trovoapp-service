@@ -4,6 +4,22 @@ export type P2PPaymentMethod = {
   account: string;
 };
 
+// P2PMerchantPaymentMethod is a merchant's own saved fiat settlement
+// channel (see backend doc), selectable from a SELL offer by id. Never
+// hard-deleted - only deactivated (isActive) - and cannot be deactivated
+// while a live offer still references it.
+export type P2PMerchantPaymentMethod = {
+  id: string;
+  merchantUserId: string;
+  merchantUsername: string;
+  paymentChannel: string;
+  provider: string;
+  account: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type P2POffer = {
   id: string;
   merchantUsername: string;
@@ -12,6 +28,8 @@ export type P2POffer = {
   asset: string;
   contractAddress: string;
   paymentMethod: P2PPaymentMethod;
+  paymentMethodId: string;
+  merchantPayoutAddress: string;
   country: string;
   countryCode: string;
   currency: string;

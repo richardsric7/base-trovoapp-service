@@ -31,6 +31,14 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.POST("/v1/p2p/offers/:offerID/close", auth, postCloseOfferHandler(gc))
 	router.GET("/v1/p2p/my-offers", auth, getMyOffersHandler(gc))
 
+	// Payment methods - a merchant's own saved fiat settlement channels,
+	// selectable from SELL offers by reference. Never hard-deleted, only
+	// deactivated, and only while not in use by a live offer.
+	router.POST("/v1/p2p/payment-methods", auth, postPaymentMethodsHandler(gc))
+	router.GET("/v1/p2p/payment-methods", auth, getMyPaymentMethodsHandler(gc))
+	router.PUT("/v1/p2p/payment-methods/:paymentMethodID", auth, putPaymentMethodHandler(gc))
+	router.PUT("/v1/p2p/payment-methods/:paymentMethodID/active", auth, putPaymentMethodActiveHandler(gc))
+
 	// Orders
 	router.POST("/v1/p2p/orders", auth, postOrdersHandler(gc))
 	router.GET("/v1/p2p/orders", auth, getMyOrdersHandler(gc))

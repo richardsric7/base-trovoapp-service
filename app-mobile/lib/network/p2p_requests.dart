@@ -135,6 +135,22 @@ class P2PApi {
     return P2POffer.deserializeList(response['data']?['data']);
   }
 
+  // ---- Payment methods (a merchant's own saved fiat settlement
+  // channels, selectable from a SELL offer by id) ----
+
+  Future<List<MerchantPaymentMethod>> listMyPaymentMethods() async {
+    var response = await _get('/v1/p2p/payment-methods');
+    return MerchantPaymentMethod.deserializeList(response['data']?['data']);
+  }
+
+  Future<Map> createPaymentMethod(Map body) => _post('/v1/p2p/payment-methods', body);
+
+  Future<Map> updatePaymentMethod(String paymentMethodId, Map body) =>
+      _put('/v1/p2p/payment-methods/$paymentMethodId', body);
+
+  Future<Map> setPaymentMethodActive(String paymentMethodId, bool active) =>
+      _put('/v1/p2p/payment-methods/$paymentMethodId/active', {'active': active});
+
   // ---- Orders ----
 
   Future<Map> createOrder({

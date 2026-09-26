@@ -10,6 +10,8 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/p2p_merchant_gate.dart';
+import 'package:trovo_app/widgets/p2p_payment_method_select.dart';
+import 'package:trovo_app/widgets/p2p_wallet_payout_select.dart';
 import 'package:trovo_app/widgets/popups.dart';
 
 // P2PEditOfferView lets a merchant edit an existing offer's terms (Plan
@@ -37,10 +39,9 @@ class _P2PEditOfferViewState extends State<P2PEditOfferView> {
   final minOrderAmount = TextEditingController();
   final maxOrderAmount = TextEditingController();
   final addLiquidity = TextEditingController();
-  final paymentChannel = TextEditingController();
-  final provider = TextEditingController();
-  final account = TextEditingController();
   final remark = TextEditingController();
+  String? paymentMethodId;
+  String? merchantPayoutAddress;
 
   @override
   void didChangeDependencies() {
@@ -53,9 +54,8 @@ class _P2PEditOfferViewState extends State<P2PEditOfferView> {
         price.text = offer!.price ?? '';
         minOrderAmount.text = offer!.minOrderAmount ?? '';
         maxOrderAmount.text = offer!.maxOrderAmount ?? '';
-        paymentChannel.text = offer!.paymentMethod?.paymentChannel ?? '';
-        provider.text = offer!.paymentMethod?.provider ?? '';
-        account.text = offer!.paymentMethod?.account ?? '';
+        paymentMethodId = offer!.paymentMethodId;
+        merchantPayoutAddress = offer!.merchantPayoutAddress;
         remark.text = offer!.remark ?? '';
       }
     }
@@ -65,17 +65,22 @@ class _P2PEditOfferViewState extends State<P2PEditOfferView> {
 
   Future<void> _submit() async {
     if (offer == null || !formKey.currentState!.validate()) return;
+    if (offer!.offerType == 'SELL' && (paymentMethodId == null || paymentMethodId!.isEmpty)) {
+      popup(context, title: 'p2pcouldnotsaveoffer'.tr(), message: 'p2pselectpaymentmethod'.tr());
+      return;
+    }
+    if (offer!.offerType == 'BUY' && (merchantPayoutAddress == null || merchantPayoutAddress!.isEmpty)) {
+      popup(context, title: 'p2pcouldnotsaveoffer'.tr(), message: 'p2pselectwallet'.tr());
+      return;
+    }
     setState(() => submitting = true);
     showLoader(context);
     try {
       final response = await api.updateOffer(offer!.id!, {
         'offerType': offer!.offerType,
         'asset': offer!.asset,
-        'paymentMethod': {
-          'paymentChannel': paymentChannel.text.trim(),
-          'provider': provider.text.trim(),
-          'account': account.text.trim(),
-        },
+        if (offer!.offerType == 'SELL') 'paymentMethodId': paymentMethodId,
+        if (offer!.offerType == 'BUY') 'merchantPayoutAddress': merchantPayoutAddress,
         'country': offer!.country,
         'countryCode': offer!.countryCode,
         'currency': offer!.currency,
@@ -144,10 +149,17 @@ class _P2PEditOfferViewState extends State<P2PEditOfferView> {
                       required: false,
                     ),
                     const SizedBox(height: P2PTheme.space2),
-                    Text('p2ppaymentmethod'.tr(), style: const TextStyle(fontWeight: FontWeight.w600)),
-                    _field('p2ppaymentchannel'.tr(), paymentChannel),
-                    _field('p2pproviderlabel'.tr(), provider),
-                    _field('p2paccountdetails'.tr(), account),
+                    offer!.offerType == 'SELL'
+                        ? P2PPaymentMethodSelect(
+                            api: api,
+                            value: paymentMethodId,
+                            onChanged: (v) => setState(() => paymentMethodId = v),
+                          )
+                        : P2PWalletPayoutSelect(
+                            value: merchantPayoutAddress,
+                            onChanged: (v) => setState(() => merchantPayoutAddress = v),
+                          ),
+                    const SizedBox(height: P2PTheme.space3),
                     _field('p2premark'.tr(), remark, required: false),
                     const SizedBox(height: P2PTheme.space4),
                     SizedBox(
