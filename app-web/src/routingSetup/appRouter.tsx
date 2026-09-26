@@ -45,6 +45,16 @@ import {
   SharedAccessApprovalDetails,
   SharedAccessAdd,
 } from '../pages/dashboard/sharedAccess';
+import P2PMarketplace from '../pages/dashboard/p2p/marketplace';
+import P2POfferDetail from '../pages/dashboard/p2p/offerDetail';
+import P2PCreateOffer from '../pages/dashboard/p2p/createOffer';
+import P2PCreateOrder from '../pages/dashboard/p2p/createOrder';
+import P2POrderDetail from '../pages/dashboard/p2p/orderDetail';
+import P2PEscrowShare from '../pages/dashboard/p2p/escrowShare';
+import P2PDispute from '../pages/dashboard/p2p/dispute';
+import P2PMyOrders from '../pages/dashboard/p2p/myOrders';
+import P2PMyOffers from '../pages/dashboard/p2p/myOffers';
+import PayLanding from '../pages/pay/payLanding';
 
 export default function AppRouter() {
   return (
@@ -60,6 +70,11 @@ export default function AppRouter() {
         <Route path="/import" element={<ImportWallet />} />
         <Route path="/recovery" element={<RecoveryMain />} />
         <Route path="/send-asset-receipt" element={<SendAssetReceipt />} />
+        {/* Unauthenticated-until-wallet-connect landing page for an
+            action=payment shortlink resolved by a non-mobile client (Plan
+            Section 96.6) - a third-party payer may not even be a Trovo
+            user yet, so this sits outside ProtectedRoutes like /login. */}
+        <Route path="/pay" element={<PayLanding />} />
         <Route
           path="/answer-security-questions"
           element={<AnswerSecurityQuestions />}
@@ -94,6 +109,15 @@ export default function AppRouter() {
             />
             <Route path="wallet" element={<WalletView />} />
             <Route path="history" element={<History />} />
+            <Route path="p2p" element={<P2PMarketplace />} />
+            <Route path="p2p/offer/:offerId" element={<P2POfferDetail />} />
+            <Route path="p2p/create-offer" element={<P2PCreateOffer />} />
+            <Route path="p2p/create-order/:offerId" element={<P2PCreateOrder />} />
+            <Route path="p2p/order/:orderId" element={<P2POrderDetail />} />
+            <Route path="p2p/order/:orderId/escrow-share" element={<P2PEscrowShare />} />
+            <Route path="p2p/order/:orderId/dispute" element={<P2PDispute />} />
+            <Route path="p2p/my-orders" element={<P2PMyOrders />} />
+            <Route path="p2p/my-offers" element={<P2PMyOffers />} />
             <Route path="shared-access" element={<SharedAccessLanding />} />
             <Route
               path="shared-access/wallets"

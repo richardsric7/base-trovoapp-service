@@ -1,0 +1,103 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Header from '../../../components/header';
+import { useListP2PMarketplaceOffersQuery } from '../../../store/api/p2pApis';
+import { useP2PIdentity } from '../../../hooks/useP2PIdentity';
+import { P2PListCard, P2PEmptyState, p2p } from '../../../components/p2p/P2PTheme';
+
+// P2PMarketplace (Plan Section 96.1): a Buy/Sell toggle + filterable offer
+// list, mobile-first regardless of the rest of app-web's desktop-primary
+// posture (Plan Section 92's deliberate improvement), built at the history
+// page's level of care, not the wallet page's.
+export default function P2PMarketplace() {
+  const navigate = useNavigate();
+  const { creds, ready } = useP2PIdentity();
+  const [offerType, setOfferType] = useState<'BUY' | 'SELL'>('BUY');
+
+  const { data, isLoading, isError, refetch } = useListP2PMarketplaceOffersQuery(
+    { creds, offerType, page: 1, pageSize: 20 },
+    { skip: !ready },
+  );
+
+  return (
+    <div className="flex flex-col space-y-5 p-3">
+      <Header />
+      <div className="flex items-center justify-between px-2">
+        <h1 className="text-xl font-bold text-primary-800">P2P Marketplace</h1>
+        <div className="flex gap-3">
+          <button
+            className="text-sm font-semibold text-primary-800 underline"
+            onClick={() => navigate('/dashboard/p2p/my-orders')}
+          >
+            My orders
+          </button>
+          <button
+            className="text-sm font-semibold text-primary-800 underline"
+            onClick={() => navigate('/dashboard/p2p/my-offers')}
+          >
+            My offers
+          </button>
+        </div>
+      </div>
+
+      <div className="flex gap-2 max-w-md">
+        {(['BUY', 'SELL'] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setOfferType(t)}
+            className="flex-1 py-3 rounded-2xl font-semibold"
+            style={{
+              backgroundColor: offerType === t ? p2p.brandDark : 'white',
+              color: offerType === t ? 'white' : '#374151',
+            }}
+          >
+            {t === 'BUY' ? 'Buy' : 'Sell'}
+          </button>
+        ))}
+      </div>
+
+      <div className="max-w-2xl w-full">
+        {isLoading ? (
+          <div className="text-center py-16 text-gray-400">Loading offers...</div>
+        ) : isError ? (
+          <P2PEmptyState message="Could not load offers. Please try again." ctaLabel="Retry" onCta={refetch} />
+        ) : !data?.data?.length ? (
+          <P2PEmptyState message="No offers match your filters right now." ctaLabel="Refresh" onCta={refetch} />
+        ) : (
+          data.data.map((offer) => (
+            <P2PListCard key={offer.id} onClick={() => navigate(`/dashboard/p2p/offer/${offer.id}`)}>
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+                  style={{ backgroundColor: p2p.brandDark }}
+                >
+                  {offer.merchantUsername?.substring(0, 1).toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold">{offer.merchantUsername}</span>
+                    <span
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: offer.availabilityStatus === 'ONLINE' ? p2p.success : '#9CA3AF' }}
+                    />
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {offer.price} {offer.currency} / {offer.asset}
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    Limit: {offer.minOrderAmount} - {offer.maxOrderAmount} {offer.asset}
+                  </div>
+                </div>
+                {offer.paymentMethod?.paymentChannel && (
+                  <span className="text-xs px-2 py-1 rounded-lg bg-primary-100">
+                    {offer.paymentMethod.paymentChannel}
+                  </span>
+                )}
+              </div>
+            </P2PListCard>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
