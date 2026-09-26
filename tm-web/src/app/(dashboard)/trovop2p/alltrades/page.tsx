@@ -6,7 +6,6 @@ import CustomTable from "@/components/CustomTable";
 import { ArrowLeft } from "iconsax-react";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { MdVerified } from "react-icons/md";
 import styled from "styled-components";
 import TradesFilter from "../components/TradesFilter";
 import { useRouter } from "next/navigation";
@@ -28,9 +27,9 @@ const AllTrades = () => {
 
   const { data, isLoading, isFetching, refetch } = useTradesQuery({
     page: currentPage,
-    page_size: pageSize,
+    pageSize,
     username: searchQuery || undefined,
-    created_at: createdAt || undefined,
+    createdAt: createdAt || undefined,
   });
 
   useEffect(() => {
@@ -86,8 +85,7 @@ const AllTrades = () => {
           <Avatar />
           <div>
             <UserContent>
-              <UserName>{record.offerMaker || "N/A"}</UserName>
-              {/* <MdVerified color="#007CDF" /> */}
+              <UserName>{record.merchantUsername || "N/A"}</UserName>
             </UserContent>
           </div>
         </UserInfoSection>
@@ -104,8 +102,7 @@ const AllTrades = () => {
           <Avatar />
           <div>
             <UserContent>
-              <UserName>{record.offerTaker || "N/A"}</UserName>
-              {/* <MdVerified color="#007CDF" /> */}
+              <UserName>{record.customerUsername || "N/A"}</UserName>
             </UserContent>
           </div>
         </UserInfoSection>
@@ -118,21 +115,15 @@ const AllTrades = () => {
 
     if (!Array.isArray(tradesArray)) return [];
 
-    return tradesArray.map((item) => {
-      const price = item.offerAssetPrice ?? 0;
-      const amount = item.offerAssetAmount ?? 0;
-      const total = price * amount;
-
-      return {
-        key: item.id,
-        price: `${price.toLocaleString()} ${item.offerCurrencyID ?? ""}`,
-        amount: `${amount.toLocaleString()} ${item.offerAssetId ?? ""}`,
-        total: `${total.toLocaleString()} ${item.offerCurrencyID ?? ""}`,
-        tradedOn: item.CreatedAt ?? "N/A",
-        offerMaker: item.offerMaker ?? "N/A",
-        offerTaker: item.offerTaker ?? "N/A",
-      };
-    });
+    return tradesArray.map((item) => ({
+      key: item.id,
+      price: `${item.price} ${item.currency}`,
+      amount: `${item.specifiedAssetAmount} ${item.asset}`,
+      total: `${item.paymentAmount} ${item.currency}`,
+      tradedOn: item.createdAt ?? "N/A",
+      merchantUsername: item.merchantUsername ?? "N/A",
+      customerUsername: item.customerUsername ?? "N/A",
+    }));
   }, [data]);
 
   const router = useRouter();
@@ -146,10 +137,13 @@ const AllTrades = () => {
   };
 
   const applyCreatedAtFilter = (value: string) => {
-    const iso = dayjs(value).startOf("day").toISOString(); //"2023-02-05T00:00:00.000Z"
-    setCreatedAt(iso);
+    // tm-api's createdAt filter compares DATE(created_at) against this
+    // value, so it must be a plain YYYY-MM-DD date, not a full ISO
+    // datetime (which would never match).
+    const dateOnly = dayjs(value).format("YYYY-MM-DD");
+    setCreatedAt(dateOnly);
 
-    const formatted = new Date(iso).toLocaleDateString("en-US", {
+    const formatted = new Date(dateOnly).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",

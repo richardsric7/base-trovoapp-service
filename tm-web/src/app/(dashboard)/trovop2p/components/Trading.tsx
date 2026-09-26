@@ -6,7 +6,7 @@ import styled from "styled-components";
 import totalTradesIcon from "@/assets/images/icon-park-outline_stock-market.svg";
 import averageTradeIcon from "@/assets/images/carbon_chart-average.svg";
 import tradeSuccessIcon from "@/assets/images/copy-success.svg";
-import tradesAppealIcon from "@/assets/images/message-question.svg";
+import disputesIcon from "@/assets/images/message-question.svg";
 import TradingHoursChart from "./TradingHoursChart";
 import TradingVolumeChart from "./TradingVolumeChart";
 import TopTraders from "./TopTraders";
@@ -19,26 +19,26 @@ const Trading = () => {
       <MetricsCardContainer>
         <Card
           text="Total Completed Trades"
-          heading={data?.completed_trades ?? 0}
+          heading={data?.data?.completedTrades ?? 0}
           img={totalTradesIcon}
         />
 
         <Card
-          text="Average Trade Size"
-          heading={Number((data?.average_trade_size ?? 0).toFixed(2))}
+          text="Total Trades"
+          heading={data?.data?.totalTrades ?? 0}
           img={averageTradeIcon}
         />
 
         <Card
           text="Trade Success Rate"
-          heading={Number((data?.trade_success_rate ?? 0).toFixed(2))}
+          heading={Number((data?.data?.tradeSuccessRate ?? 0).toFixed(2))}
           img={tradeSuccessIcon}
         />
 
         <Card
-          text="Trades on Appeal"
-          heading={data?.trades_on_appeal ?? 0}
-          img={tradesAppealIcon}
+          text="Open Disputes"
+          heading={data?.data?.openDisputes ?? 0}
+          img={disputesIcon}
         />
       </MetricsCardContainer>
       <TradingHoursChart />

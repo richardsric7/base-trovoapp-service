@@ -372,860 +372,228 @@ func GetRecentRegistrations(request models.UserRequestDTO, walletDB *gorm.DB) ([
 //
 //		return recentRegistrations, nil
 //	}
-func GetP2PMetrics(p2pDB *gorm.DB) (*models.P2PUserMetricsResponse, error) {
-
-	totalUserCountValue, err := totalUserCount(p2pDB)
-	if err != nil {
-		return nil, err
-	}
-	var suspendedCount int64
-	if err := p2pDB.Model(&models.User{}).Count(&suspendedCount).Where("suspended = 1").Error; err != nil {
-		return nil, err
-	}
-
-	// TODO Rethink this because ideally, activity of users should be tied to tracking user sessions/login frequency ie no of people who logged in today
-	var dailyNewUsers int64
-	if err := p2pDB.Model(&models.User{}).
-		Where("DATE(created_at) = DATE(NOW())").
-		Count(&dailyNewUsers).Error; err != nil {
-		return nil, err
-	}
-	var dailySuspendedUsers int64
-	if err := p2pDB.Model(&models.User{}).
-		Where("DATE(created_at) = DATE(NOW())").
-		Count(&dailySuspendedUsers).Where("suspended = 1").Error; err != nil {
-		return nil, err
-	}
-
-	var weeklyNewUsers int64
-	if err := p2pDB.Model(&models.User{}).
-		Where("created_at >= ?", time.Now().AddDate(0, 0, -7)).
-		Count(&weeklyNewUsers).Error; err != nil {
-		return nil, err
-	}
-
-	var weeklySuspendedUsers int64
-	if err := p2pDB.Model(&models.User{}).
-		Where("created_at >= ?", time.Now().AddDate(0, 0, -7)).
-		Count(&weeklySuspendedUsers).Where("suspended = 1").Error; err != nil {
-		return nil, err
-	}
-
-	var monthlyNewUsers int64
-	if err := p2pDB.Model(&models.User{}).
-		Where("created_at >= ?", time.Now().AddDate(0, 0, -30)).
-		Count(&monthlyNewUsers).Error; err != nil {
-		return nil, err
-	}
-
-	var monthlySuspendedUsers int64
-	if err := p2pDB.Model(&models.User{}).
-		Where("created_at >= ?", time.Now().AddDate(0, 0, -30)).
-		Count(&monthlySuspendedUsers).Where("suspended = 1").Error; err != nil {
-		return nil, err
-	}
-
-	userMetrics := &models.P2PUserMetricsResponse{
-		TotalUsers:            *totalUserCountValue,
-		TotalActiveUsers:      *totalUserCountValue - suspendedCount,
-		TotalSessions:         0,
-		AverageTimePerSession: 0,
-		DailyActiveAndNewUsers: models.DailyMetrics{
-			ActiveUsers: *totalUserCountValue - dailySuspendedUsers,
-			NewUsers:    dailyNewUsers,
-		},
-		WeeklyActiveAndNewUsers: models.WeeklyMetrics{
-			ActiveUsers: *totalUserCountValue - weeklySuspendedUsers,
-			NewUsers:    weeklyNewUsers,
-		},
-		MonthlyActiveAndNewUsers: models.MonthlyMetrics{
-			ActiveUsers: *totalUserCountValue - monthlySuspendedUsers,
-			NewUsers:    monthlyNewUsers,
-		},
-		WeeklyPercentageChange: models.WeeklyChange{
-			//ActiveUsers: weeklyActiveUsers,
-			//NewUsers: dailyNewUsers,
-		},
-	}
-	// todo-1. get merchant value correctly
-	return userMetrics, nil
-}
-
-// Main response struct representing the API's output
-type Response struct {
-	Filter string       `json:"filter"` // The applied filter (e.g., "today", "yesterday", "last_week", etc.)
-	Data   []TimePeriod `json:"data"`   // The time divisions (e.g., days, hours, months)
-	Meta   MetaData     `json:"meta"`   // Metadata containing aggregated totals
-}
-
-// TimePeriod struct for each time division
-type TimePeriod struct {
-	Label       string `json:"label"`        // Name of the time division (e.g., "Monday", "00:00", "January")
-	ActiveUsers int    `json:"active_users"` // Count of active users in this time division
-	NewUsers    int    `json:"new_users"`    // Count of new users in this time division
-}
-
-// MetaData struct for summary statistics
-type MetaData struct {
-	TotalActiveUsers int `json:"total_active_users"` // Total active users across all divisions
-	TotalNewUsers    int `json:"total_new_users"`    // Total new users across all divisions
-}
-
-func GetP2PMetricsNew(p2pDB *gorm.DB, filter string, startDate, endDate *time.Time) (*Response, error) {
-	var periods []TimePeriod
-	var totalActiveUsers, totalNewUsers int64
-
-	// Fetch total active users (not limited to date range)
-	if err := p2pDB.Model(&models.User{}).
-		Where("suspended = 0").
-		Count(&totalActiveUsers).Error; err != nil {
-		return nil, err
-	}
-
-	switch filter {
-	case "custom":
-		// Ensure startDate and endDate are provided
-		if startDate == nil || endDate == nil {
-			return nil, fmt.Errorf("start_date and end_date must be provided for custom filter")
-		}
-
-		// Fetch daily data within the custom range
-		for day := *startDate; day.Before(*endDate) || day.Equal(*endDate); day = day.AddDate(0, 0, 1) {
-			dayStart := day.Truncate(24 * time.Hour)
-			dayEnd := dayStart.AddDate(0, 0, 1)
-
-			_, newUsers, err := fetchMetricsForRange(p2pDB, dayStart, dayEnd)
-			if err != nil {
-				return nil, err
-			}
-
-			periods = append(periods, TimePeriod{
-				Label:       dayStart.Format("2006-01-02"), // Include exact date
-				ActiveUsers: int(totalActiveUsers),         // Use global active users count
-				NewUsers:    int(newUsers),
-			})
-			totalNewUsers += newUsers
-		}
-
-	case "today":
-		// Fetch hourly data for today
-		for i := 0; i < 24; i++ {
-			start := time.Now().Truncate(24 * time.Hour).Add(time.Duration(i) * time.Hour)
-			end := start.Add(time.Hour)
-
-			_, newUsers, err := fetchMetricsForRange(p2pDB, start, end)
-			if err != nil {
-				return nil, err
-			}
-
-			periods = append(periods, TimePeriod{
-				Label:       fmt.Sprintf("%s %s", start.Format("15:00"), start.Format("2006-01-02")), // Include exact date
-				ActiveUsers: int(totalActiveUsers),                                                   // Use global active users count
-				NewUsers:    int(newUsers),
-			})
-			totalNewUsers += newUsers
-		}
-
-	case "yesterday":
-		// Fetch hourly data for yesterday
-		yesterday := time.Now().AddDate(0, 0, -1).Truncate(24 * time.Hour)
-		for i := 0; i < 24; i++ {
-			start := yesterday.Add(time.Duration(i) * time.Hour)
-			end := start.Add(time.Hour)
-
-			_, newUsers, err := fetchMetricsForRange(p2pDB, start, end)
-			if err != nil {
-				return nil, err
-			}
-
-			periods = append(periods, TimePeriod{
-				Label:       fmt.Sprintf("%s %s", start.Format("15:00"), start.Format("2006-01-02")), // Include exact date
-				ActiveUsers: int(totalActiveUsers),                                                   // Use global active users count
-				NewUsers:    int(newUsers),
-			})
-			totalNewUsers += newUsers
-		}
-
-	case "last_week":
-		// Fetch daily data for the last 7 days (Monday-Sunday)
-		startOfWeek := time.Now().AddDate(0, 0, -int(time.Now().Weekday()))
-		for i := 0; i < 7; i++ {
-			dayStart := startOfWeek.AddDate(0, 0, i)
-			dayEnd := dayStart.AddDate(0, 0, 1)
-
-			_, newUsers, err := fetchMetricsForRange(p2pDB, dayStart, dayEnd)
-			if err != nil {
-				return nil, err
-			}
-
-			periods = append(periods, TimePeriod{
-				Label:       dayStart.Weekday().String(), // Daily label
-				ActiveUsers: int(totalActiveUsers),       // Use global active users count
-				NewUsers:    int(newUsers),
-			})
-			totalNewUsers += newUsers
-		}
-
-	case "last_month":
-		// Fetch weekly data for the last month
-		startOfMonth := time.Now().AddDate(0, -1, 0).Truncate(24 * time.Hour)
-		for i := 0; i < 4; i++ {
-			weekStart := startOfMonth.AddDate(0, 0, i*7)
-			weekEnd := weekStart.AddDate(0, 0, 7)
-
-			_, newUsers, err := fetchMetricsForRange(p2pDB, weekStart, weekEnd)
-			if err != nil {
-				return nil, err
-			}
-
-			periods = append(periods, TimePeriod{
-				Label:       fmt.Sprintf("Week %d (%s)", i+1, weekStart.Format("2006-01-02")), // Include start date of the week
-				ActiveUsers: int(totalActiveUsers),                                            // Use global active users count
-				NewUsers:    int(newUsers),
-			})
-			totalNewUsers += newUsers
-		}
-
-	case "last_3_months":
-		// Fetch monthly data for the last 3 months
-		for i := 3; i > 0; i-- {
-			monthStart := time.Now().AddDate(0, -i, 0).Truncate(24 * time.Hour)
-			monthEnd := monthStart.AddDate(0, 1, 0)
-
-			_, newUsers, err := fetchMetricsForRange(p2pDB, monthStart, monthEnd)
-			if err != nil {
-				return nil, err
-			}
-
-			periods = append(periods, TimePeriod{
-				Label:       fmt.Sprintf("%s (%s)", monthStart.Format("January"), monthStart.Format("2006-01-02")), // Include exact date
-				ActiveUsers: int(totalActiveUsers),                                                                 // Use global active users count
-				NewUsers:    int(newUsers),
-			})
-			totalNewUsers += newUsers
-		}
-
-	case "last_year":
-		// Fetch monthly data for the last year
-		for i := 12; i > 0; i-- {
-			monthStart := time.Now().AddDate(0, -i, 0).Truncate(24 * time.Hour)
-			monthEnd := monthStart.AddDate(0, 1, 0)
-
-			_, newUsers, err := fetchMetricsForRange(p2pDB, monthStart, monthEnd)
-			if err != nil {
-				return nil, err
-			}
-
-			periods = append(periods, TimePeriod{
-				Label:       fmt.Sprintf("%s (%s)", monthStart.Format("January"), monthStart.Format("2006-01-02")), // Include exact date
-				ActiveUsers: int(totalActiveUsers),                                                                 // Use global active users count
-				NewUsers:    int(newUsers),
-			})
-			totalNewUsers += newUsers
-		}
-
-	default:
-		return nil, fmt.Errorf("invalid filter value")
-	}
-
-	// Return the response
-	return &Response{
-		Filter: filter,
-		Data:   periods,
-		Meta: MetaData{
-			TotalActiveUsers: int(totalActiveUsers),
-			TotalNewUsers:    int(totalNewUsers),
-		},
-	}, nil
-}
-
-func fetchMetricsForRange(p2pDB *gorm.DB, start, end time.Time) (int64, int64, error) {
-	var newUsers int64
-
-	if err := p2pDB.Model(&models.User{}).
-		Where("created_at BETWEEN ? AND ? AND suspended = 0", start, end).
-		Count(&newUsers).Error; err != nil {
-		return 0, 0, err
-	}
-
-	return 0, newUsers, nil
-}
-
-func GetP2PMetricsNeww(p2pDB *gorm.DB, filter string, startDate, endDate *time.Time) (*Response, error) {
-	var periods []TimePeriod
-	var totalActiveUsers, totalNewUsers int64
-
-	switch filter {
-	case "custom":
-		// Ensure startDate and endDate are provided
-		if startDate == nil || endDate == nil {
-			return nil, fmt.Errorf("start_date and end_date must be provided for custom filter")
-		}
-
-		// Fetch daily data within the custom range
-		for day := *startDate; day.Before(*endDate) || day.Equal(*endDate); day = day.AddDate(0, 0, 1) {
-			dayStart := day.Truncate(24 * time.Hour)
-			dayEnd := dayStart.AddDate(0, 0, 1)
-
-			var activeUsers, newUsers int64
-			if err := p2pDB.Model(&models.User{}).
-				Where("created_at BETWEEN ? AND ? AND suspended = 0", dayStart, dayEnd).
-				Count(&newUsers).Error; err != nil {
-				return nil, err
-			}
-			if err := p2pDB.Model(&models.User{}).
-				Where("created_at BETWEEN ? AND ? AND suspended = 0", dayStart, dayEnd).
-				Count(&activeUsers).Error; err != nil {
-				return nil, err
-			}
-
-			periods = append(periods, TimePeriod{
-				Label:       dayStart.Format("2006-01-02"), // Format as YYYY-MM-DD
-				ActiveUsers: int(activeUsers),
-				NewUsers:    int(newUsers),
-			})
-			totalActiveUsers += activeUsers
-			totalNewUsers += newUsers
-		}
-
-	case "today":
-		// Fetch hourly data for today
-		for i := 0; i < 24; i++ {
-			start := time.Now().Truncate(24 * time.Hour).Add(time.Duration(i) * time.Hour)
-			end := start.Add(time.Hour)
-
-			var activeUsers, newUsers int64
-			if err := p2pDB.Model(&models.User{}).
-				Where("created_at BETWEEN ? AND ? AND suspended = 0", start, end).
-				Count(&newUsers).Error; err != nil {
-				return nil, err
-			}
-			if err := p2pDB.Model(&models.User{}).
-				Where("created_at BETWEEN ? AND ? AND suspended = 0", start, end).
-				Count(&activeUsers).Error; err != nil {
-				return nil, err
-			}
-
-			periods = append(periods, TimePeriod{
-				Label:       start.Format("15:00"), // Hourly label
-				ActiveUsers: int(activeUsers),
-				NewUsers:    int(newUsers),
-			})
-			totalActiveUsers += activeUsers
-			totalNewUsers += newUsers
-		}
-
-	case "yesterday":
-		// Fetch hourly data for yesterday
-		yesterday := time.Now().AddDate(0, 0, -1).Truncate(24 * time.Hour)
-		for i := 0; i < 24; i++ {
-			start := yesterday.Add(time.Duration(i) * time.Hour)
-			end := start.Add(time.Hour)
-
-			var activeUsers, newUsers int64
-			if err := p2pDB.Model(&models.User{}).
-				Where("created_at BETWEEN ? AND ? AND suspended = 0", start, end).
-				Count(&newUsers).Error; err != nil {
-				return nil, err
-			}
-			if err := p2pDB.Model(&models.User{}).
-				Where("created_at BETWEEN ? AND ? AND suspended = 0", start, end).
-				Count(&activeUsers).Error; err != nil {
-				return nil, err
-			}
-
-			periods = append(periods, TimePeriod{
-				Label:       start.Format("15:00"), // Hourly label
-				ActiveUsers: int(activeUsers),
-				NewUsers:    int(newUsers),
-			})
-			totalActiveUsers += activeUsers
-			totalNewUsers += newUsers
-		}
-
-	case "last_week":
-		// Fetch daily data for the last 7 days (Monday-Sunday)
-		startOfWeek := time.Now().AddDate(0, 0, -int(time.Now().Weekday()))
-		for i := 0; i < 7; i++ {
-			day := startOfWeek.AddDate(0, 0, i)
-
-			var activeUsers, newUsers int64
-			if err := p2pDB.Model(&models.User{}).
-				Where("created_at BETWEEN ? AND ? AND suspended = 0", day, day.AddDate(0, 0, 1)).
-				Count(&newUsers).Error; err != nil {
-				return nil, err
-			}
-			if err := p2pDB.Model(&models.User{}).
-				Where("suspended = 0 AND created_at BETWEEN ? AND ?", day, day.AddDate(0, 0, 1)).
-				Count(&activeUsers).Error; err != nil {
-				return nil, err
-			}
-
-			periods = append(periods, TimePeriod{
-				Label:       day.Weekday().String(), // Daily label
-				ActiveUsers: int(activeUsers),
-				NewUsers:    int(newUsers),
-			})
-			totalActiveUsers += activeUsers
-			totalNewUsers += newUsers
-		}
-
-	case "last_month":
-		// Fetch weekly data for the last month
-		startOfMonth := time.Now().AddDate(0, -1, 0).Truncate(24 * time.Hour)
-		for i := 0; i < 4; i++ {
-			weekStart := startOfMonth.AddDate(0, 0, i*7)
-			weekEnd := weekStart.AddDate(0, 0, 7)
-
-			var activeUsers, newUsers int64
-			if err := p2pDB.Model(&models.User{}).
-				Where("created_at BETWEEN ? AND ? AND suspended = 0", weekStart, weekEnd).
-				Count(&newUsers).Error; err != nil {
-				return nil, err
-			}
-			if err := p2pDB.Model(&models.User{}).
-				Where("created_at BETWEEN ? AND ? AND suspended = 0", weekStart, weekEnd).
-				Count(&activeUsers).Error; err != nil {
-				return nil, err
-			}
-
-			periods = append(periods, TimePeriod{
-				Label:       "Week " + string(rune(i+1)),
-				ActiveUsers: int(activeUsers),
-				NewUsers:    int(newUsers),
-			})
-			totalActiveUsers += activeUsers
-			totalNewUsers += newUsers
-		}
-
-	case "last_3_months":
-		// Fetch monthly data for the last 3 months
-		for i := 3; i > 0; i-- {
-			monthStart := time.Now().AddDate(0, -i, 0).Truncate(24 * time.Hour)
-			monthEnd := monthStart.AddDate(0, 1, 0)
-
-			var activeUsers, newUsers int64
-			if err := p2pDB.Model(&models.User{}).
-				Where("created_at BETWEEN ? AND ? AND suspended = 0", monthStart, monthEnd).
-				Count(&newUsers).Error; err != nil {
-				return nil, err
-			}
-			if err := p2pDB.Model(&models.User{}).
-				Where("created_at BETWEEN ? AND ? AND suspended = 0", monthStart, monthEnd).
-				Count(&activeUsers).Error; err != nil {
-				return nil, err
-			}
-
-			periods = append(periods, TimePeriod{
-				Label:       monthStart.Format("January"), // Monthly label
-				ActiveUsers: int(activeUsers),
-				NewUsers:    int(newUsers),
-			})
-			totalActiveUsers += activeUsers
-			totalNewUsers += newUsers
-		}
-
-	case "last_year":
-		// Fetch monthly data for the last year
-		for i := 12; i > 0; i-- {
-			monthStart := time.Now().AddDate(0, -i, 0).Truncate(24 * time.Hour)
-			monthEnd := monthStart.AddDate(0, 1, 0)
-
-			var activeUsers, newUsers int64
-			if err := p2pDB.Model(&models.User{}).
-				Where("created_at BETWEEN ? AND ? AND suspended = 0", monthStart, monthEnd).
-				Count(&newUsers).Error; err != nil {
-				return nil, err
-			}
-			if err := p2pDB.Model(&models.User{}).
-				Where("created_at BETWEEN ? AND ? AND suspended = 0", monthStart, monthEnd).
-				Count(&activeUsers).Error; err != nil {
-				return nil, err
-			}
-
-			periods = append(periods, TimePeriod{
-				Label:       monthStart.Format("January"), // Monthly label
-				ActiveUsers: int(activeUsers),
-				NewUsers:    int(newUsers),
-			})
-			totalActiveUsers += activeUsers
-			totalNewUsers += newUsers
-		}
-	}
-
-	// Return the response
-	return &Response{
-		Filter: filter,
-		Data:   periods,
-		Meta: MetaData{
-			TotalActiveUsers: int(totalActiveUsers),
-			TotalNewUsers:    int(totalNewUsers),
-		},
-	}, nil
-}
-
-// func GetTradesOnAppealList() ([]models.TradesOnAppeal, error) {
-//	db, err := db.P2PDb()
-//	if err != nil {
-//		return nil, err
-//	}
-//	// Fetch data from the order_appeals table
-//	var orderAppeals []models.OrderAppeal
-//	//db.Table("order_appeals").Select("id, created_at, order_id, appealed_by, appeal_reason, appeal_detail").Scan(&orderAppeals)
-//	db.Table("order_appeals").Scan(&orderAppeals)
+// ---- P2P (new schema) ----
 //
-//	var tradesOnAppeal []models.TradesOnAppeal
-//	// Output the results
-//	for _, orderAppeal := range orderAppeals {
-//		tradeOnAppeal := models.TradesOnAppeal{
-//			CustomerName: orderAppeal.AppealedBy,
-//			Description:  orderAppeal.AppealDetail,
-//			Status:       "PENDING",
-//			UpdatedOn:    orderAppeal.CreatedAt, // Assuming you want to use CreatedAt here
-//			AppealID:     orderAppeal.OrderID,
-//			Attachment:   "Transaction Agreement.docx", // You might want to fetch this from somewhere
-//		}
-//		tradesOnAppeal = append(tradesOnAppeal, tradeOnAppeal)
-//	}
-//	return tradesOnAppeal, nil
-//}
+// The functions below replace the old P2P admin dashboard's queries
+// against a dead legacy trading platform's schema (orders/offers/users
+// with float64 amounts and offer_maker/offer_taker naming) with reads
+// against app-backend's current P2P module, which now owns this data in
+// the same physical database (see internal/db/main.go's AdminDB doc
+// comment) - see internal/models/p2p.go for the read-only mirror structs.
 
-//	func GetAllTradesList() ([]models.P2POrder, error) {
-//		db, err := db.P2PDb()
-//		if err != nil {
-//			return nil, err
-//		}
-//		// Fetch data from the order_appeals table
-//		var orders []models.Order
-//		db.Table("orders").Select("id, created_at, price, amount, total, traded_on, customer_name").Scan(&orders)
-//		var p2POrders []models.P2POrder
-//		// Output the results
-//		for i := 0; i < len(orders); i++ {
-//			for j := 0; j < len(p2POrders); j++ {
-//				p2POrders[j].Price = orders[i].OfferAssetPrice
-//				p2POrders[j].Amount = orders[i].OrderAmount
-//				p2POrders[j].Total = 000
-//				p2POrders[j].TradedOn = orders[i].CreatedAt
-//				p2POrders[j].CustomerName = orders[i].OfferMaker
-//			}
-//		}
-//		return p2POrders, nil
-//
-// }
-//
-//	func GetAllTradesList() ([]models.P2POrder, error) {
-//		db, err := db.P2PDb()
-//		if err != nil {
-//			return nil, err
-//		}
-//		// Fetch data from the orders table
-//		var orders []models.Order
-//		//db.Table("orders").Select("id, created_at, price, amount, total, traded_on, customer_name").Scan(&orders)
-//		db.Table("orders").Scan(&orders)
-//
-//		var p2POrders []models.P2POrder
-//		// Log the data directly from the database
-//
-//		// Output the results
-//		for _, order := range orders {
-//			p2POrder := models.P2POrder{
-//				Price:        order.OfferAssetPrice,
-//				Amount:       order.OrderAmount,
-//				Total:        order.OfferAssetPrice * order.OrderAmount,
-//				TradedOn:     order.CreatedAt,
-//				CustomerName: order.OfferMaker,
-//				OrderType:    order.OrderType,
-//			}
-//			p2POrders = append(p2POrders, p2POrder)
-//		}
-//		return p2POrders, nil
-//	}
-
-func GetTradesOnAppealList(request models.AppealListRequest, p2pDB *gorm.DB) ([]models.TradesOnAppeal, int, error) {
-	var tradesOnAppeal []models.TradesOnAppeal
-	var total int64
-
-	// Base query with dynamic filtering
-	query := p2pDB.Model(&models.OrderAppeal{})
-	if request.AppealID != "" {
-		query = query.Where("order_id ILIKE ?", "%"+request.AppealID+"%")
-	}
-	if request.CustomerName != "" {
-		query = query.Where("appealed_by ILIKE ?", "%"+request.CustomerName+"%")
-	}
-	if request.Description != "" {
-		query = query.Where("appeal_detail ILIKE ?", "%"+request.Description+"%")
-	}
-	if request.UpdatedOn != "" {
-		query = query.Where("DATE(created_at) = ?", request.UpdatedOn)
-	}
-	if request.Status != "" {
-		query = query.Where("status ILIKE ?", "%"+request.Status+"%")
-	}
-	if request.Search != "" {
-		searchTerm := "%" + request.Search + "%"
-		query = query.Where(
-			p2pDB.Where("order_id ILIKE ?", searchTerm).
-				Or("appealed_by ILIKE ?", searchTerm).
-				Or("appeal_detail ILIKE ?", searchTerm),
-		)
-	}
-
-	// Count total entries for pagination
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
-
-	var orderAppeals []models.OrderAppeal
-	offset := (request.Page - 1) * request.PageSize
-	if err := query.Order("created_at desc").Offset(offset).Limit(request.PageSize).Find(&orderAppeals).Error; err != nil {
-		return nil, 0, err
-	}
-
-	// Convert OrderAppeal to TradesOnAppeal
-	for _, orderAppeal := range orderAppeals {
-		tradeOnAppeal := models.TradesOnAppeal{
-			CustomerName: orderAppeal.AppealedBy,
-			Description:  orderAppeal.AppealDetail,
-			Status:       "PENDING",
-			UpdatedOn:    orderAppeal.CreatedAt, // Assuming you want to use CreatedAt here
-			AppealID:     orderAppeal.OrderID,
-			Attachment:   "Transaction Agreement.docx", // You might want to fetch this from somewhere
-		}
-		tradesOnAppeal = append(tradesOnAppeal, tradeOnAppeal)
-	}
-
-	return tradesOnAppeal, int(total), nil
+// P2PStatistics is the marketplace-wide aggregate the "P2P statistics"
+// admin dashboard card shows.
+type P2PStatistics struct {
+	TotalOffers      int64 `json:"totalOffers"`
+	ActiveOffers     int64 `json:"activeOffers"`
+	TotalOrders      int64 `json:"totalOrders"`
+	CompletedOrders  int64 `json:"completedOrders"`
+	OpenDisputes     int64 `json:"openDisputes"`
+	ResolvedDisputes int64 `json:"resolvedDisputes"`
 }
 
-func GetAllTradesList(req models.TradeListRequest, p2pDB *gorm.DB) ([]models.Order, int64, error) {
+func GetP2PStatistics(p2pDB *gorm.DB) (*P2PStatistics, error) {
+	var stats P2PStatistics
+	if err := p2pDB.Model(&models.P2POffer{}).Count(&stats.TotalOffers).Error; err != nil {
+		return nil, err
+	}
+	if err := p2pDB.Model(&models.P2POffer{}).Where("status = ?", "ACTIVE").Count(&stats.ActiveOffers).Error; err != nil {
+		return nil, err
+	}
+	if err := p2pDB.Model(&models.P2POrder{}).Count(&stats.TotalOrders).Error; err != nil {
+		return nil, err
+	}
+	if err := p2pDB.Model(&models.P2POrder{}).Where("order_status = ?", "COMPLETED").Count(&stats.CompletedOrders).Error; err != nil {
+		return nil, err
+	}
+	if err := p2pDB.Model(&models.P2PDispute{}).Where("status = ?", "OPEN").Count(&stats.OpenDisputes).Error; err != nil {
+		return nil, err
+	}
+	if err := p2pDB.Model(&models.P2PDispute{}).Where("status = ?", "RESOLVED").Count(&stats.ResolvedDisputes).Error; err != nil {
+		return nil, err
+	}
+	return &stats, nil
+}
 
-	var total int64
-	query := p2pDB.Table("orders")
+// TradeStatistics backs the "Trading" tab's stat cards, top-traders table,
+// and recent-trades preview.
+type TradeStatistics struct {
+	TotalTrades      int64             `json:"totalTrades"`
+	CompletedTrades  int64             `json:"completedTrades"`
+	CancelledTrades  int64             `json:"cancelledTrades"`
+	ExpiredTrades    int64             `json:"expiredTrades"`
+	TradeSuccessRate float64           `json:"tradeSuccessRate"`
+	OpenDisputes     int64             `json:"openDisputes"`
+	TopTraders       []TraderStats     `json:"topTraders"`
+	RecentTrades     []models.P2POrder `json:"recentTrades"`
+}
 
-	if req.ID != "" {
-		query = query.Where("id = ?", req.ID)
+type TraderStats struct {
+	MerchantUsername string `json:"merchantUsername"`
+	CompletedTrades  int64  `json:"completedTrades"`
+}
+
+func GetTradeStatistics(p2pDB *gorm.DB) (*TradeStatistics, error) {
+	var stats TradeStatistics
+
+	if err := p2pDB.Model(&models.P2POrder{}).Count(&stats.TotalTrades).Error; err != nil {
+		return nil, err
 	}
-	if req.OrderType != "" {
-		query = query.Where("order_type = ?", req.OrderType)
+	if err := p2pDB.Model(&models.P2POrder{}).Where("order_status = ?", "COMPLETED").Count(&stats.CompletedTrades).Error; err != nil {
+		return nil, err
 	}
-	if !req.CreatedAt.IsZero() {
-		query = query.Where("created_at = ?", req.CreatedAt)
+	if err := p2pDB.Model(&models.P2POrder{}).Where("order_status = ?", "CANCELLED").Count(&stats.CancelledTrades).Error; err != nil {
+		return nil, err
 	}
-	if !req.UpdatedAt.IsZero() {
-		query = query.Where("updated_at = ?", req.UpdatedAt)
+	if err := p2pDB.Model(&models.P2POrder{}).Where("order_status = ?", "EXPIRED").Count(&stats.ExpiredTrades).Error; err != nil {
+		return nil, err
 	}
-	if !req.ExpiresAt.IsZero() {
-		query = query.Where("expires_at = ?", req.ExpiresAt)
+	if err := p2pDB.Model(&models.P2PDispute{}).Where("status = ?", "OPEN").Count(&stats.OpenDisputes).Error; err != nil {
+		return nil, err
 	}
-	if !req.AcceptedAt.IsZero() {
-		query = query.Where("accepted_at = ?", req.AcceptedAt)
+	if stats.TotalTrades > 0 {
+		stats.TradeSuccessRate = float64(stats.CompletedTrades) / float64(stats.TotalTrades) * 100
 	}
-	if !req.CancelAfter.IsZero() {
-		query = query.Where("cancel_after = ?", req.CancelAfter)
+
+	var topPerformers []models.MerchantPerformance
+	if err := p2pDB.Order("completed_trades DESC").Limit(5).Find(&topPerformers).Error; err != nil {
+		return nil, err
 	}
-	if req.OfferID != "" {
-		query = query.Where("offer_id = ?", req.OfferID)
+	for _, p := range topPerformers {
+		stats.TopTraders = append(stats.TopTraders, TraderStats{MerchantUsername: p.MerchantUsername, CompletedTrades: p.CompletedTrades})
 	}
+
+	if err := p2pDB.Order("created_at DESC").Limit(5).Find(&stats.RecentTrades).Error; err != nil {
+		return nil, err
+	}
+
+	return &stats, nil
+}
+
+// TradeListRequest filters the paginated "all trades" admin table.
+type TradeListRequest struct {
+	Page      int
+	PageSize  int
+	OfferType string
+	Status    string
+	Username  string
+	CreatedAt string
+}
+
+func GetTradeList(p2pDB *gorm.DB, req TradeListRequest) ([]models.P2POrder, int64, error) {
+	query := p2pDB.Model(&models.P2POrder{})
 	if req.OfferType != "" {
 		query = query.Where("offer_type = ?", req.OfferType)
 	}
-	if req.OfferMaker != "" {
-		query = query.Where("offer_maker = ?", req.OfferMaker)
+	if req.Status != "" {
+		query = query.Where("order_status = ?", req.Status)
 	}
-	// req.Username matches either offer_maker or offer_taker
-	if req.Username != "" { // Check if username is provided before modifying and applying filter
-		usernameWithSuffix := req.Username + "@trovo"
-		query = query.Where("offer_maker = ? OR offer_taker = ?", usernameWithSuffix, usernameWithSuffix)
+	if req.Username != "" {
+		query = query.Where("merchant_username = ? OR customer_username = ?", req.Username, req.Username)
 	}
-	if req.OfferMakerPhone != "" {
-		query = query.Where("offer_maker_phone = ?", req.OfferMakerPhone)
-	}
-	if req.OfferMakerCountryCode != nil {
-		query = query.Where("offer_maker_country_code = ?", *req.OfferMakerCountryCode)
-	}
-	if req.OfferMaxTimePerTransaction != 0 {
-		query = query.Where("offer_max_time_per_transaction = ?", req.OfferMaxTimePerTransaction)
-	}
-	if req.OfferTaker != "" {
-		query = query.Where("offer_taker = ?", req.OfferTaker)
-	}
-	if req.OfferTakerPhone != "" {
-		query = query.Where("offer_taker_phone = ?", req.OfferTakerPhone)
-	}
-	if req.OfferPaymentMethodID != nil {
-		query = query.Where("offer_payment_method_id = ?", *req.OfferPaymentMethodID)
-	}
-	if req.OfferPaymentChannelID != nil {
-		query = query.Where("offer_payment_channel_id = ?", *req.OfferPaymentChannelID)
-	}
-	if req.OfferPaymentMethodName != nil {
-		query = query.Where("offer_payment_method_name = ?", *req.OfferPaymentMethodName)
-	}
-	if req.OfferPaymentMethodDestinationAccount != nil {
-		query = query.Where("offer_payment_method_destination_account = ?", *req.OfferPaymentMethodDestinationAccount)
-	}
-	if req.OfferPaymentMethodMemo != nil {
-		query = query.Where("offer_payment_method_memo = ?", *req.OfferPaymentMethodMemo)
-	}
-	if req.OfferPaymentMethodBankName != nil {
-		query = query.Where("offer_payment_method_bank_name = ?", *req.OfferPaymentMethodBankName)
-	}
-	if req.OfferPaymentMethodAccountOpeningBranch != nil {
-		query = query.Where("offer_payment_method_account_opening_branch = ?", *req.OfferPaymentMethodAccountOpeningBranch)
-	}
-	if req.OfferCurrencyPaymentMethodID != "" {
-		query = query.Where("offer_currency_payment_method_id = ?", req.OfferCurrencyPaymentMethodID)
-	}
-	if req.OfferCurrencyPaymentChannelID != "" {
-		query = query.Where("offer_currency_payment_channel_id = ?", req.OfferCurrencyPaymentChannelID)
-	}
-	if req.OfferCurrencyPaymentMethodName != nil {
-		query = query.Where("offer_currency_payment_method_name = ?", *req.OfferCurrencyPaymentMethodName)
-	}
-	if req.OfferCurrencyPaymentMethodDestinationAccount != "" {
-		query = query.Where("offer_currency_payment_method_destination_account = ?", req.OfferCurrencyPaymentMethodDestinationAccount)
-	}
-	if req.OfferCurrencyPaymentMethodMemo != nil {
-		query = query.Where("offer_currency_payment_method_memo = ?", *req.OfferCurrencyPaymentMethodMemo)
-	}
-	if req.OfferCurrencyPaymentMethodBankName != nil {
-		query = query.Where("offer_currency_payment_method_bank_name = ?", *req.OfferCurrencyPaymentMethodBankName)
-	}
-	if req.OfferCurrencyPaymentMethodAccountOpeningBranch != nil {
-		query = query.Where("offer_currency_payment_method_account_opening_branch = ?", *req.OfferCurrencyPaymentMethodAccountOpeningBranch)
-	}
-	if req.OfferCurrencyPaymentMethodCountryCode != nil {
-		query = query.Where("offer_currency_payment_method_country_code = ?", *req.OfferCurrencyPaymentMethodCountryCode)
-	}
-	if req.OfferCurrencyPaymentMethodCurrencyID != nil {
-		query = query.Where("offer_currency_payment_method_currency_id = ?", *req.OfferCurrencyPaymentMethodCurrencyID)
-	}
-	if req.OfferCurrencyID != "" {
-		query = query.Where("offer_currency_id = ?", req.OfferCurrencyID)
-	}
-	if req.OfferAssetAmount != 0 {
-		query = query.Where("offer_asset_amount = ?", req.OfferAssetAmount)
-	}
-	if req.OfferAssetID != "" {
-		query = query.Where("offer_asset_id = ?", req.OfferAssetID)
-	}
-	if req.OfferAssetPrice != 0 {
-		query = query.Where("offer_asset_price = ?", req.OfferAssetPrice)
-	}
-	if req.OfferMinTradeAmount != 0 {
-		query = query.Where("offer_min_trade_amount = ?", req.OfferMinTradeAmount)
-	}
-	if req.OfferMaxTradeAmount != 0 {
-		query = query.Where("offer_max_trade_amount = ?", req.OfferMaxTradeAmount)
-	}
-	if req.OfferRemark != nil {
-		query = query.Where("offer_remark = ?", *req.OfferRemark)
-	}
-	if req.TakerPaymentMethodID != "" {
-		query = query.Where("taker_payment_method_id = ?", req.TakerPaymentMethodID)
-	}
-	if req.TakerPaymentChannelID != "" {
-		query = query.Where("taker_payment_channel_id = ?", req.TakerPaymentChannelID)
-	}
-	if req.TakerPaymentMethodName != nil {
-		query = query.Where("taker_payment_method_name = ?", *req.TakerPaymentMethodName)
-	}
-	if req.TakerPaymentMethodDestinationAccount != "" {
-		query = query.Where("taker_payment_method_destination_account = ?", req.TakerPaymentMethodDestinationAccount)
-	}
-	if req.TakerPaymentMethodMemo != nil {
-		query = query.Where("taker_payment_method_memo = ?", *req.TakerPaymentMethodMemo)
-	}
-	if req.TakerPaymentMethodBankName != nil {
-		query = query.Where("taker_payment_method_bank_name = ?", *req.TakerPaymentMethodBankName)
-	}
-	if req.TakerPaymentMethodAccountOpeningBranch != nil {
-		query = query.Where("taker_payment_method_account_opening_branch = ?", *req.TakerPaymentMethodAccountOpeningBranch)
-	}
-	if req.TakerPaymentMethodCountryCode != nil {
-		query = query.Where("taker_payment_method_country_code = ?", *req.TakerPaymentMethodCountryCode)
-	}
-	if req.TakerPaymentMethodCurrencyID != nil {
-		query = query.Where("taker_payment_method_currency_id = ?", *req.TakerPaymentMethodCurrencyID)
-	}
-	if req.OrderEscrowAddress != "" {
-		query = query.Where("order_escrow_address = ?", req.OrderEscrowAddress)
-	}
-	if req.OrderPaymentMemo != "" {
-		query = query.Where("order_payment_memo = ?", req.OrderPaymentMemo)
-	}
-	if req.OrderAmount != 0 {
-		query = query.Where("order_amount = ?", req.OrderAmount)
-	}
-	if req.OrderMakerFee != 0 {
-		query = query.Where("order_maker_fee = ?", req.OrderMakerFee)
-	}
-	if req.OrderTakerFee != 0 {
-		query = query.Where("order_taker_fee = ?", req.OrderTakerFee)
-	}
-	if req.OrderEscrowTransactionID != nil {
-		query = query.Where("order_escrow_transaction_id = ?", *req.OrderEscrowTransactionID)
-	}
-	if req.OrderAssetReleaseTransactionID != nil {
-		query = query.Where("order_asset_release_transaction_id = ?", *req.OrderAssetReleaseTransactionID)
-	}
-	if req.OrderStatusID != 0 {
-		query = query.Where("order_status_id = ?", req.OrderStatusID)
-	}
-	// if req.OrderStatus != "" {
-	//	query = query.Where("order_status = ?", req.OrderStatus)
-	//}
-	if req.DynamicLink != nil {
-		query = query.Where("dynamic_link = ?", *req.DynamicLink)
-	}
-	if req.QRCode != nil {
-		query = query.Where("qr_code = ?", *req.QRCode)
-	}
-	if req.FiatDepositTransactionID != nil {
-		query = query.Where("fiat_deposit_transaction_id = ?", *req.FiatDepositTransactionID)
+	if req.CreatedAt != "" {
+		query = query.Where("DATE(created_at) = ?", req.CreatedAt)
 	}
 
-	query.Count(&total)
-
-	page := req.Page
-	pageSize := req.PageSize
-	offset := (page - 1) * pageSize
-
-	query = query.Offset(offset).Limit(pageSize)
-
-	var orders []models.Order
-	if err := query.Table("orders").Find(&orders).Error; err != nil {
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-
+	var orders []models.P2POrder
+	offset := (req.Page - 1) * req.PageSize
+	if err := query.Order("created_at DESC").Offset(offset).Limit(req.PageSize).Find(&orders).Error; err != nil {
+		return nil, 0, err
+	}
 	return orders, total, nil
 }
 
-//	func GetUserList() ([]models.UserDto, error) {
-//		db, err := db.TrovoWalletDb()
-//		if err != nil {
-//			return nil, err
-//		}
-//		// Fetch data from the users table
-//		var userList []models.User
-//		db.Table("users").Scan(&userList)
-//		//db.Table("users").Select("id, first_name, last_name, username, email, contact_phone, country_code").Scan(&userList)
-//		var userDtoList []models.UserDto
-//		// Output the results
-//		for _, user := range userList {
-//			userDto := models.UserDto{
-//				CustomerName: user.FirstName + " " + user.LastName,
-//				UserName:     user.Username,
-//				EmailAddress: user.Email,
-//				Status:       strconv.Itoa(int(user.Suspended)), // You might want to set this based on some condition
-//				PhoneNumber:  *user.Mobile,
-//				Location:     *user.CountryCode,
-//			}
-//			userDtoList = append(userDtoList, userDto)
-//		}
-//		return userDtoList, nil
-//	}
+// P2PUserListRequest filters the "P2P users" admin table.
+type P2PUserListRequest struct {
+	Page     int
+	PageSize int
+	Username string
+	Email    string
+	Phone    string
+	Search   string
+}
+
+// P2PUserDTO is a wallet user annotated with their P2P trading performance.
+type P2PUserDTO struct {
+	ID                      string    `json:"id"`
+	Username                string    `json:"username"`
+	Email                   string    `json:"email"`
+	Phone                   string    `json:"phone"`
+	RegistrationDate        time.Time `json:"registrationDate"`
+	Suspended               bool      `json:"suspended"`
+	IsMerchant              bool      `json:"isMerchant"`
+	MerchantCompletedTrades int64     `json:"merchantCompletedTrades"`
+	MerchantCompletionRate  string    `json:"merchantCompletionRate"`
+	CustomerCompletedTrades int64     `json:"customerCompletedTrades"`
+	CustomerCompletionRate  string    `json:"customerCompletionRate"`
+}
+
+// GetP2PUsers paginates wallet users (walletDB) and annotates each with
+// their P2P performance (p2pDB) - walletDB and p2pDB are the same physical
+// connection today (see package doc above) but kept as distinct
+// parameters since they're conceptually different data sources.
+func GetP2PUsers(walletDB, p2pDB *gorm.DB, req P2PUserListRequest) ([]P2PUserDTO, int64, error) {
+	query := walletDB.Model(&models.User{})
+	if req.Username != "" {
+		query = query.Where("LOWER(username) ILIKE LOWER(?)", "%"+req.Username+"%")
+	}
+	if req.Email != "" {
+		query = query.Where("LOWER(email) ILIKE LOWER(?)", "%"+req.Email+"%")
+	}
+	if req.Phone != "" {
+		query = query.Where("mobile ILIKE ?", "%"+req.Phone+"%")
+	}
+	if req.Search != "" {
+		searchTerm := "%" + req.Search + "%"
+		query = query.Where(
+			walletDB.Where("LOWER(username) ILIKE LOWER(?)", searchTerm).
+				Or("LOWER(email) ILIKE LOWER(?)", searchTerm).
+				Or("mobile ILIKE ?", searchTerm),
+		)
+	}
+
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	var users []models.User
+	offset := (req.Page - 1) * req.PageSize
+	if err := query.Order("created_at DESC").Offset(offset).Limit(req.PageSize).Find(&users).Error; err != nil {
+		return nil, 0, err
+	}
+
+	dtos := make([]P2PUserDTO, 0, len(users))
+	for _, u := range users {
+		dto := P2PUserDTO{
+			ID:               u.ID,
+			Username:         u.Username,
+			Email:            u.Email,
+			Phone:            u.Mobile,
+			RegistrationDate: u.CreatedAt,
+			Suspended:        u.Suspended == 1,
+		}
+		var merchantPerf models.MerchantPerformance
+		if err := p2pDB.Where("merchant_id = ?", u.ID).First(&merchantPerf).Error; err == nil {
+			dto.MerchantCompletedTrades = merchantPerf.CompletedTrades
+			dto.MerchantCompletionRate = merchantPerf.CompletionRate
+		}
+		var offerCount int64
+		p2pDB.Model(&models.P2POffer{}).Where("merchant_user_id = ?", u.ID).Count(&offerCount)
+		dto.IsMerchant = offerCount > 0
+		var customerPerf models.CustomerPerformance
+		if err := p2pDB.Where("customer_id = ?", u.ID).First(&customerPerf).Error; err == nil {
+			dto.CustomerCompletedTrades = customerPerf.CompletedTrades
+			dto.CustomerCompletionRate = customerPerf.CompletionRate
+		}
+		dtos = append(dtos, dto)
+	}
+	return dtos, total, nil
+}
+
 func GetUserList(request models.UserRequestDTO, walletDB *gorm.DB) ([]models.UserDto, int64, error) {
 	var userDtoList []models.UserDto
 	var total int64
@@ -1399,90 +767,3 @@ func GetUserRecoveryHistory() {
 
 }
 
-func GetTradeStatistics(p2pDB *gorm.DB) (*TradeStatistics, error) {
-	var stats TradeStatistics
-	var totalOfferAssetAmount float64
-	var totalTrades int64
-
-	err := p2pDB.Transaction(func(tx *gorm.DB) error {
-		// Count total trades
-		if err := tx.Model(&models.Order{}).Count(&totalTrades).Error; err != nil {
-			return err
-		}
-		stats.TotalTrades = totalTrades
-
-		// Count completed trades
-		if err := tx.Model(&models.Order{}).Where("order_status_id = ?", 12).Count(&stats.CompletedTrades).Error; err != nil {
-			return err
-		}
-
-		// Count cancelled trades
-		if err := tx.Model(&models.Order{}).Where("order_status_id != 12").Count(&stats.CancelledTrades).Error; err != nil {
-			return err
-		}
-
-		// Get total trade volume (sum of order amounts)
-		if err := tx.Model(&models.Order{}).Select("COALESCE(SUM(offer_asset_amount), 0)").Scan(&totalOfferAssetAmount).Error; err != nil {
-			return err
-		}
-		stats.TotalVolume = totalOfferAssetAmount
-
-		// Calculate average trade size
-		if totalTrades > 0 {
-			stats.AverageTradeSize = totalOfferAssetAmount / float64(totalTrades)
-		}
-
-		// Calculate trade success rate
-		if totalTrades > 0 {
-			stats.TradeSuccessRate = (float64(stats.CompletedTrades) / float64(totalTrades)) * 100
-		}
-
-		// Count trades on appeal
-		if err := tx.Model(&models.OrderAppeal{}).Count(&stats.TradesOnAppeal).Error; err != nil {
-			return err
-		}
-
-		// Get top 5 traders by order count
-		if err := tx.Model(&models.Order{}).
-			Select("offer_maker, COUNT(*) as order_count").
-			Group("offer_maker").
-			Order("order_count DESC").
-			Limit(5).
-			Find(&stats.TopTraders).Error; err != nil {
-			return err
-		}
-
-		// Get 5 most recent trades
-		if err := tx.Model(&models.Order{}).
-			Order("created_at DESC").
-			Limit(5).
-			Find(&stats.RecentTrades).Error; err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &stats, nil
-}
-
-type TradeStatistics struct {
-	TotalTrades      int64          `json:"total_trades"`
-	CompletedTrades  int64          `json:"completed_trades"`
-	CancelledTrades  int64          `json:"cancelled_trades"`
-	TotalVolume      float64        `json:"total_volume"`
-	AverageTradeSize float64        `json:"average_trade_size"`
-	TradeSuccessRate float64        `json:"trade_success_rate"`
-	TradesOnAppeal   int64          `json:"trades_on_appeal"`
-	TopTraders       []TraderStats  `json:"top_traders"`
-	RecentTrades     []models.Order `json:"recent_trades"`
-}
-
-type TraderStats struct {
-	OfferMaker string `json:"offer_maker"`
-	OrderCount int    `json:"order_count"`
-}

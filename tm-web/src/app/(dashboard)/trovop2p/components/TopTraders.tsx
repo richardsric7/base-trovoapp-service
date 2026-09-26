@@ -11,18 +11,16 @@ const TopTraders = () => {
   const columns = [
     {
       title: "User",
-      dataIndex: "offer_maker",
-      key: "offer_maker",
+      dataIndex: "merchantUsername",
+      key: "merchantUsername",
 
       render: (_: any, record: ITopTrader) => (
         <UserInfoSection>
           <Avatar />
           <div>
             <UserContent>
-              <UserName>{record.offer_maker || "N/A"}</UserName>
-              {/* <MdVerified color="#007CDF" /> */}
+              <UserName>{record.merchantUsername || "N/A"}</UserName>
             </UserContent>
-            {/* <FullName>{record.fullName || "N/A"}</FullName> */}
           </div>
         </UserInfoSection>
       ),
@@ -43,53 +41,12 @@ const TopTraders = () => {
     },
   ];
 
-  // Dummy data for testing
-  const dummyData = [
-    {
-      username: "JohnDoe",
-      fullName: "John Doe",
-      publicKey: "CD345678SF",
-      trades: "$4,500.00",
-    },
-    {
-      username: "JaneSmith",
-      fullName: "Jane Smith",
-      publicKey: "CD345678SF",
-      trades: "$4,500.00",
-    },
-    {
-      username: "Marlone",
-      fullName: "Mark Ovey",
-      publicKey: "CD345678SF",
-      trades: "$4,500.00",
-    },
-
-    {
-      username: "JaneS",
-      fullName: "Jane Smith",
-      publicKey: "CD345678SF",
-      trades: "$4,500.00",
-    },
-    {
-      username: "JohnDoe",
-      fullName: "John Doe",
-      publicKey: "CD345678SF",
-      trades: "$4,500.00",
-    },
-    {
-      username: "Marlone",
-      fullName: "Mark Ovey",
-      publicKey: "CD345678SF",
-      trades: "$4,500.00",
-    },
-  ];
-
   const dataSource = useMemo(() => {
     return (
-      data?.top_traders?.map((item, index) => ({
+      data?.data?.topTraders?.map((item, index) => ({
         key: index + 1,
-        offer_maker: item.offer_maker,
-        trades: item.order_count,
+        merchantUsername: item.merchantUsername,
+        trades: item.completedTrades,
       })) ?? []
     );
   }, [data]);

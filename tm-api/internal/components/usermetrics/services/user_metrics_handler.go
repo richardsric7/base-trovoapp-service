@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -310,8 +309,26 @@ func GetCountryStatistics(walletDB *gorm.DB) gin.HandlerFunc {
 
 }
 
+// checkAdminAuth validates the calling admin's JWT-derived userID against
+// the wallet users table, writing the appropriate error response itself
+// on failure. Every P2P admin handler below needs this same check (it
+// used to be repeated verbatim in each one).
+func checkAdminAuth(c *gin.Context, walletDB *gorm.DB) bool {
+	ad, _ := middleware.ExtractTokenMetadata(c.Request)
+	if _, err := userServices.GetUser(ad.UserID, walletDB); err != nil {
+		log.Println("[METRICS] error for user:", ad.UserID, "error: ", err)
+		if ex, ok := err.(p2pErrors.GenericError); ok {
+			c.JSON(ex.HTTPCode(), ex.JSONError())
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
+		return false
+	}
+	return true
+}
+
 // @Summary Get P2P statistics
-// @Description Retrieves statistics related to P2P metrics.
+// @Description Retrieves aggregate P2P marketplace statistics (offers, orders, disputes) from the P2P module.
 // @ID GetP2PStatistics
 // @Tags P2P
 // @Security JwtTokenAuth
@@ -319,213 +336,24 @@ func GetCountryStatistics(walletDB *gorm.DB) gin.HandlerFunc {
 // @Param Authorization header string true "JWT Token" default(Bearer <your-token>)
 // @Success 200 {object} response.Data
 // @Failure 400,401,500 {object} object
-// // @Router /p2p/statistics [get]
+// @Router /p2p/statistics [get]
 func GetP2PStatistics(walletDB, p2pDB *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ad, _ := middleware.ExtractTokenMetadata(c.Request)
-		userID := ad.UserID
-
-		userInfo, err := userServices.GetUser(userID, walletDB)
-		if err != nil {
-			log.Println("[METRICS] error for user:", userInfo.Username, "error: ", err)
-
-			var ex p2pErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(p2pErrors.GenericError)
-			var statusCode int
-			var response interface{}
-
-			if ok {
-				statusCode = ex.HTTPCode()
-				response = ex.JSONError()
-			} else {
-				statusCode = http.StatusBadRequest
-				response = gin.H{"error": err.Error()}
-			}
-
-			c.JSON(statusCode, response)
+		if !checkAdminAuth(c, walletDB) {
 			return
 		}
-		log.Println("checking user data: ", userInfo, userID)
-		p2pMetrics, err := usermetricsDB.GetP2PMetrics(p2pDB)
+		stats, err := usermetricsDB.GetP2PStatistics(p2pDB)
 		if err != nil {
 			log.Println("[METRICS] error:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 			return
 		}
-
-		serverResponse.JSON(c, http.StatusOK, "p2pMetrics fetched successfully", p2pMetrics, nil)
+		serverResponse.JSON(c, http.StatusOK, "P2P statistics fetched successfully", stats, nil)
 	}
-
-}
-
-// GetP2PStatisticsNew retrieves statistics based on filters or custom date range.
-// @Summary Get P2P statistics
-// @Description Retrieves statistics related to P2P metrics based on the selected filter or custom range.
-// @ID GetP2PStatisticsNew
-// @Tags P2P
-// @Security JwtTokenAuth
-// @Produce json
-// @Param Authorization header string true "JWT Token" default(Bearer <your-token>)
-// @Param start_date query string false "The start date for the custom range (format: YYYY-MM-DD)."
-// @Param end_date query string false "The end date for the custom range (format: YYYY-MM-DD)."
-// @Param filter query string false "The time filter to apply (e.g., today, yesterday, last_week, last_month, last_3_months, last_year, custom)." Enums(today, yesterday, last_week, last_month, last_3_months, last_year, custom)
-// @Success 200 {object} Response
-// @Failure 400,401,500 {object} object
-// @Router /p2p/statistics [get]
-func GetP2PStatisticsNew(walletDB, p2pDB *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// Extract filter parameter and dates
-		filter := c.DefaultQuery("filter", "last_week") // Default to "last_week"
-		startDateParam := c.Query("start_date")
-		endDateParam := c.Query("end_date")
-
-		// Parse start_date and end_date with UTC timezone awareness
-		var startDate, endDate *time.Time
-		if startDateParam != "" {
-			parsedStartDate, err := time.Parse("2006-01-02", startDateParam)
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format. Use YYYY-MM-DD."})
-				return
-			}
-			utcStartDate := parsedStartDate.UTC()
-			startDate = &utcStartDate
-		}
-		if endDateParam != "" {
-			parsedEndDate, err := time.Parse("2006-01-02", endDateParam)
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format. Use YYYY-MM-DD."})
-				return
-			}
-			utcEndDate := parsedEndDate.UTC()
-			endDate = &utcEndDate
-		}
-
-		// Automatically set filter to "custom" if start_date and end_date are provided
-		if startDate != nil && endDate != nil {
-			filter = "custom"
-		}
-
-		// Extract user metadata from JWT
-		ad, _ := middleware.ExtractTokenMetadata(c.Request)
-		userID := ad.UserID
-
-		// Fetch user info from database
-		_, err := userServices.GetUser(userID, walletDB)
-		if err != nil {
-			log.Println("[METRICS] Error for user:", userID, "error:", err)
-			if ex, ok := err.(p2pErrors.GenericError); ok {
-				c.JSON(ex.HTTPCode(), ex.JSONError())
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			}
-			return
-		}
-
-		// Fetch P2P metrics using the filter
-		p2pMetrics, err := usermetricsDB.GetP2PMetricsNew(p2pDB, filter, startDate, endDate)
-		if err != nil {
-			log.Println("[METRICS] Error fetching P2P metrics:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-			return
-		}
-
-		// Send success response
-		serverResponse.JSON(c, http.StatusOK, "P2P Metrics fetched successfully", p2pMetrics, nil)
-	}
-}
-
-// @Summary Get list of trades on appeal
-// @Description Retrieves the list of trades that are currently on appeal with pagination, filtering, and search.
-// @ID GetAppealList
-// @Tags Appeals
-// @Security JwtTokenAuth
-// @Produce json
-// @Param Authorization header string true "JWT Token" default(Bearer <your-token>)
-// @Param page query int false "Page number for pagination" default(1)
-// @Param pageSize query int false "Number of items per page" default(10)
-// @Param appeal_id query string false "Filter by appeal ID"
-// @Param customer_name query string false "Filter by customer name"
-// @Param description query string false "Filter by description"
-// @Param updated_on query string false "Filter by updated date (YYYY-MM-DD)"
-// @Param status query string false "Filter by status e.g suspended, "", and "" "
-// @Param search query string false "General search across multiple fields"
-// @Success 200 {object} response.Data
-// @Failure 400 {object} models.ErrorResponse "Invalid request parameters"
-// @Failure 401 {object} models.ErrorResponse "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse "Internal server error"
-// @Router /appeal/list [get]
-func GetAppealList(walletDB, p2pDB *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ad, _ := middleware.ExtractTokenMetadata(c.Request)
-		userID := ad.UserID
-
-		userInfo, err := userServices.GetUser(userID, walletDB)
-		if err != nil {
-			log.Println("[METRICS] error for user:", userInfo.Username, "error: ", err)
-
-			var ex p2pErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(p2pErrors.GenericError)
-			var statusCode int
-			var response interface{}
-
-			if ok {
-				statusCode = ex.HTTPCode()
-				response = ex.JSONError()
-			} else {
-				statusCode = http.StatusBadRequest
-				response = gin.H{"error": err.Error()}
-			}
-
-			c.JSON(statusCode, response)
-			return
-		}
-		log.Println("checking user data: ", userInfo, userID)
-		page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
-		if err != nil || page < 1 {
-			c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "invalid page number"})
-			return
-		}
-
-		pageSize, err := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
-		if err != nil || pageSize <= 0 {
-			c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "invalid page size"})
-			return
-		}
-		req := models.AppealListRequest{
-			Page:         page,
-			PageSize:     pageSize,
-			AppealID:     c.Query("appeal_id"),
-			CustomerName: c.Query("customer_name"),
-			Description:  c.Query("description"),
-			UpdatedOn:    c.Query("updated_on"),
-			Status:       c.Query("status"),
-			Search:       c.Query("search"),
-		}
-		// Retrieve data with pagination, filtering, and search
-		appealList, total, err := usermetricsDB.GetTradesOnAppealList(req, p2pDB)
-		if err != nil {
-			log.Println("[METRICS] error:", err)
-			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "internal server error"})
-			return
-		}
-
-		appealListData := models.AppealResponse{
-			Data:     appealList,
-			Total:    total,
-			Page:     req.Page,
-			PageSize: req.PageSize,
-		}
-		serverResponse.JSON(c, http.StatusOK, "Appeal List Data fetched successfully", appealListData, nil)
-	}
-
 }
 
 // GetTradeStatistics @Summary Get Trade Statistics
-// @Description Retrieve trade statistics for a user
+// @Description Retrieve P2P trade statistics (completion rate, top traders, recent trades) from the P2P module.
 // @Tags P2P
 // @Accept  json
 // @Produce  json
@@ -536,112 +364,32 @@ func GetAppealList(walletDB, p2pDB *gorm.DB) gin.HandlerFunc {
 // @Router /trades/statistics [get]
 func GetTradeStatistics(walletDB, p2pDB *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ad, _ := middleware.ExtractTokenMetadata(c.Request)
-		userID := ad.UserID
-
-		userInfo, err := userServices.GetUser(userID, walletDB)
-		if err != nil {
-			log.Println("[METRICS] error for user:", userInfo.Username, "error: ", err)
-
-			var ex p2pErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(p2pErrors.GenericError)
-			var statusCode int
-			var response interface{}
-
-			if ok {
-				statusCode = ex.HTTPCode()
-				response = ex.JSONError()
-			} else {
-				statusCode = http.StatusBadRequest
-				response = gin.H{"error": err.Error()}
-			}
-
-			c.JSON(statusCode, response)
+		if !checkAdminAuth(c, walletDB) {
 			return
 		}
-		log.Println("checking user data: ", userInfo, userID)
-
-		// Call service layer
 		stats, err := usermetricsDB.GetTradeStatistics(p2pDB)
 		if err != nil {
+			log.Println("[METRICS] error:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-
-		c.JSON(http.StatusOK, stats)
+		serverResponse.JSON(c, http.StatusOK, "Trade statistics fetched successfully", stats, nil)
 	}
 }
 
-// @Summary Get list of trades
-// @Description Retrieves the list of trades for users.
+// @Summary Get list of P2P trades (orders)
+// @Description Retrieves a paginated, filterable list of P2P orders from the P2P module.
 // @ID GetTradeList
 // @Tags P2P
 // @Security JwtTokenAuth
 // @Produce json
 // @Param Authorization header string true "JWT Token" default(Bearer <your-token>)
-// @Param id query string false "Filter by ID"
-// @Param order_type query string false "Filter by order type"
-// @Param created_at query string false "Filter by creation date"
-// @Param updated_at query string false "Filter by update date"
-// @Param expires_at query string false "Filter by expiration date"
-// @Param accepted_at query string false "Filter by acceptance date"
-// @Param cancel_after query string false "Filter by cancel after date"
-// @Param offer_id query string false "Filter by offer ID"
-// @Param offer_type query string false "Filter by offer type"
-// @Param offer_maker query string false "Filter by offer maker"
-// @Param offer_maker_phone query string false "Filter by offer maker phone"
-// @Param offer_maker_country_code query string false "Filter by offer maker country code"
-// @Param offer_max_time_per_transaction query uint false "Filter by max time per transaction"
-// @Param offer_taker query string false "Filter by offer taker"
-// @Param offer_taker_phone query string false "Filter by offer taker phone"
-// @Param offer_payment_method_id query string false "Filter by offer payment method ID"
-// @Param offer_payment_channel_id query string false "Filter by offer payment channel ID"
-// @Param offer_payment_method_name query string false "Filter by offer payment method name"
-// @Param offer_payment_method_destination_account query string false "Filter by offer payment method destination account"
-// @Param offer_payment_method_memo query string false "Filter by offer payment method memo"
-// @Param offer_payment_method_bank_name query string false "Filter by offer payment method bank name"
-// @Param offer_payment_method_account_opening_branch query string false "Filter by offer payment method account opening branch"
-// @Param offer_currency_payment_method_id query string false "Filter by offer currency payment method ID"
-// @Param offer_currency_payment_channel_id query string false "Filter by offer currency payment channel ID"
-// @Param offer_currency_payment_method_name query string false "Filter by offer currency payment method name"
-// @Param offer_currency_payment_method_destination_account query string false "Filter by offer currency payment method destination account"
-// @Param offer_currency_payment_method_memo query string false "Filter by offer currency payment method memo"
-// @Param offer_currency_payment_method_bank_name query string false "Filter by offer currency payment method bank name"
-// @Param offer_currency_payment_method_account_opening_branch query string false "Filter by offer currency payment method account opening branch"
-// @Param offer_currency_payment_method_country_code query string false "Filter by offer currency payment method country code"
-// @Param offer_currency_payment_method_currency_id query string false "Filter by offer currency payment method currency ID"
-// @Param offer_currency_id query string false "Filter by offer currency ID"
-// @Param offer_asset_amount query float64 false "Filter by offer asset amount"
-// @Param offer_asset_id query string false "Filter by offer asset ID"
-// @Param offer_asset_price query float64 false "Filter by offer asset price"
-// @Param offer_min_trade_amount query float64 false "Filter by offer min trade amount"
-// @Param offer_max_trade_amount query float64 false "Filter by offer max trade amount"
-// @Param offer_remark query string false "Filter by offer remark"
-// @Param taker_payment_method_id query string false "Filter by taker payment method ID"
-// @Param taker_payment_channel_id query string false "Filter by taker payment channel ID"
-// @Param taker_payment_method_name query string false "Filter by taker payment method name"
-// @Param taker_payment_method_destination_account query string false "Filter by taker payment method destination account"
-// @Param taker_payment_method_memo query string false "Filter by taker payment method memo"
-// @Param taker_payment_method_bank_name query string false "Filter by taker payment method bank name"
-// @Param taker_payment_method_account_opening_branch query string false "Filter by taker payment method account opening branch"
-// @Param taker_payment_method_country_code query string false "Filter by taker payment method country code"
-// @Param taker_payment_method_currency_id query string false "Filter by taker payment method currency ID"
-// @Param order_escrow_address query string false "Filter by order escrow address"
-// @Param order_payment_memo query string false "Filter by order payment memo"
-// @Param order_amount query float64 false "Filter by order amount"
-// @Param order_maker_fee query float64 false "Filter by order maker fee"
-// @Param order_taker_fee query float64 false "Filter by order taker fee"
-// @Param order_escrow_transaction_id query string false "Filter by order escrow transaction ID"
-// @Param order_asset_release_transaction_id query string false "Filter by order asset release transaction ID"
-// @Param order_status_id query uint false "Filter by order status ID"
-// @Param order_status query string false "Filter by order status"
-// @Param dynamic_link query string false "Filter by dynamic link"
-// @Param qr_code query string false "Filter by QR code"
-// @Param fiat_deposit_transaction_id query string false "Filter by fiat deposit transaction ID"
 // @Param page query int false "Page number for pagination" default(1)
-// @Param page_size query int false "Number of items per page" default(10)
+// @Param pageSize query int false "Number of items per page" default(10)
+// @Param offerType query string false "Filter by offer type (BUY or SELL)"
+// @Param status query string false "Filter by order status"
+// @Param username query string false "Filter by merchant or customer username"
+// @Param createdAt query string false "Filter by creation date (YYYY-MM-DD)"
 // @Success 200 {object} response.Data
 // @Failure 400 {object} models.ErrorResponse "Invalid request"
 // @Failure 401 {object} models.ErrorResponse "Unauthorized"
@@ -649,184 +397,90 @@ func GetTradeStatistics(walletDB, p2pDB *gorm.DB) gin.HandlerFunc {
 // @Router /orders/trade [get]
 func GetTradeList(walletDB, p2pDB *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ad, _ := middleware.ExtractTokenMetadata(c.Request)
-		userID := ad.UserID
-
-		userInfo, err := userServices.GetUser(userID, walletDB)
-		if err != nil {
-			log.Println("[METRICS] error for user:", userInfo.Username, "error: ", err)
-
-			var ex p2pErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(p2pErrors.GenericError)
-			var statusCode int
-			var response interface{}
-
-			if ok {
-				statusCode = ex.HTTPCode()
-				response = ex.JSONError()
-			} else {
-				statusCode = http.StatusBadRequest
-				response = gin.H{"error": err.Error()}
-			}
-
-			c.JSON(statusCode, response)
+		if !checkAdminAuth(c, walletDB) {
 			return
 		}
-		log.Println("checking user data: ", userInfo, userID)
-		var req models.TradeListRequest
-		if err := c.ShouldBindQuery(&req); err != nil {
-			c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid request parameters"})
-			return
+		page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+		if err != nil || page < 1 {
+			page = 1
 		}
-
-		tradeList, total, err := usermetricsDB.GetAllTradesList(req, p2pDB)
+		pageSize, err := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+		if err != nil || pageSize <= 0 {
+			pageSize = 10
+		}
+		req := usermetricsDB.TradeListRequest{
+			Page:      page,
+			PageSize:  pageSize,
+			OfferType: c.Query("offerType"),
+			Status:    c.Query("status"),
+			Username:  c.Query("username"),
+			CreatedAt: c.Query("createdAt"),
+		}
+		tradeList, total, err := usermetricsDB.GetTradeList(p2pDB, req)
 		if err != nil {
 			log.Println("[METRICS] error:", err)
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Internal server error"})
 			return
 		}
-
-		serverResponse.JSON(c, http.StatusOK, "Orders List fetched successfully", gin.H{
+		serverResponse.JSON(c, http.StatusOK, "Orders list fetched successfully", gin.H{
 			"data":     tradeList,
 			"total":    total,
-			"page":     req.Page,
-			"pageSize": req.PageSize,
+			"page":     page,
+			"pageSize": pageSize,
 		}, nil)
 	}
-	//todo: how to get total completed trades from db, not just total trade
-	//todo: also trading hours
-	// how to compute total transactions since there are multiple currencies
-	//trding volume graph
 }
 
-// @Summary Get list of trades where user is taker or maker
-// @Description Retrieves the list of trades for users.
-// @ID GetTradeListByUserName
+// @Summary Get list of P2P users
+// @Description Retrieves wallet users with their P2P trading performance (merchant/customer) from the P2P module.
+// @ID GetP2PUsers
 // @Tags P2P
 // @Security JwtTokenAuth
 // @Produce json
 // @Param Authorization header string true "JWT Token" default(Bearer <your-token>)
-// @Param username query string false "Filters tradelist by username and returns all trades that matches that username."
-// @Param id query string false "Filter by ID"
-// @Param order_type query string false "Filter by order type"
-// @Param created_at query string false "Filter by creation date"
-// @Param updated_at query string false "Filter by update date"
-// @Param expires_at query string false "Filter by expiration date"
-// @Param accepted_at query string false "Filter by acceptance date"
-// @Param cancel_after query string false "Filter by cancel after date"
-// @Param offer_id query string false "Filter by offer ID"
-// @Param offer_type query string false "Filter by offer type"
-// @Param offer_maker query string false "Filter by offer maker"
-// @Param offer_maker_phone query string false "Filter by offer maker phone"
-// @Param offer_maker_country_code query string false "Filter by offer maker country code"
-// @Param offer_max_time_per_transaction query uint false "Filter by max time per transaction"
-// @Param offer_taker query string false "Filter by offer taker"
-// @Param offer_taker_phone query string false "Filter by offer taker phone"
-// @Param offer_payment_method_id query string false "Filter by offer payment method ID"
-// @Param offer_payment_channel_id query string false "Filter by offer payment channel ID"
-// @Param offer_payment_method_name query string false "Filter by offer payment method name"
-// @Param offer_payment_method_destination_account query string false "Filter by offer payment method destination account"
-// @Param offer_payment_method_memo query string false "Filter by offer payment method memo"
-// @Param offer_payment_method_bank_name query string false "Filter by offer payment method bank name"
-// @Param offer_payment_method_account_opening_branch query string false "Filter by offer payment method account opening branch"
-// @Param offer_currency_payment_method_id query string false "Filter by offer currency payment method ID"
-// @Param offer_currency_payment_channel_id query string false "Filter by offer currency payment channel ID"
-// @Param offer_currency_payment_method_name query string false "Filter by offer currency payment method name"
-// @Param offer_currency_payment_method_destination_account query string false "Filter by offer currency payment method destination account"
-// @Param offer_currency_payment_method_memo query string false "Filter by offer currency payment method memo"
-// @Param offer_currency_payment_method_bank_name query string false "Filter by offer currency payment method bank name"
-// @Param offer_currency_payment_method_account_opening_branch query string false "Filter by offer currency payment method account opening branch"
-// @Param offer_currency_payment_method_country_code query string false "Filter by offer currency payment method country code"
-// @Param offer_currency_payment_method_currency_id query string false "Filter by offer currency payment method currency ID"
-// @Param offer_currency_id query string false "Filter by offer currency ID"
-// @Param offer_asset_amount query float64 false "Filter by offer asset amount"
-// @Param offer_asset_id query string false "Filter by offer asset ID"
-// @Param offer_asset_price query float64 false "Filter by offer asset price"
-// @Param offer_min_trade_amount query float64 false "Filter by offer min trade amount"
-// @Param offer_max_trade_amount query float64 false "Filter by offer max trade amount"
-// @Param offer_remark query string false "Filter by offer remark"
-// @Param taker_payment_method_id query string false "Filter by taker payment method ID"
-// @Param taker_payment_channel_id query string false "Filter by taker payment channel ID"
-// @Param taker_payment_method_name query string false "Filter by taker payment method name"
-// @Param taker_payment_method_destination_account query string false "Filter by taker payment method destination account"
-// @Param taker_payment_method_memo query string false "Filter by taker payment method memo"
-// @Param taker_payment_method_bank_name query string false "Filter by taker payment method bank name"
-// @Param taker_payment_method_account_opening_branch query string false "Filter by taker payment method account opening branch"
-// @Param taker_payment_method_country_code query string false "Filter by taker payment method country code"
-// @Param taker_payment_method_currency_id query string false "Filter by taker payment method currency ID"
-// @Param order_escrow_address query string false "Filter by order escrow address"
-// @Param order_payment_memo query string false "Filter by order payment memo"
-// @Param order_amount query float64 false "Filter by order amount"
-// @Param order_maker_fee query float64 false "Filter by order maker fee"
-// @Param order_taker_fee query float64 false "Filter by order taker fee"
-// @Param order_escrow_transaction_id query string false "Filter by order escrow transaction ID"
-// @Param order_asset_release_transaction_id query string false "Filter by order asset release transaction ID"
-// @Param order_status_id query uint false "Filter by order status ID"
-// @Param order_status query string false "Filter by order status"
-// @Param dynamic_link query string false "Filter by dynamic link"
-// @Param qr_code query string false "Filter by QR code"
-// @Param fiat_deposit_transaction_id query string false "Filter by fiat deposit transaction ID"
 // @Param page query int false "Page number for pagination" default(1)
-// @Param page_size query int false "Number of items per page" default(10)
+// @Param pageSize query int false "Number of items per page" default(10)
+// @Param username query string false "Filter by username"
+// @Param email query string false "Filter by email"
+// @Param phone query string false "Filter by phone"
+// @Param search query string false "General search across username/email/phone"
 // @Success 200 {object} response.Data
-// @Failure 400 {object} models.ErrorResponse "Invalid request"
-// @Failure 401 {object} models.ErrorResponse "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse "Internal server error"
-// @Router /orders/trade/list [get]
-func GetTradeListByUserName(walletDB, p2pDB *gorm.DB) gin.HandlerFunc {
+// @Failure 400,401,500 {object} object
+// @Router /p2p/users [get]
+func GetP2PUsers(walletDB, p2pDB *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ad, _ := middleware.ExtractTokenMetadata(c.Request)
-		userID := ad.UserID
-
-		userInfo, err := userServices.GetUser(userID, walletDB)
-		if err != nil {
-			log.Println("[METRICS] error for user:", userInfo.Username, "error: ", err)
-
-			var ex p2pErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(p2pErrors.GenericError)
-			var statusCode int
-			var response interface{}
-
-			if ok {
-				statusCode = ex.HTTPCode()
-				response = ex.JSONError()
-			} else {
-				statusCode = http.StatusBadRequest
-				response = gin.H{"error": err.Error()}
-			}
-
-			c.JSON(statusCode, response)
+		if !checkAdminAuth(c, walletDB) {
 			return
 		}
-		log.Println("checking user data: ", userInfo, userID)
-		var req models.TradeListRequest
-		if err := c.ShouldBindQuery(&req); err != nil {
-			c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid request parameters"})
-			return
+		page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+		if err != nil || page < 1 {
+			page = 1
 		}
-
-		tradeList, total, err := usermetricsDB.GetAllTradesList(req, p2pDB)
+		pageSize, err := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+		if err != nil || pageSize <= 0 {
+			pageSize = 10
+		}
+		req := usermetricsDB.P2PUserListRequest{
+			Page:     page,
+			PageSize: pageSize,
+			Username: c.Query("username"),
+			Email:    c.Query("email"),
+			Phone:    c.Query("phone"),
+			Search:   c.Query("search"),
+		}
+		users, total, err := usermetricsDB.GetP2PUsers(walletDB, p2pDB, req)
 		if err != nil {
 			log.Println("[METRICS] error:", err)
-			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Internal server error"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 			return
 		}
-
-		serverResponse.JSON(c, http.StatusOK, "Orders List fetched successfully", gin.H{
-			"data":     tradeList,
+		serverResponse.JSON(c, http.StatusOK, "P2P users fetched successfully", gin.H{
+			"data":     users,
 			"total":    total,
-			"page":     req.Page,
-			"pageSize": req.PageSize,
+			"page":     page,
+			"pageSize": pageSize,
 		}, nil)
 	}
-	//todo: how to get total completed trades from db, not just total trade
-	//todo: also trading hours
-	// how to compute total transactions since there are multiple currencies
-	//trding volume graph
 }
 
 // @Summary Get list of users

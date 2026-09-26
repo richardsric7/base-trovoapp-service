@@ -33,18 +33,37 @@ type UserInfo struct {
 	TakerFee              string          `json:"takerFee"`
 }
 
+// MakerStats/TakerReputation surface this user's real P2P trading
+// performance from the new P2P module's MerchantPerformance/
+// CustomerPerformance tables (see internal/models/p2p.go), replacing the
+// dead legacy P2P platform's maker_stats/taker_reputations tables these
+// used to read from (which always returned zero-value structs).
+type MakerStats struct {
+	CompletedTrades int64  `json:"completedTrades"`
+	CompletionRate  string `json:"completionRate"`
+	DisputesOpened  int64  `json:"disputesOpened"`
+}
+
+type TakerReputation struct {
+	CompletedTrades int64  `json:"completedTrades"`
+	CompletionRate  string `json:"completionRate"`
+	DisputesOpened  int64  `json:"disputesOpened"`
+}
+
 func (u *UserInfo) GetMakerStat(db *gorm.DB) (rating MakerStats) {
-
-	db.First(&rating, MakerStats{ID: u.Username})
-
-	return
+	var p MerchantPerformance
+	if err := db.Where("merchant_id = ?", u.ID).First(&p).Error; err != nil {
+		return MakerStats{}
+	}
+	return MakerStats{CompletedTrades: p.CompletedTrades, CompletionRate: p.CompletionRate, DisputesOpened: p.DisputesOpened}
 }
 
 func (u *UserInfo) GetTakerReputation(db *gorm.DB) (rep TakerReputation) {
-
-	db.First(&rep, TakerReputation{ID: u.Username})
-
-	return
+	var p CustomerPerformance
+	if err := db.Where("customer_id = ?", u.ID).First(&p).Error; err != nil {
+		return TakerReputation{}
+	}
+	return TakerReputation{CompletedTrades: p.CompletedTrades, CompletionRate: p.CompletionRate, DisputesOpened: p.DisputesOpened}
 }
 
 func (u *UserInfo) ToggleOffline(db *gorm.DB) (updatedState uint, err error) {

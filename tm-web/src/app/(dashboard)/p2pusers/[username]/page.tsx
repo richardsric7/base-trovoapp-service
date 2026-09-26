@@ -22,18 +22,6 @@ interface isActiveProps {
   isactive: boolean;
 }
 
-// ✅ Dummy Data
-const dummyUser = {
-  username: "florence",
-  first_name: "Florence",
-  last_name: "Zach",
-  email: "florence@example.com",
-  phone: "+1 (555) 123-4567",
-  registration_date: "2023-06-01",
-  account_status: 1,
-  suspended: 0,
-};
-
 const P2pUserDetailsPage = () => {
   const router = useRouter();
   const params = useParams();
@@ -111,28 +99,18 @@ const P2pUserDetailsPage = () => {
 
         <Wrapper>
           <UserRow>
-            <VerifiedTag>
-              {user?.account_status === 1 ? (
-                <>
-                  <p>Verified</p>
-                  <MdVerified color="#007CDF" />
-                </>
-              ) : (
-                <p>Not Verified</p>
-              )}
-            </VerifiedTag>
+            <UserStatus isactive={!user?.suspended}>
+              {user?.suspended ? "Suspended" : "Active"}
+            </UserStatus>
 
             <ConfirmTag>
               <Image src={goldTag} alt="gold-tag" width={20} height={20} />
               Gold Patron
             </ConfirmTag>
 
-            <UserStatus isactive={user?.account_status === 0}>
-              {user?.account_status === 0 ? "Active" : "Suspended"}
-            </UserStatus>
-
             <VerifiedTag>
-              <p>Non-Merchant</p>
+              <p>{user?.isMerchant ? "Merchant" : "Non-Merchant"}</p>
+              {user?.isMerchant && <MdVerified color="#007CDF" />}
             </VerifiedTag>
           </UserRow>
 
@@ -140,10 +118,10 @@ const P2pUserDetailsPage = () => {
             <DetalisRow>
               <LuCalendarDays color="#828282" />
 
-              {user?.registration_date && (
+              {user?.registrationDate && (
                 <UserDetailsText>
                   Joined{" "}
-                  {new Date(user?.registration_date).toLocaleDateString(
+                  {new Date(user?.registrationDate).toLocaleDateString(
                     "en-US",
                     {
                       year: "numeric",

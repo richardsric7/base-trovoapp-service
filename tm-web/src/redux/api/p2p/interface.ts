@@ -1,101 +1,85 @@
+// These interfaces mirror tm-api's P2P admin endpoints, which now read
+// from the current P2P module's schema (app-backend's internal/components/p2p)
+// instead of the old, dead legacy P2P trading platform's schema. Field
+// names/types below match that module directly (decimal amounts as
+// strings, orderStatus as a string enum, disputes rather than appeals).
+
+export interface IP2PStatistics {
+  totalOffers: number;
+  activeOffers: number;
+  totalOrders: number;
+  completedOrders: number;
+  openDisputes: number;
+  resolvedDisputes: number;
+}
+
 export interface IP2PMetrics {
-  data: {
-    average_time_per_session: number;
-    daily_active_and_new_users: {
-      active_users: number;
-      new_users: number;
-    };
-    monthly_active_and_new_users: {
-      active_users: number;
-      new_users: number;
-    };
-    total_active_users: number;
-    total_sessions: number;
-    total_users: number;
-    weekly_active_and_new_users: {
-      active_users: number;
-      new_users: number;
-    };
-    weekly_percentage_change: {
-      new_users_percentage_change: number;
-      active_users_percentage_change: number;
-      total_sessions_percentage_change: number;
-      average_time_percentage_change: number;
-    };
-  };
   message: string;
+  data: IP2PStatistics;
   status: string;
   timestamp: string;
 }
 
 export interface ITopTrader {
-  offer_maker: string;
-  order_count: number;
+  merchantUsername: string;
+  completedTrades: number;
 }
 
-export interface IOrderStatus {
-  status: string;
-}
-
-export interface IRecentTrade {
+export interface P2POrder {
   id: string;
-  orderType: string;
-  CreatedAt: string;
-  UpdatedAt: string;
-  ExpiresAt: string;
-  AcceptedAt: string;
-  cancelAfter: string;
   offerId: string;
-  offerType: string;
-  offerMaker: string;
-  offerMakerPhone: string;
-  offerMakerCountryCode: string | null;
-  offerMaxTimePerTransaction: number;
-  offerTaker: string;
-  offerTakerPhone: string;
-  offerPaymentMethodId: string | null;
-  offerPaymentChannelId: string | null;
-  offerCurrencyPaymentMethodId: string;
-  offerCurrencyPaymentChannelId: string;
-  offerCurrencyPaymentMethodName: string;
-  offerCurrencyPaymentMethodDestinationAccount: string;
-  offerPaymentCurrencyMethodBankName: string;
-  offerCurrencyPaymentMethodAccountOpeningBranch: string;
-  offerCurrencyPaymentMethodCountryCode: string;
-  offerCurrencyID: string;
-  offerAssetAmount: number;
-  offerAssetId: string;
-  offerAssetPrice: number;
-  offerMinTradeAmount: number;
-  offerMaxTradeAmount: number;
-  offerRemark: string;
-  takerPaymentMethodId: string;
-  takerPaymentChannelId: string;
-  takerPaymentMethodDestinationAccount: string;
-  orderEscrowAddress: string;
-  orderPaymentMemo: string;
-  orderAmount: number;
-  orderMakerFee: number;
-  orderTakerFee: number;
-  orderEscrowTransactionId: string | null;
-  orderAssetReleaseTransactionId: string | null;
-  orderStatusId: number;
-  orderStatus: IOrderStatus;
-  dynamicLink: string | null;
-  qrCode: string | null;
-  FiatDepositTransactionID: string | null;
+  customerUserId: string;
+  customerUsername: string;
+  merchantUserId: string;
+  merchantUsername: string;
+  offerType: "BUY" | "SELL";
+  asset: string;
+  currency: string;
+  price: string;
+  specifiedAssetAmount: string;
+  paymentAmount: string;
+  orderStatus: string;
+  isDisputed: boolean;
+  createdAt: string;
+}
+
+export interface ITradeStatistics {
+  totalTrades: number;
+  completedTrades: number;
+  cancelledTrades: number;
+  expiredTrades: number;
+  tradeSuccessRate: number;
+  openDisputes: number;
+  topTraders: ITopTrader[];
+  recentTrades: P2POrder[];
 }
 
 export interface ITradeStatisticsResponse {
-  total_trades: number;
-  completed_trades: number;
-  cancelled_trades: number;
-  total_volume: number;
-  average_trade_size: number;
-  trade_success_rate: number;
-  trades_on_appeal: number;
-  top_traders: ITopTrader[];
-  recent_trades: IRecentTrade[];
+  message: string;
+  data: ITradeStatistics;
+  status: string;
+  timestamp: string;
+}
+
+export interface TradeListQueryParams {
+  page?: number;
+  pageSize?: number;
+  offerType?: string;
+  status?: string;
+  username?: string;
+  createdAt?: string;
+}
+
+export interface TradeListResponse {
+  message: string;
+  data: {
+    data: P2POrder[];
+    total: number;
+    page: number;
+    pageSize: number;
+  };
+  status: string;
+  timestamp: string;
 }
 
 export interface P2PUser {
@@ -103,11 +87,22 @@ export interface P2PUser {
   username: string;
   email: string;
   phone: string;
-  registration_date: string;
-  account_status: number;
-  merchant_status: number;
-  violations: string | null;
-  city: string;
+  registrationDate: string;
+  suspended: boolean;
+  isMerchant: boolean;
+  merchantCompletedTrades: number;
+  merchantCompletionRate: string;
+  customerCompletedTrades: number;
+  customerCompletionRate: string;
+}
+
+export interface P2PUserListQueryParams {
+  page?: number;
+  pageSize?: number;
+  username?: string;
+  email?: string;
+  phone?: string;
+  search?: string;
 }
 
 export interface P2PUserListResponse {
@@ -118,116 +113,6 @@ export interface P2PUserListResponse {
     page: number;
     pageSize: number;
   };
+  status: string;
   timestamp: string;
-  status: string;
-}
-
-export interface P2PUserListQueryParams {
-  page?: number;
-  pageSize?: number;
-  username?: string;
-  email?: string;
-  phone?: string;
-  first_name?: string;
-  last_name?: string;
-  city?: string;
-  address?: string;
-  suspended?: number;
-  kyc_level?: number;
-  admin_level?: number;
-  registration_date_from?: string;
-  registration_date_to?: string;
-  search?: string;
-}
-export interface TradeStatus {
-  status: string;
-}
-
-export interface TradeOrder {
-  id: string;
-  orderType: "BUY" | "SELL";
-  CreatedAt: string;
-  ExpiresAt: string;
-  AcceptedAt: string;
-  cancelAfter: string;
-
-  offerId: string;
-  offerType: "BUY" | "SELL";
-  offerMaker: string;
-  offerMakerPhone: string;
-  offerMakerCountryCode: string;
-  offerMaxTimePerTransaction: number;
-
-  offerTaker: string;
-  offerTakerPhone: string;
-
-  offerPaymentMethodId: string;
-  offerPaymentChannelId: string;
-  offerPaymentMethodName: string | null;
-  offerPaymentMethodDestinationAccount: string;
-  offerPaymentMethodMemo: string | null;
-  offerPaymentMethodBankName: string | null;
-  offerPaymentMethodAccountOpeningBranch: string | null;
-
-  offerCurrencyPaymentMethodId: string;
-  offerCurrencyPaymentChannelId: string;
-  offerCurrencyPaymentMethodName: string;
-  offerCurrencyPaymentMethodDestinationAccount: string;
-  offerCurrencyPaymentMethodMemo: string | null;
-  offerPaymentCurrencyMethodBankName: string;
-  offerCurrencyPaymentMethodAccountOpeningBranch: string | null;
-  offerCurrencyPaymentMethodCountryCode: string;
-  offerCurrencyPaymentMethodCurrencyId: string | null;
-
-  offerCurrencyID: string;
-  offerAssetAmount: number;
-  offerAssetId: string;
-  offerAssetPrice: number;
-  offerMinTradeAmount: number;
-  offerMaxTradeAmount: number;
-  offerRemark: string;
-
-  takerPaymentMethodId: string;
-  takerPaymentChannelId: string;
-  takerPaymentMethodName: string;
-  takerPaymentMethodDestinationAccount: string;
-  takerPaymentMethodMemo: string | null;
-  takerPaymentMethodBankName: string;
-  takerPaymentMethodAccountOpeningBranch: string;
-  takerPaymentMethodCountryCode: string;
-  takerPaymentMethodCurrencyId: string;
-
-  orderEscrowAddress: string;
-  orderPaymentMemo: string;
-  orderAmount: number;
-  orderMakerFee: number;
-  orderTakerFee: number;
-  orderEscrowTransactionId: string | null;
-  orderAssetReleaseTransactionId: string | null;
-
-  orderStatusId: number;
-  orderStatus: TradeStatus;
-
-  dynamicLink: string | null;
-  qrCode: string | null;
-  FiatDepositTransactionID: string | null;
-}
-
-export interface TradeListQueryParams {
-  page?: string | number;
-  pageSize?: string | number;
-  orderType?: string; // or restrict to "BUY" | "SELL"
-  offerMaker?: string;
-  offerTaker?: string;
-  status?: string;
-  [key: string]: string | number | undefined;
-}
-export interface TradeListResponse {
-  message: string;
-  data: {
-    data: TradeOrder[];
-    page: number;
-    page_size: number;
-    total: number;
-  };
 }
