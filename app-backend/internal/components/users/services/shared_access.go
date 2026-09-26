@@ -192,6 +192,12 @@ func AddressCountInitiatorAccess(publicKey string, gc *sharedconfig.GlobalConfig
 }
 
 func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userModels.User, wallet *userModels.UserWallet, accessInfo *userModels.UserWalletSharedAccessInfo, gc *sharedconfig.GlobalConfig) (returnedWallet userModels.UserWallet, err error) {
+	if sErr := signerUser.EnsureNotSuspended(); sErr != nil {
+		return returnedWallet, sErr
+	}
+	if sErr := walletOwner.EnsureNotSuspended(); sErr != nil {
+		return returnedWallet, sErr
+	}
 
 	// var  userModels.UserWalletSharedAccess
 	accessInfo.Messages = make([]string, 0)
@@ -515,6 +521,12 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 }
 
 func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userModels.User, wallet *userModels.UserWallet, accessInfo *userModels.ModifySharedAccessInfo, gc *sharedconfig.GlobalConfig) (revokedList, modifiedList, addedList []userModels.WalletPermission, linkedRevokedList, linkedModifiedList, linkedAddedList []userModels.WalletPermission, err error) {
+	if sErr := signerUser.EnsureNotSuspended(); sErr != nil {
+		return nil, nil, nil, nil, nil, nil, sErr
+	}
+	if sErr := walletOwner.EnsureNotSuspended(); sErr != nil {
+		return nil, nil, nil, nil, nil, nil, sErr
+	}
 
 	//prepare database execution
 	dbTX := gc.DB.Begin()

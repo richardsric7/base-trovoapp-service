@@ -55,6 +55,9 @@ func CreateOffer(gc *sharedconfig.GlobalConfig, merchantUsername, merchantUserID
 	if err != nil {
 		return p2pModels.Offer{}, err
 	}
+	if sErr := merchant.EnsureNotSuspended(); sErr != nil {
+		return p2pModels.Offer{}, sErr
+	}
 	if !merchant.IsMerchant {
 		return p2pModels.Offer{}, &tErrors.CustomError{
 			Param:      "merchant",

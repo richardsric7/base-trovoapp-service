@@ -111,7 +111,7 @@ export default function ViewSingleUser() {
               <BsThreeDotsVertical onClick={handleToggleTooltip} />
               {showTooltip && (
                 <Tooltip
-                  toolTipText="Record Voilation"
+                  toolTipText="Suspend user"
                   handleClick={handleClick}
                 />
               )}
@@ -231,7 +231,9 @@ export default function ViewSingleUser() {
         {currentTab === "overview" && <UserActivityTab />}
         {currentTab === "recovery" && <Recovery />}
         {currentTab === "transactions" && <TransactionsTab />}
-        {currentTab === "violations" && <ViolationsHistory />}
+        {currentTab === "violations" && (
+          <ViolationsHistory userEmail={data?.data?.user_info?.email || ""} />
+        )}
       </Tab>
 
       {viewSuspensionModal && (

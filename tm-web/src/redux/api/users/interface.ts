@@ -101,10 +101,22 @@ export interface IFetchUserResponse {
   timestamp: string;
 }
 
-export interface ISuspendUsers {
+// Matches tm-api's SuspendOrLiftUserPayload - one mandatory free-text
+// reason per direction (suspend and lift are distinct endpoints, not a
+// toggle).
+export interface ISuspendOrLiftUserPayload {
   email: string;
-  suspension_note: string;
-  suspension_reason_id: number;
+  reason: string;
+}
+
+export interface IUserSuspensionHistoryEntry {
+  id: number;
+  username: string;
+  email: string;
+  actionPerformedBy: string;
+  reason: string;
+  suspensionDateTime: string;
+  actionType: "SUSPENDED" | "ACTIVE";
 }
 
 export interface PaymentHistoryParams {

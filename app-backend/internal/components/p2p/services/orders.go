@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 	p2pModels "trovo-wallet-api/internal/components/p2p/models"
+	usersDB "trovo-wallet-api/internal/components/users/db"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -83,6 +84,14 @@ func QuoteOrderFees(gc *sharedconfig.GlobalConfig, offerID, specifiedAssetAmount
 // asset (already snapshotted on the Offer), calculate fees/VAT, snapshot
 // payment info, generate Order.id, and create as AWAITING_APPROVAL.
 func CreateOrder(gc *sharedconfig.GlobalConfig, customerUserID, customerUsername string, in CreateOrderInput) (p2pModels.Order, error) {
+	customer, err := usersDB.GetUser(customerUserID, gc.DB, gc)
+	if err != nil {
+		return p2pModels.Order{}, err
+	}
+	if sErr := customer.EnsureNotSuspended(); sErr != nil {
+		return p2pModels.Order{}, sErr
+	}
+
 	offer, err := GetOfferByID(gc.DB, in.OfferID)
 	if err != nil {
 		return p2pModels.Order{}, &tErrors.CustomError{Param: "offerId", Err: "error-offer-not-found", ErrMessage: "Offer not found"}
@@ -287,6 +296,14 @@ func GetOrderByID(db *gorm.DB, orderID string) (p2pModels.Order, error) {
 // escrow service once the order is in this state (Section 95/96 - the client
 // calls the escrow-deposit endpoint next).
 func AcceptOrder(gc *sharedconfig.GlobalConfig, orderID, merchantUserID string) (p2pModels.Order, error) {
+	merchant, err := usersDB.GetUser(merchantUserID, gc.DB, gc)
+	if err != nil {
+		return p2pModels.Order{}, err
+	}
+	if sErr := merchant.EnsureNotSuspended(); sErr != nil {
+		return p2pModels.Order{}, sErr
+	}
+
 	order, err := GetOrderByID(gc.DB, orderID)
 	if err != nil {
 		return order, &tErrors.CustomError{Param: "orderId", Err: "error-order-not-found", ErrMessage: "Order not found"}

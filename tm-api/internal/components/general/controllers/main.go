@@ -33,9 +33,16 @@ func Init(router *gin.Engine, s *serverModels.Server) {
 	apiV1.PATCH("/admin/suspend", middleware.AuthenticateSuperAdmin(s.AdminDB),
 		accesslog.Audit(s.AdminDB, models.EventAdminSuspend, m, accesslog.BodyField("email")),
 		adminServices.SuspendAdmin(s))
-	apiV1.PATCH("/admin/suspend-or-reactivate", middleware.AuthenticateSuperAdmin(s.AdminDB),
-		accesslog.Audit(s.AdminDB, models.EventUserSuspendToggle, m, accesslog.BodyField("email")),
-		adminServices.SuspendOrReactivateUser(s))
+	// Suspend/lift are distinct endpoints (not a toggle) - each requires
+	// its own mandatory, logged reason. While suspended, app-backend
+	// blocks the user's wallet(s) from either side of any transaction.
+	apiV1.PATCH("/admin/users/suspend", middleware.AuthenticateSuperAdmin(s.AdminDB),
+		accesslog.Audit(s.AdminDB, models.EventUserSuspend, m, accesslog.BodyField("email")),
+		adminServices.SuspendUser(s))
+	apiV1.PATCH("/admin/users/lift-suspension", middleware.AuthenticateSuperAdmin(s.AdminDB),
+		accesslog.Audit(s.AdminDB, models.EventUserLiftSuspend, m, accesslog.BodyField("email")),
+		adminServices.LiftUserSuspension(s))
+	apiV1.GET("/users/suspension-history/:email", middleware.AuthenticateSuperAdmin(s.AdminDB), adminServices.GetUserSuspensionHistoryByEmail(s.AdminDB))
 	apiV1.PATCH("/admin/unsuspend", middleware.AuthenticateSuperAdmin(s.AdminDB),
 		accesslog.Audit(s.AdminDB, models.EventAdminUnsuspend, m, accesslog.BodyField("email")),
 		adminServices.UnsuspendAdmin(s))

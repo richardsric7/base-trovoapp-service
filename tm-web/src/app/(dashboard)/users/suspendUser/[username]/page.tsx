@@ -16,7 +16,6 @@ import Recovery from "../../components/Recovery";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { MdVerified } from "react-icons/md";
 import { LuCalendarDays, LuMail, LuPhone, LuSend } from "react-icons/lu";
-import { EditSuspensionModal } from "../../components/EditSuspensionModal";
 import RevokeUserSuspension from "../../components/RevokeUserSuspension";
 
 import UserActivityTab from "../../components/UserActivityTab";
@@ -112,14 +111,17 @@ const SuspendedUserPage = () => {
 
               {showActions && (
                 <MenuItems>
-                  <MenuItem onClick={() => setIsOpen(true)}>
-                    <Image src={statusIcon} alt="status-icon" />
-                    Record Violation
-                  </MenuItem>
-                  <MenuItem onClick={() => setRevokeSuspension(true)}>
-                    <Image src={statusIcons} alt="status-icon" />
-                    Revoke suspension
-                  </MenuItem>
+                  {data?.data?.user_info?.suspended === 0 ? (
+                    <MenuItem onClick={() => setIsOpen(true)}>
+                      <Image src={statusIcon} alt="status-icon" />
+                      Suspend user
+                    </MenuItem>
+                  ) : (
+                    <MenuItem onClick={() => setRevokeSuspension(true)}>
+                      <Image src={statusIcons} alt="status-icon" />
+                      Lift suspension
+                    </MenuItem>
+                  )}
                 </MenuItems>
               )}
             </div>
@@ -240,7 +242,9 @@ const SuspendedUserPage = () => {
         {currentTab === "overview" && <UserActivityTab />}
         {currentTab === "recovery" && <Recovery />}
         {currentTab === "transactions" && <TransactionsTab />}
-        {currentTab === "violations" && <ViolationsHistory />}
+        {currentTab === "violations" && (
+          <ViolationsHistory userEmail={data?.data?.user_info?.email || ""} />
+        )}
       </Tab>
 
       {isOpen && (
@@ -255,6 +259,8 @@ const SuspendedUserPage = () => {
         <RevokeUserSuspension
           revokeSuspension={revokeSuspension}
           setRevokeSuspension={setRevokeSuspension}
+          userEmail={data?.data?.user_info?.email || ""}
+          username={data?.data?.user_info?.username || ""}
         />
       )}
     </Container>

@@ -2,9 +2,10 @@ import { baseApi } from "@/redux/baseApi";
 import { tagTypes } from "@/redux/baseApi/tagTypes";
 import {
   IFetchUserResponse,
-  ISuspendUsers,
+  ISuspendOrLiftUserPayload,
   iUsers,
   IUsersParams,
+  IUserSuspensionHistoryEntry,
   PaymentHistoryParams,
   PaymentHistoryResponse,
   WalletBalancesResponse,
@@ -30,14 +31,30 @@ export const usersApi = baseApi.injectEndpoints({
         method: "GET",
         params: { id, email, username },
       }),
+      providesTags: [tagTypes.USERS],
     }),
-    suspendUser: builder.mutation<iUsers, ISuspendUsers>({
+    suspendUser: builder.mutation<{ message: string }, ISuspendOrLiftUserPayload>({
       query: (payload) => ({
-        url: "/user/suspend-or-reactivate",
+        url: "/admin/users/suspend",
         method: "PATCH",
         data: payload,
       }),
       invalidatesTags: [tagTypes.USERS],
+    }),
+    liftUserSuspension: builder.mutation<{ message: string }, ISuspendOrLiftUserPayload>({
+      query: (payload) => ({
+        url: "/admin/users/lift-suspension",
+        method: "PATCH",
+        data: payload,
+      }),
+      invalidatesTags: [tagTypes.USERS],
+    }),
+    getUserSuspensionHistory: builder.query<IUserSuspensionHistoryEntry[], string>({
+      query: (email) => ({
+        url: `/users/suspension-history/${email}`,
+        method: "GET",
+      }),
+      providesTags: [tagTypes.USERS],
     }),
     getPaymentHistory: builder.query<
       PaymentHistoryResponse,
@@ -63,6 +80,8 @@ export const {
   useGetUsersQuery,
   useFetchUserByCriteriaQuery,
   useSuspendUserMutation,
+  useLiftUserSuspensionMutation,
+  useGetUserSuspensionHistoryQuery,
   useGetPaymentHistoryQuery,
   useGetWalletBalancesQuery,
 } = usersApi;

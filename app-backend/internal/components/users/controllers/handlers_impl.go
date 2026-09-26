@@ -4068,6 +4068,11 @@ func postCryptoGenerateAddressesCurrencyHandler(callBackRetryChan chan userModel
 			}
 			return
 		}
+		if accountSignerUser.Suspended == 1 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-account-suspended", "message": "Your account is currently suspended. Please contact support (support@trovotech.io) for more information."})
+			return
+		}
+
 		//check if shared wallet, then check if user has access
 		if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
 			//check if signer has access
