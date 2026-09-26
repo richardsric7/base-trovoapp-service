@@ -112,6 +112,32 @@ func getOfferHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+// getOfferQuoteHandler lets the order-creation screen show a real itemized
+// fee breakdown before the customer commits to creating the order (Plan
+// Section 97.6), without persisting anything.
+func getOfferQuoteHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		breakdown, offer, err := p2pServices.QuoteOrderFees(gc, c.Param("offerID"), c.Query("amount"))
+		if err != nil {
+			writeError(c, err)
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"offerId":                 offer.ID,
+			"specifiedAssetAmount":    c.Query("amount"),
+			"paymentAmount":           breakdown.PaymentAmount.String(),
+			"buyerTotalFees":          breakdown.BuyerTotalFees.String(),
+			"buyerTotalVat":           breakdown.BuyerTotalVat.String(),
+			"buyerTotalCharges":       breakdown.BuyerTotalCharges.String(),
+			"buyerNetAssetAmount":     breakdown.BuyerNetAssetAmount.String(),
+			"sellerTotalFees":         breakdown.SellerTotalFees.String(),
+			"sellerTotalVat":          breakdown.SellerTotalVat.String(),
+			"sellerTotalCharges":      breakdown.SellerTotalCharges.String(),
+			"sellerEscrowAssetAmount": breakdown.SellerEscrowAssetAmount.String(),
+		})
+	}
+}
+
 func postActivateOfferHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)

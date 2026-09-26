@@ -28,6 +28,15 @@ const String PaymentDetailsViewPath = '/PaymentDetailsView';
 const String SwapAssetsViewPath = '/SwapAssetsView';
 const String ConfirmSwapViewPath = '/ConfirmSwapView';
 const String SwapSuccessViewPath = '/SwapSuccessView';
+const String P2PMarketplaceViewPath = '/p2pMarketplaceView';
+const String P2POfferDetailViewPath = '/p2pOfferDetailView';
+const String P2PCreateOfferViewPath = '/p2pCreateOfferView';
+const String P2PCreateOrderViewPath = '/p2pCreateOrderView';
+const String P2POrderDetailViewPath = '/p2pOrderDetailView';
+const String P2PEscrowShareViewPath = '/p2pEscrowShareView';
+const String P2PDisputeViewPath = '/p2pDisputeView';
+const String P2PMyOrdersViewPath = '/p2pMyOrdersView';
+const String P2PMyOffersViewPath = '/p2pMyOffersView';
 const String ProfileDetailsViewPath = '/ProfileDetailsView';
 const String ReferralInfoViewPath = '/ReferralInfoView';
 const String PasswordMgtViewPath = '/PasswordMgtView';
@@ -272,6 +281,15 @@ enum Pages {
   RequestEarlyExitView,
   EarlyExitSummaryView,
   AppImageViewer,
+  P2PMarketplaceView,
+  P2POfferDetailView,
+  P2PCreateOfferView,
+  P2PCreateOrderView,
+  P2POrderDetailView,
+  P2PEscrowShareView,
+  P2PDisputeView,
+  P2PMyOrdersView,
+  P2PMyOffersView,
 }
 
 class PageConfiguration {
@@ -1033,5 +1051,59 @@ PageConfiguration AppImageViewerPageConfig = PageConfiguration(
   key: 'AppImageViewer',
   path: AppImageViewerPath,
   uiPage: Pages.AppImageViewer,
+  currentPageAction: null,
+);
+PageConfiguration P2PMarketplaceViewPageConfig = PageConfiguration(
+  key: 'P2PMarketplaceView',
+  path: P2PMarketplaceViewPath,
+  uiPage: Pages.P2PMarketplaceView,
+  currentPageAction: null,
+);
+PageConfiguration P2POfferDetailViewPageConfig = PageConfiguration(
+  key: 'P2POfferDetailView',
+  path: P2POfferDetailViewPath,
+  uiPage: Pages.P2POfferDetailView,
+  currentPageAction: null,
+);
+PageConfiguration P2PCreateOfferViewPageConfig = PageConfiguration(
+  key: 'P2PCreateOfferView',
+  path: P2PCreateOfferViewPath,
+  uiPage: Pages.P2PCreateOfferView,
+  currentPageAction: null,
+);
+PageConfiguration P2PCreateOrderViewPageConfig = PageConfiguration(
+  key: 'P2PCreateOrderView',
+  path: P2PCreateOrderViewPath,
+  uiPage: Pages.P2PCreateOrderView,
+  currentPageAction: null,
+);
+PageConfiguration P2POrderDetailViewPageConfig = PageConfiguration(
+  key: 'P2POrderDetailView',
+  path: P2POrderDetailViewPath,
+  uiPage: Pages.P2POrderDetailView,
+  currentPageAction: null,
+);
+PageConfiguration P2PEscrowShareViewPageConfig = PageConfiguration(
+  key: 'P2PEscrowShareView',
+  path: P2PEscrowShareViewPath,
+  uiPage: Pages.P2PEscrowShareView,
+  currentPageAction: null,
+);
+PageConfiguration P2PDisputeViewPageConfig = PageConfiguration(
+  key: 'P2PDisputeView',
+  path: P2PDisputeViewPath,
+  uiPage: Pages.P2PDisputeView,
+  currentPageAction: null,
+);
+PageConfiguration P2PMyOrdersViewPageConfig = PageConfiguration(
+  key: 'P2PMyOrdersView',
+  path: P2PMyOrdersViewPath,
+  uiPage: Pages.P2PMyOrdersView,
+  currentPageAction: null,
+);
+PageConfiguration P2PMyOffersViewPageConfig = PageConfiguration(
+  key: 'P2PMyOffersView',
+  path: P2PMyOffersViewPath,
+  uiPage: Pages.P2PMyOffersView,
   currentPageAction: null,
 );

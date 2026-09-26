@@ -1134,13 +1134,10 @@ class _HomeState extends State<Home>
               width: width / 2.2,
               height: 60,
               onTap: () {
-                popup(
-                  context,
-                  title: "comingsoon".tr(),
-                  message: "p2pwillbelaunchingsoon".tr(),
-                  bodyColor: notifier.getbluewhitecolor,
+                appState.currentAction = PageAction(
+                  state: PageState.addPage,
+                  page: P2PMarketplaceViewPageConfig,
                 );
-                // _launchUrl();
               },
             ),
           ],

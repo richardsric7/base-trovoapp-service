@@ -38,6 +38,17 @@ func postOpenDisputeHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+func getOpenDisputeForOrderHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		dispute, err := p2pServices.GetOpenDisputeForOrder(gc, c.Param("orderID"))
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "error-no-open-dispute"})
+			return
+		}
+		c.JSON(http.StatusOK, dispute)
+	}
+}
+
 func postMerchantConfirmsPaymentHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)

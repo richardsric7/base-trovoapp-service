@@ -1,6 +1,11 @@
 package p2p
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+
+	"gorm.io/gorm"
+)
 
 // Dispute statuses
 const (
@@ -35,7 +40,13 @@ type Dispute struct {
 	OpenedAt        time.Time  `json:"openedAt"`
 	Subject         string     `json:"subject" gorm:"size:40;not null"`
 	Description     string     `json:"description" gorm:"type:text"`
-	Evidence        string     `json:"evidence" gorm:"type:text"` // JSON array of evidence URLs/attachment references
+	// EvidenceJSON is the DB-persisted form (a JSON-encoded array of
+	// evidence URLs/attachment references). Evidence is the API-facing
+	// []string form - AfterFind/BeforeSave keep them in sync so every
+	// caller (API handlers and any future direct DB query alike) gets a
+	// real array over the wire, never a double-encoded JSON string.
+	EvidenceJSON    string     `json:"-" gorm:"column:evidence;type:text"`
+	Evidence        []string   `json:"evidence" gorm:"-"`
 	Status          string     `json:"status" gorm:"size:20;not null;default:'OPEN';index:idx_p2p_dispute_status"`
 	Resolution      string     `json:"resolution" gorm:"size:30;default:''"`
 	ResolvedAt      *time.Time `json:"resolvedAt"`
@@ -43,4 +54,22 @@ type Dispute struct {
 	ResolutionTimeSeconds int64 `json:"resolutionTime" gorm:"default:0"`
 	CreatedAt       time.Time  `json:"createdAt"`
 	UpdatedAt       time.Time  `json:"updatedAt"`
+}
+
+// AfterFind populates Evidence from the persisted EvidenceJSON column.
+func (d *Dispute) AfterFind(tx *gorm.DB) error {
+	if d.EvidenceJSON != "" {
+		_ = json.Unmarshal([]byte(d.EvidenceJSON), &d.Evidence)
+	}
+	return nil
+}
+
+// BeforeSave serializes Evidence into EvidenceJSON for storage.
+func (d *Dispute) BeforeSave(tx *gorm.DB) error {
+	b, err := json.Marshal(d.Evidence)
+	if err != nil {
+		return err
+	}
+	d.EvidenceJSON = string(b)
+	return nil
 }

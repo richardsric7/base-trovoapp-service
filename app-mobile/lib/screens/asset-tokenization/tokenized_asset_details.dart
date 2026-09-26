@@ -691,13 +691,10 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                             children: [
                               ElevatedButton(
                                 onPressed: () {
-                                  popup(
-                                    context,
-                                    title: "comingsoon".tr(),
-                                    message: "p2pwillbelaunchingsoon".tr(),
-                                    bodyColor: notifier.getbluewhitecolor,
+                                  appState.currentAction = PageAction(
+                                    state: PageState.addPage,
+                                    page: P2PMarketplaceViewPageConfig,
                                   );
-                                  // _launchUrl();
                                 },
                                 style: ButtonStyle(
                                   padding: WidgetStateProperty.all(

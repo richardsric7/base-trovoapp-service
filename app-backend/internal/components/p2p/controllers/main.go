@@ -21,6 +21,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.POST("/v1/p2p/offers", auth, postOffersHandler(gc))
 	router.GET("/v1/p2p/offers", auth, getMarketplaceOffersHandler(gc))
 	router.GET("/v1/p2p/offers/:offerID", auth, getOfferHandler(gc))
+	router.GET("/v1/p2p/offers/:offerID/quote", auth, getOfferQuoteHandler(gc))
 	router.POST("/v1/p2p/offers/:offerID/activate", auth, postActivateOfferHandler(gc))
 	router.POST("/v1/p2p/offers/:offerID/pause", auth, postPauseOfferHandler(gc))
 	router.GET("/v1/p2p/my-offers", auth, getMyOffersHandler(gc))
@@ -42,6 +43,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	// Disputes
 	router.POST("/v1/p2p/orders/:orderID/disputes", auth, postOpenDisputeHandler(gc))
+	router.GET("/v1/p2p/orders/:orderID/dispute", auth, getOpenDisputeForOrderHandler(gc))
 	router.POST("/v1/p2p/disputes/:disputeID/merchant-confirms-payment", auth, postMerchantConfirmsPaymentHandler(gc))
 	router.POST("/v1/p2p/disputes/:disputeID/buyer-confirms-not-paid", auth, postBuyerConfirmsNotPaidHandler(gc))
 

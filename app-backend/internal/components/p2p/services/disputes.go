@@ -1,7 +1,6 @@
 package p2p
 
 import (
-	"encoding/json"
 	"time"
 	p2pModels "trovo-wallet-api/internal/components/p2p/models"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -37,11 +36,13 @@ func OpenDispute(gc *sharedconfig.GlobalConfig, orderID, openedByUserID, subject
 	if order.OrderStatus == p2pModels.OrderStatusCompleted {
 		return p2pModels.Dispute{}, &tErrors.CustomError{Param: "orderId", Err: "error-invalid-order-state", ErrMessage: "This order is already completed and cannot be disputed"}
 	}
+	if order.IsDisputed {
+		return p2pModels.Dispute{}, &tErrors.CustomError{Param: "orderId", Err: "error-dispute-already-open", ErrMessage: "This order already has an open dispute"}
+	}
 	if !validDisputeSubjects[subject] {
 		return p2pModels.Dispute{}, &tErrors.CustomError{Param: "subject", Err: "error-invalid-dispute-subject", ErrMessage: "Invalid dispute subject"}
 	}
 
-	evidenceJSON, _ := json.Marshal(evidence)
 	now := time.Now().UTC()
 	dispute := p2pModels.Dispute{
 		ID:          gc.GenerateUUIDString(),
@@ -50,7 +51,7 @@ func OpenDispute(gc *sharedconfig.GlobalConfig, orderID, openedByUserID, subject
 		OpenedAt:    now,
 		Subject:     subject,
 		Description: description,
-		Evidence:    string(evidenceJSON),
+		Evidence:    evidence,
 		Status:      p2pModels.DisputeStatusOpen,
 	}
 	dbTX := gc.DB.Begin()
@@ -73,6 +74,16 @@ func OpenDispute(gc *sharedconfig.GlobalConfig, orderID, openedByUserID, subject
 	}
 	notifyByUserID(gc, order, counterparty, "Trovo P2P: Dispute Opened", "A dispute has been opened on your order.")
 	return dispute, nil
+}
+
+// GetOpenDisputeForOrder returns the currently-open dispute for an order, if
+// any - lets a client that only knows Order.IsDisputed=true (the API never
+// otherwise surfaces a dispute id) resolve which dispute to act on.
+func GetOpenDisputeForOrder(gc *sharedconfig.GlobalConfig, orderID string) (p2pModels.Dispute, error) {
+	var dispute p2pModels.Dispute
+	err := gc.DB.Where("order_id = ? AND status = ?", orderID, p2pModels.DisputeStatusOpen).
+		Order("opened_at desc").First(&dispute).Error
+	return dispute, err
 }
 
 // MerchantConfirmsPayment is Section 63's first self-resolution path: the
