@@ -75,7 +75,7 @@ type CustomerPerformance struct {
 // OfferRankingSnapshot is a versioned marketplace ranking calculation result.
 type OfferRankingSnapshot struct {
 	ID              string    `json:"id" gorm:"primaryKey;size:36"`
-	OfferID         string    `json:"offerId" gorm:"size:36;not null;index:idx_p2p_ranking_offer_id"`
+	OfferID         string    `json:"offerId" gorm:"size:36;not null;uniqueIndex:idx_p2p_ranking_offer_id"`
 	Rank            int       `json:"rank" gorm:"not null;default:0"`
 	Score           string    `json:"score" gorm:"size:30;not null;default:'0'"`
 	RankingVersion  int       `json:"rankingVersion" gorm:"not null;default:1"`

@@ -72,7 +72,7 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
       loading = false;
     });
     if (o != null && o.isMerchant(myUsername)) {
-      final perf = await api.getCustomerPerformance(o.customerUserId!);
+      final perf = await api.getCustomerPerformance(o.id!);
       if (mounted) setState(() => customerPerf = perf);
     }
   }

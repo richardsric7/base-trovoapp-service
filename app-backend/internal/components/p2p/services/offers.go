@@ -190,7 +190,11 @@ func UpdateOffer(gc *sharedconfig.GlobalConfig, offerID, merchantUserID string, 
 		if e != nil {
 			return offer, &tErrors.CustomError{Param: "availableLiquidity", Err: "error-invalid-liquidity", ErrMessage: "availableLiquidity must be a valid decimal number"}
 		}
-		offer.AvailableLiquidity = decimal.RequireFromString(orDefaultStr(offer.AvailableLiquidity, "0")).Add(delta).String()
+		newLiquidity := decimal.RequireFromString(orDefaultStr(offer.AvailableLiquidity, "0")).Add(delta)
+		if newLiquidity.IsNegative() {
+			return offer, &tErrors.CustomError{Param: "availableLiquidity", Err: "error-liquidity-below-zero", ErrMessage: "This would reduce available liquidity below zero"}
+		}
+		offer.AvailableLiquidity = newLiquidity.String()
 	}
 	offer.Remark = in.Remark
 	offer.Version++

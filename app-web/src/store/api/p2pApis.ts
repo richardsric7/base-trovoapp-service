@@ -302,9 +302,9 @@ export const p2pApi = baseApi.injectEndpoints({
         data: { creds },
       }),
     }),
-    getCustomerP2PPerformance: builder.query<P2PCustomerPerformance, WithCreds<{ customerId: string }>>({
-      query: ({ creds, customerId }) => ({
-        url: `/v1/p2p/customers/${customerId}/performance`,
+    getCustomerP2PPerformance: builder.query<P2PCustomerPerformance, WithCreds<{ orderId: string }>>({
+      query: ({ creds, orderId }) => ({
+        url: `/v1/p2p/orders/${orderId}/customer-performance`,
         method: 'GET',
         data: { creds },
       }),

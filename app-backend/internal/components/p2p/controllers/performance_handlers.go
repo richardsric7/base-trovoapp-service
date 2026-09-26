@@ -27,17 +27,31 @@ func getMerchantPerformanceHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFun
 	}
 }
 
-// getCustomerPerformanceHandler lets a merchant look up a specific
-// customer's performance before deciding to accept their order (Plan
-// Section 8/26) - the same visibility a merchant already has into who is
-// ordering from them via the order itself.
-func getCustomerPerformanceHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+// getOrderCustomerPerformanceHandler lets a merchant look up the
+// performance of the specific customer they have an order with, before
+// deciding to accept it (Plan Section 8/26) - unlike merchant performance
+// (already public via the marketplace listing), a customer's trading
+// history is private, so this is scoped to a real order relationship
+// rather than taking an arbitrary customer id: the caller must be the
+// merchant on orderID, and the customer looked up is that order's own
+// customer, never a caller-supplied id.
+func getOrderCustomerPerformanceHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if _, err := currentUser(c, gc); err != nil {
+		user, err := currentUser(c, gc)
+		if err != nil {
 			writeError(c, err)
 			return
 		}
-		perf, err := p2pServices.GetCustomerPerformance(gc.DB, c.Param("customerID"))
+		order, err := p2pServices.GetOrderByID(gc.DB, c.Param("orderID"))
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "error-order-not-found"})
+			return
+		}
+		if order.MerchantUserID != user.ID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-forbidden", "message": "You are not the merchant on this order"})
+			return
+		}
+		perf, err := p2pServices.GetCustomerPerformance(gc.DB, order.CustomerUserID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error-temporary-server-error"})
 			return
