@@ -4,7 +4,6 @@ import { useTradesQuery } from "@/redux/api/p2p";
 import Link from "next/link";
 
 import React, { useMemo, useState } from "react";
-import { MdVerified } from "react-icons/md";
 import styled from "styled-components";
 
 const Trades = () => {
@@ -12,7 +11,7 @@ const Trades = () => {
   const [pageSize, setPageSize] = useState(10);
   const { data, isLoading } = useTradesQuery({
     page: currentPage,
-    page_size: pageSize,
+    pageSize,
   });
   
   const columns = [
@@ -60,8 +59,7 @@ const Trades = () => {
           <Avatar />
           <div>
             <UserContent>
-              <UserName>{record.offerMaker || "N/A"}</UserName>
-              {/* <MdVerified color="#007CDF" /> */}
+              <UserName>{record.merchantUsername || "N/A"}</UserName>
             </UserContent>
           </div>
         </UserInfoSection>
@@ -78,8 +76,7 @@ const Trades = () => {
           <Avatar />
           <div>
             <UserContent>
-              <UserName>{record.offerTaker || "N/A"}</UserName>
-              {/* <MdVerified color="#007CDF" /> */}
+              <UserName>{record.customerUsername || "N/A"}</UserName>
             </UserContent>
           </div>
         </UserInfoSection>
@@ -87,75 +84,20 @@ const Trades = () => {
     },
   ];
 
-  // Dummy data for testing
-  const dummyData = [
-    {
-      username: "JohnDoe",
-      fullName: "John Doe",
-      price: "0.510595 NGN",
-      amount: "90,450.00 TROV",
-      total: "45,270.41 NGN",
-      tradedOn: "23 Sep 2023, 8:17",
-    },
-    {
-      username: "JaneSmith",
-      fullName: "Jane Smith",
-      price: "0.510595 NGN",
-      amount: "90,450.00 TROV",
-      total: "45,270.41 NGN",
-      tradedOn: "23 Sep 2023, 8:17",
-    },
-    {
-      username: "Marlone",
-      fullName: "Mark Ovey",
-      price: "0.510595 NGN",
-      amount: "90,450.00 TROV",
-      total: "45,270.41 NGN",
-      tradedOn: "23 Sep 2023, 8:17",
-    },
-
-    {
-      username: "JaneS",
-      fullName: "Jane Smith",
-      price: "0.510595 NGN",
-      amount: "90,450.00 TROV",
-      total: "45,270.41 NGN",
-      tradedOn: "23 Sep 2023, 8:17",
-    },
-  ];
-
-  // const dataSource = useMemo(() => {
-  //   return dummyData.map((item, index) => ({
-  //     key: index + 1,
-  //     username: item.username,
-  //     fullName: item.fullName,
-  //     price: item.price,
-  //     amount: item.amount,
-  //     total: item.total,
-  //     tradedOn: item.tradedOn,
-  //   }));
-  // }, []);
-
   const dataSource = useMemo(() => {
     const tradesArray = data?.data?.data.slice(0, 6);
 
     if (!Array.isArray(tradesArray)) return [];
 
-    return tradesArray.map((item) => {
-      const price = item.offerAssetPrice ?? 0;
-      const amount = item.offerAssetAmount ?? 0;
-      const total = price * amount;
-
-      return {
-        key: item.id,
-        price: `${price.toLocaleString()} ${item.offerCurrencyID ?? ""}`,
-        amount: `${amount.toLocaleString()} ${item.offerAssetId ?? ""}`,
-        total: `${total.toLocaleString()} ${item.offerCurrencyID ?? ""}`,
-        tradedOn: item.CreatedAt ?? "N/A",
-        offerMaker: item.offerMaker ?? "N/A",
-        offerTaker: item.offerTaker ?? "N/A",
-      };
-    });
+    return tradesArray.map((item) => ({
+      key: item.id,
+      price: `${item.price} ${item.currency}`,
+      amount: `${item.specifiedAssetAmount} ${item.asset}`,
+      total: `${item.paymentAmount} ${item.currency}`,
+      tradedOn: item.createdAt ?? "N/A",
+      merchantUsername: item.merchantUsername ?? "N/A",
+      customerUsername: item.customerUsername ?? "N/A",
+    }));
   }, [data]);
 
   return (

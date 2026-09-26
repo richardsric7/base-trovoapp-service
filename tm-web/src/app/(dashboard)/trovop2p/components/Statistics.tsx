@@ -21,60 +21,38 @@ const Statistics = () => {
     <Container>
       <MetricsCardContainer>
         <Card
-          text="Total Registered Users"
-          heading={data?.data?.total_users ?? 0}
+          text="Total Offers"
+          heading={data?.data?.totalOffers ?? 0}
           img={usersGroupIcon}
         />
 
         <Card
-          text="Total Market Makers"
-          //   heading={data?.data?.total_active_users ?? 0}
-          heading={0.01}
+          text="Active Offers"
+          heading={data?.data?.activeOffers ?? 0}
           img={merchantsIcon}
         />
 
-        <Card text="Active Users" heading={0.89} img={activeIcon} />
+        <Card
+          text="Total Orders"
+          heading={data?.data?.totalOrders ?? 0}
+          img={activeIcon}
+        />
 
-        <Card text="New Users" heading={0.89} img={newUsersIcon} />
+        <Card
+          text="Completed Orders"
+          heading={data?.data?.completedOrders ?? 0}
+          img={newUsersIcon}
+        />
       </MetricsCardContainer>
 
       <ChartsContainer>
         <P2pBarChart
           data={{
             data: {
-              daily_active_and_new_users: { active_users: 100, new_users: 20 },
-              weekly_active_and_new_users: { active_users: 500, new_users: 80 },
-              monthly_active_and_new_users: {
-                active_users: 2000,
-                new_users: 400,
-              },
-              //   total_users: data?.data?.total_users ?? 0,
-              total_users: 100,
+              totalOrders: data?.data?.totalOrders ?? 0,
             },
           }}
         />
-        {/* <BarChart
-          data={{
-            data: {
-              daily_active_and_new_users: data?.data
-                ?.daily_active_and_new_users || {
-                active_users: 0,
-                new_users: 0,
-              },
-              weekly_active_and_new_users: data?.data
-                ?.weekly_active_and_new_users || {
-                active_users: 0,
-                new_users: 0,
-              },
-              monthly_active_and_new_users: data?.data
-                ?.monthly_active_and_new_users || {
-                active_users: 0,
-                new_users: 0,
-              },
-              total_users: data?.data?.total_users ?? 0,
-            },
-          }}
-        /> */}
 
         <div>
           <RoundContainer>

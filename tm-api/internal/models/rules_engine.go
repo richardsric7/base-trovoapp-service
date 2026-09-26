@@ -71,11 +71,3 @@ type OffendingIP struct {
 	CreatedAt time.Time `json:"created_at"`
 	IPAddress string    `gorm:"size:100;not null;index:offending_ip_index,unique" json:"ip_address"`
 }
-
-type AssetLimit struct {
-	ID              uint64    `gorm:"primaryKey" json:"id"`
-	CreatedAt       time.Time `json:"-"`
-	AssetCode       string    `gorm:"size:12;not null;index:asset_limit_index,unique"`
-	MaxSizePerOffer float64   `gorm:"default:0" json:"maxSizePerOffer"`
-	MaxSizePerOrder float64   `gorm:"default:0" json:"maxSizePerOrder"`
-}

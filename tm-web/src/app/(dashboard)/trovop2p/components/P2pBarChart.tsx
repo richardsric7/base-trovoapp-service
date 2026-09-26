@@ -18,13 +18,7 @@ type DisplayUnit = "hours" | "days" | "weeks" | "months" | "years";
 interface BarChartProps {
   data?: {
     data?: {
-      daily_active_and_new_users?: { active_users: number; new_users: number };
-      weekly_active_and_new_users?: { active_users: number; new_users: number };
-      monthly_active_and_new_users?: {
-        active_users: number;
-        new_users: number;
-      };
-      total_users?: number;
+      totalOrders?: number;
     };
   };
 }
@@ -181,7 +175,7 @@ const P2pBarChart: React.FC<BarChartProps> = ({ data }) => {
           <div>
             <Text>Overview</Text>
             <TotalUsers>
-              Total Users: {data?.data?.total_users ?? 0}{" "}
+              Total Orders: {data?.data?.totalOrders ?? 0}{" "}
             </TotalUsers>
           </div>
 

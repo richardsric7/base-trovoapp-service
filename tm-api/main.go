@@ -7,8 +7,6 @@ import (
 	"errors"
 	"strings"
 
-	// offers "admin-panel-dashboard/internal/components/p2p_offers/controllers"
-	//orders "admin-panel-dashboard/internal/components/p2p_orders/controllers"
 	//payments "admin-panel-dashboard/internal/components/payments/controllers"
 	//paymentServices "admin-panel-dashboard/internal/components/payments/services"
 	root "admin-panel-dashboard/internal/components/root/controllers"

@@ -72,9 +72,9 @@ const P2pUsersTable = ({ searchTerm }: SearchTermProps) => {
     },
     {
       title: "Registration Date",
-      dataIndex: "registration_date",
-      key: "registration_date",
-      render: (date: number) =>
+      dataIndex: "registrationDate",
+      key: "registrationDate",
+      render: (date: string) =>
         new Date(date).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
@@ -83,10 +83,10 @@ const P2pUsersTable = ({ searchTerm }: SearchTermProps) => {
     },
     {
       title: "Account Status",
-      dataIndex: "account_status",
-      key: "account_status",
-      render: (status: number) => {
-        const isActive = status === 0;
+      dataIndex: "suspended",
+      key: "suspended",
+      render: (suspended: boolean) => {
+        const isActive = !suspended;
         return (
           <UserStatus isActive={isActive}>
             {isActive ? "Active" : "Suspended"}
@@ -96,11 +96,9 @@ const P2pUsersTable = ({ searchTerm }: SearchTermProps) => {
     },
     {
       title: "Market Makers",
-      dataIndex: "merchant_status",
-      key: "merchant_status",
-      render: (status: number) => {
-        const isMerchant = status === 1;
-
+      dataIndex: "isMerchant",
+      key: "isMerchant",
+      render: (isMerchant: boolean) => {
         return (
           <MerchantStatus isNormal={isMerchant}>
             {isMerchant ? "Merchant" : "Non-merchant"}
@@ -153,9 +151,9 @@ const P2pUsersTable = ({ searchTerm }: SearchTermProps) => {
         username: user.username,
         email: user.email,
         phone: user.phone,
-        registration_date: user.registration_date,
-        account_status: user.account_status,
-        merchant_status: user.merchant_status,
+        registrationDate: user.registrationDate,
+        suspended: user.suspended,
+        isMerchant: user.isMerchant,
       })) || []
     );
   }, [data?.data?.data]);
@@ -176,11 +174,7 @@ const P2pUsersTable = ({ searchTerm }: SearchTermProps) => {
             columns={columns}
             dataSource={dataSource}
             onRowClick={(record) => {
-              const destination =
-                record.account_status !== 0
-                  ? `/p2pusers/suspendUser/${record.username}`
-                  : `/p2pusers/${record.username}`;
-              router.push(destination);
+              router.push(`/p2pusers/${record.username}`);
             }}
           />
           <Pagination
