@@ -8,6 +8,7 @@ import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
+import 'package:trovo_app/widgets/p2p_merchant_gate.dart';
 import 'package:trovo_app/widgets/popups.dart';
 
 // P2PCreateOfferView (Plan Section 95.12): merchant offer creation, a
@@ -106,7 +107,7 @@ class _P2PCreateOfferViewState extends State<P2PCreateOfferView> {
         title: Text('p2pcreateoffertitle'.tr(), style: TextStyle(color: notifier.getblck)),
         iconTheme: IconThemeData(color: notifier.getblck),
       ),
-      body: Form(
+      body: P2PMerchantGate(child: Form(
         key: formKey,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(P2PTheme.space4),
@@ -166,7 +167,7 @@ class _P2PCreateOfferViewState extends State<P2PCreateOfferView> {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 

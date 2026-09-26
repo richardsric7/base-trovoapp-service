@@ -2,6 +2,7 @@ package p2p
 
 import (
 	p2pModels "trovo-wallet-api/internal/components/p2p/models"
+	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -31,8 +32,25 @@ type CreateOfferInput struct {
 }
 
 // CreateOffer validates the input against the curated asset table and
-// creates a DRAFT offer owned by merchantUsername/merchantUserID.
+// creates a DRAFT offer owned by merchantUsername/merchantUserID. Only a
+// user who has requested and been granted merchant status (see
+// RequestMerchantStatus) may create offers - this is the server-side
+// enforcement of the "only merchants can create offers" rule the client
+// surfaces as a notice/request-to-become-a-merchant prompt.
 func CreateOffer(gc *sharedconfig.GlobalConfig, merchantUsername, merchantUserID string, in CreateOfferInput) (p2pModels.Offer, error) {
+	merchant, err := usersDB.GetUser(merchantUserID, gc.DB, gc)
+	if err != nil {
+		return p2pModels.Offer{}, err
+	}
+	if !merchant.IsMerchant {
+		return p2pModels.Offer{}, &tErrors.CustomError{
+			Param:      "merchant",
+			Err:        "error-not-a-merchant",
+			ErrMessage: "Only merchants can create P2P offers. Request merchant status first.",
+			Code:       403,
+		}
+	}
+
 	if in.OfferType != p2pModels.OfferTypeBuy && in.OfferType != p2pModels.OfferTypeSell {
 		return p2pModels.Offer{}, &tErrors.CustomError{Param: "offerType", Err: "error-invalid-offer-type", ErrMessage: "offerType must be BUY or SELL"}
 	}
@@ -249,8 +267,18 @@ type MarketplaceFilter struct {
 }
 
 // ListMarketplaceOffers returns ACTIVE+ONLINE offers matching the filter,
-// ordered by the most recent ranking snapshot (Plan Section 14) where one
-// exists, falling back to newest-first.
+// from a merchant who is both still a merchant and currently online (see
+// SetMerchantOnlineStatus), ordered by the most recent ranking snapshot
+// (Plan Section 14) where one exists, falling back to newest-first.
+//
+// The merchant-online check is a join/filter against User.MerchantOnline,
+// not a bulk write to every affected Offer.AvailabilityStatus, when a
+// merchant goes offline: that keeps each offer's own AvailabilityStatus
+// exactly as the merchant individually left it (some may already be
+// individually PAUSED/OFFLINE), so toggling back online reveals exactly
+// the offers that were actually online before, nothing more - a bulk
+// write would need to remember and restore each offer's prior state to
+// get the same result, for no benefit.
 func ListMarketplaceOffers(db *gorm.DB, f MarketplaceFilter) ([]p2pModels.Offer, int64, error) {
 	if f.Page < 1 {
 		f.Page = 1
@@ -258,29 +286,36 @@ func ListMarketplaceOffers(db *gorm.DB, f MarketplaceFilter) ([]p2pModels.Offer,
 	if f.PageSize < 1 || f.PageSize > 100 {
 		f.PageSize = 20
 	}
-	q := db.Model(&p2pModels.Offer{}).Where("status = ?", p2pModels.OfferStatusActive)
+	q := db.Model(&p2pModels.Offer{}).
+		Joins("JOIN users ON users.id = offers.merchant_user_id").
+		Where("offers.status = ? AND offers.availability_status = ? AND users.is_merchant = ? AND users.merchant_online = ?",
+			p2pModels.OfferStatusActive, p2pModels.OfferAvailabilityOnline, true, true)
 	if f.OfferType != "" {
-		q = q.Where("offer_type = ?", f.OfferType)
+		q = q.Where("offers.offer_type = ?", f.OfferType)
 	}
 	if f.Asset != "" {
-		q = q.Where("asset = ?", f.Asset)
+		q = q.Where("offers.asset = ?", f.Asset)
 	}
 	if f.CountryCode != "" {
-		q = q.Where("country_code = ?", f.CountryCode)
+		q = q.Where("offers.country_code = ?", f.CountryCode)
 	}
 	if f.Currency != "" {
-		q = q.Where("currency = ?", f.Currency)
+		q = q.Where("offers.currency = ?", f.Currency)
 	}
 	var total int64
 	if err := q.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 	var offers []p2pModels.Offer
-	// Online offers first; within each group, a ranked offer (CalculateRanking's
-	// periodic sweep, Plan Section 14) sorts by its rank ascending (1 = best),
-	// and an offer with no snapshot yet falls back to newest-first.
-	err := q.Joins("LEFT JOIN offer_ranking_snapshots ON offer_ranking_snapshots.offer_id = offers.id").
-		Order("offers.availability_status desc, offer_ranking_snapshots.rank IS NULL, offer_ranking_snapshots.rank ASC, offers.updated_at desc").
+	// Select offers.* explicitly: without it, the users join's own "id"
+	// column (a different id from offers.id) would make a bare SELECT *
+	// ambiguous and could shadow offers.id when scanned into Offer. A
+	// ranked offer (CalculateRanking's periodic sweep, Plan Section 14)
+	// sorts by its rank ascending (1 = best); an offer with no snapshot yet
+	// falls back to newest-first.
+	err := q.Select("offers.*").
+		Joins("LEFT JOIN offer_ranking_snapshots ON offer_ranking_snapshots.offer_id = offers.id").
+		Order("offer_ranking_snapshots.rank IS NULL, offer_ranking_snapshots.rank ASC, offers.updated_at desc").
 		Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).Find(&offers).Error
 	return offers, total, err
 }

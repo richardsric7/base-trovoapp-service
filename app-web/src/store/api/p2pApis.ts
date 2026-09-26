@@ -9,6 +9,7 @@ import {
   P2PRefund,
   P2PMerchantPerformance,
   P2PCustomerPerformance,
+  P2PMerchantStatus,
 } from '../../types/p2p';
 
 export type P2PCreds = {
@@ -287,6 +288,32 @@ export const p2pApi = baseApi.injectEndpoints({
       invalidatesTags: [tagTypes.p2pRefund],
     }),
 
+    // ---- Merchant status (request/online toggle) ----
+    getP2PMerchantStatus: builder.query<P2PMerchantStatus, WithCreds<{}>>({
+      query: ({ creds }) => ({
+        url: '/v1/p2p/merchants/status',
+        method: 'GET',
+        data: { creds },
+      }),
+      providesTags: [tagTypes.p2pMerchant],
+    }),
+    requestP2PMerchantStatus: builder.mutation<P2PMerchantStatus, WithCreds<{}>>({
+      query: ({ creds }) => ({
+        url: '/v1/p2p/merchants/request',
+        method: 'POST',
+        data: { creds },
+      }),
+      invalidatesTags: [tagTypes.p2pMerchant],
+    }),
+    setP2PMerchantOnlineStatus: builder.mutation<P2PMerchantStatus, WithCreds<{ online: boolean }>>({
+      query: ({ creds, online }) => ({
+        url: '/v1/p2p/merchants/online-status',
+        method: 'PUT',
+        data: { payload: { online }, creds },
+      }),
+      invalidatesTags: [tagTypes.p2pMerchant],
+    }),
+
     // ---- Performance / trust signals ----
     getMerchantP2PPerformance: builder.query<P2PMerchantPerformance, WithCreds<{ merchantId: string }>>({
       query: ({ creds, merchantId }) => ({
@@ -343,4 +370,7 @@ export const {
   useGetMerchantP2PPerformanceQuery,
   useGetMyP2PPerformanceQuery,
   useGetCustomerP2PPerformanceQuery,
+  useGetP2PMerchantStatusQuery,
+  useRequestP2PMerchantStatusMutation,
+  useSetP2PMerchantOnlineStatusMutation,
 } = p2pApi;

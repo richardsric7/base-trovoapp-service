@@ -679,6 +679,16 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating P2P Offer: ", errMigrate)
 		}
+		// Backfill IsMerchant for any user who already has at least one
+		// offer, now that CreateOffer requires it - without this, every
+		// pre-existing merchant would be locked out of creating new offers
+		// (though not from managing their existing ones, which only check
+		// offer ownership) the moment that gate goes live. Idempotent: the
+		// "AND is_merchant = false" clause makes re-running it on every
+		// startup a no-op once done.
+		if r := gormDB.Exec("UPDATE users SET is_merchant = true WHERE is_merchant = false AND id IN (SELECT DISTINCT merchant_user_id FROM offers)"); r.Error != nil {
+			log.Println("[OpenDb] error backfilling IsMerchant for existing P2P merchants: ", r.Error)
+		}
 		errMigrate = gormDB.AutoMigrate(&p2pModels.Order{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating P2P Order: ", errMigrate)

@@ -8,6 +8,7 @@ import 'package:trovo_app/network/p2p_requests.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
+import 'package:trovo_app/widgets/p2p_merchant_gate.dart';
 
 // P2PMyOffersView (Plan Section 95.11): a merchant's own offers, with
 // online/offline toggle.
@@ -24,12 +25,15 @@ class _P2PMyOffersViewState extends State<P2PMyOffersView> {
   late P2PApi api;
   bool loading = true;
   List<P2POffer> offers = [];
+  bool? merchantOnline;
+  bool togglingMerchant = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     api = P2PApi(appState);
     _load();
+    _loadMerchantStatus();
   }
 
   Future<void> _load() async {
@@ -38,6 +42,23 @@ class _P2PMyOffersViewState extends State<P2PMyOffersView> {
     setState(() {
       offers = result;
       loading = false;
+    });
+  }
+
+  Future<void> _loadMerchantStatus() async {
+    final status = await api.getMerchantStatus();
+    if (!mounted) return;
+    setState(() => merchantOnline = status?['merchantOnline'] == true);
+  }
+
+  Future<void> _toggleMerchantOnline() async {
+    if (merchantOnline == null) return;
+    setState(() => togglingMerchant = true);
+    await api.setMerchantOnlineStatus(!merchantOnline!);
+    if (!mounted) return;
+    setState(() {
+      merchantOnline = !merchantOnline!;
+      togglingMerchant = false;
     });
   }
 
@@ -91,7 +112,10 @@ class _P2PMyOffersViewState extends State<P2PMyOffersView> {
           ),
         ],
       ),
-      body: loading
+      body: P2PMerchantGate(child: Column(
+        children: [
+          _merchantToggleCard(),
+          Expanded(child: loading
           ? const Center(child: CircularProgressIndicator())
           : offers.isEmpty
               ? P2PEmptyState(
@@ -170,6 +194,44 @@ class _P2PMyOffersViewState extends State<P2PMyOffersView> {
                     },
                   ),
                 ),
+          ),
+        ],
+      )),
+    );
+  }
+
+  Widget _merchantToggleCard() {
+    if (merchantOnline == null) return const SizedBox.shrink();
+    final online = merchantOnline!;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(P2PTheme.space4, P2PTheme.space2, P2PTheme.space4, 0),
+      child: P2PListCard(
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    online ? 'p2pyouareonline'.tr() : 'p2pyouareoffline'.tr(),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: P2PTheme.space1),
+                  Text(
+                    online ? 'p2ponlinehint'.tr() : 'p2pofflinehint'.tr(),
+                    style: const TextStyle(color: Colors.black54, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: online,
+              activeColor: P2PTheme.success,
+              onChanged: togglingMerchant ? null : (_) => _toggleMerchantOnline(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

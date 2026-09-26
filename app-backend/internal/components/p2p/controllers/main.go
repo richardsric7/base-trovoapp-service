@@ -68,6 +68,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.GET("/v1/p2p/orders/:orderID/customer-performance", auth, getOrderCustomerPerformanceHandler(gc))
 	router.GET("/v1/p2p/my-performance", auth, getMyPerformanceHandler(gc))
 
+	// Merchant status - request merchant status (gated on KYC level 2) and
+	// go online/offline (Plan: a merchant-only page shows a "become a
+	// merchant" notice+request button when isMerchant is false).
+	router.GET("/v1/p2p/merchants/status", auth, getMerchantStatusHandler(gc))
+	router.POST("/v1/p2p/merchants/request", auth, postMerchantRequestHandler(gc))
+	router.PUT("/v1/p2p/merchants/online-status", auth, putMerchantOnlineStatusHandler(gc))
+
 	startBackgroundSweeps(gc)
 }
 

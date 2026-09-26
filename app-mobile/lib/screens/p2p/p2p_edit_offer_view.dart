@@ -9,6 +9,7 @@ import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/loader.dart';
+import 'package:trovo_app/widgets/p2p_merchant_gate.dart';
 import 'package:trovo_app/widgets/popups.dart';
 
 // P2PEditOfferView lets a merchant edit an existing offer's terms (Plan
@@ -121,7 +122,7 @@ class _P2PEditOfferViewState extends State<P2PEditOfferView> {
       ),
       body: offer == null
           ? const Center(child: CircularProgressIndicator())
-          : Form(
+          : P2PMerchantGate(child: Form(
               key: formKey,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(P2PTheme.space4),
@@ -167,7 +168,7 @@ class _P2PEditOfferViewState extends State<P2PEditOfferView> {
                   ],
                 ),
               ),
-            ),
+            )),
     );
   }
 

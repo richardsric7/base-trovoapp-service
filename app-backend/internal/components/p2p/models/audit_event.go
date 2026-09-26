@@ -24,6 +24,9 @@ const (
 	EventDisputeResolved       = "DISPUTE_RESOLVED"
 	EventRefundIssued          = "REFUND_ISSUED"
 	EventRefundClaimed         = "REFUND_CLAIMED"
+	EventMerchantEnabled       = "MERCHANT_ENABLED"
+	EventMerchantOnline        = "MERCHANT_ONLINE"
+	EventMerchantOffline       = "MERCHANT_OFFLINE"
 )
 
 // P2PAuditEvent is an append-only audit trail row. app-backend has no

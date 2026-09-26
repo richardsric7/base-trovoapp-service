@@ -1217,5 +1217,15 @@
     "p2pordernotfound": "This order could not be found.",
     "p2pmerchantlabel": "Merchant: {}",
     "p2pcustomerlabel": "Customer: {}",
-    "p2ptransactionhash": "Transaction hash"
+    "p2ptransactionhash": "Transaction hash",
+    "p2ponlymerchants": "Only merchants can do this",
+    "p2ponlymerchantsbody": "You need to become a P2P merchant before you can create and manage offers. It only takes a moment - if you've completed KYC level 2, you'll be approved right away.",
+    "p2pbecomeamerchant": "Become a merchant",
+    "p2prequesting": "Requesting...",
+    "p2pcouldnotrequestmerchant": "Could not request merchant status. Please try again.",
+    "p2pbacktomarketplace": "Back to marketplace",
+    "p2pyouareonline": "You're currently online",
+    "p2pyouareoffline": "You're currently offline",
+    "p2ponlinehint": "Your offers are visible in marketplace search.",
+    "p2pofflinehint": "All your offers are hidden from marketplace search until you go back online."
 }

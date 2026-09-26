@@ -20,6 +20,8 @@ func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
 	jsonObj.AccountRecoveryEnabled = u.AccountRecoveryEnabled
 	jsonObj.Verified = u.Verified
 	jsonObj.Suspended = u.Suspended
+	jsonObj.IsMerchant = u.IsMerchant
+	jsonObj.MerchantOnline = u.MerchantOnline
 	jsonObj.HasSecurityQuestions = u.HasSecurityQuestions
 	jsonObj.CuratedSwapList = u.GetCuratedSwapList(gc)
 	jsonObj.PatronMembership = u.PatronMembership

@@ -249,4 +249,18 @@ class P2PApi {
     if (response['statusCode'] != 200) return null;
     return response['data'];
   }
+
+  // ---- Merchant status (request/online toggle) ----
+
+  Future<Map<String, dynamic>?> getMerchantStatus() async {
+    var response = await _get('/v1/p2p/merchants/status');
+    if (response['statusCode'] != 200) return null;
+    return response['data'];
+  }
+
+  Future<Map> requestMerchantStatus() =>
+      _post('/v1/p2p/merchants/request', {});
+
+  Future<Map> setMerchantOnlineStatus(bool online) =>
+      _put('/v1/p2p/merchants/online-status', {'online': online});
 }

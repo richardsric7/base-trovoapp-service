@@ -4,6 +4,7 @@ import Header from '../../../components/header';
 import { useCreateP2POfferMutation } from '../../../store/api/p2pApis';
 import { useP2PIdentity } from '../../../hooks/useP2PIdentity';
 import { p2p } from '../../../components/p2p/P2PTheme';
+import P2PMerchantGate from '../../../components/p2p/P2PMerchantGate';
 
 // P2PCreateOffer (Plan Section 96.12): merchant offer creation - per Plan
 // Section 92, whether this introduces react-hook-form/zod or follows the
@@ -65,7 +66,7 @@ export default function P2PCreateOffer() {
     <div className="flex flex-col space-y-4 p-3 max-w-2xl">
       <Header />
       <h1 className="text-xl font-bold text-primary-800 px-2">Create offer</h1>
-
+      <P2PMerchantGate>
       <div className="flex gap-2 max-w-xs">
         {(['SELL', 'BUY'] as const).map((t) => (
           <button
@@ -102,6 +103,7 @@ export default function P2PCreateOffer() {
       >
         Create offer
       </button>
+      </P2PMerchantGate>
     </div>
   );
 }
