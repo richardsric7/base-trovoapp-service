@@ -63,6 +63,9 @@ func QuoteOrderFees(gc *sharedconfig.GlobalConfig, offerID, specifiedAssetAmount
 	if e != nil || specifiedAmount.LessThanOrEqual(decimal.Zero) {
 		return OrderFeeBreakdown{}, offer, &tErrors.CustomError{Param: "specifiedAssetAmount", Err: "error-invalid-amount", ErrMessage: "specifiedAssetAmount must be a positive decimal number"}
 	}
+	if err := requireMerchantOnline(gc, offer.MerchantUserID); err != nil {
+		return OrderFeeBreakdown{}, offer, err
+	}
 	feeCfg, err := GetActiveFeeConfiguration(gc.DB, offer.CountryCode)
 	if err != nil {
 		return OrderFeeBreakdown{}, offer, &tErrors.CustomError{Param: "offerId", Err: "error-no-fee-configuration", ErrMessage: "No fee configuration is available for this offer's country"}
@@ -86,6 +89,9 @@ func CreateOrder(gc *sharedconfig.GlobalConfig, customerUserID, customerUsername
 	}
 	if offer.Status != p2pModels.OfferStatusActive || offer.AvailabilityStatus != p2pModels.OfferAvailabilityOnline {
 		return p2pModels.Order{}, &tErrors.CustomError{Param: "offerId", Err: "error-offer-not-available", ErrMessage: "This offer is not currently available"}
+	}
+	if err := requireMerchantOnline(gc, offer.MerchantUserID); err != nil {
+		return p2pModels.Order{}, err
 	}
 
 	// Self-trade prevention (Plan Section 12) - backend-enforced, never

@@ -30,6 +30,8 @@ type UserJSON struct {
 	UserWallets            []UserWalletJSON          `json:"userWallets"`
 	Verified               int                       `json:"verified"`
 	Suspended              int                       `json:"suspended"`
+	IsMerchant             bool                      `json:"isMerchant"`
+	MerchantOnline         bool                      `json:"merchantOnline"`
 	HasSecurityQuestions   int                       `json:"hasSecurityQuestions"`
 	CuratedSwapList        []assets.CuratedSwapAsset `json:"curatedSwapList"`
 	PatronMembership       *UserPatronMembership     `gorm:"foreignKey:Username;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"patronMembership"`

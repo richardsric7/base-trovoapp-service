@@ -44,6 +44,17 @@ type User struct {
 	Verified                 int                     `gorm:"type:integer;not null;default:0" json:"verified"`
 	Suspended                int                     `gorm:"type:integer;not null;default:0" json:"suspended"`
 	SuspensionReason         *string                 `gorm:"null" json:"suspensionReason"`
+	// IsMerchant/MerchantOnline back the P2P marketplace's merchant gate
+	// (internal/components/p2p's CreateOffer/ListMarketplaceOffers): a user
+	// becomes a merchant by requesting it once KYC level 2 is done (see
+	// p2p.RequestMerchantStatus), and can then take themselves offline,
+	// which hides every one of their offers from marketplace search until
+	// they toggle back online (see p2p.SetMerchantOnlineStatus). Defaults
+	// to true so the online toggle only matters once a merchant actively
+	// wants a break, rather than requiring an extra "go online" step right
+	// after becoming a merchant.
+	IsMerchant               bool                    `gorm:"not null;default:false" json:"isMerchant"`
+	MerchantOnline           bool                    `gorm:"not null;default:true" json:"merchantOnline"`
 	WalletsSharedWithUser    []WalletPermission      `gorm:"foreignKey:TargetUsername;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	PatronMembership         *UserPatronMembership   `gorm:"foreignKey:Username;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"patronMembership"`
 	UserClosedGroups         []UserClosedGroup       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userClosedGroups"`

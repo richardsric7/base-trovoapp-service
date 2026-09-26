@@ -4,6 +4,7 @@ import Header from '../../../components/header';
 import { useGetP2POfferQuery, useUpdateP2POfferMutation } from '../../../store/api/p2pApis';
 import { useP2PIdentity } from '../../../hooks/useP2PIdentity';
 import { p2p } from '../../../components/p2p/P2PTheme';
+import P2PMerchantGate from '../../../components/p2p/P2PMerchantGate';
 
 // P2PEditOffer lets a merchant edit an existing offer's terms (Plan Section
 // 13's implied listing-management control). offerType/asset are fixed at
@@ -78,6 +79,7 @@ export default function P2PEditOffer() {
         {offer.offerType} {offer.asset} ({offer.currency})
       </p>
 
+      <P2PMerchantGate>
       <Field label="Price per unit" value={price} onChange={setPrice} numeric />
       <Field label="Min order amount" value={minOrderAmount} onChange={setMinOrderAmount} numeric />
       <Field label="Max order amount" value={maxOrderAmount} onChange={setMaxOrderAmount} numeric />
@@ -102,6 +104,7 @@ export default function P2PEditOffer() {
       >
         Save changes
       </button>
+      </P2PMerchantGate>
     </div>
   );
 }

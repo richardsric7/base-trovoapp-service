@@ -153,6 +153,21 @@ export type P2PCustomerPerformance = {
   lastActivityAt: string | null;
 };
 
+// P2PMerchantStatus backs the "only merchants can do this" gate: a
+// merchant-only page checks isMerchant before rendering its own content,
+// showing a notice with a request-to-become-a-merchant button instead
+// when it's false (see components/p2p/P2PMerchantGate). merchantOnline
+// only matters once isMerchant is true - it's the merchant's own
+// online/offline toggle, distinct from any individual offer's own
+// availabilityStatus (going offline hides every one of a merchant's
+// offers from marketplace search without touching each offer's own
+// online/offline state).
+export type P2PMerchantStatus = {
+  isMerchant: boolean;
+  merchantOnline: boolean;
+  kycLevel: number;
+};
+
 export type P2POrderFeeQuote = {
   offerId: string;
   specifiedAssetAmount: string;
