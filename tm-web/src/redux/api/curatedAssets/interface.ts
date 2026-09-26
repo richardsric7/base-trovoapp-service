@@ -38,6 +38,7 @@ export interface CuratedAssetListQueryParams {
   assetCode?: string;
   assetClassId?: number;
   p2pEnabled?: "true" | "false";
+  inactive?: "true" | "false";
 }
 
 export interface CuratedAssetListResponse {

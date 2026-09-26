@@ -27,6 +27,7 @@ import (
 // @Param assetCode query string false "Filter by asset code (partial match)"
 // @Param assetClassId query int false "Filter by asset class"
 // @Param p2pEnabled query string false "Filter by P2P-enabled (true/false)"
+// @Param inactive query string false "Filter by active status (true/false)"
 // @Success 200 {object} response.Data
 // @Failure 401,500 {object} object
 // @Router /assets/curated [get]
@@ -56,6 +57,10 @@ func GetCuratedAssetsHandler(walletDB *gorm.DB) gin.HandlerFunc {
 		if v := c.Query("p2pEnabled"); v != "" {
 			enabled := v == "true"
 			req.P2PEnabled = &enabled
+		}
+		if v := c.Query("inactive"); v != "" {
+			inactive := v == "true"
+			req.Inactive = &inactive
 		}
 		assets, total, err := usermetricsDB.ListCuratedAssets(walletDB, req)
 		if err != nil {
@@ -174,6 +179,46 @@ func SetCuratedAssetP2PEnabledHandler(walletDB *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		serverResponse.JSON(c, http.StatusOK, "P2P-enabled flag updated successfully", asset, nil)
+	}
+}
+
+type setInactiveRequest struct {
+	Inactive bool `json:"inactive"`
+}
+
+// @Summary Set a curated asset's active/inactive status
+// @Description Retires or restores a curated asset without deleting it - deactivation is the supported way to remove an asset from active use everywhere it's already referenced (wallets, historical offers/orders).
+// @Tags CuratedAssets
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "JWT Token" default(Bearer <your-token>)
+// @Param id path int true "Curated asset ID"
+// @Param data body setInactiveRequest true "Inactive flag"
+// @Success 200 {object} response.Data
+// @Failure 400,401,404,500 {object} object
+// @Router /assets/curated/{id}/inactive [put]
+func SetCuratedAssetInactiveHandler(walletDB *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if !checkAdminAuth(c, walletDB) {
+			return
+		}
+		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+			return
+		}
+		var req setInactiveRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		asset, err := usermetricsDB.SetCuratedAssetInactive(walletDB, id, req.Inactive)
+		if err != nil {
+			log.Println("[CURATED_ASSETS] error setting inactive:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		serverResponse.JSON(c, http.StatusOK, "Active status updated successfully", asset, nil)
 	}
 }
 

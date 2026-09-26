@@ -155,6 +155,20 @@ func SetCuratedAssetP2PEnabled(db *gorm.DB, id uint64, enabled bool) (models.Cur
 	return GetCuratedAssetByID(db, id)
 }
 
+// SetCuratedAssetInactive is the dedicated toggle for retiring/restoring a
+// curated asset without deleting its row - curated assets are referenced by
+// historical wallet/offer/order data, so admins retire one by setting this
+// flag rather than deleting it.
+func SetCuratedAssetInactive(db *gorm.DB, id uint64, inactive bool) (models.CuratedAsset, error) {
+	if _, err := GetCuratedAssetByID(db, id); err != nil {
+		return models.CuratedAsset{}, err
+	}
+	if err := db.Model(&models.CuratedAsset{}).Where("id = ?", id).Update("inactive", boolToInt(inactive)).Error; err != nil {
+		return models.CuratedAsset{}, err
+	}
+	return GetCuratedAssetByID(db, id)
+}
+
 // ListAssetClasses returns the reference list of asset categories, for the
 // admin form's category dropdown.
 func ListAssetClasses(db *gorm.DB) ([]models.AssetClass, error) {

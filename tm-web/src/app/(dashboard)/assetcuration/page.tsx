@@ -12,27 +12,34 @@ import {
   ICuratedAsset,
   useGetCuratedAssetsQuery,
   useSetCuratedAssetP2PEnabledMutation,
+  useSetCuratedAssetInactiveMutation,
 } from "@/redux/api/curatedAssets";
 
 const P2P_FILTER_OPTIONS = ["All assets", "P2P enabled", "P2P disabled"];
+const STATUS_FILTER_OPTIONS = ["All statuses", "Active", "Inactive"];
 const PAGE_SIZE = 20;
 
 const AssetCurationPage = () => {
   const [search, setSearch] = useState("");
   const [searchTrigger, setSearchTrigger] = useState("");
   const [p2pFilter, setP2pFilter] = useState(P2P_FILTER_OPTIONS[0]);
+  const [statusFilter, setStatusFilter] = useState(STATUS_FILTER_OPTIONS[0]);
   const [page, setPage] = useState(1);
 
   const p2pEnabled =
     p2pFilter === "P2P enabled" ? "true" : p2pFilter === "P2P disabled" ? "false" : undefined;
+  const inactive =
+    statusFilter === "Active" ? "false" : statusFilter === "Inactive" ? "true" : undefined;
 
   const { data, isLoading } = useGetCuratedAssetsQuery({
     page,
     pageSize: PAGE_SIZE,
     assetCode: searchTrigger || undefined,
     p2pEnabled,
+    inactive,
   });
   const [setP2PEnabled] = useSetCuratedAssetP2PEnabledMutation();
+  const [setInactive] = useSetCuratedAssetInactiveMutation();
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -62,9 +69,14 @@ const AssetCurationPage = () => {
       render: (v: number) => (v ? "Yes" : "No"),
     },
     {
-      title: "Inactive",
+      title: "Active",
       dataIndex: "inactive",
-      render: (v: number) => (v ? "Yes" : "No"),
+      render: (_: any, record: ICuratedAsset) => (
+        <ToggleSwitch
+          checked={!record.inactive}
+          onChange={(checked) => setInactive({ id: record.id, inactive: !checked })}
+        />
+      ),
     },
     {
       title: "P2P Enabled",
@@ -115,19 +127,34 @@ const AssetCurationPage = () => {
 
       <FiltersSection>
         <SearchBar value={search} onChange={handleSearchInputChange} handleSearch={handleSearch} />
-        <DropdownSelect
-          value={p2pFilter}
-          options={P2P_FILTER_OPTIONS}
-          onSelect={(item) => {
-            setPage(1);
-            setP2pFilter(item);
-          }}
-          placeholder="Filter"
-          labelText=""
-          backgroundColor="#F2F6F9"
-          borderless
-          iconColor="#00225A"
-        />
+        <FilterGroup>
+          <DropdownSelect
+            value={statusFilter}
+            options={STATUS_FILTER_OPTIONS}
+            onSelect={(item) => {
+              setPage(1);
+              setStatusFilter(item);
+            }}
+            placeholder="Status"
+            labelText=""
+            backgroundColor="#F2F6F9"
+            borderless
+            iconColor="#00225A"
+          />
+          <DropdownSelect
+            value={p2pFilter}
+            options={P2P_FILTER_OPTIONS}
+            onSelect={(item) => {
+              setPage(1);
+              setP2pFilter(item);
+            }}
+            placeholder="Filter"
+            labelText=""
+            backgroundColor="#F2F6F9"
+            borderless
+            iconColor="#00225A"
+          />
+        </FilterGroup>
       </FiltersSection>
 
       <CustomTable
@@ -197,6 +224,12 @@ const FiltersSection = styled.div`
   justify-content: space-between;
   padding-top: 25px;
   margin: 10px 0 30px 0;
+`;
+
+const FilterGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
 `;
 
 const StyledButtonLink = styled(Link)`
