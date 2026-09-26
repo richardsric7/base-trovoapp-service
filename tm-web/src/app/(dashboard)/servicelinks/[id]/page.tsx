@@ -17,6 +17,13 @@ const EditServiceLinkPage = () => {
   const { data, isLoading } = useGetServiceLinkByIdQuery(id as string, { skip: !id });
   const [saveServiceLink, { isLoading: isSaving }] = useSaveServiceLinkMutation();
 
+  const handleCopyApiKey = (apiKey: string) => {
+    navigator.clipboard
+      .writeText(apiKey)
+      .then(() => showSuccessToast("API key copied to clipboard"))
+      .catch(() => showErrorToast("Failed to copy API key"));
+  };
+
   const handleSubmit = async (values: ServiceLinkFormValues) => {
     try {
       await saveServiceLink({
@@ -64,7 +71,13 @@ const EditServiceLinkPage = () => {
               {data.data.owner?.email ? <MetaValue> ({data.data.owner.email})</MetaValue> : null}
             </Meta>
             <Meta>
-              API key: <MetaValue $mono>{data.data.apiKey}</MetaValue>
+              API key:{" "}
+              <ApiKeyValue
+                onClick={() => handleCopyApiKey(data.data.apiKey)}
+                title="Click to copy"
+              >
+                {data.data.apiKey}
+              </ApiKeyValue>
             </Meta>
             {data.data.suspended === 1 && (
               <SuspendedNotice>
@@ -110,10 +123,24 @@ const Meta = styled.p`
   margin: 0 0 4px 0;
 `;
 
-const MetaValue = styled.span<{ $mono?: boolean }>`
+const MetaValue = styled.span`
   color: #00225a;
   font-weight: 500;
-  font-family: ${(props) => (props.$mono ? "monospace" : "inherit")};
+`;
+
+const ApiKeyValue = styled.button`
+  font-family: monospace;
+  font-size: 13px;
+  color: #00225a;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const SuspendedNotice = styled.p`
