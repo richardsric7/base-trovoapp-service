@@ -47,6 +47,17 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.POST("/v1/p2p/disputes/:disputeID/merchant-confirms-payment", auth, postMerchantConfirmsPaymentHandler(gc))
 	router.POST("/v1/p2p/disputes/:disputeID/buyer-confirms-not-paid", auth, postBuyerConfirmsNotPaidHandler(gc))
 
+	// Admin/arbiter dispute resolution - app-backend has no admin/staff
+	// user model of its own (that lives in tm-api); this is a server-to-
+	// server endpoint an admin-authorized tm-api call can reach, the same
+	// API-key trust boundary as every other app-backend<->tm-api
+	// integration point (internal/components/servicelinks).
+	router.POST("/v1/p2p/disputes/:disputeID/admin-resolve", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postAdminResolveDisputeHandler(gc))
+
+	// Refunds
+	router.GET("/v1/p2p/refunds", auth, getMyRefundsHandler(gc))
+	router.POST("/v1/p2p/refunds/:refundID/claim", auth, postClaimRefundHandler(gc))
+
 	startBackgroundSweeps(gc)
 }
 

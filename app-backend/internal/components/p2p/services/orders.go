@@ -19,6 +19,18 @@ const (
 	// defaultApprovalWindow is how long a customer's order waits for
 	// merchant accept/reject before it auto-expires (Plan Section 24).
 	defaultApprovalWindow = 30 * time.Minute
+	// escrowDepositWindow is how long the depositor has to fund escrow
+	// once the merchant accepts, before the reservation is released.
+	escrowDepositWindow = 30 * time.Minute
+	// paymentWindow is how long the fiat payer has to send payment once
+	// escrow is confirmed, before the deposited asset is refunded back to
+	// its depositor.
+	paymentWindow = 60 * time.Minute
+	// paymentConfirmationWindow is how long the fiat recipient has to
+	// confirm receipt once the payer marks payment sent, before the order
+	// is auto-escalated into a dispute for review rather than any funds
+	// moving unilaterally.
+	paymentConfirmationWindow = 60 * time.Minute
 )
 
 // activeOrderStatuses are the statuses that count toward capacity limits -
@@ -256,7 +268,9 @@ func AcceptOrder(gc *sharedconfig.GlobalConfig, orderID, merchantUserID string) 
 	if order.OrderStatus != p2pModels.OrderStatusAwaitingApproval {
 		return order, &tErrors.CustomError{Param: "orderId", Err: "error-invalid-order-state", ErrMessage: "This order is no longer awaiting approval"}
 	}
+	escrowDeadline := time.Now().UTC().Add(escrowDepositWindow)
 	order.OrderStatus = p2pModels.OrderStatusAwaitingEscrowDeposit
+	order.ExpiresAt = &escrowDeadline
 	if err := gc.DB.Save(&order).Error; err != nil {
 		return order, &tErrors.ErrorTemporaryServerError{}
 	}
@@ -324,23 +338,131 @@ func CancelOrder(gc *sharedconfig.GlobalConfig, orderID, customerUserID string) 
 // AWAITING_APPROVAL -> EXPIRED transition; app-backend has no scheduler
 // primitive to hook into beyond a plain ticker goroutine, started from
 // Init - see controllers/main.go).
+// timeoutEligibleStatuses are the non-terminal statuses that carry a real
+// deadline (Order.ExpiresAt is set/reset on every stage transition - Plan
+// Section 24). Each has a distinct, safe consequence when it lapses - see
+// ExpireStaleOrders.
+var timeoutEligibleStatuses = []string{
+	p2pModels.OrderStatusAwaitingApproval,
+	p2pModels.OrderStatusAwaitingEscrowDeposit,
+	p2pModels.OrderStatusAwaitingPayment,
+	p2pModels.OrderStatusAwaitingPaymentConfirmation,
+}
+
+// ExpireStaleOrders sweeps every order past its current stage's deadline
+// and applies that stage's specific, safe consequence:
+//   - AWAITING_APPROVAL / AWAITING_ESCROW_DEPOSIT: no funds have moved yet,
+//     so the order simply expires and its reserved liquidity is released.
+//   - AWAITING_PAYMENT: the depositor's asset is already in escrow, so
+//     expiring must not just abandon it - the order is cancelled and the
+//     deposited amount is queued as a Refund back to the actual on-chain
+//     depositor (Plan Section 45).
+//   - AWAITING_PAYMENT_CONFIRMATION: the buyer has claimed they paid: an
+//     automated cancel/refund here could wrongly undo a legitimate
+//     payment, so this never moves funds unilaterally - it escalates into
+//     a dispute for a human (self-resolution or admin) to resolve instead.
 func ExpireStaleOrders(gc *sharedconfig.GlobalConfig) (int, error) {
 	var staleOrders []p2pModels.Order
-	if err := gc.DB.Where("order_status = ? AND expires_at IS NOT NULL AND expires_at < ?", p2pModels.OrderStatusAwaitingApproval, time.Now().UTC()).Find(&staleOrders).Error; err != nil {
+	if err := gc.DB.Where("order_status IN ? AND expires_at IS NOT NULL AND expires_at < ? AND is_disputed = ?",
+		timeoutEligibleStatuses, time.Now().UTC(), false).Find(&staleOrders).Error; err != nil {
 		return 0, err
 	}
 	count := 0
 	for i := range staleOrders {
 		order := staleOrders[i]
-		order.OrderStatus = p2pModels.OrderStatusExpired
-		if err := releaseReservedLiquidityAndSave(gc, &order); err != nil {
-			continue
+		switch order.OrderStatus {
+		case p2pModels.OrderStatusAwaitingApproval, p2pModels.OrderStatusAwaitingEscrowDeposit:
+			order.OrderStatus = p2pModels.OrderStatusExpired
+			if err := releaseReservedLiquidityAndSave(gc, &order); err != nil {
+				continue
+			}
+			RecordAuditEvent(gc, order.ID, order.OfferID, p2pModels.EventOrderExpired, "", order)
+			NotifyUsername(gc, order.CustomerUsername, "Trovo P2P: Order Expired", "Your order expired before the merchant responded in time.", map[string]string{"orderId": order.ID, "type": "P2P_ORDER_EXPIRED"})
+			NotifyUsername(gc, order.MerchantUsername, "Trovo P2P: Order Expired", "An order expired before it reached escrow deposit.", map[string]string{"orderId": order.ID, "type": "P2P_ORDER_EXPIRED"})
+
+		case p2pModels.OrderStatusAwaitingPayment:
+			if err := expireAwaitingPaymentOrder(gc, &order); err != nil {
+				continue
+			}
+
+		case p2pModels.OrderStatusAwaitingPaymentConfirmation:
+			if err := escalateStalePaymentConfirmationToDispute(gc, &order); err != nil {
+				continue
+			}
 		}
-		RecordAuditEvent(gc, order.ID, order.OfferID, p2pModels.EventOrderExpired, "", order)
-		NotifyUsername(gc, order.CustomerUsername, "Trovo P2P: Order Expired", "Your order expired because the merchant did not respond in time.", map[string]string{"orderId": order.ID, "type": "P2P_ORDER_EXPIRED"})
 		count++
 	}
 	return count, nil
+}
+
+// expireAwaitingPaymentOrder cancels an order whose fiat-payment window
+// lapsed and refunds the already-escrowed deposit back to its real
+// depositor (found via the canonical BlockchainDeposit, not
+// Order.AssetDepositor - Plan Section 11's role is a user id, not a wallet
+// address).
+func expireAwaitingPaymentOrder(gc *sharedconfig.GlobalConfig, order *p2pModels.Order) error {
+	deposit, err := FindCanonicalDepositForOrder(gc, order.ID)
+	if err != nil {
+		// No canonical deposit on record despite reaching AWAITING_PAYMENT
+		// should not happen, but expiring without a refund target would
+		// silently strand funds - skip and let the next sweep retry rather
+		// than guess.
+		return err
+	}
+	order.OrderStatus = p2pModels.OrderStatusCancelled
+	order.RefundableAmount = order.DepositedEscrowAmount
+	if err := gc.DB.Save(order).Error; err != nil {
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	refund := p2pModels.Refund{
+		ID:              gc.GenerateUUIDString(),
+		DepositID:       deposit.ID,
+		OrderID:         order.ID,
+		Sender:          deposit.Sender,
+		Token:           deposit.Token,
+		ContractAddress: deposit.ContractAddress,
+		Amount:          order.DepositedEscrowAmount,
+		Reason:          p2pModels.RefundReasonOrderExpired,
+	}
+	if err := gc.DB.Omit(clause.Associations).Create(&refund).Error; err != nil {
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	RecordAuditEvent(gc, order.ID, order.OfferID, p2pModels.EventOrderExpired, "", order)
+	RecordAuditEvent(gc, order.ID, order.OfferID, p2pModels.EventRefundIssued, deposit.Sender, refund)
+	NotifyUsername(gc, order.CustomerUsername, "Trovo P2P: Order Expired", "Your order was cancelled because payment was not completed in time. Any escrowed deposit is refundable.", map[string]string{"orderId": order.ID, "type": "P2P_ORDER_EXPIRED"})
+	NotifyUsername(gc, order.MerchantUsername, "Trovo P2P: Order Expired", "An order was cancelled because payment was not completed in time.", map[string]string{"orderId": order.ID, "type": "P2P_ORDER_EXPIRED"})
+	return nil
+}
+
+// escalateStalePaymentConfirmationToDispute opens a system-initiated
+// dispute rather than moving any funds - see ExpireStaleOrders' doc comment
+// for why this stage never auto-cancels/refunds.
+func escalateStalePaymentConfirmationToDispute(gc *sharedconfig.GlobalConfig, order *p2pModels.Order) error {
+	dispute := p2pModels.Dispute{
+		ID:          gc.GenerateUUIDString(),
+		OrderID:     order.ID,
+		OpenedBy:    "SYSTEM",
+		OpenedAt:    time.Now().UTC(),
+		Subject:     p2pModels.DisputeSubjectOther,
+		Description: "Automatically opened: the payment confirmation window expired before the seller confirmed receipt.",
+		Status:      p2pModels.DisputeStatusOpen,
+	}
+	dbTX := gc.DB.Begin()
+	if err := dbTX.Omit(clause.Associations).Create(&dispute).Error; err != nil {
+		dbTX.Rollback()
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	if err := dbTX.Model(&p2pModels.Order{}).Where("id = ?", order.ID).Update("is_disputed", true).Error; err != nil {
+		dbTX.Rollback()
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	if err := dbTX.Commit().Error; err != nil {
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	RecordAuditEvent(gc, order.ID, order.OfferID, p2pModels.EventDisputeOpened, "SYSTEM", dispute)
+	NotifyUsername(gc, order.CustomerUsername, "Trovo P2P: Dispute Opened", "The payment confirmation window expired, so this order was flagged for review.", map[string]string{"orderId": order.ID, "type": "P2P_DISPUTE_OPENED"})
+	NotifyUsername(gc, order.MerchantUsername, "Trovo P2P: Dispute Opened", "The payment confirmation window expired, so this order was flagged for review.", map[string]string{"orderId": order.ID, "type": "P2P_DISPUTE_OPENED"})
+	return nil
 }
 
 func releaseReservedLiquidityAndSave(gc *sharedconfig.GlobalConfig, order *p2pModels.Order) error {

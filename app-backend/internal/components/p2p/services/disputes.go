@@ -148,13 +148,22 @@ func AdminResolveDispute(gc *sharedconfig.GlobalConfig, disputeID, resolution, r
 		if err := gc.DB.Save(&order).Error; err != nil {
 			return order, &tErrors.ErrorTemporaryServerError{}
 		}
+		// Order.AssetDepositor is a user id, not a wallet address (Plan
+		// Section 11) - the canonical deposit record has the real paying
+		// wallet address a refund must go to.
+		deposit, err := FindCanonicalDepositForOrder(gc, order.ID)
+		if err != nil {
+			return order, &tErrors.CustomError{Param: "order", Err: "error-no-canonical-deposit", ErrMessage: "Could not find the escrow deposit to refund"}
+		}
 		refund := p2pModels.Refund{
-			ID:      gc.GenerateUUIDString(),
-			OrderID: order.ID,
-			Sender:  order.AssetDepositor,
-			Token:   order.Asset,
-			Amount:  order.DepositedEscrowAmount,
-			Reason:  p2pModels.RefundReasonOther,
+			ID:              gc.GenerateUUIDString(),
+			DepositID:       deposit.ID,
+			OrderID:         order.ID,
+			Sender:          deposit.Sender,
+			Token:           deposit.Token,
+			ContractAddress: deposit.ContractAddress,
+			Amount:          order.DepositedEscrowAmount,
+			Reason:          p2pModels.RefundReasonOther,
 		}
 		if err := gc.DB.Omit(clause.Associations).Create(&refund).Error; err != nil {
 			return order, &tErrors.ErrorTemporaryServerError{}

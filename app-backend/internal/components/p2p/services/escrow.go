@@ -2,7 +2,10 @@ package p2p
 
 import (
 	"os"
+	"strings"
+	"time"
 	p2pModels "trovo-wallet-api/internal/components/p2p/models"
+	"trovo-wallet-api/internal/components/p2p/safesigner"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -11,6 +14,7 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/shopspring/decimal"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -145,6 +149,7 @@ func applyDepositToOrder(gc *sharedconfig.GlobalConfig, order *p2pModels.Order, 
 		updates["escrow_deposit_status"] = p2pModels.EscrowDepositStatusConfirmed
 		updates["order_status"] = p2pModels.OrderStatusAwaitingPayment
 		updates["escrow_deposit_transaction_hash"] = deposit.TransactionHash
+		updates["expires_at"] = time.Now().UTC().Add(paymentWindow)
 		if err := gc.DB.Model(&p2pModels.BlockchainDeposit{}).Where("id = ?", deposit.ID).Update("is_canonical", true).Error; err != nil {
 			return &tErrors.ErrorTemporaryServerError{}
 		}
@@ -154,17 +159,19 @@ func applyDepositToOrder(gc *sharedconfig.GlobalConfig, order *p2pModels.Order, 
 		updates["order_status"] = p2pModels.OrderStatusAwaitingPayment
 		updates["escrow_deposit_transaction_hash"] = deposit.TransactionHash
 		updates["refundable_amount"] = overpaidAmount.String()
+		updates["expires_at"] = time.Now().UTC().Add(paymentWindow)
 		if err := gc.DB.Model(&p2pModels.BlockchainDeposit{}).Where("id = ?", deposit.ID).Update("is_canonical", true).Error; err != nil {
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 		refund := p2pModels.Refund{
-			ID:        gc.GenerateUUIDString(),
-			DepositID: deposit.ID,
-			OrderID:   order.ID,
-			Sender:    deposit.Sender,
-			Token:     deposit.Token,
-			Amount:    overpaidAmount.String(),
-			Reason:    p2pModels.RefundReasonOverpayment,
+			ID:              gc.GenerateUUIDString(),
+			DepositID:       deposit.ID,
+			OrderID:         order.ID,
+			Sender:          deposit.Sender,
+			Token:           deposit.Token,
+			ContractAddress: deposit.ContractAddress,
+			Amount:          overpaidAmount.String(),
+			Reason:          p2pModels.RefundReasonOverpayment,
 		}
 		if err := gc.DB.Omit(clause.Associations).Create(&refund).Error; err != nil {
 			return &tErrors.ErrorTemporaryServerError{}
@@ -233,4 +240,74 @@ func RunEscrowReconciliationSweep(gc *sharedconfig.GlobalConfig) {
 	for i := range orders {
 		_ = ReconcileEscrowDepositsFromPaymentHistory(gc, &orders[i])
 	}
+}
+
+// FindCanonicalDepositForOrder returns the canonical BlockchainDeposit for
+// an order - the actual on-chain sender/token/contract address of record,
+// which is what any refund back to the depositor must use. Order.
+// AssetDepositor is a user id, not a wallet address (Plan Section 11's role
+// mapping), and the depositor may not even be a Trovo user (Section 33's
+// third-party payer) - the canonical deposit row is the only place the
+// real paying wallet address is recorded.
+func FindCanonicalDepositForOrder(gc *sharedconfig.GlobalConfig, orderID string) (p2pModels.BlockchainDeposit, error) {
+	var deposit p2pModels.BlockchainDeposit
+	err := gc.DB.Where("order_id = ? AND is_canonical = ?", orderID, true).First(&deposit).Error
+	return deposit, err
+}
+
+// ClaimRefund implements Plan Section 45's claim sequence: verify caller is
+// the refund's sender, verify not already claimed, mark claimed before
+// transferring (checks-effects-interactions/reentrancy protection), then
+// transfer the exact amount back via the same Safe-signing path settlement
+// uses (Plan Section 59) - a refund is a release from the same escrow Safe,
+// just to the depositor instead of the asset recipient.
+func ClaimRefund(gc *sharedconfig.GlobalConfig, refundID, callerAddress string) (p2pModels.Refund, error) {
+	var refund p2pModels.Refund
+	if err := gc.DB.Where("id = ?", refundID).First(&refund).Error; err != nil {
+		return refund, &tErrors.CustomError{Param: "refundId", Err: "error-refund-not-found", ErrMessage: "Refund not found"}
+	}
+	if !strings.EqualFold(refund.Sender, callerAddress) {
+		return refund, &tErrors.CustomError{Param: "refundId", Err: "error-forbidden", ErrMessage: "You are not the sender of this refund", Code: 403}
+	}
+	if refund.Claimed {
+		return refund, &tErrors.CustomError{Param: "refundId", Err: "error-refund-already-claimed", ErrMessage: "This refund has already been claimed"}
+	}
+
+	now := time.Now().UTC()
+	if err := gc.DB.Model(&p2pModels.Refund{}).Where("id = ? AND claimed = ?", refund.ID, false).
+		Updates(map[string]interface{}{"claimed": true, "claimed_at": now}).Error; err != nil {
+		return refund, &tErrors.ErrorTemporaryServerError{}
+	}
+	refund.Claimed = true
+	refund.ClaimedAt = &now
+
+	txHash, err := safesigner.ExecuteTransfers([]safesigner.Transfer{
+		{Token: refund.ContractAddress, Recipient: refund.Sender, Amount: toWei(refund.Amount)},
+	})
+	if err != nil {
+		// Claimed already flipped to true to prevent a double-submit race;
+		// operationally this needs a retry/replay path if the transfer
+		// itself fails after the claim flag is set - flagged here rather
+		// than silently reverting the flag, which would reopen the
+		// reentrancy window this ordering exists to close.
+		RecordAuditEvent(gc, refund.OrderID, "", "REFUND_CLAIM_TRANSFER_FAILED", refund.Sender, map[string]string{"refundId": refund.ID, "error": err.Error()})
+		return refund, &tErrors.CustomError{Param: "refund", Err: "error-refund-transfer-failed", ErrMessage: "Refund transfer failed. Please contact support."}
+	}
+
+	if err := gc.DB.Model(&p2pModels.Refund{}).Where("id = ?", refund.ID).Update("transaction_hash", txHash).Error; err != nil {
+		return refund, &tErrors.ErrorTemporaryServerError{}
+	}
+	refund.TransactionHash = txHash
+	RecordAuditEvent(gc, refund.OrderID, "", p2pModels.EventRefundClaimed, refund.Sender, refund)
+	return refund, nil
+}
+
+// ListMyRefunds returns every refund owed to a wallet address, matching
+// Plan Section 45's model - Refund.Sender is a wallet address (the actual
+// on-chain depositor), not a user id, so refunds are looked up by address,
+// the same identifier /v1/p2p/escrow-deposit already authenticates by.
+func ListMyRefunds(db *gorm.DB, callerAddress string) ([]p2pModels.Refund, error) {
+	var refunds []p2pModels.Refund
+	err := db.Where("LOWER(sender) = LOWER(?)", callerAddress).Order("created_at desc").Find(&refunds).Error
+	return refunds, err
 }

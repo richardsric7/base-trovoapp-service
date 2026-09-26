@@ -1,6 +1,6 @@
 import { baseApi } from './baseapi';
 import { tagTypes } from './baseapi/tagTypes';
-import { P2POffer, P2POrder, P2PDispute, P2POrderFeeQuote, P2PPaymentMethod } from '../../types/p2p';
+import { P2POffer, P2POrder, P2PDispute, P2POrderFeeQuote, P2PPaymentMethod, P2PRefund } from '../../types/p2p';
 
 export type P2PCreds = {
   signer: string;
@@ -227,6 +227,24 @@ export const p2pApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [tagTypes.p2pOrder],
     }),
+
+    // ---- Refunds ----
+    listMyP2PRefunds: builder.query<{ data: P2PRefund[] }, WithCreds<{}>>({
+      query: ({ creds }) => ({
+        url: '/v1/p2p/refunds',
+        method: 'GET',
+        data: { creds },
+      }),
+      providesTags: [tagTypes.p2pRefund],
+    }),
+    claimP2PRefund: builder.mutation<P2PRefund, WithCreds<{ refundId: string }>>({
+      query: ({ creds, refundId }) => ({
+        url: `/v1/p2p/refunds/${refundId}/claim`,
+        method: 'POST',
+        data: { creds },
+      }),
+      invalidatesTags: [tagTypes.p2pRefund],
+    }),
   }),
 });
 
@@ -252,4 +270,6 @@ export const {
   useOpenP2PDisputeMutation,
   useMerchantConfirmsP2PPaymentMutation,
   useBuyerConfirmsP2PNotPaidMutation,
+  useListMyP2PRefundsQuery,
+  useClaimP2PRefundMutation,
 } = p2pApi;
