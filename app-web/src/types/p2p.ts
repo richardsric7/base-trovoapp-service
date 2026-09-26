@@ -123,6 +123,36 @@ export type P2PRefund = {
   createdAt: string;
 };
 
+export type P2PMerchantPerformance = {
+  merchantId: string;
+  merchantUsername: string;
+  completedTrades: number;
+  completedTradeVolume: string;
+  completionRate: string;
+  averageOrderCompletionTime: number;
+  cancelledOrders: number;
+  expiredOrders: number;
+  disputesOpened: number;
+  disputesResolved: number;
+  disputesResolvedAgainstMerchant: number;
+  disputesResolvedInFavorOfMerchant: number;
+  lastActivityAt: string | null;
+};
+
+export type P2PCustomerPerformance = {
+  customerId: string;
+  customerUsername: string;
+  completedTrades: number;
+  completedTradeVolume: string;
+  completionRate: string;
+  cancelledOrders: number;
+  cancelledAfterAcceptance: number;
+  expiredOrders: number;
+  disputesOpened: number;
+  disputesResolved: number;
+  lastActivityAt: string | null;
+};
+
 export type P2POrderFeeQuote = {
   offerId: string;
   specifiedAssetAmount: string;

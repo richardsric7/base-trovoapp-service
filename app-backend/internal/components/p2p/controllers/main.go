@@ -65,6 +65,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	// Performance / trust signals
 	router.GET("/v1/p2p/merchants/:merchantID/performance", auth, getMerchantPerformanceHandler(gc))
+	router.GET("/v1/p2p/customers/:customerID/performance", auth, getCustomerPerformanceHandler(gc))
 	router.GET("/v1/p2p/my-performance", auth, getMyPerformanceHandler(gc))
 
 	startBackgroundSweeps(gc)

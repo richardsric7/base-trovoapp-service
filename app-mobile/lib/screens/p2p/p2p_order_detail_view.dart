@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
@@ -11,6 +12,8 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+import 'package:trovo_app/widgets/utilities.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // P2POrderDetailView is the hub screen (Plan Sections 95.4-95.9,
 // consolidated): the order timeline is the feature's emotional centerpiece
@@ -32,6 +35,7 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
   String? orderId;
   P2POrder? order;
   P2PDispute? dispute;
+  Map<String, dynamic>? customerPerf;
   bool loading = true;
   bool actionInFlight = false;
 
@@ -67,6 +71,10 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
       dispute = d;
       loading = false;
     });
+    if (o != null && o.isMerchant(myUsername)) {
+      final perf = await api.getCustomerPerformance(o.customerUserId!);
+      if (mounted) setState(() => customerPerf = perf);
+    }
   }
 
   String get myUsername => appState.userInfo?.username ?? '';
@@ -81,13 +89,13 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
       appBar: AppBar(
         backgroundColor: notifier.getwihitecolor,
         elevation: 0,
-        title: Text('Order', style: TextStyle(color: notifier.getblck)),
+        title: Text('p2pordertitle'.tr(), style: TextStyle(color: notifier.getblck)),
         iconTheme: IconThemeData(color: notifier.getblck),
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : order == null
-              ? const P2PEmptyState(icon: Icons.error_outline, message: 'This order could not be found.')
+              ? P2PEmptyState(icon: Icons.error_outline, message: 'p2pordernotfound'.tr())
               : RefreshIndicator(
                   onRefresh: _load,
                   child: SingleChildScrollView(
@@ -127,7 +135,9 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
           Text('${o.paymentAmount} ${o.currency}', style: const TextStyle(color: Colors.black54)),
           const SizedBox(height: P2PTheme.space1),
           Text(
-            o.isCustomer(myUsername) ? 'Merchant: ${o.merchantUsername}' : 'Customer: ${o.customerUsername}',
+            o.isCustomer(myUsername)
+                ? 'p2pmerchantlabel'.tr(args: [o.merchantUsername ?? ''])
+                : 'p2pcustomerlabel'.tr(args: [o.customerUsername ?? '']),
             style: const TextStyle(color: Colors.black38, fontSize: 12),
           ),
         ],
@@ -148,10 +158,10 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
         children: [
           const Icon(Icons.error_outline, color: P2PTheme.danger),
           const SizedBox(width: P2PTheme.space2),
-          const Expanded(
+          Expanded(
             child: Text(
-              'A dispute is open on this order.',
-              style: TextStyle(color: P2PTheme.danger, fontWeight: FontWeight.w600),
+              'p2pdisputeopenbanner'.tr(),
+              style: const TextStyle(color: P2PTheme.danger, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -233,53 +243,75 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
 
     if (status == P2POrder.statusAwaitingApproval) {
       if (o.isMerchant(myUsername)) {
+        if (customerPerf != null && (customerPerf!['completedTrades'] ?? 0) > 0) {
+          children.add(Padding(
+            padding: const EdgeInsets.only(bottom: P2PTheme.space2),
+            child: Text(
+              'p2pcustomerperfsummary'.tr(args: ['${customerPerf!['completedTrades']}', '${customerPerf!['completionRate']}']),
+              style: const TextStyle(color: Colors.black38, fontSize: 12),
+            ),
+          ));
+        }
         children.add(_buttonRow([
-          _primaryButton('Accept order', () => _simpleAction(() => api.acceptOrder(o.id!, address: appState.primaryWallet.address!))),
-          _secondaryButton('Reject', () => _simpleAction(() => api.rejectOrder(o.id!, address: appState.primaryWallet.address!))),
+          _primaryButton('p2pacceptorder'.tr(), () => _simpleAction(() => api.acceptOrder(o.id!, address: appState.primaryWallet.address!))),
+          _secondaryButton('p2preject'.tr(), () => _simpleAction(() => api.rejectOrder(o.id!, address: appState.primaryWallet.address!))),
         ]));
       } else {
-        children.add(_infoText('Waiting for the merchant to accept your order.'));
-        children.add(_secondaryButton('Cancel order', () => _simpleAction(() => api.cancelOrder(o.id!, address: appState.primaryWallet.address!))));
+        children.add(_infoText('p2pwaitingformerchantaccept'.tr()));
+        children.add(_secondaryButton('p2pcancelorder'.tr(), () => _simpleAction(() => api.cancelOrder(o.id!, address: appState.primaryWallet.address!))));
       }
     } else if (status == P2POrder.statusAwaitingEscrowDeposit) {
       if (o.isAssetDepositor(myUsername)) {
-        children.add(_infoText('Deposit ${o.sellerEscrowAssetAmount} ${o.asset} into escrow to continue.'));
+        children.add(_infoText('p2pdepositintoescrow'.tr(args: ['${o.sellerEscrowAssetAmount}', '${o.asset}'])));
         children.add(_buttonRow([
-          _primaryButton('Deposit from my wallet', _depositFromOwnWallet),
-          _secondaryButton('Share deposit link', () {
-            appState.viewData ??= {};
-            appState.viewData![P2PEscrowShareViewPageConfig.key] = {'order': o};
-            appState.currentAction = PageAction(state: PageState.addPage, page: P2PEscrowShareViewPageConfig);
-          }),
+          _primaryButton('p2pdepositfromwallet'.tr(), _depositFromOwnWallet),
+          if (o.escrowDepositShortlink != null && o.escrowDepositShortlink!.isNotEmpty)
+            _secondaryButton('p2psharedepositlink'.tr(), () {
+              appState.viewData ??= {};
+              appState.viewData![P2PEscrowShareViewPageConfig.key] = {'order': o};
+              appState.currentAction = PageAction(state: PageState.addPage, page: P2PEscrowShareViewPageConfig);
+            })
+          else
+            _secondaryButton(
+              'p2pgeneratedepositlink'.tr(),
+              () => _simpleAction(() => api.regenerateEscrowShortlink(o.id!, address: appState.primaryWallet.address!)),
+            ),
         ]));
       } else {
-        children.add(_infoText('Waiting for the escrow deposit.'));
+        children.add(_infoText('p2pwaitingforescrow'.tr()));
+      }
+      if (o.isMerchant(myUsername)) {
+        children.add(const SizedBox(height: P2PTheme.space2));
+        children.add(_secondaryButton(
+          'p2pcancelorder'.tr(),
+          () => _simpleAction(() => api.merchantCancelOrder(o.id!, address: appState.primaryWallet.address!)),
+        ));
       }
     } else if (status == P2POrder.statusAwaitingPayment) {
       if (o.isFiatPayer(myUsername)) {
         children.add(_paymentMethodCard(o));
-        children.add(_primaryButton('I have sent payment', () => _simpleAction(() => api.markPaymentSent(o.id!, address: appState.primaryWallet.address!))));
+        children.add(_primaryButton('p2phavesentpayment'.tr(), () => _simpleAction(() => api.markPaymentSent(o.id!, address: appState.primaryWallet.address!))));
       } else {
-        children.add(_infoText('Escrow confirmed. Waiting for the buyer\'s payment.'));
+        children.add(_infoText('p2pescrowconfirmedwaiting'.tr()));
       }
       children.add(const SizedBox(height: P2PTheme.space2));
       children.add(_disputeButton(o));
     } else if (status == P2POrder.statusAwaitingPaymentConfirmation) {
       if (o.isFiatRecipient(myUsername)) {
-        children.add(_infoText('The buyer marked payment as sent. Confirm receipt to release the asset.'));
-        children.add(_primaryButton('Confirm payment received', () => _simpleAction(() => api.confirmPaymentReceived(o.id!, address: appState.primaryWallet.address!))));
+        children.add(_infoText('p2pbuyermarkedsent'.tr()));
+        children.add(_primaryButton('p2pconfirmpaymentreceived'.tr(), () => _simpleAction(() => api.confirmPaymentReceived(o.id!, address: appState.primaryWallet.address!))));
       } else {
-        children.add(_infoText('Waiting for the seller to confirm your payment.'));
+        children.add(_infoText('p2pwaitingsellerconfirm'.tr()));
       }
       children.add(const SizedBox(height: P2PTheme.space2));
       children.add(_disputeButton(o));
     } else if (status == P2POrder.statusCompleted) {
-      children.add(_infoText('This order is complete.'));
+      children.add(_infoText('p2porderiscomplete'.tr()));
       if (o.assetReleaseTransactionHash != null && o.assetReleaseTransactionHash!.isNotEmpty) {
-        children.add(_txLink('View asset release on-chain', o.assetReleaseTransactionHash!));
+        children.add(_txLink('p2pviewassetrelease'.tr(), o.assetReleaseTransactionHash!));
       }
       if (o.escrowDepositTransactionHash != null && o.escrowDepositTransactionHash!.isNotEmpty) {
-        children.add(_txLink('View escrow deposit on-chain', o.escrowDepositTransactionHash!));
+        children.add(_txLink('p2pviewescrowdeposit'.tr(), o.escrowDepositTransactionHash!));
       }
     }
 
@@ -301,7 +333,7 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
         appState.currentAction = PageAction(state: PageState.addPage, page: P2PDisputeViewPageConfig);
       },
       icon: const Icon(Icons.flag_outlined, color: P2PTheme.danger),
-      label: const Text('Raise a dispute', style: TextStyle(color: P2PTheme.danger)),
+      label: Text('p2praiseadispute'.tr(), style: const TextStyle(color: P2PTheme.danger)),
     );
   }
 
@@ -312,16 +344,16 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Resolve this dispute', style: TextStyle(fontWeight: FontWeight.w700)),
+          Text('p2presolvethisdispute'.tr(), style: const TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: P2PTheme.space2),
           if (iAmMerchant)
             _primaryButton(
-              'I actually received the payment',
+              'p2preceivedpayment'.tr(),
               () => _simpleAction(() => api.merchantConfirmsPayment(dispute!.id!)),
             ),
           if (iAmCustomer)
             _secondaryButton(
-              'I have not actually paid yet',
+              'p2pnotpaidyet'.tr(),
               () => _simpleAction(() => api.buyerConfirmsNotPaid(dispute!.id!)),
             ),
         ],
@@ -335,7 +367,7 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Pay the merchant using', style: TextStyle(fontWeight: FontWeight.w700)),
+          Text('p2ppaymerchantusing'.tr(), style: const TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: P2PTheme.space2),
           Text('${pm?.paymentChannel ?? ''} - ${pm?.provider ?? ''}'),
           const SizedBox(height: P2PTheme.space1),
@@ -347,8 +379,11 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
 
   Widget _txLink(String label, String txHash) {
     return TextButton(
-      onPressed: () {
-        popup(context, title: 'Transaction hash', message: txHash);
+      onPressed: () async {
+        final uri = Uri.parse('${getExplorerBaseUrl(appState.walletMode)}$txHash');
+        if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+          popup(context, title: 'p2ptransactionhash'.tr(), message: txHash);
+        }
       },
       child: Text(label),
     );
@@ -385,12 +420,12 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
       if (response['statusCode'] != null && response['statusCode'] < 300) {
         _load();
       } else {
-        popup(context, title: 'Could not complete action', message: response['data']?['message'] ?? 'Please try again.');
+        popup(context, title: 'p2pcouldnotcompleteaction'.tr(), message: response['data']?['message'] ?? 'p2ppleasetryagain'.tr());
       }
     } catch (e) {
       hideLoader(context);
       setState(() => actionInFlight = false);
-      popup(context, title: 'Error', message: e.toString());
+      popup(context, title: 'error'.tr(), message: e.toString());
     }
   }
 
@@ -420,7 +455,7 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
       if (built['statusCode'] != 202 || built['data']['transaction'] == null || built['data']['transaction'] == '') {
         hideLoader(context);
         setState(() => actionInFlight = false);
-        popup(context, title: 'Could not build deposit', message: built['data']?['message'] ?? 'Please try again.');
+        popup(context, title: 'p2pcouldnotbuilddeposit'.tr(), message: built['data']?['message'] ?? 'p2ppleasetryagain'.tr());
         return;
       }
       final signature = TrovoWalletSDK().signBase64Txn(
@@ -439,12 +474,12 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
       if (committed['statusCode'] == 202) {
         _load();
       } else {
-        popup(context, title: 'Deposit failed', message: committed['data']?['message'] ?? 'Please try again.');
+        popup(context, title: 'p2pdepositfailed'.tr(), message: committed['data']?['message'] ?? 'p2ppleasetryagain'.tr());
       }
     } catch (e) {
       hideLoader(context);
       setState(() => actionInFlight = false);
-      popup(context, title: 'Error', message: e.toString());
+      popup(context, title: 'error'.tr(), message: e.toString());
     }
   }
 
@@ -452,11 +487,11 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Confirm deposit'),
-            content: const Text('Biometric authentication is not available. Confirm you want to sign this escrow deposit?'),
+            title: Text('p2pconfirmdeposit'.tr()),
+            content: Text('p2pbiometricunavailableconfirm'.tr()),
             actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-              TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Confirm')),
+              TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text('cancel'.tr())),
+              TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text('p2pconfirm'.tr())),
             ],
           ),
         ) ??

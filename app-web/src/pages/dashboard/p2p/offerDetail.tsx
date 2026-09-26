@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../../../components/header';
-import { useGetP2POfferQuery } from '../../../store/api/p2pApis';
+import { useGetP2POfferQuery, useGetMerchantP2PPerformanceQuery } from '../../../store/api/p2pApis';
 import { useP2PIdentity } from '../../../hooks/useP2PIdentity';
 import { P2PListCard, P2PEmptyState, p2p } from '../../../components/p2p/P2PTheme';
 
@@ -12,6 +12,10 @@ export default function P2POfferDetail() {
   const { creds, ready } = useP2PIdentity();
 
   const { data: offer, isLoading } = useGetP2POfferQuery({ creds, offerId: offerId! }, { skip: !ready || !offerId });
+  const { data: perf } = useGetMerchantP2PPerformanceQuery(
+    { creds, merchantId: offer?.merchantUserId ?? '' },
+    { skip: !ready || !offer?.merchantUserId },
+  );
 
   if (isLoading) return <div className="p-8 text-center text-gray-400">Loading...</div>;
   if (!offer) return <P2PEmptyState message="This offer could not be found." />;
@@ -39,6 +43,18 @@ export default function P2POfferDetail() {
         <Row label="Provider" value={offer.paymentMethod?.provider || '-'} />
         {offer.remark && <p className="text-gray-500 mt-2">{offer.remark}</p>}
       </P2PListCard>
+
+      {perf && perf.completedTrades > 0 && (
+        <P2PListCard>
+          <p className="font-bold mb-2">Merchant performance</p>
+          <Row label="Completed trades" value={String(perf.completedTrades)} />
+          <Row label="Completion rate" value={`${perf.completionRate}%`} />
+          {perf.disputesResolvedAgainstMerchant > 0 && (
+            <Row label="Disputes resolved against merchant" value={String(perf.disputesResolvedAgainstMerchant)} />
+          )}
+        </P2PListCard>
+      )}
+
       <button
         className="w-full py-4 rounded-2xl font-semibold text-white"
         style={{ backgroundColor: p2p.brandDark }}

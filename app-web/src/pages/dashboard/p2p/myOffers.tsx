@@ -4,6 +4,7 @@ import {
   useListMyP2POffersQuery,
   useActivateP2POfferMutation,
   usePauseP2POfferMutation,
+  useCloseP2POfferMutation,
 } from '../../../store/api/p2pApis';
 import { useP2PIdentity } from '../../../hooks/useP2PIdentity';
 import { P2PListCard, P2PEmptyState, p2p } from '../../../components/p2p/P2PTheme';
@@ -16,10 +17,17 @@ export default function P2PMyOffers() {
   const { data, isLoading, refetch } = useListMyP2POffersQuery({ creds }, { skip: !ready });
   const [activate] = useActivateP2POfferMutation();
   const [pause] = usePauseP2POfferMutation();
+  const [closeOffer] = useCloseP2POfferMutation();
 
   const toggle = async (offerId: string, isOnline: boolean) => {
     if (isOnline) await pause({ creds, offerId });
     else await activate({ creds, offerId });
+    refetch();
+  };
+
+  const close = async (offerId: string) => {
+    if (!window.confirm('Close this offer? This cannot be undone.')) return;
+    await closeOffer({ creds, offerId });
     refetch();
   };
 
@@ -58,24 +66,40 @@ export default function P2PMyOffers() {
                 </p>
                 <p className="text-xs text-gray-400">{offer.status}</p>
               </div>
-              <label className="inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only"
-                  checked={offer.availabilityStatus === 'ONLINE'}
-                  onChange={() => toggle(offer.id, offer.availabilityStatus === 'ONLINE')}
-                />
-                <span
-                  className="w-11 h-6 rounded-full relative transition-colors"
-                  style={{ backgroundColor: offer.availabilityStatus === 'ONLINE' ? p2p.success : '#D1D5DB' }}
-                >
-                  <span
-                    className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform"
-                    style={{ transform: offer.availabilityStatus === 'ONLINE' ? 'translateX(20px)' : 'none' }}
+              {offer.status !== 'CLOSED' && (
+                <label className="inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={offer.availabilityStatus === 'ONLINE'}
+                    onChange={() => toggle(offer.id, offer.availabilityStatus === 'ONLINE')}
                   />
-                </span>
-              </label>
+                  <span
+                    className="w-11 h-6 rounded-full relative transition-colors"
+                    style={{ backgroundColor: offer.availabilityStatus === 'ONLINE' ? p2p.success : '#D1D5DB' }}
+                  >
+                    <span
+                      className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform"
+                      style={{ transform: offer.availabilityStatus === 'ONLINE' ? 'translateX(20px)' : 'none' }}
+                    />
+                  </span>
+                </label>
+              )}
             </div>
+            {offer.status !== 'CLOSED' && (
+              <div className="flex gap-3 mt-3">
+                <button
+                  onClick={() => navigate(`/dashboard/p2p/offer/${offer.id}/edit`)}
+                  className="text-sm font-semibold underline"
+                  style={{ color: p2p.brandDark }}
+                >
+                  Edit
+                </button>
+                <button onClick={() => close(offer.id)} className="text-sm font-semibold underline" style={{ color: p2p.danger }}>
+                  Close
+                </button>
+              </div>
+            )}
           </P2PListCard>
         ))
       )}

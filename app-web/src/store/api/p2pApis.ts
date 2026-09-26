@@ -1,6 +1,15 @@
 import { baseApi } from './baseapi';
 import { tagTypes } from './baseapi/tagTypes';
-import { P2POffer, P2POrder, P2PDispute, P2POrderFeeQuote, P2PPaymentMethod, P2PRefund } from '../../types/p2p';
+import {
+  P2POffer,
+  P2POrder,
+  P2PDispute,
+  P2POrderFeeQuote,
+  P2PPaymentMethod,
+  P2PRefund,
+  P2PMerchantPerformance,
+  P2PCustomerPerformance,
+} from '../../types/p2p';
 
 export type P2PCreds = {
   signer: string;
@@ -85,6 +94,22 @@ export const p2pApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [tagTypes.p2pOffer],
     }),
+    updateP2POffer: builder.mutation<P2POffer, WithCreds<{ offerId: string; body: CreateOfferBody }>>({
+      query: ({ creds, offerId, body }) => ({
+        url: `/v1/p2p/offers/${offerId}`,
+        method: 'PUT',
+        data: { payload: body, creds },
+      }),
+      invalidatesTags: [tagTypes.p2pOffer],
+    }),
+    closeP2POffer: builder.mutation<P2POffer, WithCreds<{ offerId: string }>>({
+      query: ({ creds, offerId }) => ({
+        url: `/v1/p2p/offers/${offerId}/close`,
+        method: 'POST',
+        data: { creds },
+      }),
+      invalidatesTags: [tagTypes.p2pOffer],
+    }),
     listMyP2POffers: builder.query<{ data: P2POffer[] }, WithCreds<{}>>({
       query: ({ creds }) => ({
         url: '/v1/p2p/my-offers',
@@ -152,6 +177,14 @@ export const p2pApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [tagTypes.p2pOrder],
     }),
+    merchantCancelP2POrder: builder.mutation<P2POrder, WithCreds<{ orderId: string }>>({
+      query: ({ creds, orderId }) => ({
+        url: `/v1/p2p/orders/${orderId}/merchant-cancel`,
+        method: 'POST',
+        data: { creds },
+      }),
+      invalidatesTags: [tagTypes.p2pOrder],
+    }),
 
     // ---- Escrow deposit (two-phase build -> sign -> commit, same
     // contract as /v1/users/payment) ----
@@ -170,6 +203,14 @@ export const p2pApi = baseApi.injectEndpoints({
         url: `/v1/p2p/orders/${orderId}/escrow-deposit`,
         method: 'POST',
         data: { payload: { transaction, transactionSignature, commit: 1 }, creds },
+      }),
+      invalidatesTags: [tagTypes.p2pOrder],
+    }),
+    regenerateEscrowShortlink: builder.mutation<P2POrder, WithCreds<{ orderId: string }>>({
+      query: ({ creds, orderId }) => ({
+        url: `/v1/p2p/orders/${orderId}/escrow-deposit/regenerate-shortlink`,
+        method: 'POST',
+        data: { creds },
       }),
       invalidatesTags: [tagTypes.p2pOrder],
     }),
@@ -245,6 +286,29 @@ export const p2pApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [tagTypes.p2pRefund],
     }),
+
+    // ---- Performance / trust signals ----
+    getMerchantP2PPerformance: builder.query<P2PMerchantPerformance, WithCreds<{ merchantId: string }>>({
+      query: ({ creds, merchantId }) => ({
+        url: `/v1/p2p/merchants/${merchantId}/performance`,
+        method: 'GET',
+        data: { creds },
+      }),
+    }),
+    getMyP2PPerformance: builder.query<P2PCustomerPerformance, WithCreds<{}>>({
+      query: ({ creds }) => ({
+        url: '/v1/p2p/my-performance',
+        method: 'GET',
+        data: { creds },
+      }),
+    }),
+    getCustomerP2PPerformance: builder.query<P2PCustomerPerformance, WithCreds<{ customerId: string }>>({
+      query: ({ creds, customerId }) => ({
+        url: `/v1/p2p/customers/${customerId}/performance`,
+        method: 'GET',
+        data: { creds },
+      }),
+    }),
   }),
 });
 
@@ -255,6 +319,8 @@ export const {
   useCreateP2POfferMutation,
   useActivateP2POfferMutation,
   usePauseP2POfferMutation,
+  useUpdateP2POfferMutation,
+  useCloseP2POfferMutation,
   useListMyP2POffersQuery,
   useCreateP2POrderMutation,
   useListMyP2POrdersQuery,
@@ -262,8 +328,10 @@ export const {
   useAcceptP2POrderMutation,
   useRejectP2POrderMutation,
   useCancelP2POrderMutation,
+  useMerchantCancelP2POrderMutation,
   useEscrowDepositBuildMutation,
   useEscrowDepositCommitMutation,
+  useRegenerateEscrowShortlinkMutation,
   useMarkP2PPaymentSentMutation,
   useConfirmP2PPaymentReceivedMutation,
   useGetOpenP2PDisputeForOrderQuery,
@@ -272,4 +340,7 @@ export const {
   useBuyerConfirmsP2PNotPaidMutation,
   useListMyP2PRefundsQuery,
   useClaimP2PRefundMutation,
+  useGetMerchantP2PPerformanceQuery,
+  useGetMyP2PPerformanceQuery,
+  useGetCustomerP2PPerformanceQuery,
 } = p2pApi;

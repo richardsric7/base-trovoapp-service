@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
@@ -53,12 +54,12 @@ class _P2PMyRefundsViewState extends State<P2PMyRefundsView> {
       if (response['statusCode'] == 200) {
         _load();
       } else {
-        popup(context, title: 'Could not claim refund', message: response['data']?['message'] ?? 'Please try again.');
+        popup(context, title: 'p2pcouldnotclaimrefund'.tr(), message: response['data']?['message'] ?? 'p2ppleasetryagain'.tr());
       }
     } catch (e) {
       hideLoader(context);
       setState(() => claimingId = null);
-      popup(context, title: 'Error', message: e.toString());
+      popup(context, title: 'error'.tr(), message: e.toString());
     }
   }
 
@@ -72,13 +73,13 @@ class _P2PMyRefundsViewState extends State<P2PMyRefundsView> {
       appBar: AppBar(
         backgroundColor: notifier.getwihitecolor,
         elevation: 0,
-        title: Text('My refunds', style: TextStyle(color: notifier.getblck)),
+        title: Text('p2pmyrefundstitle'.tr(), style: TextStyle(color: notifier.getblck)),
         iconTheme: IconThemeData(color: notifier.getblck),
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : refunds.isEmpty
-              ? const P2PEmptyState(icon: Icons.savings_outlined, message: 'You have no refunds.')
+              ? P2PEmptyState(icon: Icons.savings_outlined, message: 'p2pnorefunds'.tr())
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView.builder(
@@ -105,7 +106,7 @@ class _P2PMyRefundsViewState extends State<P2PMyRefundsView> {
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(backgroundColor: P2PTheme.brandDark),
                                 onPressed: claimingId == r.id ? null : () => _claim(r),
-                                child: const Text('Claim', style: TextStyle(color: Colors.white)),
+                                child: Text('p2pclaim'.tr(), style: const TextStyle(color: Colors.white)),
                               ),
                           ],
                         ),

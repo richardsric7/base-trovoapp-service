@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
@@ -65,7 +66,7 @@ class _P2PCreateOrderViewState extends State<P2PCreateOrderView> {
       setState(() {
         quoting = false;
         if (result == null) {
-          quoteError = 'This amount is outside the offer\'s allowed range.';
+          quoteError = 'p2pamountoutofrange'.tr();
         } else {
           quote = result;
         }
@@ -96,14 +97,14 @@ class _P2PCreateOrderViewState extends State<P2PCreateOrderView> {
       } else {
         popup(
           context,
-          title: 'Could not create order',
-          message: response['data']?['message'] ?? 'Please try again.',
+          title: 'p2pcouldnotcreateorder'.tr(),
+          message: response['data']?['message'] ?? 'p2ppleasetryagain'.tr(),
         );
       }
     } catch (e) {
       hideLoader(context);
       setState(() => submitting = false);
-      popup(context, title: 'Error', message: e.toString());
+      popup(context, title: 'error'.tr(), message: e.toString());
     }
   }
 
@@ -117,11 +118,11 @@ class _P2PCreateOrderViewState extends State<P2PCreateOrderView> {
       appBar: AppBar(
         backgroundColor: notifier.getwihitecolor,
         elevation: 0,
-        title: Text('Create order', style: TextStyle(color: notifier.getblck)),
+        title: Text('p2pcreateordertitle'.tr(), style: TextStyle(color: notifier.getblck)),
         iconTheme: IconThemeData(color: notifier.getblck),
       ),
       body: offer == null
-          ? const P2PEmptyState(icon: Icons.error_outline, message: 'No offer selected.')
+          ? P2PEmptyState(icon: Icons.error_outline, message: 'p2pnoofferselected'.tr())
           : Column(
               children: [
                 Expanded(
@@ -131,7 +132,7 @@ class _P2PCreateOrderViewState extends State<P2PCreateOrderView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Amount (${offer!.asset})',
+                          'p2pamountlabel'.tr(args: [offer!.asset ?? '']),
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: P2PTheme.space2),
@@ -140,7 +141,7 @@ class _P2PCreateOrderViewState extends State<P2PCreateOrderView> {
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
                           onChanged: _onAmountChanged,
                           decoration: InputDecoration(
-                            hintText: 'Between ${offer!.minOrderAmount} and ${offer!.maxOrderAmount}',
+                            hintText: 'p2pamounthint'.tr(args: [offer!.minOrderAmount ?? '', offer!.maxOrderAmount ?? '']),
                             filled: true,
                             fillColor: Colors.white,
                             border: OutlineInputBorder(
@@ -168,9 +169,9 @@ class _P2PCreateOrderViewState extends State<P2PCreateOrderView> {
                         padding: const EdgeInsets.symmetric(vertical: P2PTheme.space4),
                       ),
                       onPressed: (quote != null && !submitting) ? _submit : null,
-                      child: const Text(
-                        'Review and submit order',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                      child: Text(
+                        'p2previewsubmitorder'.tr(),
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ),
@@ -187,18 +188,18 @@ class _P2PCreateOrderViewState extends State<P2PCreateOrderView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Order breakdown', style: TextStyle(fontWeight: FontWeight.w700)),
+          Text('p2porderbreakdown'.tr(), style: const TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: P2PTheme.space3),
-          _row('You pay (fiat)', '${q['paymentAmount']} ${offer!.currency}'),
+          _row('p2pyoupayfiat'.tr(), '${q['paymentAmount']} ${offer!.currency}'),
           const Divider(height: P2PTheme.space4),
           if (isBuy) ...[
-            _row('You receive', '${q['buyerNetAssetAmount']} $asset'),
-            _row('Platform + regulatory fee', '${q['buyerTotalFees']} $asset'),
-            _row('VAT on fee', '${q['buyerTotalVat']} $asset'),
+            _row('p2pyoureceive'.tr(), '${q['buyerNetAssetAmount']} $asset'),
+            _row('p2pplatformregulatoryfee'.tr(), '${q['buyerTotalFees']} $asset'),
+            _row('p2pvatonfee'.tr(), '${q['buyerTotalVat']} $asset'),
           ] else ...[
-            _row('Escrow deposit required', '${q['sellerEscrowAssetAmount']} $asset'),
-            _row('Platform + regulatory fee', '${q['sellerTotalFees']} $asset'),
-            _row('VAT on fee', '${q['sellerTotalVat']} $asset'),
+            _row('p2pescrowdepositrequired'.tr(), '${q['sellerEscrowAssetAmount']} $asset'),
+            _row('p2pplatformregulatoryfee'.tr(), '${q['sellerTotalFees']} $asset'),
+            _row('p2pvatonfee'.tr(), '${q['sellerTotalVat']} $asset'),
           ],
         ],
       ),

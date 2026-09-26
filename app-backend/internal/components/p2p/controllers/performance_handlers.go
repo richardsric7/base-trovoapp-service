@@ -27,6 +27,25 @@ func getMerchantPerformanceHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFun
 	}
 }
 
+// getCustomerPerformanceHandler lets a merchant look up a specific
+// customer's performance before deciding to accept their order (Plan
+// Section 8/26) - the same visibility a merchant already has into who is
+// ordering from them via the order itself.
+func getCustomerPerformanceHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if _, err := currentUser(c, gc); err != nil {
+			writeError(c, err)
+			return
+		}
+		perf, err := p2pServices.GetCustomerPerformance(gc.DB, c.Param("customerID"))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error-temporary-server-error"})
+			return
+		}
+		c.JSON(http.StatusOK, perf)
+	}
+}
+
 // getMyPerformanceHandler returns the caller's own CustomerPerformance -
 // shown to a merchant reviewing an order before/after acceptance (Plan
 // Section 26).
