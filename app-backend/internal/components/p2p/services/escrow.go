@@ -1,15 +1,18 @@
 package p2p
 
 import (
+	"context"
 	"os"
 	"strings"
 	"time"
+	"trovo-wallet-api/internal/basetxn"
 	p2pModels "trovo-wallet-api/internal/components/p2p/models"
 	"trovo-wallet-api/internal/components/p2p/safesigner"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/dynamiclinks"
+	"trovo-wallet-api/internal/network"
 	userServices "trovo-wallet-api/internal/components/users/services"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -306,8 +309,18 @@ func ClaimRefund(gc *sharedconfig.GlobalConfig, refundID, callerAddress string) 
 	refund.Claimed = true
 	refund.ClaimedAt = &now
 
+	refundAsset := basetxn.Asset(basetxn.NativeAsset{})
+	if refund.ContractAddress != "" {
+		refundAsset = basetxn.CreditAsset{Issuer: refund.ContractAddress}
+	}
+	decimals, err := network.AssetDecimals(context.Background(), network.GetBlockchainClient(), refundAsset)
+	if err != nil {
+		RecordAuditEvent(gc, refund.OrderID, "", "REFUND_CLAIM_TRANSFER_FAILED", refund.Sender, map[string]string{"refundId": refund.ID, "error": err.Error()})
+		return refund, &tErrors.CustomError{Param: "refund", Err: "error-refund-transfer-failed", ErrMessage: "Refund transfer failed. Please contact support."}
+	}
+
 	txHash, err := safesigner.ExecuteTransfers([]safesigner.Transfer{
-		{Token: refund.ContractAddress, Recipient: refund.Sender, Amount: toWei(refund.Amount)},
+		{Token: refund.ContractAddress, Recipient: refund.Sender, Amount: toWei(refund.Amount, decimals)},
 	})
 	if err != nil {
 		// Claimed already flipped to true to prevent a double-submit race;

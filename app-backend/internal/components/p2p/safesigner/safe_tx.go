@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"os"
 	"sort"
+	"strings"
 	"time"
 	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/network"
@@ -20,8 +21,28 @@ import (
 
 // Gnosis Safe v1.3.0/v1.4.x standard operation types.
 const (
-	operationCall = uint8(0)
+	operationCall         = uint8(0)
+	operationDelegateCall = uint8(1)
 )
+
+// defaultMultiSendCallOnlyAddress is Safe's canonical MultiSendCallOnly
+// v1.3.0 singleton, deployed at this same address on Base (and most other
+// EVM chains Safe supports) via Safe's deterministic deployment proxy
+// factory. MultiSendCallOnly (rather than the plain MultiSend contract)
+// only permits plain `call`s for the batched sub-transactions - it
+// reverts if any is a nested delegatecall - which is the safety property
+// we want here: batching ERC-20 `transfer` calls, never anything that
+// needs to run in the Safe's own storage context. Override via
+// P2P_ESCROW_MULTISEND_ADDRESS if this ever needs to point at a
+// different deployment (e.g. a newer Safe version) for this network.
+const defaultMultiSendCallOnlyAddress = "0x40A2aCCbd92BCA938b02010E17A5b8929b49130"
+
+func multiSendCallOnlyAddress() string {
+	if addr := strings.TrimSpace(os.Getenv("P2P_ESCROW_MULTISEND_ADDRESS")); addr != "" {
+		return addr
+	}
+	return defaultMultiSendCallOnlyAddress
+}
 
 // Transfer is one outgoing transfer the Safe should execute as part of a
 // settlement release (Plan Section 60).
@@ -40,9 +61,10 @@ func SafeAddress() string {
 }
 
 var (
-	erc20ABI    abi.ABI
-	safeABI     abi.ABI
-	structTypes abi.Arguments
+	erc20ABI     abi.ABI
+	safeABI      abi.ABI
+	multiSendABI abi.ABI
+	structTypes  abi.Arguments
 )
 
 func init() {
@@ -52,6 +74,12 @@ func init() {
 	]`))
 	if err != nil {
 		panic("safesigner: invalid erc20 ABI: " + err.Error())
+	}
+	multiSendABI, err = abi.JSON(stringsReader(`[
+		{"inputs":[{"internalType":"bytes","name":"transactions","type":"bytes"}],"name":"multiSend","outputs":[],"stateMutability":"payable","type":"function"}
+	]`))
+	if err != nil {
+		panic("safesigner: invalid multiSend ABI: " + err.Error())
 	}
 	safeABI, err = abi.JSON(stringsReader(`[
 		{"constant":true,"inputs":[],"name":"nonce","outputs":[{"name":"","type":"uint256"}],"type":"function"},
@@ -98,15 +126,21 @@ var safeTxTypehash = crypto.Keccak256([]byte("SafeTx(address to,uint256 value,by
 var domainSeparatorTypehash = crypto.Keccak256([]byte("EIP712Domain(uint256 chainId,address verifyingContract)"))
 
 // ExecuteTransfers assembles, signs (with the first 3 P2P_ESCROW_SIGNERS),
-// and submits one Gnosis Safe execTransaction per non-zero transfer. Each
-// transfer is its own sequential Safe transaction (own nonce, own
-// signatures) rather than bundled via Safe's MultiSend contract - simpler
-// and safer to get right without a live network to test against, at the
-// cost of the four legs (buyer net amount + 3 fee wallets, Plan Section 60)
-// not being atomic with each other. Returns the transaction hash of the
-// last (largest/buyer-facing) transfer submitted, which Order.
-// AssetReleaseTransactionHash stores as the canonical release hash - the
-// others remain visible via each transfer's own on-chain record.
+// and submits transfers as Gnosis Safe execTransaction(s).
+//
+// When every non-zero transfer moves the same ERC-20 token (Plan Section
+// 60's usual case: buyer net amount + up to 3 fee wallets, all in
+// order.AssetContractAddress), they are batched into ONE Safe
+// execTransaction via the canonical MultiSendCallOnly contract - one Safe
+// nonce, one signature round, one Base transaction/gas bill, and the legs
+// become atomic with each other (all succeed or the whole batch reverts).
+// Otherwise (a mix of tokens, or a native-asset leg, or just one transfer)
+// each transfer is submitted as its own sequential Safe transaction (own
+// nonce, own signatures), as before - simpler for the cases batching
+// doesn't apply to, at the cost of those legs not being atomic with each
+// other. Returns the transaction hash of the single batched transaction,
+// or of the last transfer submitted in the sequential fallback - which
+// Order.AssetReleaseTransactionHash stores as the canonical release hash.
 func ExecuteTransfers(transfers []Transfer) (string, error) {
 	signers, err := ActiveSigners()
 	if err != nil {
@@ -119,21 +153,122 @@ func ExecuteTransfers(transfers []Transfer) (string, error) {
 	client := network.GetBlockchainClient()
 	chainID := network.GetBlockchainChainID()
 
-	var lastTxHash string
+	nonZero := make([]Transfer, 0, len(transfers))
 	for _, t := range transfers {
-		if t.Amount == nil || t.Amount.Sign() <= 0 {
-			continue // skip zero-amount legs (e.g. a fee that rounded to 0)
+		if t.Amount != nil && t.Amount.Sign() > 0 {
+			nonZero = append(nonZero, t)
 		}
+	}
+	if len(nonZero) == 0 {
+		return "", fmt.Errorf("no non-zero transfers to execute")
+	}
+
+	if sameERC20Token(nonZero) {
+		return executeBatchedTransfer(client, chainID, safeAddress, signers, nonZero)
+	}
+
+	var lastTxHash string
+	for _, t := range nonZero {
 		txHash, err := executeSingleTransfer(client, chainID, safeAddress, signers, t)
 		if err != nil {
 			return lastTxHash, fmt.Errorf("safe transfer to %v failed: %w", t.Recipient, err)
 		}
 		lastTxHash = txHash
 	}
-	if lastTxHash == "" {
-		return "", fmt.Errorf("no non-zero transfers to execute")
-	}
 	return lastTxHash, nil
+}
+
+// sameERC20Token reports whether every transfer moves the same non-native
+// ERC-20 token - the only shape ExecuteTransfers batches via MultiSend. A
+// single transfer is left to the sequential path (nothing to gain from
+// batching one leg), and a native-asset transfer (Token == "") is never
+// batched: MultiSendCallOnly could technically carry it too, but Plan
+// Section 60 only ever needs to combine the ERC-20 legs, so mixing in a
+// native leg here would just be unexercised complexity.
+func sameERC20Token(transfers []Transfer) bool {
+	if len(transfers) < 2 {
+		return false
+	}
+	token := transfers[0].Token
+	if token == "" {
+		return false
+	}
+	for _, t := range transfers[1:] {
+		if !strings.EqualFold(t.Token, token) {
+			return false
+		}
+	}
+	return true
+}
+
+// packMultiSendTx encodes one sub-transaction in the packed format
+// MultiSend/MultiSendCallOnly expects: operation (1 byte) ++ to (20
+// bytes) ++ value (32 bytes, big-endian) ++ data length (32 bytes,
+// big-endian) ++ data.
+func packMultiSendTx(operation uint8, to common.Address, value *big.Int, data []byte) []byte {
+	buf := make([]byte, 0, 1+20+32+32+len(data))
+	buf = append(buf, operation)
+	buf = append(buf, to.Bytes()...)
+	buf = append(buf, common.LeftPadBytes(value.Bytes(), 32)...)
+	buf = append(buf, common.LeftPadBytes(big.NewInt(int64(len(data))).Bytes(), 32)...)
+	buf = append(buf, data...)
+	return buf
+}
+
+// executeBatchedTransfer assembles every transfer (all moving the same
+// ERC-20 token, per sameERC20Token) into one MultiSendCallOnly payload,
+// then signs and submits ONE Safe execTransaction that delegatecalls
+// MultiSendCallOnly - which in turn plain-`call`s the token contract once
+// per transfer, each call originating from the Safe itself (delegatecall
+// preserves the Safe's own address as the caller MultiSendCallOnly acts
+// as). All legs succeed or the whole batch reverts atomically.
+func executeBatchedTransfer(client *ethclient.Client, chainID *big.Int, safeAddress string, signers []*evmkeypair.Full, transfers []Transfer) (string, error) {
+	multiSendAddr := common.HexToAddress(multiSendCallOnlyAddress())
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	if code, err := client.CodeAt(ctx, multiSendAddr, nil); err != nil {
+		return "", fmt.Errorf("checking MultiSendCallOnly contract code at %s: %w", multiSendAddr.Hex(), err)
+	} else if len(code) == 0 {
+		return "", fmt.Errorf("no contract code found at MultiSendCallOnly address %s on this network - configure P2P_ESCROW_MULTISEND_ADDRESS", multiSendAddr.Hex())
+	}
+
+	tokenAddr := common.HexToAddress(transfers[0].Token)
+	var packed []byte
+	for _, t := range transfers {
+		data, err := erc20ABI.Pack("transfer", common.HexToAddress(t.Recipient), t.Amount)
+		if err != nil {
+			return "", fmt.Errorf("packing ERC20 transfer to %v: %w", t.Recipient, err)
+		}
+		packed = append(packed, packMultiSendTx(operationCall, tokenAddr, big.NewInt(0), data)...)
+	}
+	multiSendData, err := multiSendABI.Pack("multiSend", packed)
+	if err != nil {
+		return "", fmt.Errorf("packing multiSend: %w", err)
+	}
+
+	nonce, err := fetchSafeNonce(client, safeAddress)
+	if err != nil {
+		return "", fmt.Errorf("fetching Safe nonce: %w", err)
+	}
+
+	safeTxHash, err := computeSafeTxHash(chainID, safeAddress, multiSendAddr, big.NewInt(0), multiSendData, operationDelegateCall, big.NewInt(0), big.NewInt(0), big.NewInt(0), common.Address{}, common.Address{}, nonce)
+	if err != nil {
+		return "", fmt.Errorf("computing safeTxHash: %w", err)
+	}
+
+	signatures, err := signSafeTxHash(safeTxHash, signers)
+	if err != nil {
+		return "", fmt.Errorf("signing safeTxHash: %w", err)
+	}
+
+	execData, err := safeABI.Pack("execTransaction", multiSendAddr, big.NewInt(0), multiSendData, operationDelegateCall,
+		big.NewInt(0), big.NewInt(0), big.NewInt(0), common.Address{}, common.Address{}, signatures)
+	if err != nil {
+		return "", fmt.Errorf("packing execTransaction: %w", err)
+	}
+
+	broadcaster := signers[0]
+	return submitRawTransaction(client, chainID, broadcaster, safeAddress, execData)
 }
 
 func executeSingleTransfer(client *ethclient.Client, chainID *big.Int, safeAddress string, signers []*evmkeypair.Full, t Transfer) (string, error) {
