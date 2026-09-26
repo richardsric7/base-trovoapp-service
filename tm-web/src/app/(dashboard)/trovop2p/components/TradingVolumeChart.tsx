@@ -1,78 +1,29 @@
-import { ArrowCircleUp, TrendUp } from "iconsax-react";
 import dynamic from "next/dynamic";
 import React, { useState } from "react";
-import { BsArrowUpRightCircleFill } from "react-icons/bs";
 import styled from "styled-components";
+import { ReportRange, useP2pVolumeReportQuery } from "@/redux/api/p2p";
+import { formatAmount, formatDateLabel } from "./reports/reportUtils";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 type TabName = "daily" | "weekly" | "monthly";
 
+const TAB_RANGE: Record<TabName, ReportRange> = {
+  daily: "7d",
+  weekly: "30d",
+  monthly: "1y",
+};
+
 const TradingVolumeChart = () => {
   const [activeTab, setActiveTab] = useState<TabName>("monthly");
+  const { data, isLoading } = useP2pVolumeReportQuery({ range: TAB_RANGE[activeTab] });
+  const report = data?.data;
 
-  const getCategories = (tab: TabName): string[] => {
-    switch (tab) {
-      case "daily":
-        return [
-          "0:00",
-          "1:00",
-          "2:00",
-          "3:00",
-          "4:00",
-          "5:00",
-          "6:00",
-          "7:00",
-          "8:00",
-          "9:00",
-          "10:00",
-          "11:00",
-          "12:00",
-        ];
-      case "weekly":
-        return ["Week 1", "Week 2", "Week 3", "Week 4"];
-      case "monthly":
-        return [
-          "JAN",
-          "FEB",
-          "MAR",
-          "APR",
-          "MAY",
-          "JUN",
-          "JUL",
-          "AUG",
-          "SEP",
-          "OCT",
-          "NOV",
-          "DEC",
-        ];
-    }
-  };
-
-  const getData = (tab: TabName): number[] => {
-    switch (tab) {
-      case "daily":
-        return [
-          2000, 2500, 3000, 4500, 4000, 3500, 3800, 4200, 3900, 4300, 4800,
-          4100, 3700,
-        ];
-      case "weekly":
-        return [12000, 15000, 18000, 20000];
-      case "monthly":
-        return [
-          50000, 45000, 60000, 70000, 80000, 85000, 70000, 60000, 75000, 90000,
-          95000, 100000,
-        ];
-    }
-  };
-
-  const categories = getCategories(activeTab);
-  const data = getData(activeTab);
-
+  const categories = report?.series?.map((p) => formatDateLabel(p.date)) ?? [];
   const series = [
     {
-      name: "Trading volume",
-      data,
+      name: "Completed trading volume",
+      data: report?.series?.map((p) => Number(p.completedVolume)) ?? [],
     },
   ];
 
@@ -112,7 +63,6 @@ const TradingVolumeChart = () => {
     },
     yaxis: {
       labels: {
-        formatter: (value) => `${value / 1000}k`,
         style: {
           colors: "#828282",
           fontSize: "12px",
@@ -120,11 +70,8 @@ const TradingVolumeChart = () => {
       },
     },
     tooltip: {
-      x: {
-        format: "HH:mm",
-      },
       y: {
-        formatter: (value) => `${value.toLocaleString()} hours`,
+        formatter: (value) => formatAmount(String(value)),
       },
     },
     fill: {
@@ -153,24 +100,13 @@ const TradingVolumeChart = () => {
     },
   };
 
-  const peakTradingHour = () => {
-    const maxIndex = data.indexOf(Math.max(...data));
-    return categories[maxIndex];
-  };
-
   return (
     <Container>
       <FlexContent>
         <div>
           <Text>Trading Volume</Text>
           <VolContent>
-            <TotalUsers>$12.7k</TotalUsers>
-            <Status>
-              {" "}
-              <BsArrowUpRightCircleFill color="00A859" />
-              <StyledSpan>1.3%</StyledSpan>
-            </Status>
-            <Text>VS LAST YEAR</Text>
+            <TotalUsers>{isLoading ? "-" : formatAmount(report?.completedVolume)}</TotalUsers>
           </VolContent>
         </div>
         <TabsContainer>
@@ -261,18 +197,4 @@ const TabButton = styled.div<{ $active?: boolean }>`
   &:hover {
     background-color: ${(props) => (props.$active ? "white" : "#e0e0e0")};
   }
-`;
-
-const Status = styled.div`
-  font-size: 14px;
-  color: #00a859;
-  margin: 0;
-  display: flex;
-  align-items: center;
-`;
-
-const StyledSpan = styled.span`
-  font-size: 14px;
-  font-weight: 500;
-  color: #00a859;
 `;

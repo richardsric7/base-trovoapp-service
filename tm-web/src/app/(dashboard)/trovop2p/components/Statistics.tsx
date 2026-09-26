@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import Card from "../../components/Card";
 import styled from "styled-components";
 import usersGroupIcon from "@/assets/images/solar_users-group-rounded-linear.svg";
@@ -6,16 +7,17 @@ import activeIcon from "@/assets/images/healthicons_happy-outline.svg";
 import merchantsIcon from "@/assets/images/merchant-icon.svg";
 import newUsersIcon from "@/assets/images/profile-add.svg";
 
-import P2pBarChart from "./P2pBarChart";
-import Image from "next/image";
-import trovIcon from "@/assets/images/TROVTokenicon.svg";
-import xbnIcon from "@/assets/images/bantuIcon.svg";
-import CircularGauge from "./CirclularGuage";
 import SteppedLineChart from "./SteppedLineChart";
-import { useP2pMetricsQuery } from "@/redux/api/p2p";
+import { useP2pMetricsQuery, useP2pDistributionReportQuery } from "@/redux/api/p2p";
+import { formatAmount } from "./reports/reportUtils";
 
 const Statistics = () => {
   const { data, isLoading } = useP2pMetricsQuery();
+  // A 30-day snapshot of what's actually trading right now - the full,
+  // date-range-filterable breakdown lives in the Reports tab; this is just
+  // a quick-glance widget, not a substitute for it.
+  const { data: distribution } = useP2pDistributionReportQuery({ range: "30d" });
+  const topAssets = (distribution?.data?.byAsset ?? []).slice(0, 3);
 
   return (
     <Container>
@@ -46,47 +48,26 @@ const Statistics = () => {
       </MetricsCardContainer>
 
       <ChartsContainer>
-        <P2pBarChart
-          data={{
-            data: {
-              totalOrders: data?.data?.totalOrders ?? 0,
-            },
-          }}
-        />
+        <TradedAssetContainer>
+          <Heading>Most Traded Assets (last 30 days)</Heading>
+          <Line></Line>
+          {topAssets.length === 0 ? (
+            <EmptyText>No trades in the last 30 days.</EmptyText>
+          ) : (
+            topAssets.map((asset) => (
+              <AssetDetails key={asset.key}>
+                <AssetInfo>
+                  <Name>{asset.key}</Name>
+                </AssetInfo>
+                <TradesCount>
+                  {asset.count} trade{asset.count === 1 ? "" : "s"} · {formatAmount(asset.volume)} traded
+                </TradesCount>
+              </AssetDetails>
+            ))
+          )}
+          <SeeMore href="/trovop2p?tab=reports">See the full market reports →</SeeMore>
 
-        <div>
-          <RoundContainer>
-            <Stats>Statistics</Stats>
-            <Heading>Service Resource Utilization</Heading>
-            <Line></Line>
-            <CircularGauge
-              value={72}
-              size={300}
-              thickness={16}
-              primaryColor="#0088ff"
-              backgroundColor="#e0e0e0"
-            />
-          </RoundContainer>
-          <TradedAssetContainer>
-            <Heading>Most Traded Assets</Heading>
-
-            <Line></Line>
-            <AssetDetails>
-              <AssetInfo>
-                <Image src={trovIcon} alt="trov-token-icon" />
-                <Name>Trov</Name>
-              </AssetInfo>
-              <TradesCount>500 Trades</TradesCount>
-            </AssetDetails>
-            <AssetDetails>
-              <AssetInfo>
-                <Image src={xbnIcon} alt="trov-token-icon" />
-                <Name>XBN</Name>
-              </AssetInfo>
-              <TradesCount>492 Trades</TradesCount>
-            </AssetDetails>
-          </TradedAssetContainer>
-        </div>
+        </TradedAssetContainer>
       </ChartsContainer>
       <SteppedLineContainer>
         <SteppedLineChart />
@@ -162,21 +143,23 @@ const Name = styled.p`
   color: #004988;
 `;
 
-const RoundContainer = styled.div`
-  padding: 40px 32px 40px 32px;
-  gap: 48px;
-  border-radius: 24px;
-  background-color: #ffffff;
-  margin-top: 20px;
-`;
-const Stats = styled.p`
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 20px;
-  text-align: left;
-  text-underline-position: from-font;
-  text-decoration-skip-ink: none;
+const EmptyText = styled.p`
+  font-size: 13px;
   color: #828282;
+  padding: 12px 0;
+`;
+
+const SeeMore = styled(Link)`
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #007cdf;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const Line = styled.div`
