@@ -1,10 +1,12 @@
 package p2p
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 	p2pModels "trovo-wallet-api/internal/components/p2p/models"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/shopspring/decimal"
@@ -65,8 +67,12 @@ func QuoteOrderFees(gc *sharedconfig.GlobalConfig, offerID, specifiedAssetAmount
 	if err != nil {
 		return OrderFeeBreakdown{}, offer, &tErrors.CustomError{Param: "offerId", Err: "error-no-fee-configuration", ErrMessage: "No fee configuration is available for this offer's country"}
 	}
+	assetDecimals, aErr := network.AssetDecimals(context.Background(), network.GetBlockchainClient(), resolveAssetForContract(offer.ContractAddress))
+	if aErr != nil {
+		return OrderFeeBreakdown{}, offer, &tErrors.CustomError{Param: "offerId", Err: "error-resolving-asset-decimals", ErrMessage: "Could not resolve this offer's asset decimals"}
+	}
 	price := decimal.RequireFromString(offer.Price)
-	return CalculateOrderFees(specifiedAmount, price, feeCfg), offer, nil
+	return CalculateOrderFees(specifiedAmount, price, feeCfg, assetDecimals), offer, nil
 }
 
 // CreateOrder implements Plan Section 25's full creation sequence: validate
@@ -141,9 +147,13 @@ func CreateOrder(gc *sharedconfig.GlobalConfig, customerUserID, customerUsername
 	if err != nil {
 		return p2pModels.Order{}, &tErrors.CustomError{Param: "offerId", Err: "error-no-fee-wallet-configuration", ErrMessage: "No fee wallet configuration is available for this offer's country"}
 	}
+	assetDecimals, aErr := network.AssetDecimals(context.Background(), network.GetBlockchainClient(), resolveAssetForContract(offer.ContractAddress))
+	if aErr != nil {
+		return p2pModels.Order{}, &tErrors.CustomError{Param: "offerId", Err: "error-resolving-asset-decimals", ErrMessage: "Could not resolve this offer's asset decimals"}
+	}
 
 	price := decimal.RequireFromString(offer.Price)
-	breakdown := CalculateOrderFees(specifiedAmount, price, feeCfg)
+	breakdown := CalculateOrderFees(specifiedAmount, price, feeCfg, assetDecimals)
 
 	// Role mapping (Plan Section 11).
 	assetDepositor, assetRecipient, fiatPayer, fiatRecipient := resolveTradeRoles(offer.OfferType, offer.MerchantUserID, customerUserID)
@@ -167,7 +177,7 @@ func CreateOrder(gc *sharedconfig.GlobalConfig, customerUserID, customerUsername
 		CountryCode:          offer.CountryCode,
 		Currency:             offer.Currency,
 		Price:                offer.Price,
-		SpecifiedAssetAmount: specifiedAmount.Truncate(decimalPlaces).String(),
+		SpecifiedAssetAmount: specifiedAmount.Truncate(int32(assetDecimals)).String(),
 		PaymentAmount:        breakdown.PaymentAmount.String(),
 
 		BuyerPlatformFee:      breakdown.BuyerPlatformFee.String(),

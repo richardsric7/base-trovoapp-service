@@ -8,10 +8,13 @@ import (
 	"gorm.io/gorm"
 )
 
-// decimalPlaces matches CuratedAsset.DecimalPlaces' default (7) - every P2P
-// amount/fee field is truncated to this precision, following the same
-// convention already used by payments/swaps.
-const decimalPlaces = 7
+// fiatDecimalPlaces is the truncation precision for PaymentAmount, which is
+// denominated in the offer's fiat currency (Currency), not the traded
+// asset - 2 matches standard fiat currency precision (cents/kobo/etc.) and
+// is independent of the traded asset's own on-chain decimals (see
+// CalculateOrderFees' assetDecimals parameter, which every other,
+// asset-denominated field is truncated to instead).
+const fiatDecimalPlaces = 2
 
 // GetActiveFeeConfiguration returns the current ACTIVE TradeFeeConfiguration
 // for a country, falling back to the "" (default/global) country code row
@@ -71,8 +74,17 @@ type OrderFeeBreakdown struct {
 }
 
 // CalculateOrderFees implements the formulas in Plan Section 50, given the
-// specified asset amount, the fiat price, and the active fee configuration.
-func CalculateOrderFees(specifiedAssetAmount decimal.Decimal, price decimal.Decimal, cfg p2pModels.TradeFeeConfiguration) OrderFeeBreakdown {
+// specified asset amount, the fiat price, the active fee configuration, and
+// assetDecimals - the traded asset's own on-chain decimal precision (see
+// network.AssetDecimals), which every asset-denominated field below is
+// truncated to. This replaces a flat 7-decimal-place assumption (the old
+// Stellar stroop precision) that didn't match every B20 token's real
+// decimals (USDC/USDT use 6, WBTC uses 8, WETH uses 18) - truncating a real
+// 18-decimal asset's fees to only 7 places was quietly rounding away real
+// fee revenue on every order, and a 6-decimal asset's fees carried a
+// meaningless 8th decimal digit until the wei conversion at settlement
+// discarded it anyway.
+func CalculateOrderFees(specifiedAssetAmount decimal.Decimal, price decimal.Decimal, cfg p2pModels.TradeFeeConfiguration, assetDecimals uint8) OrderFeeBreakdown {
 	buyerPlatformPct := decimal.RequireFromString(orDefault(cfg.BuyerPlatformFeePercent))
 	buyerRegulatoryPct := decimal.RequireFromString(orDefault(cfg.BuyerRegulatoryFeePercent))
 	sellerPlatformPct := decimal.RequireFromString(orDefault(cfg.SellerPlatformFeePercent))
@@ -80,6 +92,7 @@ func CalculateOrderFees(specifiedAssetAmount decimal.Decimal, price decimal.Deci
 	vatPct := decimal.RequireFromString(orDefault(cfg.VatPercent))
 
 	hundred := decimal.NewFromInt(100)
+	decimalPlaces := int32(assetDecimals)
 
 	buyerPlatformFee := specifiedAssetAmount.Mul(buyerPlatformPct).Div(hundred).Truncate(decimalPlaces)
 	buyerRegulatoryFee := specifiedAssetAmount.Mul(buyerRegulatoryPct).Div(hundred).Truncate(decimalPlaces)
@@ -99,7 +112,9 @@ func CalculateOrderFees(specifiedAssetAmount decimal.Decimal, price decimal.Deci
 	sellerTotalCharges := sellerTotalFees.Add(sellerTotalVat)
 	sellerEscrowAssetAmount := specifiedAssetAmount.Add(sellerTotalCharges)
 
-	paymentAmount := specifiedAssetAmount.Mul(price).Truncate(decimalPlaces)
+	// PaymentAmount is fiat (Currency), not the traded asset - it gets its
+	// own, currency-appropriate precision rather than the asset's.
+	paymentAmount := specifiedAssetAmount.Mul(price).Truncate(fiatDecimalPlaces)
 
 	return OrderFeeBreakdown{
 		BuyerPlatformFee:      buyerPlatformFee,

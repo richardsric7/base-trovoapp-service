@@ -29,15 +29,16 @@ func toWei(amount string, decimals uint8) *big.Int {
 	return d.Shift(int32(decimals)).BigInt()
 }
 
-// resolveOrderAsset returns the basetxn.Asset order settles in: the
-// native asset if it has no ERC-20 contract address, otherwise a B20
+// resolveAssetForContract returns the basetxn.Asset for a stored ERC-20
+// contract address column (Offer.ContractAddress, Order.AssetContractAddress,
+// Refund.ContractAddress, ...): the native asset if empty, otherwise a B20
 // CreditAsset for that contract - just enough of the Asset interface for
 // network.AssetDecimals to resolve against.
-func resolveOrderAsset(order *p2pModels.Order) basetxn.Asset {
-	if order.AssetContractAddress == "" {
+func resolveAssetForContract(contractAddress string) basetxn.Asset {
+	if contractAddress == "" {
 		return basetxn.NativeAsset{}
 	}
-	return basetxn.CreditAsset{Code: order.Asset, Issuer: order.AssetContractAddress}
+	return basetxn.CreditAsset{Issuer: contractAddress}
 }
 
 // ReleaseEscrowSettlement implements Plan Sections 59-61: assembles the
@@ -52,7 +53,7 @@ func ReleaseEscrowSettlement(gc *sharedconfig.GlobalConfig, order *p2pModels.Ord
 		return "", err
 	}
 
-	decimals, err := network.AssetDecimals(context.Background(), network.GetBlockchainClient(), resolveOrderAsset(order))
+	decimals, err := network.AssetDecimals(context.Background(), network.GetBlockchainClient(), resolveAssetForContract(order.AssetContractAddress))
 	if err != nil {
 		return "", &tErrors.CustomError{Param: "settlement", Err: "error-settlement-release-failed", ErrMessage: "Escrow settlement release failed: could not resolve asset decimals: " + err.Error()}
 	}

@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 	"time"
-	"trovo-wallet-api/internal/basetxn"
 	p2pModels "trovo-wallet-api/internal/components/p2p/models"
 	"trovo-wallet-api/internal/components/p2p/safesigner"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
@@ -309,11 +308,7 @@ func ClaimRefund(gc *sharedconfig.GlobalConfig, refundID, callerAddress string) 
 	refund.Claimed = true
 	refund.ClaimedAt = &now
 
-	refundAsset := basetxn.Asset(basetxn.NativeAsset{})
-	if refund.ContractAddress != "" {
-		refundAsset = basetxn.CreditAsset{Issuer: refund.ContractAddress}
-	}
-	decimals, err := network.AssetDecimals(context.Background(), network.GetBlockchainClient(), refundAsset)
+	decimals, err := network.AssetDecimals(context.Background(), network.GetBlockchainClient(), resolveAssetForContract(refund.ContractAddress))
 	if err != nil {
 		RecordAuditEvent(gc, refund.OrderID, "", "REFUND_CLAIM_TRANSFER_FAILED", refund.Sender, map[string]string{"refundId": refund.ID, "error": err.Error()})
 		return refund, &tErrors.CustomError{Param: "refund", Err: "error-refund-transfer-failed", ErrMessage: "Refund transfer failed. Please contact support."}
