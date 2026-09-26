@@ -36,6 +36,27 @@ type CreateOrderInput struct {
 	SpecifiedAssetAmount string
 }
 
+// QuoteOrderFees runs the same offer/amount validation and fee calculation
+// CreateOrder does, without persisting anything - lets the order-creation
+// screen show a real itemized fee breakdown before the customer commits
+// (Plan Section 97.6), rather than only after Order is actually created.
+func QuoteOrderFees(gc *sharedconfig.GlobalConfig, offerID, specifiedAssetAmount string) (OrderFeeBreakdown, p2pModels.Offer, error) {
+	offer, err := GetOfferByID(gc.DB, offerID)
+	if err != nil {
+		return OrderFeeBreakdown{}, offer, &tErrors.CustomError{Param: "offerId", Err: "error-offer-not-found", ErrMessage: "Offer not found"}
+	}
+	specifiedAmount, e := decimal.NewFromString(specifiedAssetAmount)
+	if e != nil || specifiedAmount.LessThanOrEqual(decimal.Zero) {
+		return OrderFeeBreakdown{}, offer, &tErrors.CustomError{Param: "specifiedAssetAmount", Err: "error-invalid-amount", ErrMessage: "specifiedAssetAmount must be a positive decimal number"}
+	}
+	feeCfg, err := GetActiveFeeConfiguration(gc.DB, offer.CountryCode)
+	if err != nil {
+		return OrderFeeBreakdown{}, offer, &tErrors.CustomError{Param: "offerId", Err: "error-no-fee-configuration", ErrMessage: "No fee configuration is available for this offer's country"}
+	}
+	price := decimal.RequireFromString(offer.Price)
+	return CalculateOrderFees(specifiedAmount, price, feeCfg), offer, nil
+}
+
 // CreateOrder implements Plan Section 25's full creation sequence: validate
 // offer, validate customer eligibility/self-trade/capacity, load curated
 // asset (already snapshotted on the Offer), calculate fees/VAT, snapshot

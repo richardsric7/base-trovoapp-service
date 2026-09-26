@@ -104,6 +104,15 @@ import 'package:trovo_app/screens/market_trade/market_trade_info.dart';
 import 'package:trovo_app/screens/page_view/pdf_view.dart';
 import 'package:trovo_app/screens/page_view/success_view.dart';
 import 'package:trovo_app/screens/page_view/web_view.dart';
+import 'package:trovo_app/screens/p2p/p2p_marketplace_view.dart';
+import 'package:trovo_app/screens/p2p/p2p_offer_detail_view.dart';
+import 'package:trovo_app/screens/p2p/p2p_create_offer_view.dart';
+import 'package:trovo_app/screens/p2p/p2p_create_order_view.dart';
+import 'package:trovo_app/screens/p2p/p2p_order_detail_view.dart';
+import 'package:trovo_app/screens/p2p/p2p_escrow_share_view.dart';
+import 'package:trovo_app/screens/p2p/p2p_dispute_view.dart';
+import 'package:trovo_app/screens/p2p/p2p_my_orders_view.dart';
+import 'package:trovo_app/screens/p2p/p2p_my_offers_view.dart';
 import 'package:trovo_app/screens/send_and_recieve/yield_history.dart';
 import 'package:trovo_app/screens/shared_access/add_shared_access_details.dart';
 import 'package:trovo_app/screens/shared_access/approval_details.dart';
@@ -661,6 +670,33 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.AppImageViewer:
           _addPageData(AppImageViewer(), AppImageViewerPageConfig);
           break;
+        case Pages.P2PMarketplaceView:
+          _addPageData(P2PMarketplaceView(), P2PMarketplaceViewPageConfig);
+          break;
+        case Pages.P2POfferDetailView:
+          _addPageData(P2POfferDetailView(), P2POfferDetailViewPageConfig);
+          break;
+        case Pages.P2PCreateOfferView:
+          _addPageData(P2PCreateOfferView(), P2PCreateOfferViewPageConfig);
+          break;
+        case Pages.P2PCreateOrderView:
+          _addPageData(P2PCreateOrderView(), P2PCreateOrderViewPageConfig);
+          break;
+        case Pages.P2POrderDetailView:
+          _addPageData(P2POrderDetailView(), P2POrderDetailViewPageConfig);
+          break;
+        case Pages.P2PEscrowShareView:
+          _addPageData(P2PEscrowShareView(), P2PEscrowShareViewPageConfig);
+          break;
+        case Pages.P2PDisputeView:
+          _addPageData(P2PDisputeView(), P2PDisputeViewPageConfig);
+          break;
+        case Pages.P2PMyOrdersView:
+          _addPageData(P2PMyOrdersView(), P2PMyOrdersViewPageConfig);
+          break;
+        case Pages.P2PMyOffersView:
+          _addPageData(P2PMyOffersView(), P2PMyOffersViewPageConfig);
+          break;
         default:
           break;
       }
@@ -982,6 +1018,33 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.QuickBuyView:
         QuickBuyViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.P2PMarketplaceView:
+        P2PMarketplaceViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.P2POfferDetailView:
+        P2POfferDetailViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.P2PCreateOfferView:
+        P2PCreateOfferViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.P2PCreateOrderView:
+        P2PCreateOrderViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.P2POrderDetailView:
+        P2POrderDetailViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.P2PEscrowShareView:
+        P2PEscrowShareViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.P2PDisputeView:
+        P2PDisputeViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.P2PMyOrdersView:
+        P2PMyOrdersViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.P2PMyOffersView:
+        P2PMyOffersViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
