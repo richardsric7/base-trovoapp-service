@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../../components/header';
 import {
@@ -25,6 +25,22 @@ export default function P2PMarketplace() {
 
   const { data: assetClasses } = useGetP2PAssetClassesQuery({ creds }, { skip: !ready });
   const { data: facets } = useGetP2PMarketplaceFacetsQuery({ creds }, { skip: !ready });
+
+  // Asset is a dependent list box for category: picking a category
+  // narrows the asset options down to just that category's assets.
+  const assetOptions = useMemo(() => {
+    if (!assetClassId) return facets?.assets ?? [];
+    return (facets?.assets ?? []).filter((a) => String(a.assetClassId) === assetClassId);
+  }, [facets, assetClassId]);
+
+  const selectCategory = (value: string) => {
+    setAssetClassId(value);
+    // Currently selected asset may no longer belong to the new category -
+    // reset it back to "All assets" rather than leaving a stale, now-
+    // invalid selection in place.
+    const stillValid = !value || (facets?.assets ?? []).some((a) => a.asset === asset && String(a.assetClassId) === value);
+    if (!stillValid) setAsset('');
+  };
 
   const { data, isLoading, isError, refetch } = useListP2PMarketplaceOffersQuery(
     {
@@ -84,14 +100,26 @@ export default function P2PMarketplace() {
 
       <div className="flex flex-wrap gap-2 max-w-2xl">
         <select
+          value={assetClassId}
+          onChange={(e) => selectCategory(e.target.value)}
+          className="px-3 py-2 rounded-xl bg-white text-sm border border-gray-200"
+        >
+          <option value="">All categories</option>
+          {assetClasses?.data?.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.assetClass}
+            </option>
+          ))}
+        </select>
+        <select
           value={asset}
           onChange={(e) => setAsset(e.target.value)}
           className="px-3 py-2 rounded-xl bg-white text-sm border border-gray-200"
         >
           <option value="">All assets</option>
-          {facets?.assets?.map((a) => (
-            <option key={a} value={a}>
-              {a}
+          {assetOptions.map((a) => (
+            <option key={a.asset} value={a.asset}>
+              {a.asset}
             </option>
           ))}
         </select>
@@ -104,18 +132,6 @@ export default function P2PMarketplace() {
           {facets?.currencies?.map((c) => (
             <option key={c} value={c}>
               {c}
-            </option>
-          ))}
-        </select>
-        <select
-          value={assetClassId}
-          onChange={(e) => setAssetClassId(e.target.value)}
-          className="px-3 py-2 rounded-xl bg-white text-sm border border-gray-200"
-        >
-          <option value="">All categories</option>
-          {assetClasses?.data?.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.assetClass}
             </option>
           ))}
         </select>
