@@ -89,6 +89,7 @@ func SetMerchantOnlineStatus(gc *sharedconfig.GlobalConfig, userID string, onlin
 			Code:       403,
 		}
 	}
+	wasOnline := user.MerchantOnline
 	user.MerchantOnline = online
 	if err := gc.DB.Model(&userModels.User{}).Where("id = ?", user.ID).
 		Update("merchant_online", online).Error; err != nil {
@@ -99,5 +100,16 @@ func SetMerchantOnlineStatus(gc *sharedconfig.GlobalConfig, userID string, onlin
 		eventName = p2pModels.EventMerchantOnline
 	}
 	RecordAuditEvent(gc, "", "", eventName, user.ID, nil)
+
+	// Push-notify only on an actual online->offline transition, not a
+	// redundant re-toggle-off call, so the merchant doesn't get repeat
+	// pings if the client retries or calls this twice - they might
+	// otherwise forget their offers have gone dark and lose sales without
+	// realizing why.
+	if wasOnline && !online {
+		NotifyUsername(gc, user.Username, "You're offline on P2P",
+			"Your P2P offers won't appear in marketplace search until you go back online.",
+			map[string]string{"type": "P2P_MERCHANT_OFFLINE"})
+	}
 	return user, nil
 }
