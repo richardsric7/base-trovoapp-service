@@ -21,6 +21,8 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	// Offers / marketplace
 	router.POST("/v1/p2p/offers", auth, postOffersHandler(gc))
 	router.GET("/v1/p2p/offers", auth, getMarketplaceOffersHandler(gc))
+	router.GET("/v1/p2p/asset-classes", auth, getAssetClassesHandler(gc))
+	router.GET("/v1/p2p/marketplace/facets", auth, getMarketplaceFacetsHandler(gc))
 	router.GET("/v1/p2p/offers/:offerID", auth, getOfferHandler(gc))
 	router.GET("/v1/p2p/offers/:offerID/quote", auth, getOfferQuoteHandler(gc))
 	router.PUT("/v1/p2p/offers/:offerID", auth, putOfferHandler(gc))

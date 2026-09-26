@@ -1,6 +1,8 @@
 package p2p
 
 import (
+	assetsDB "trovo-wallet-api/internal/components/assets/db"
+	assetModels "trovo-wallet-api/internal/components/assets/models"
 	p2pModels "trovo-wallet-api/internal/components/p2p/models"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
@@ -258,12 +260,13 @@ func GetOfferByID(db *gorm.DB, offerID string) (p2pModels.Offer, error) {
 
 // MarketplaceFilter narrows the browsable offer list (Plan Section 13).
 type MarketplaceFilter struct {
-	OfferType   string
-	Asset       string
-	CountryCode string
-	Currency    string
-	Page        int
-	PageSize    int
+	OfferType    string
+	Asset        string
+	AssetClassID uint64
+	CountryCode  string
+	Currency     string
+	Page         int
+	PageSize     int
 }
 
 // ListMarketplaceOffers returns ACTIVE+ONLINE offers matching the filter,
@@ -296,6 +299,15 @@ func ListMarketplaceOffers(db *gorm.DB, f MarketplaceFilter) ([]p2pModels.Offer,
 	if f.Asset != "" {
 		q = q.Where("offers.asset = ?", f.Asset)
 	}
+	if f.AssetClassID != 0 {
+		// Asset category (asset class) filter: curated_assets is the link
+		// between an offer's plain asset code and the asset class it's
+		// categorized under - a subquery rather than another JOIN, so
+		// this filter costs nothing on the common case where it's unset.
+		q = q.Where("offers.asset IN (?)", db.Table("curated_assets").
+			Select("asset_code").
+			Where("asset_class_id = ?", f.AssetClassID))
+	}
 	if f.CountryCode != "" {
 		q = q.Where("offers.country_code = ?", f.CountryCode)
 	}
@@ -325,4 +337,37 @@ func ListMerchantOffers(db *gorm.DB, merchantUserID string) ([]p2pModels.Offer, 
 	var offers []p2pModels.Offer
 	err := db.Where("merchant_user_id = ?", merchantUserID).Order("created_at desc").Find(&offers).Error
 	return offers, err
+}
+
+// ListAssetClasses returns every asset category (Plan: marketplace filter
+// by asset category, e.g. token/stablecoin/sto/nft) a curated asset can be
+// classified under - the same asset_classes table CuratedAsset.AssetClassID
+// links to, reused as-is rather than duplicating a P2P-scoped copy.
+func ListAssetClasses(db *gorm.DB) ([]assetModels.AssetClassOutput, error) {
+	return assetsDB.GetAssetClasses(db)
+}
+
+// MarketplaceFacets is the distinct asset/currency values worth offering as
+// filter options right now - derived from currently ACTIVE+ONLINE offers
+// (the same base eligibility ListMarketplaceOffers itself requires),
+// rather than from the full curated-asset catalog, so a filter option is
+// never dead (picking it would never return zero results).
+type MarketplaceFacets struct {
+	Assets     []string `json:"assets"`
+	Currencies []string `json:"currencies"`
+}
+
+func ListMarketplaceFacets(db *gorm.DB) (MarketplaceFacets, error) {
+	var facets MarketplaceFacets
+	base := db.Model(&p2pModels.Offer{}).
+		Joins("JOIN users ON users.id = offers.merchant_user_id").
+		Where("offers.status = ? AND offers.availability_status = ? AND users.is_merchant = ? AND users.merchant_online = ?",
+			p2pModels.OfferStatusActive, p2pModels.OfferAvailabilityOnline, true, true)
+	if err := base.Session(&gorm.Session{}).Distinct("offers.asset").Order("offers.asset").Pluck("offers.asset", &facets.Assets).Error; err != nil {
+		return facets, err
+	}
+	if err := base.Session(&gorm.Session{}).Distinct("offers.currency").Order("offers.currency").Pluck("offers.currency", &facets.Currencies).Error; err != nil {
+		return facets, err
+	}
+	return facets, nil
 }

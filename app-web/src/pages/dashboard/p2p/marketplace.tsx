@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../../components/header';
-import { useListP2PMarketplaceOffersQuery, useGetMerchantP2PPerformanceQuery, P2PCreds } from '../../../store/api/p2pApis';
+import {
+  useListP2PMarketplaceOffersQuery,
+  useGetMerchantP2PPerformanceQuery,
+  useGetP2PAssetClassesQuery,
+  useGetP2PMarketplaceFacetsQuery,
+  P2PCreds,
+} from '../../../store/api/p2pApis';
 import { useP2PIdentity } from '../../../hooks/useP2PIdentity';
 import { P2PListCard, P2PEmptyState, p2p } from '../../../components/p2p/P2PTheme';
 
@@ -13,9 +19,23 @@ export default function P2PMarketplace() {
   const navigate = useNavigate();
   const { creds, ready } = useP2PIdentity();
   const [offerType, setOfferType] = useState<'BUY' | 'SELL'>('BUY');
+  const [asset, setAsset] = useState('');
+  const [currency, setCurrency] = useState('');
+  const [assetClassId, setAssetClassId] = useState('');
+
+  const { data: assetClasses } = useGetP2PAssetClassesQuery({ creds }, { skip: !ready });
+  const { data: facets } = useGetP2PMarketplaceFacetsQuery({ creds }, { skip: !ready });
 
   const { data, isLoading, isError, refetch } = useListP2PMarketplaceOffersQuery(
-    { creds, offerType, page: 1, pageSize: 20 },
+    {
+      creds,
+      offerType,
+      asset: asset || undefined,
+      currency: currency || undefined,
+      assetClassId: assetClassId ? Number(assetClassId) : undefined,
+      page: 1,
+      pageSize: 20,
+    },
     { skip: !ready },
   );
 
@@ -60,6 +80,45 @@ export default function P2PMarketplace() {
             {t === 'BUY' ? 'Buy' : 'Sell'}
           </button>
         ))}
+      </div>
+
+      <div className="flex flex-wrap gap-2 max-w-2xl">
+        <select
+          value={asset}
+          onChange={(e) => setAsset(e.target.value)}
+          className="px-3 py-2 rounded-xl bg-white text-sm border border-gray-200"
+        >
+          <option value="">All assets</option>
+          {facets?.assets?.map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
+          ))}
+        </select>
+        <select
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value)}
+          className="px-3 py-2 rounded-xl bg-white text-sm border border-gray-200"
+        >
+          <option value="">All currencies</option>
+          {facets?.currencies?.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+        <select
+          value={assetClassId}
+          onChange={(e) => setAssetClassId(e.target.value)}
+          className="px-3 py-2 rounded-xl bg-white text-sm border border-gray-200"
+        >
+          <option value="">All categories</option>
+          {assetClasses?.data?.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.assetClass}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="max-w-2xl w-full">

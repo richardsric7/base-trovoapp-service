@@ -1227,5 +1227,8 @@
     "p2pyouareonline": "You're currently online",
     "p2pyouareoffline": "You're currently offline",
     "p2ponlinehint": "Your offers are visible in marketplace search.",
-    "p2pofflinehint": "All your offers are hidden from marketplace search until you go back online."
+    "p2pofflinehint": "All your offers are hidden from marketplace search until you go back online.",
+    "p2pallassets": "All assets",
+    "p2pallcurrencies": "All currencies",
+    "p2pallcategories": "All categories"
 }
