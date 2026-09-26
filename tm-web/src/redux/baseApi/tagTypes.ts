@@ -20,4 +20,5 @@ export const tagTypes = {
   AUDIT_TRAIL: "auditTrail",
   OBSERVABILITY: "observability",
   CURATED_ASSETS: "curatedAssets",
+  SERVICE_LINKS: "serviceLinks",
 };
