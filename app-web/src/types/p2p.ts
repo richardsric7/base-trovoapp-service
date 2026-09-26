@@ -168,6 +168,21 @@ export type P2PMerchantStatus = {
   kycLevel: number;
 };
 
+// P2PAssetClass is an asset category (token/stablecoin/sto/nft) a curated
+// asset is classified under - the marketplace's asset-category filter.
+export type P2PAssetClass = {
+  id: number;
+  assetClass: string;
+};
+
+// P2PMarketplaceFacets is the distinct asset/currency values worth
+// offering as filter options right now, derived from currently live
+// offers (see backend doc) rather than the full curated-asset catalog.
+export type P2PMarketplaceFacets = {
+  assets: string[];
+  currencies: string[];
+};
+
 export type P2POrderFeeQuote = {
   offerId: string;
   specifiedAssetAmount: string;

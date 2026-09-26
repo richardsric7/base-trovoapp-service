@@ -143,19 +143,49 @@ func getMarketplaceOffersHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc 
 	return func(c *gin.Context) {
 		page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 		pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
+		assetClassID, _ := strconv.ParseUint(c.Query("assetClassId"), 10, 64)
 		offers, total, err := p2pServices.ListMarketplaceOffers(gc.DB, p2pServices.MarketplaceFilter{
-			OfferType:   c.Query("offerType"),
-			Asset:       c.Query("asset"),
-			CountryCode: c.Query("countryCode"),
-			Currency:    c.Query("currency"),
-			Page:        page,
-			PageSize:    pageSize,
+			OfferType:    c.Query("offerType"),
+			Asset:        c.Query("asset"),
+			AssetClassID: assetClassID,
+			CountryCode:  c.Query("countryCode"),
+			Currency:     c.Query("currency"),
+			Page:         page,
+			PageSize:     pageSize,
 		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error-temporary-server-error"})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"data": offers, "total": total, "page": page, "pageSize": pageSize})
+	}
+}
+
+// getMarketplaceFacetsHandler lists the distinct asset/currency values
+// worth offering as marketplace filter options right now (Plan: filter by
+// currency and asset, in addition to the new asset category filter).
+func getMarketplaceFacetsHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		facets, err := p2pServices.ListMarketplaceFacets(gc.DB)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error-temporary-server-error"})
+			return
+		}
+		c.JSON(http.StatusOK, facets)
+	}
+}
+
+// getAssetClassesHandler lists every asset category the marketplace filter
+// can narrow by (Plan: filter by asset category in addition to asset/
+// currency) - a small, mostly-static reference list, so no pagination.
+func getAssetClassesHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		classes, err := p2pServices.ListAssetClasses(gc.DB)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error-temporary-server-error"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"data": classes})
 	}
 }
 

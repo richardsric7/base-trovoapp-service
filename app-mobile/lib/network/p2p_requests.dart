@@ -50,6 +50,7 @@ class P2PApi {
   Future<Map<String, dynamic>> listMarketplaceOffers({
     String? offerType,
     String? asset,
+    int? assetClassId,
     String? countryCode,
     String? currency,
     int page = 1,
@@ -58,6 +59,7 @@ class P2PApi {
     var qp = <String, String>{'page': '$page', 'pageSize': '$pageSize'};
     if (offerType != null) qp['offerType'] = offerType;
     if (asset != null) qp['asset'] = asset;
+    if (assetClassId != null) qp['assetClassId'] = '$assetClassId';
     if (countryCode != null) qp['countryCode'] = countryCode;
     if (currency != null) qp['currency'] = currency;
     var query = qp.entries.map((e) => '${e.key}=${e.value}').join('&');
@@ -67,6 +69,29 @@ class P2PApi {
       'offers': P2POffer.deserializeList(data['data']),
       'total': data['total'] ?? 0,
       'statusCode': response['statusCode'],
+    };
+  }
+
+  // assetClasses lists every asset category (token/stablecoin/sto/nft) the
+  // marketplace filter can narrow by.
+  Future<List<Map<String, dynamic>>> assetClasses() async {
+    var response = await _get('/v1/p2p/asset-classes');
+    if (response['statusCode'] != 200) return [];
+    var data = response['data']?['data'];
+    if (data is! List) return [];
+    return data.cast<Map<String, dynamic>>();
+  }
+
+  // marketplaceFacets returns the distinct asset/currency values worth
+  // offering as filter options right now (derived from currently live
+  // offers, never a dead filter option).
+  Future<Map<String, List<String>>> marketplaceFacets() async {
+    var response = await _get('/v1/p2p/marketplace/facets');
+    if (response['statusCode'] != 200) return {'assets': [], 'currencies': []};
+    var data = response['data'] ?? {};
+    return {
+      'assets': List<String>.from(data['assets'] ?? []),
+      'currencies': List<String>.from(data['currencies'] ?? []),
     };
   }
 

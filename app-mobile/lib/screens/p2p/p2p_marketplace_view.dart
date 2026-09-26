@@ -31,6 +31,13 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
   List<P2POffer> offers = [];
   final Map<String, Future<Map<String, dynamic>?>> _perfFutures = {};
 
+  String? asset;
+  String? currency;
+  int? assetClassId;
+  List<Map<String, dynamic>> assetClasses = [];
+  List<String> assetOptions = [];
+  List<String> currencyOptions = [];
+
   // Cached per merchantId so scrolling the same offer list doesn't refetch
   // performance for a merchant already fetched (Plan Section 8/26's trust
   // signal, shown on every offer card).
@@ -42,11 +49,28 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
     );
   }
 
+  bool _filtersLoaded = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     api = P2PApi(appState);
     _load();
+    if (!_filtersLoaded) {
+      _filtersLoaded = true;
+      _loadFilterOptions();
+    }
+  }
+
+  Future<void> _loadFilterOptions() async {
+    final classes = await api.assetClasses();
+    final facets = await api.marketplaceFacets();
+    if (!mounted) return;
+    setState(() {
+      assetClasses = classes;
+      assetOptions = facets['assets'] ?? [];
+      currencyOptions = facets['currencies'] ?? [];
+    });
   }
 
   Future<void> _load() async {
@@ -55,7 +79,12 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
       error = null;
     });
     try {
-      var result = await api.listMarketplaceOffers(offerType: offerType);
+      var result = await api.listMarketplaceOffers(
+        offerType: offerType,
+        asset: asset,
+        currency: currency,
+        assetClassId: assetClassId,
+      );
       setState(() {
         offers = result['offers'];
         loading = false;
@@ -125,6 +154,61 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
               ],
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(P2PTheme.space4, 0, P2PTheme.space4, P2PTheme.space2),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _filterDropdown(
+                    value: asset,
+                    hint: 'p2pallassets'.tr(),
+                    items: assetOptions,
+                    onChanged: (v) {
+                      setState(() => asset = v);
+                      _load();
+                    },
+                  ),
+                ),
+                const SizedBox(width: P2PTheme.space2),
+                Expanded(
+                  child: _filterDropdown(
+                    value: currency,
+                    hint: 'p2pallcurrencies'.tr(),
+                    items: currencyOptions,
+                    onChanged: (v) {
+                      setState(() => currency = v);
+                      _load();
+                    },
+                  ),
+                ),
+                const SizedBox(width: P2PTheme.space2),
+                Expanded(
+                  child: DropdownButtonFormField<int?>(
+                    value: assetClassId,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(borderSide: BorderSide.none),
+                      contentPadding: EdgeInsets.symmetric(horizontal: P2PTheme.space2, vertical: P2PTheme.space2),
+                    ),
+                    items: [
+                      DropdownMenuItem<int?>(value: null, child: Text('p2pallcategories'.tr())),
+                      ...assetClasses.map((c) => DropdownMenuItem<int?>(
+                            value: c['id'] as int?,
+                            child: Text('${c['assetClass'] ?? ''}', overflow: TextOverflow.ellipsis),
+                          )),
+                    ],
+                    onChanged: (v) {
+                      setState(() => assetClassId = v);
+                      _load();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
           Expanded(child: _body()),
         ],
       ),
@@ -154,6 +238,30 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _filterDropdown({
+    required String? value,
+    required String hint,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return DropdownButtonFormField<String?>(
+      value: value,
+      isExpanded: true,
+      decoration: const InputDecoration(
+        isDense: true,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(borderSide: BorderSide.none),
+        contentPadding: EdgeInsets.symmetric(horizontal: P2PTheme.space2, vertical: P2PTheme.space2),
+      ),
+      items: [
+        DropdownMenuItem<String?>(value: null, child: Text(hint, overflow: TextOverflow.ellipsis)),
+        ...items.map((v) => DropdownMenuItem<String?>(value: v, child: Text(v, overflow: TextOverflow.ellipsis))),
+      ],
+      onChanged: onChanged,
     );
   }
 

@@ -10,6 +10,8 @@ import {
   P2PMerchantPerformance,
   P2PCustomerPerformance,
   P2PMerchantStatus,
+  P2PAssetClass,
+  P2PMarketplaceFacets,
 } from '../../types/p2p';
 
 export type P2PCreds = {
@@ -41,7 +43,15 @@ export const p2pApi = baseApi.injectEndpoints({
     // ---- Offers / marketplace ----
     listP2PMarketplaceOffers: builder.query<
       { data: P2POffer[]; total: number },
-      WithCreds<{ offerType?: string; asset?: string; countryCode?: string; currency?: string; page?: number; pageSize?: number }>
+      WithCreds<{
+        offerType?: string;
+        asset?: string;
+        assetClassId?: number;
+        countryCode?: string;
+        currency?: string;
+        page?: number;
+        pageSize?: number;
+      }>
     >({
       query: ({ creds, ...filters }) => {
         const qp = new URLSearchParams();
@@ -55,6 +65,20 @@ export const p2pApi = baseApi.injectEndpoints({
         };
       },
       providesTags: [tagTypes.p2pOffer],
+    }),
+    getP2PAssetClasses: builder.query<{ data: P2PAssetClass[] }, WithCreds<{}>>({
+      query: ({ creds }) => ({
+        url: '/v1/p2p/asset-classes',
+        method: 'GET',
+        data: { creds },
+      }),
+    }),
+    getP2PMarketplaceFacets: builder.query<P2PMarketplaceFacets, WithCreds<{}>>({
+      query: ({ creds }) => ({
+        url: '/v1/p2p/marketplace/facets',
+        method: 'GET',
+        data: { creds },
+      }),
     }),
     getP2POffer: builder.query<P2POffer, WithCreds<{ offerId: string }>>({
       query: ({ creds, offerId }) => ({
@@ -373,4 +397,6 @@ export const {
   useGetP2PMerchantStatusQuery,
   useRequestP2PMerchantStatusMutation,
   useSetP2PMerchantOnlineStatusMutation,
+  useGetP2PAssetClassesQuery,
+  useGetP2PMarketplaceFacetsQuery,
 } = p2pApi;
