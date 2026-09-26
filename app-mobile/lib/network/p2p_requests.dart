@@ -84,15 +84,21 @@ class P2PApi {
 
   // marketplaceFacets returns the distinct asset/currency values worth
   // offering as filter options right now (derived from currently live
-  // offers, never a dead filter option).
-  Future<Map<String, List<String>>> marketplaceFacets() async {
+  // offers, never a dead filter option). Each asset carries its own
+  // assetClassId, so the asset filter can be narrowed to a selected
+  // category client-side, without a second request.
+  Future<MarketplaceFacets> marketplaceFacets() async {
     var response = await _get('/v1/p2p/marketplace/facets');
-    if (response['statusCode'] != 200) return {'assets': [], 'currencies': []};
+    if (response['statusCode'] != 200) return MarketplaceFacets(assets: [], currencies: []);
     var data = response['data'] ?? {};
-    return {
-      'assets': List<String>.from(data['assets'] ?? []),
-      'currencies': List<String>.from(data['currencies'] ?? []),
-    };
+    var assets = (data['assets'] as List? ?? [])
+        .cast<Map<String, dynamic>>()
+        .map((a) => AssetFacet(asset: a['asset'] ?? '', assetClassId: a['assetClassId'] ?? 0))
+        .toList();
+    return MarketplaceFacets(
+      assets: assets,
+      currencies: List<String>.from(data['currencies'] ?? []),
+    );
   }
 
   Future<P2POffer?> getOffer(String offerId) async {

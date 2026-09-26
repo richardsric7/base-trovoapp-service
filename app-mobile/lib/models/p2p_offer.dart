@@ -112,3 +112,24 @@ class P2POffer {
     return list;
   }
 }
+
+// AssetFacet is one distinct tradeable asset worth offering as a
+// marketplace filter option right now, carrying its own assetClassId so
+// the asset filter can be narrowed to a selected category client-side,
+// without a second request.
+class AssetFacet {
+  final String asset;
+  final int assetClassId;
+
+  AssetFacet({required this.asset, required this.assetClassId});
+}
+
+// MarketplaceFacets is the distinct asset/currency values worth offering
+// as filter options right now, derived from currently live offers rather
+// than the full curated-asset catalog (see backend doc).
+class MarketplaceFacets {
+  final List<AssetFacet> assets;
+  final List<String> currencies;
+
+  MarketplaceFacets({required this.assets, required this.currencies});
+}

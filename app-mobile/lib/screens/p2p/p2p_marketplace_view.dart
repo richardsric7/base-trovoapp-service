@@ -35,8 +35,14 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
   String? currency;
   int? assetClassId;
   List<Map<String, dynamic>> assetClasses = [];
-  List<String> assetOptions = [];
-  List<String> currencyOptions = [];
+  MarketplaceFacets facets = MarketplaceFacets(assets: [], currencies: []);
+
+  // Asset is a dependent list box for category: picking a category
+  // narrows the asset options down to just that category's assets.
+  List<String> get assetOptions {
+    if (assetClassId == null) return facets.assets.map((a) => a.asset).toList();
+    return facets.assets.where((a) => a.assetClassId == assetClassId).map((a) => a.asset).toList();
+  }
 
   // Cached per merchantId so scrolling the same offer list doesn't refetch
   // performance for a merchant already fetched (Plan Section 8/26's trust
@@ -64,13 +70,25 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
 
   Future<void> _loadFilterOptions() async {
     final classes = await api.assetClasses();
-    final facets = await api.marketplaceFacets();
+    final loadedFacets = await api.marketplaceFacets();
     if (!mounted) return;
     setState(() {
       assetClasses = classes;
-      assetOptions = facets['assets'] ?? [];
-      currencyOptions = facets['currencies'] ?? [];
+      facets = loadedFacets;
     });
+  }
+
+  // Currently selected asset may no longer belong to the newly selected
+  // category - reset it back to "All assets" rather than leaving a stale,
+  // now-invalid selection in place.
+  void _selectCategory(int? value) {
+    final stillValid = value == null ||
+        facets.assets.any((a) => a.asset == asset && a.assetClassId == value);
+    setState(() {
+      assetClassId = value;
+      if (!stillValid) asset = null;
+    });
+    _load();
   }
 
   Future<void> _load() async {
@@ -159,30 +177,6 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
             child: Row(
               children: [
                 Expanded(
-                  child: _filterDropdown(
-                    value: asset,
-                    hint: 'p2pallassets'.tr(),
-                    items: assetOptions,
-                    onChanged: (v) {
-                      setState(() => asset = v);
-                      _load();
-                    },
-                  ),
-                ),
-                const SizedBox(width: P2PTheme.space2),
-                Expanded(
-                  child: _filterDropdown(
-                    value: currency,
-                    hint: 'p2pallcurrencies'.tr(),
-                    items: currencyOptions,
-                    onChanged: (v) {
-                      setState(() => currency = v);
-                      _load();
-                    },
-                  ),
-                ),
-                const SizedBox(width: P2PTheme.space2),
-                Expanded(
                   child: DropdownButtonFormField<int?>(
                     value: assetClassId,
                     isExpanded: true,
@@ -200,8 +194,29 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
                             child: Text('${c['assetClass'] ?? ''}', overflow: TextOverflow.ellipsis),
                           )),
                     ],
+                    onChanged: _selectCategory,
+                  ),
+                ),
+                const SizedBox(width: P2PTheme.space2),
+                Expanded(
+                  child: _filterDropdown(
+                    value: asset,
+                    hint: 'p2pallassets'.tr(),
+                    items: assetOptions,
                     onChanged: (v) {
-                      setState(() => assetClassId = v);
+                      setState(() => asset = v);
+                      _load();
+                    },
+                  ),
+                ),
+                const SizedBox(width: P2PTheme.space2),
+                Expanded(
+                  child: _filterDropdown(
+                    value: currency,
+                    hint: 'p2pallcurrencies'.tr(),
+                    items: facets.currencies,
+                    onChanged: (v) {
+                      setState(() => currency = v);
                       _load();
                     },
                   ),

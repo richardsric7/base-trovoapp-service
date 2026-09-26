@@ -175,11 +175,19 @@ export type P2PAssetClass = {
   assetClass: string;
 };
 
+// P2PMarketplaceAssetFacet carries each distinct tradeable asset's own
+// category, so the asset filter can be narrowed to the selected category
+// without a second request.
+export type P2PMarketplaceAssetFacet = {
+  asset: string;
+  assetClassId: number;
+};
+
 // P2PMarketplaceFacets is the distinct asset/currency values worth
 // offering as filter options right now, derived from currently live
 // offers (see backend doc) rather than the full curated-asset catalog.
 export type P2PMarketplaceFacets = {
-  assets: string[];
+  assets: P2PMarketplaceAssetFacet[];
   currencies: string[];
 };
 

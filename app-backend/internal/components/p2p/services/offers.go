@@ -347,14 +347,23 @@ func ListAssetClasses(db *gorm.DB) ([]assetModels.AssetClassOutput, error) {
 	return assetsDB.GetAssetClasses(db)
 }
 
+// MarketplaceAssetFacet is one distinct tradeable asset, carrying its
+// asset class so the client can build a category-dependent asset filter
+// (selecting a category narrows the asset list to just that category's
+// assets) without a second round trip.
+type MarketplaceAssetFacet struct {
+	Asset        string `json:"asset"`
+	AssetClassID uint64 `json:"assetClassId"`
+}
+
 // MarketplaceFacets is the distinct asset/currency values worth offering as
 // filter options right now - derived from currently ACTIVE+ONLINE offers
 // (the same base eligibility ListMarketplaceOffers itself requires),
 // rather than from the full curated-asset catalog, so a filter option is
 // never dead (picking it would never return zero results).
 type MarketplaceFacets struct {
-	Assets     []string `json:"assets"`
-	Currencies []string `json:"currencies"`
+	Assets     []MarketplaceAssetFacet `json:"assets"`
+	Currencies []string                `json:"currencies"`
 }
 
 func ListMarketplaceFacets(db *gorm.DB) (MarketplaceFacets, error) {
@@ -363,7 +372,17 @@ func ListMarketplaceFacets(db *gorm.DB) (MarketplaceFacets, error) {
 		Joins("JOIN users ON users.id = offers.merchant_user_id").
 		Where("offers.status = ? AND offers.availability_status = ? AND users.is_merchant = ? AND users.merchant_online = ?",
 			p2pModels.OfferStatusActive, p2pModels.OfferAvailabilityOnline, true, true)
-	if err := base.Session(&gorm.Session{}).Distinct("offers.asset").Order("offers.asset").Pluck("offers.asset", &facets.Assets).Error; err != nil {
+	// curated_assets carries each asset code's asset_class_id - joined in
+	// (rather than resolved client-side) so a category-dependent asset
+	// filter needs no second request when the category changes. LEFT JOIN:
+	// an asset that's somehow not (or no longer) curated still shows up,
+	// just with no category to narrow it by.
+	if err := base.Session(&gorm.Session{}).
+		Distinct("offers.asset", "curated_assets.asset_class_id").
+		Joins("LEFT JOIN curated_assets ON curated_assets.asset_code = offers.asset").
+		Order("offers.asset").
+		Select("offers.asset AS asset, curated_assets.asset_class_id AS asset_class_id").
+		Scan(&facets.Assets).Error; err != nil {
 		return facets, err
 	}
 	if err := base.Session(&gorm.Session{}).Distinct("offers.currency").Order("offers.currency").Pluck("offers.currency", &facets.Currencies).Error; err != nil {
