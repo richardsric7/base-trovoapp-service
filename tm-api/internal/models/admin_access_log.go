@@ -64,7 +64,8 @@ const (
 	EventAdminUnsuspend    = "admin.unsuspend"
 	EventAdminStatusChange = "admin.status_change"
 	EventAdminRemove       = "admin.remove"
-	EventUserSuspendToggle = "user.suspend_or_reactivate"
+	EventUserSuspend       = "user.suspend"
+	EventUserLiftSuspend   = "user.lift_suspension"
 	EventUserKycChange     = "user.kyc_level_change"
 	EventUserToggle        = "user.toggle"
 

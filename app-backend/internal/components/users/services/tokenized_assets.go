@@ -2627,6 +2627,9 @@ func GetExpressionOfInterestList(user *userModels.User, gc *sharedconfig.GlobalC
 }
 
 func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *userModels.UserWallet, ta *userModels.TokenizedAsset, input *userModels.TokenizedAssetSubscriptionInput, gc *sharedconfig.GlobalConfig) (taSubscription userModels.TokenizedAssetSubscription, err error) {
+	if sErr := subscriber.EnsureNotSuspended(); sErr != nil {
+		return taSubscription, sErr
+	}
 	input.TokenizedAssetID = ta.ID
 	input.WalletAddress = subscriberWallet.ID
 	input.SubscriberUsername = subscriber.Username
@@ -2947,6 +2950,9 @@ func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *us
 // signature on it. Nothing is submitted to the blockchain in this call - that only happens later, from
 // the webhook.
 func SubscribeToTokenizedAssetByFiat(subscriber *userModels.User, subscriberWallet *userModels.UserWallet, ta *userModels.TokenizedAsset, input *userModels.FiatTokenizedAssetSubscriptionInput, gc *sharedconfig.GlobalConfig) (invoice userModels.FiatPaymentInvoice, err error) {
+	if sErr := subscriber.EnsureNotSuspended(); sErr != nil {
+		return invoice, sErr
+	}
 	if len(input.ID) == 0 {
 		err = &tErrors.CustomError{Param: "id", Err: "error-missing-parameter", ErrMessage: "id is required."}
 		return
@@ -3994,6 +4000,9 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 
 // MintRegulatedTokenizedAsset mint tokenized assets
 func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.User, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
+	if sErr := initiator.EnsureNotSuspended(); sErr != nil {
+		return ato, sErr
+	}
 	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
 	//referesh issuing wallet profile
 	userModels.Username(os.Getenv("TOKENIZATION_ISSUING_PROFILE")).InvalidateUserCache(gc)
@@ -4484,6 +4493,9 @@ func generateEarlyExitPaymentXdr(wallet *userModels.UserWallet, distributionWall
 // wallet via a plain Payment operation (there is no on-chain buy-back/liquidity for an early exit) and
 // records the payout/settlement details for the requested bank account so it can be settled manually.
 func EarlyExit(initiator *userModels.User, wallet *userModels.UserWallet, ta *userModels.TokenizedAsset, input *userModels.TokenizedAssetEarlyExitInput, gc *sharedconfig.GlobalConfig) (ee userModels.TokenizedAssetEarlyExit, err error) {
+	if sErr := initiator.EnsureNotSuspended(); sErr != nil {
+		return ee, sErr
+	}
 	input.TokenizedAssetID = ta.ID
 	input.WalletAddress = wallet.ID
 	input.TokenQuantityToExit = decimal.NewFromFloat(input.TokenQuantityToExit).Truncate(7).InexactFloat64()

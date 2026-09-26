@@ -159,10 +159,15 @@ type RolePermission struct {
 	PermissionID uint `gorm:"primaryKey;autoIncrement:false"`
 }
 
-type SuspendNormalUserPayload struct {
-	Email              string `json:"email" binding:"required"`
-	SuspensionReasonID uint   `json:"suspension_reason_id" binding:"required"`
-	SuspensionNote     string `json:"suspension_note" binding:"required"`
+// SuspendOrLiftUserPayload is the request body for the distinct
+// suspend-user and lift-user-suspension endpoints. Unlike the legacy
+// toggle (SuspendNormalUserPayload above), each direction is its own
+// endpoint, and Reason is a plain mandatory free-text explanation rather
+// than a lookup into the UserSuspensionReason table (which is never
+// seeded - see SuspendOrReactivateUser's history).
+type SuspendOrLiftUserPayload struct {
+	Email  string `json:"email" binding:"required"`
+	Reason string `json:"reason" binding:"required"`
 }
 
 type UserSuspensionHistory struct {

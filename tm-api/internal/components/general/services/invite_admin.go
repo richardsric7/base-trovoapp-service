@@ -415,99 +415,170 @@ func SuspendAdmin(s *serverModels.Server) gin.HandlerFunc {
 	}
 }
 
-// SuspendOrReactivateUser suspends or reactivates a normal user
-// @Summary Suspend or Reactivate a user
-// @Description Suspends a normal user by updating their status to 'SUSPENDED' or reactivates them by updating their status to 'ACTIVE' in the database.
+// SuspendUser suspends a normal (Trovo Wallet) user. Distinct from
+// LiftUserSuspension below (previously this was one toggle endpoint,
+// SuspendOrReactivateUser - fragile against a stale read or a double
+// click, and its reason was a lookup into the never-seeded
+// UserSuspensionReason table, so every call to it errored). While
+// suspended, app-backend blocks the user's wallet(s) from either side of
+// any transaction (payments, swaps, P2P, shared-wallet access grants,
+// tokenized-asset subscriptions/minting) - see User.EnsureNotSuspended in
+// app-backend.
+// @Summary Suspend a user
+// @Description Suspends a normal user, logging the mandatory reason. Blocks the user's wallet(s) from any transaction until lifted.
 // @Tags Users
 // @Accept json
 // @Produce json
-// @Param payload body models.SuspendNormalUserPayload true "User suspension or reactivation details"
-// @Param SuspensionReasonID body int true "Reason for suspension (1: Violation of terms of service, 2: Violation of community guidelines, 3: Violation of KYC/AML policy, 4: Violation of security policy, 5: Violation of privacy policy, 6: Violation of trading policy, 7: Violation of payment policy, 8: Violation of dispute resolution policy, 9: Violation of support policy)"
-// @Param SuspensionNote body string true "Additional note or comment regarding the suspension"
-// @Success 200 {object} map[string]string "message": "User status updated to suspended/reactivated"
-// @Failure 400 {object} map[string]string "error": "Invalid request payload" or "Only 'suspended' or 'active' status is allowed" or "User is already in that status"
+// @Param payload body models.SuspendOrLiftUserPayload true "Email of the user to suspend, and the mandatory reason"
+// @Success 200 {object} map[string]string "message": "User has been suspended"
+// @Failure 400 {object} map[string]string "error": "Invalid request payload" or "User is already suspended"
 // @Failure 401 {object} map[string]string "error": "Unauthorized access"
 // @Failure 404 {object} map[string]string "error": "User does not exist"
-// @Failure 500 {object} map[string]string "error": "Failed to retrieve user information" or "InternalServerError" or "Failed to update user status"
-// @Router /user/suspend-or-reactivate [patch]
+// @Failure 500 {object} map[string]string "error": "Failed to update user status" or "Failed to log suspension activity"
+// @Router /admin/users/suspend [patch]
 // @Param Authorization header string true "JWT Token" default(Bearer <your-token>)
-func SuspendOrReactivateUser(s *serverModels.Server) gin.HandlerFunc {
+func SuspendUser(s *serverModels.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Extract the user ID of the person making the request (probably an admin)
 		ad, _ := middleware.ExtractTokenMetadata(c.Request)
-		adminUserID := ad.UserID
-		adminUser, done, _ := GetUserFromContext(adminUserID, s.TrovoWalletDB, c)
+		adminUser, done, _ := GetUserFromContext(ad.UserID, s.TrovoWalletDB, c)
 		if done {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve admin information"})
 			return
 		}
 
-		// Bind the JSON payload
-		var payload models.SuspendNormalUserPayload
+		var payload models.SuspendOrLiftUserPayload
 		if err := c.ShouldBindJSON(&payload); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 			return
 		}
 
-		// Retrieve the user to be suspended or reactivated
 		var user models.User
 		if err := s.TrovoWalletDB.First(&user, "email = ?", payload.Email).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User does not exist"})
 			return
 		}
-		//// db call to unsuspend/suspend
-		// Check current status and toggle between 'SUSPENDED' and 'ACTIVE'
-		var newStatus uint
-		if user.Suspended == 0 {
-			newStatus = 1 // active
-		} else if user.Suspended == 1 {
-			newStatus = 0 // suspended
-		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Only 'suspended' or 'active' status is allowed"})
+		if user.Suspended == 1 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "User is already suspended"})
 			return
 		}
 
-		// suspended field
-		// Update the user's status suspended field
-		user.Suspended = int(newStatus)
-		if err := s.TrovoWalletDB.Save(&user).Error; err != nil {
+		// Map-based update (not a struct Save) so this write only ever
+		// touches these two columns, regardless of what else the User
+		// struct's field/tag set does or doesn't cover.
+		if err := s.TrovoWalletDB.Model(&models.User{}).Where("email = ?", payload.Email).
+			Updates(map[string]interface{}{"suspended": 1, "suspension_reason": payload.Reason}).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user status"})
 			return
 		}
 
-		// Log the suspension or reactivation activity in the user suspension history table
-		reason, err := usermetrics.GetSuspensionReasonByID(payload.SuspensionReasonID, s.AdminDB)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		// include suspension id
-		var userSuspensionRecord models.UserSuspensionHistory
-		if newStatus == 0 {
-			userSuspensionRecord.ActionType = models.ACTIVE
-		} else if newStatus == 1 {
-			userSuspensionRecord.ActionType = models.SUSPENDED
-		}
-		userSuspensionRecord = models.UserSuspensionHistory{
+		userSuspensionRecord := models.UserSuspensionHistory{
 			Username:           user.Username,
 			Email:              user.Email,
 			ActionPerformedBy:  adminUser.Email,
-			Reason:             reason,
-			Note:               payload.SuspensionNote,
+			Reason:             payload.Reason,
 			SuspensionDateTime: time.Now(),
-			ActionType:         userSuspensionRecord.ActionType,
+			ActionType:         models.SUSPENDED,
+		}
+		if err := s.AdminDB.Create(&userSuspensionRecord).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to log suspension activity"})
+			return
 		}
 
-		go func() {
-			if err := s.AdminDB.Create(&userSuspensionRecord).Error; err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to log suspension/activation activity"})
-				return
-			}
-		}()
+		c.JSON(http.StatusOK, gin.H{"message": "User has been suspended"})
+	}
+}
 
-		// Respond with success
-		// logAdminAction(s, "DELETE_SUSPENSION", "SUSPENSION", (userInfo.ID), userInfo, reason)
-		c.JSON(http.StatusOK, gin.H{"message": "User status updated to " + userSuspensionRecord.ActionType})
+// LiftUserSuspension reactivates a suspended normal user, logging the
+// mandatory reason for lifting the suspension. See SuspendUser above.
+// @Summary Lift a user's suspension
+// @Description Reactivates a suspended user, logging the mandatory reason for lifting the suspension.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param payload body models.SuspendOrLiftUserPayload true "Email of the user to reactivate, and the mandatory reason for lifting the suspension"
+// @Success 200 {object} map[string]string "message": "User's suspension has been lifted"
+// @Failure 400 {object} map[string]string "error": "Invalid request payload" or "User is not currently suspended"
+// @Failure 401 {object} map[string]string "error": "Unauthorized access"
+// @Failure 404 {object} map[string]string "error": "User does not exist"
+// @Failure 500 {object} map[string]string "error": "Failed to update user status" or "Failed to log suspension activity"
+// @Router /admin/users/lift-suspension [patch]
+// @Param Authorization header string true "JWT Token" default(Bearer <your-token>)
+func LiftUserSuspension(s *serverModels.Server) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ad, _ := middleware.ExtractTokenMetadata(c.Request)
+		adminUser, done, _ := GetUserFromContext(ad.UserID, s.TrovoWalletDB, c)
+		if done {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve admin information"})
+			return
+		}
+
+		var payload models.SuspendOrLiftUserPayload
+		if err := c.ShouldBindJSON(&payload); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+			return
+		}
+
+		var user models.User
+		if err := s.TrovoWalletDB.First(&user, "email = ?", payload.Email).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User does not exist"})
+			return
+		}
+		if user.Suspended == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "User is not currently suspended"})
+			return
+		}
+
+		if err := s.TrovoWalletDB.Model(&models.User{}).Where("email = ?", payload.Email).
+			Updates(map[string]interface{}{"suspended": 0, "suspension_reason": ""}).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user status"})
+			return
+		}
+
+		userSuspensionRecord := models.UserSuspensionHistory{
+			Username:           user.Username,
+			Email:              user.Email,
+			ActionPerformedBy:  adminUser.Email,
+			Reason:             payload.Reason,
+			SuspensionDateTime: time.Now(),
+			ActionType:         models.ACTIVE,
+		}
+		if err := s.AdminDB.Create(&userSuspensionRecord).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to log suspension activity"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "User's suspension has been lifted"})
+	}
+}
+
+// GetUserSuspensionHistoryByEmail retrieves the logged suspend/lift
+// history (each with its admin-supplied reason) for a normal user - the
+// User-side counterpart to GetSuspensionHistoryByEmail (admin/staff)
+// above.
+// @Summary Get a user's suspension history
+// @Description Retrieves suspend/lift activity (each with its logged reason) for a specific normal user by email.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param email path string true "User email"
+// @Success 200 {array} models.UserSuspensionHistory
+// @Failure 400 {object} map[string]string "error": "Invalid or missing email"
+// @Router /users/suspension-history/{email} [get]
+func GetUserSuspensionHistoryByEmail(adminDB *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		email := c.Param("email")
+		if email == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or missing email"})
+			return
+		}
+
+		var history []models.UserSuspensionHistory
+		if err := adminDB.Where("email = ?", email).Order("suspension_date_time desc").Find(&history).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve suspension history"})
+			return
+		}
+
+		c.JSON(http.StatusOK, history)
 	}
 }
 
