@@ -231,10 +231,15 @@ class P2PApi {
     return response['data'];
   }
 
+  // getCustomerPerformance is scoped to a real order relationship (a
+  // customer's trading history is private, unlike merchant performance
+  // which is already public via the marketplace) - the backend derives
+  // the customer from orderId itself and checks the caller is that
+  // order's merchant, rather than taking an arbitrary customer id.
   Future<Map<String, dynamic>?> getCustomerPerformance(
-    String customerId,
+    String orderId,
   ) async {
-    var response = await _get('/v1/p2p/customers/$customerId/performance');
+    var response = await _get('/v1/p2p/orders/$orderId/customer-performance');
     if (response['statusCode'] != 200) return null;
     return response['data'];
   }

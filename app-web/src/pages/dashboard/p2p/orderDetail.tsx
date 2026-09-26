@@ -150,7 +150,7 @@ export default function P2POrderDetail() {
       {order.orderStatus === 'AWAITING_APPROVAL' && (
         isMerchant(order, username) ? (
           <>
-            <CustomerPerformanceBadge creds={creds} customerId={order.customerUserId} ready={ready} />
+            <CustomerPerformanceBadge creds={creds} orderId={order.id} ready={ready} />
             <div className="flex gap-3">
               <ActionButton label="Accept order" onClick={() => run(() => accept({ creds, orderId: order.id }).unwrap())} busy={busy} />
               <ActionButton label="Reject" secondary onClick={() => run(() => reject({ creds, orderId: order.id }).unwrap())} busy={busy} />
@@ -279,8 +279,8 @@ export default function P2POrderDetail() {
 
 // CustomerPerformanceBadge lets a merchant see the customer's trading
 // history before deciding to accept their order (Plan Section 8/26).
-function CustomerPerformanceBadge({ creds, customerId, ready }: { creds: P2PCreds; customerId: string; ready: boolean }) {
-  const { data: perf } = useGetCustomerP2PPerformanceQuery({ creds, customerId }, { skip: !ready || !customerId });
+function CustomerPerformanceBadge({ creds, orderId, ready }: { creds: P2PCreds; orderId: string; ready: boolean }) {
+  const { data: perf } = useGetCustomerP2PPerformanceQuery({ creds, orderId }, { skip: !ready || !orderId });
   if (!perf || perf.completedTrades === 0) return null;
   return (
     <p className="text-xs text-gray-400">
