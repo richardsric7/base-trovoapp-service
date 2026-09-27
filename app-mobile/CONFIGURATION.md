@@ -74,14 +74,18 @@ today.
 - **Mechanism:** hardcoded, per-platform, per-network constants
   (`androidTestNet`, `androidMainnet`, `iosTestNet`, `iosMainnet`),
   selected by the same persisted `walletMode` flag as the API URL.
-- **Example value** (Android Testnet, real value already committed in
-  the repo):
+- **Example shape** (Android Testnet; the real values are already
+  committed in `lib/firebase_options.dart` itself — not repeated here
+  in their real form, since Google/Firebase API keys share a
+  recognizable `AIza...` shape that GitHub's secret scanner flags even
+  when the key is meant to be public and even as an obvious
+  placeholder):
 
   ```dart
   static const FirebaseOptions androidTestNet = FirebaseOptions(
-    apiKey: 'AIzaSyBKdXjdmZDCNUkNn45nPf6T9BRtCROG0UE',
-    appId: '1:572371578875:android:213ad7583e9ea30244255e',
-    messagingSenderId: '572371578875',
+    apiKey: '<firebase-web-api-key>',
+    appId: '<firebase-app-id>',
+    messagingSenderId: '<firebase-sender-id>',
     projectId: 'trovotech-website',
     storageBucket: 'trovotech-website.appspot.com',
   );
