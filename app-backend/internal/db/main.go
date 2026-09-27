@@ -189,9 +189,44 @@ func renameAssetIssuerColumns(gormDB *gorm.DB) {
 	}
 }
 
+// migrationLockName identifies the schema-migration lock row in
+// sharedConfig's distributed_locks table (see sharedconfig.TryAcquireLock).
+const migrationLockName = "schema-migration"
+
+// MigrateDB runs the full schema migration, gated by DB_AUTOMIGRATE and
+// guarded by a lock so that multiple instances booting at the same time
+// serialize their migration instead of racing GORM's AutoMigrate against
+// the same schema concurrently. Uses sharedConfig's portable
+// distributed_locks table rather than a Postgres advisory lock, since
+// this project's dev/test DB is SQLite, which has no equivalent primitive.
 func MigrateDB(gormDB *gorm.DB) {
 	//do automigrate if it is not explicitly disabled,
-	if os.Getenv("DB_AUTOMIGRATE") != "0" {
+	if os.Getenv("DB_AUTOMIGRATE") == "0" {
+		return
+	}
+	if err := gormDB.AutoMigrate(&sharedConfig.DistributedLock{}); err != nil {
+		log.Fatalln("[MigrateDB] failed to ensure distributed_locks table:", err)
+	}
+	if err := sharedConfig.EnsureDistributedLock(gormDB, migrationLockName); err != nil {
+		log.Fatalln("[MigrateDB] failed to seed migration lock row:", err)
+	}
+	holder := sharedConfig.InstanceIdentity()
+	acquired, err := sharedConfig.WaitAcquireLock(gormDB, migrationLockName, holder, 10*time.Minute, 60*time.Second)
+	if err != nil {
+		log.Fatalln("[MigrateDB] failed to acquire migration lock:", err)
+	}
+	if !acquired {
+		log.Fatalln("[MigrateDB] timed out waiting for the schema-migration lock - another instance may be stuck migrating")
+	}
+	defer sharedConfig.ReleaseLock(gormDB, migrationLockName, holder)
+
+	runSchemaMigration(gormDB)
+}
+
+// runSchemaMigration is MigrateDB's actual migration body, run only after
+// the lock above is held - unchanged from before other than the rename.
+func runSchemaMigration(gormDB *gorm.DB) {
+	{
 		renameAssetIssuerColumns(gormDB)
 		errMigrate := gormDB.AutoMigrate(&users.User{})
 		if errMigrate != nil {
