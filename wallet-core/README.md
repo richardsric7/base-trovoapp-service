@@ -1,75 +1,162 @@
 # wallet-core
 
-Shared Base (EVM/secp256k1) wallet logic - key generation, address
-derivation, EIP-191 `personal_sign`/verify, and BIP39/BIP44 mnemonic
-derivation - used by both `app-web` (compiled to WebAssembly) and
-`app-mobile` (compiled to a native library, called through Dart's
-`dart:ffi`). One implementation, reviewed once, instead of the Stellar
-keypair/signing logic each app previously carried independently
-(`app-web/src/utils/trovoSDK.ts`, `app-mobile/lib/functions/trovo-sdk.dart`).
+Shared Base (EVM/secp256k1) wallet primitives, implemented once in Rust and
+compiled three different ways for the three places that need it in this
+monorepo. This is a library crate, not a service — there's nothing to
+"run" or "deploy" here; other projects link the compiled output into
+their own builds.
 
-## Layout
+## What it actually does
 
-- `src/core.rs` - the actual logic, plain Rust, no platform-specific types.
-- `src/wasm.rs` - `wasm-bindgen` bindings over `core`, compiled in only for
-  `--target wasm32-unknown-unknown`.
-- `src/ffi.rs` - a C ABI (`extern "C"`) surface over `core`, returning
-  heap-allocated JSON C strings (freed via `wc_free_string`), compiled in
-  for every other target.
+Confirmed by reading `src/core.rs` (the platform-agnostic logic) and its
+two binding layers, `src/wasm.rs` and `src/ffi.rs`:
 
-## Building for app-web (WASM)
+- **Key generation** — a fresh secp256k1 keypair from CSPRNG entropy.
+- **Address derivation** — the 0x-prefixed, [EIP-55](https://eips.ethereum.org/EIPS/eip-55)
+  checksummed 20-byte address (`keccak256(pubkey)[12:]`) for a keypair,
+  same as Ethereum/Base wallets.
+- **Message signing/verification** — [EIP-191](https://eips.ethereum.org/EIPS/eip-191)
+  `personal_sign`: sign a message or raw bytes, verify a signature against
+  a claimed address, or recover the signer's address from a signature
+  alone.
+- **Mnemonic-based key derivation** — generate a 12-word BIP39 mnemonic,
+  and derive a keypair from a mnemonic at BIP44 path `m/44'/60'/0'/0/{index}`
+  (coin type 60 = Ethereum/EVM, shared by Base), so a mnemonic generated
+  here imports cleanly into any other EVM wallet.
+
+Per the crate doc in `src/lib.rs`, this replaces Stellar-based
+keypair/signing logic that `app-web` and `app-mobile` each used to carry
+independently (`app-web/src/utils/trovoSDK.ts`,
+`app-mobile/lib/functions/trovo-sdk.dart`), so key generation, address
+derivation, and signing are implemented and reviewed once instead of
+twice.
+
+## Role in the monorepo
+
+One Rust implementation (`src/core.rs`), compiled three ways
+(`Cargo.toml`'s `crate-type = ["cdylib", "staticlib", "rlib"]`):
+
+| Target | Binding layer | Consumer | Actually wired up? |
+|---|---|---|---|
+| `wasm32-unknown-unknown` (→ `cdylib`) | `src/wasm.rs` (`wasm-bindgen`) | `app-web` | **Yes** — confirmed, see below |
+| native `cdylib`/`staticlib` (Android/iOS) | `src/ffi.rs` (C ABI, called via Dart `dart:ffi`) | `app-mobile` | **Partially** — Dart bindings exist and are used, but the native library isn't built/bundled by any tracked build step yet |
+| native `rlib` | none (used directly) | `cargo test` on this crate itself | n/a, dev-only |
+
+**app-web**: confirmed consumer. `app-web/src/walletCore/` contains a
+committed copy of this crate's WASM build output (`wallet_core.js`,
+`wallet_core.d.ts`, `wallet_core_bg.wasm`, `wallet_core_bg.wasm.d.ts`).
+`app-web/src/utils/trovoSDK.ts` imports directly from
+`'../walletCore/wallet_core.js'`, and that module is in turn imported by
+around a dozen pages/components (`walletOperations.tsx`,
+`importWallet.tsx`, `accountRecovery/main.tsx`, `createAccount/backup.tsx`,
+`dashboard/wallet/walletView.tsx`, etc.). This is a **vendored copy**, not
+an npm dependency — `app-web/package.json` has no `wallet-core` entry, and
+building `app-web` does not itself invoke Rust/wasm-pack (that's the
+point: `app-web` needs no Rust toolchain to build; see DEPLOYMENT.md).
+
+**tm-web**: no reference to `wallet-core`, `wallet_core`, or `walletCore`
+found anywhere in `tm-web/package.json` or its source tree. **Not a
+consumer today.**
+
+**app-mobile**: `app-mobile/lib/functions/wallet_core_ffi.dart` contains
+hand-written `dart:ffi` bindings over this crate's `src/ffi.rs` C ABI, and
+`app-mobile/lib/functions/trovo-sdk.dart` imports and calls them (mirroring
+`app-web`'s `trovoSDK.ts` API). So the Dart-side integration code is
+written and in active use in that file. However, the native library it
+expects to load (`libwallet_core.so` on Android via
+`android/app/src/main/jniLibs/<abi>/`, statically linked on iOS) is not
+present anywhere in `app-mobile/`, and nothing in this repo builds or
+places it — `wallet_core_ffi.dart`'s own header comment says as much
+("not yet wired into this repo's mobile build"). See INTEGRATION.md for
+detail. **Treat this path as code-complete on the Dart side but not
+actually buildable/runnable end-to-end from this monorepo yet.**
+
+## Tech stack
+
+- **Rust**, edition 2021 (`Cargo.toml`).
+- **Crypto**: [`k256`](https://docs.rs/k256) (secp256k1 ECDSA,
+  sign/verify/recover), [`sha3`](https://docs.rs/sha3) (Keccak256, for
+  addresses and the EIP-191 digest), [`bip39`](https://docs.rs/bip39)
+  (mnemonic generation/parsing), [`tiny-hderive`](https://docs.rs/tiny-hderive)
+  (BIP32 HD derivation).
+- **Encoding**: [`hex`](https://docs.rs/hex), [`base64`](https://docs.rs/base64),
+  [`serde`](https://docs.rs/serde)/[`serde_json`](https://docs.rs/serde_json)
+  (used by `src/ffi.rs` to serialize results as JSON C strings).
+- **Randomness**: [`rand_core`](https://docs.rs/rand_core)/[`getrandom`](https://docs.rs/getrandom)
+  (the `getrandom` crate pulls in its `js` feature only when targeting
+  `wasm32`, so it can source entropy from the browser).
+- **wasm-bindgen** `0.2` (pinned to `0.2.128` in `Cargo.lock`) — only
+  compiled in for `wasm32` targets (`Cargo.toml`'s
+  `[target.'cfg(target_arch = "wasm32")'.dependencies]`).
+
+No `[features]` section — see CONFIGURATION.md.
+
+## Directory structure
+
+```
+wallet-core/
+├── Cargo.toml            # crate manifest — crate-type, dependencies
+├── Cargo.lock
+├── src/
+│   ├── lib.rs             # crate root: wires up core/wasm/ffi modules
+│   ├── core.rs            # all the actual logic, plain Rust, platform-agnostic
+│   ├── wasm.rs             # wasm-bindgen bindings over core (wasm32 only)
+│   └── ffi.rs              # C ABI bindings over core (native targets only)
+├── pkg-web/               # wasm-bindgen build output (gitignored, see below)
+│   ├── wallet_core.js
+│   ├── wallet_core.d.ts
+│   ├── wallet_core_bg.wasm
+│   └── wallet_core_bg.wasm.d.ts
+├── README.md               # this file
+├── DEPLOYMENT.md           # how to build/publish this crate's outputs
+├── CONFIGURATION.md        # build-time configuration surface (there isn't much)
+└── INTEGRATION.md          # the exported API and how consumers call it
+```
+
+`.gitignore` excludes `/target`, `/pkg-web`, and `/pkg-mobile` — build
+outputs are regenerated locally, not committed inside `wallet-core/`
+itself (the copy checked into `app-web/src/walletCore/` is a separate,
+deliberately-committed vendored copy — see INTEGRATION.md).
+
+## Building it locally
+
+You need the Rust toolchain and, for the web target, `wasm-bindgen-cli`.
+Full detail (including the mobile/native path and exact version pinning)
+is in DEPLOYMENT.md; the short version, from the `wallet-core/` directory:
 
 ```sh
-rustup target add wasm32-unknown-unknown   # once
-cargo install wasm-bindgen-cli --version <version matching the wasm-bindgen crate in Cargo.toml>
+# 1. Install Rust (skip if already installed): https://rustup.rs
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
+# 2. Add the WebAssembly compilation target (one-time)
+rustup target add wasm32-unknown-unknown
+
+# 3. Install the wasm-bindgen CLI, matching Cargo.lock's wasm-bindgen version
+cargo install wasm-bindgen-cli --version 0.2.128
+
+# 4. Run the Rust test suite (native, no wasm needed)
+cargo test
+
+# 5. Build the release wasm binary
 cargo build --release --target wasm32-unknown-unknown
+
+# 6. Generate the JS/TS bindings + package the .wasm for web use
 wasm-bindgen --target web --out-dir pkg-web \
   target/wasm32-unknown-unknown/release/wallet_core.wasm
 ```
 
-That produces `pkg-web/wallet_core.js` (+ `.d.ts`) and
-`pkg-web/wallet_core_bg.wasm`. Copy those into `app-web/src/walletCore/`
-(vendored/committed there, not a build step in `app-web`'s own
-`npm run build`, so app-web doesn't need a Rust toolchain):
+That's it — `pkg-web/` now holds `wallet_core.js`, `wallet_core.d.ts`,
+`wallet_core_bg.wasm`, and `wallet_core_bg.wasm.d.ts`, ready to be copied
+into a consuming frontend (see INTEGRATION.md for exactly how `app-web`
+does this today).
 
-```sh
-cp pkg-web/wallet_core.js pkg-web/wallet_core.d.ts \
-   pkg-web/wallet_core_bg.wasm pkg-web/wallet_core_bg.wasm.d.ts \
-   ../app-web/src/walletCore/
-```
+## Further reading
 
-`app-web/src/utils/trovoSDK.ts` imports from `../walletCore/wallet_core.js`
-directly - re-run the copy step above after changing anything under `src/`
-that affects `wasm.rs`'s exported surface.
-
-## Building for app-mobile (Dart FFI)
-
-Build the native shared library for each target platform's ABI(s) (see
-each target's own cross-compilation setup - e.g. `cargo-ndk` for Android,
-`cargo build --target aarch64-apple-ios` for iOS) and place the resulting
-library where `app-mobile`'s FFI loader
-(`app-mobile/lib/functions/wallet_core_ffi.dart`) expects it per platform
-(Android: `jniLibs/<abi>/libwallet_core.so`; iOS: linked into the app
-binary as a static/XCFramework; see that file's loader for the exact
-per-platform paths). Example for a local/native build:
-
-```sh
-cargo build --release
-# -> target/release/libwallet_core.so (Linux) / .dylib (macOS) / wallet_core.dll (Windows)
-```
-
-The C surface is declared in `src/ffi.rs`; `app-mobile`'s Dart bindings
-(`app-mobile/lib/functions/wallet_core_ffi.dart`) mirror those signatures
-by hand (no cbindgen/flutter_rust_bridge codegen step wired up yet - see
-that file's doc comment).
-
-## Testing
-
-```sh
-cargo test
-```
-
-Exercises key generation, EIP-191 sign/verify round-tripping, BIP44
-mnemonic derivation determinism, and an EIP-55 checksum test vector - see
-`src/core.rs`'s `tests` module.
+- **DEPLOYMENT.md** — prerequisites, exact build commands for both the
+  web (wasm) and mobile (native cdylib/staticlib) targets, how a
+  frontend actually pulls this package in, running tests, and CI status.
+- **CONFIGURATION.md** — the crate's (minimal) build-time configuration
+  surface.
+- **INTEGRATION.md** — the exported API (`#[wasm_bindgen]` functions and
+  the C ABI `wc_*` functions), a TypeScript usage example, and an honest
+  accounting of who consumes this crate today.
