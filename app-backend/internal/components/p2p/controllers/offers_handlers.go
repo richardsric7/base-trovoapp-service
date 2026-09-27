@@ -45,6 +45,17 @@ type createOfferRequest struct {
 	Remark                string `json:"remark"`
 }
 
+// postOffersHandler godoc
+// @Summary Create a new P2P buy/sell offer
+// @Description Creates a merchant offer to buy or sell an asset for fiat on the P2P marketplace. The caller becomes the merchant on the offer.
+// @Tags P2P
+// @Accept json
+// @Produce json
+// @Param body body createOfferRequest true "Offer details: offerType (BUY/SELL), asset, paymentMethodId (an existing saved payment method), merchantPayoutAddress, country, countryCode, currency, priceType, price, priceMargin, minOrderAmount, maxOrderAmount, availableLiquidity, remark"
+// @Success 201 {object} map[string]interface{} "Created offer"
+// @Failure 400 {object} map[string]interface{} "Invalid JSON or validation error"
+// @Security SignatureAuth
+// @Router /v1/p2p/offers [post]
 func postOffersHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)
@@ -94,6 +105,18 @@ type updateOfferRequest struct {
 	Remark                string `json:"remark"`
 }
 
+// putOfferHandler godoc
+// @Summary Update an existing P2P offer
+// @Description Updates the editable fields of an offer the caller owns as merchant (price, limits, payout address, payment method, remark). Offer type and asset cannot be changed after creation.
+// @Tags P2P
+// @Accept json
+// @Produce json
+// @Param offerID path string true "Offer ID"
+// @Param body body updateOfferRequest true "Fields to update"
+// @Success 200 {object} map[string]interface{} "Updated offer"
+// @Failure 400 {object} map[string]interface{} "Invalid JSON or validation error"
+// @Security SignatureAuth
+// @Router /v1/p2p/offers/{offerID} [put]
 func putOfferHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)
@@ -126,6 +149,16 @@ func putOfferHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+// postCloseOfferHandler godoc
+// @Summary Permanently close a P2P offer
+// @Description Closes an offer the caller owns as merchant. A closed offer stops appearing on the marketplace and cannot be reactivated (unlike pausing).
+// @Tags P2P
+// @Produce json
+// @Param offerID path string true "Offer ID"
+// @Success 200 {object} map[string]interface{} "Closed offer"
+// @Failure 400 {object} map[string]interface{} "Not the offer's owner, or invalid state"
+// @Security SignatureAuth
+// @Router /v1/p2p/offers/{offerID}/close [post]
 func postCloseOfferHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)
@@ -142,6 +175,22 @@ func postCloseOfferHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+// getMarketplaceOffersHandler godoc
+// @Summary Browse P2P marketplace offers
+// @Description Lists active offers on the P2P marketplace, with optional filters and pagination. Used to populate the marketplace buy/sell listing screen.
+// @Tags P2P
+// @Produce json
+// @Param offerType query string false "Filter by BUY or SELL"
+// @Param asset query string false "Filter by asset code"
+// @Param assetClassId query int false "Filter by asset class ID"
+// @Param countryCode query string false "Filter by country code"
+// @Param currency query string false "Filter by fiat currency"
+// @Param page query int false "Page number (default 1)"
+// @Param pageSize query int false "Results per page (default 20)"
+// @Success 200 {object} map[string]interface{} "data (offers), total, page, pageSize"
+// @Failure 500 {object} map[string]interface{}
+// @Security SignatureAuth
+// @Router /v1/p2p/offers [get]
 func getMarketplaceOffersHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -164,9 +213,18 @@ func getMarketplaceOffersHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc 
 	}
 }
 
+// getMarketplaceFacetsHandler godoc
+// @Summary List available P2P marketplace filter options
+// @Description Returns the distinct asset and currency values currently offered on the marketplace, for populating filter dropdowns.
 // getMarketplaceFacetsHandler lists the distinct asset/currency values
 // worth offering as marketplace filter options right now (Plan: filter by
 // currency and asset, in addition to the new asset category filter).
+// @Tags P2P
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Facet lists"
+// @Failure 500 {object} map[string]interface{}
+// @Security SignatureAuth
+// @Router /v1/p2p/marketplace/facets [get]
 func getMarketplaceFacetsHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		facets, err := p2pServices.ListMarketplaceFacets(gc.DB)
@@ -178,9 +236,15 @@ func getMarketplaceFacetsHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc 
 	}
 }
 
-// getAssetClassesHandler lists every asset category the marketplace filter
-// can narrow by (Plan: filter by asset category in addition to asset/
-// currency) - a small, mostly-static reference list, so no pagination.
+// getAssetClassesHandler godoc
+// @Summary List P2P asset categories
+// @Description Returns every asset category the marketplace filter can narrow by (e.g. stablecoin, token). Small, mostly-static reference list.
+// @Tags P2P
+// @Produce json
+// @Success 200 {object} map[string]interface{} "data: list of asset classes"
+// @Failure 500 {object} map[string]interface{}
+// @Security SignatureAuth
+// @Router /v1/p2p/asset-classes [get]
 func getAssetClassesHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		classes, err := p2pServices.ListAssetClasses(gc.DB)
@@ -192,6 +256,15 @@ func getAssetClassesHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+// getOfferHandler godoc
+// @Summary Get a single P2P offer by ID
+// @Tags P2P
+// @Produce json
+// @Param offerID path string true "Offer ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{} "Offer not found"
+// @Security SignatureAuth
+// @Router /v1/p2p/offers/{offerID} [get]
 func getOfferHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		offer, err := p2pServices.GetOfferByID(gc.DB, c.Param("offerID"))
@@ -203,9 +276,17 @@ func getOfferHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
-// getOfferQuoteHandler lets the order-creation screen show a real itemized
-// fee breakdown before the customer commits to creating the order (Plan
-// Section 97.6), without persisting anything.
+// getOfferQuoteHandler godoc
+// @Summary Get a fee quote for an offer before creating an order
+// @Description Returns an itemized breakdown (fees, VAT, charges, net amounts for both buyer and seller) for a hypothetical order against this offer at the given amount, without creating or persisting anything. Used by the order-creation screen to show the customer real numbers before they commit.
+// @Tags P2P
+// @Produce json
+// @Param offerID path string true "Offer ID"
+// @Param amount query string true "Specified asset amount to quote"
+// @Success 200 {object} map[string]interface{} "Fee breakdown"
+// @Failure 400 {object} map[string]interface{}
+// @Security SignatureAuth
+// @Router /v1/p2p/offers/{offerID}/quote [get]
 func getOfferQuoteHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		breakdown, offer, err := p2pServices.QuoteOrderFees(gc, c.Param("offerID"), c.Query("amount"))
@@ -229,6 +310,16 @@ func getOfferQuoteHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+// postActivateOfferHandler godoc
+// @Summary Activate a paused P2P offer
+// @Description Makes a paused offer visible and orderable on the marketplace again.
+// @Tags P2P
+// @Produce json
+// @Param offerID path string true "Offer ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Not the offer's owner, or invalid state"
+// @Security SignatureAuth
+// @Router /v1/p2p/offers/{offerID}/activate [post]
 func postActivateOfferHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)
@@ -245,6 +336,16 @@ func postActivateOfferHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+// postPauseOfferHandler godoc
+// @Summary Pause a P2P offer
+// @Description Temporarily hides an offer from the marketplace without closing it permanently. Can be reactivated later.
+// @Tags P2P
+// @Produce json
+// @Param offerID path string true "Offer ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Not the offer's owner, or invalid state"
+// @Security SignatureAuth
+// @Router /v1/p2p/offers/{offerID}/pause [post]
 func postPauseOfferHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)
@@ -261,6 +362,15 @@ func postPauseOfferHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+// getMyOffersHandler godoc
+// @Summary List my own P2P offers
+// @Description Lists every offer the caller owns as merchant, in any state (active, paused, closed).
+// @Tags P2P
+// @Produce json
+// @Success 200 {object} map[string]interface{} "data: list of offers"
+// @Failure 500 {object} map[string]interface{}
+// @Security SignatureAuth
+// @Router /v1/p2p/my-offers [get]
 func getMyOffersHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)

@@ -15,6 +15,77 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Returns basic service info (used as a lightweight liveness check; also echoes the caller's wallet address back if the X-TW-PUBLIC-KEY header is present).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Root"
+                ],
+                "summary": "Health/info check for the API",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/.well-known/apple-app-site-association": {
+            "get": {
+                "description": "Serves the well-known apple-app-site-association document iOS uses to verify this domain is allowed to open links in the Trovo mobile app (universal links / deep linking).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Root"
+                ],
+                "summary": "Apple App Site Association file (universal links)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/.well-known/assetlinks.json": {
+            "get": {
+                "description": "Serves the well-known assetlinks.json document Android uses to verify this domain is allowed to open links in the Trovo mobile app (Android App Links / deep linking).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Root"
+                ],
+                "summary": "Android Asset Links file (app links)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/account/recovery/request-email-otp/{targetUser}": {
             "post": {
                 "produces": [
@@ -86,6 +157,48 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/announcements": {
+            "get": {
+                "description": "Returns announcement banners/messages to show in the client apps, targeted by the caller's IP-derived location. No authentication required. Response is cached for up to 30 minutes.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Announcements"
+                ],
+                "summary": "Get active in-app announcements",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/app-version": {
+            "get": {
+                "description": "Returns the current app-version requirements the mobile client uses to prompt for a forced or optional update. No authentication required. Response is cached for up to 30 minutes.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Announcements"
+                ],
+                "summary": "Get the minimum/latest supported app version",
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -719,6 +832,1738 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/p2p/asset-classes": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Returns every asset category the marketplace filter can narrow by (e.g. stablecoin, token). Small, mostly-static reference list.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "List P2P asset categories",
+                "responses": {
+                    "200": {
+                        "description": "data: list of asset classes",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/disputes/{disputeID}/admin-resolve": {
+            "post": {
+                "security": [
+                    {
+                        "ServiceLinkApiKey": []
+                    }
+                ],
+                "description": "Resolves a dispute that neither party's self-resolution shortcut covers. Called by tm-api on behalf of a staff arbiter, not directly by end-user clients: app-backend has no admin/staff user model of its own, so it trusts that tm-api has already authorized the specific admin, whose identity is only carried in the request body (resolvedByAdminId), not proven by this endpoint's own auth.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Admin-arbitrate a P2P dispute (server-to-server)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Dispute ID",
+                        "name": "disputeID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "resolution (IN_FAVOR_OF_BUYER, IN_FAVOR_OF_SELLER, or SPLIT), resolvedByAdminId",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/p2p.adminResolveDisputeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON, invalid resolution, or missing resolvedByAdminId",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/disputes/{disputeID}/buyer-confirms-not-paid": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "A same-side resolution shortcut: the buyer confirms they never actually sent the fiat payment, resolving the dispute in the merchant's favor without escalating to admin arbitration.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Buyer self-resolves a dispute by confirming they did not pay",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Dispute ID",
+                        "name": "disputeID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Not the customer, or invalid dispute state",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/disputes/{disputeID}/merchant-confirms-payment": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "A same-side resolution shortcut: the merchant confirms the buyer's fiat payment actually did arrive, resolving the dispute in the buyer's favor without escalating to admin arbitration.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Merchant self-resolves a dispute by confirming payment was received",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Dispute ID",
+                        "name": "disputeID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Not the merchant, or invalid dispute state",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/marketplace/facets": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Returns the distinct asset and currency values currently offered on the marketplace, for populating filter dropdowns.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "List available P2P marketplace filter options",
+                "responses": {
+                    "200": {
+                        "description": "Facet lists",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/merchants/online-status": {
+            "put": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Lets a merchant toggle whether they currently appear as available to trade. Offline merchants' offers are typically hidden or marked unavailable on the marketplace.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Set my merchant online/offline status",
+                "parameters": [
+                    {
+                        "description": "online: true or false",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/p2p.setMerchantOnlineStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/p2p.merchantStatusResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/merchants/request": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Requests that the caller be upgraded to a P2P merchant, gated on the caller already holding KYC level 2.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Request P2P merchant status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/p2p.merchantStatusResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "KYC level too low, or already a merchant",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/merchants/status": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Tells the caller whether they are already a P2P merchant, whether they're currently online, and their KYC level - used by clients to decide whether to show merchant-only screens or a \"become a merchant\" prompt.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Get my P2P merchant status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/p2p.merchantStatusResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/merchants/{merchantID}/performance": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Backs the trust signals shown on a marketplace offer card (e.g. completion rate, average release time). Any authenticated caller can look up any merchant's performance, the same visibility the marketplace listing itself already gives.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Get a P2P merchant's trust/performance stats",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Merchant's user ID",
+                        "name": "merchantID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/my-offers": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Lists every offer the caller owns as merchant, in any state (active, paused, closed).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "List my own P2P offers",
+                "responses": {
+                    "200": {
+                        "description": "data: list of offers",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/my-performance": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Returns the caller's own customer performance/trust stats - the same data a merchant sees when reviewing an order before or after acceptance.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Get my own P2P trading performance",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/offers": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Lists active offers on the P2P marketplace, with optional filters and pagination. Used to populate the marketplace buy/sell listing screen.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Browse P2P marketplace offers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by BUY or SELL",
+                        "name": "offerType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by asset code",
+                        "name": "asset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by asset class ID",
+                        "name": "assetClassId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by country code",
+                        "name": "countryCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by fiat currency",
+                        "name": "currency",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Results per page (default 20)",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "data (offers), total, page, pageSize",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Creates a merchant offer to buy or sell an asset for fiat on the P2P marketplace. The caller becomes the merchant on the offer.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Create a new P2P buy/sell offer",
+                "parameters": [
+                    {
+                        "description": "Offer details: offerType (BUY/SELL), asset, paymentMethodId (an existing saved payment method), merchantPayoutAddress, country, countryCode, currency, priceType, price, priceMargin, minOrderAmount, maxOrderAmount, availableLiquidity, remark",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/p2p.createOfferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created offer",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON or validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/offers/{offerID}": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Get a single P2P offer by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Offer ID",
+                        "name": "offerID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Offer not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Updates the editable fields of an offer the caller owns as merchant (price, limits, payout address, payment method, remark). Offer type and asset cannot be changed after creation.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Update an existing P2P offer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Offer ID",
+                        "name": "offerID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fields to update",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/p2p.updateOfferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated offer",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON or validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/offers/{offerID}/activate": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Makes a paused offer visible and orderable on the marketplace again.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Activate a paused P2P offer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Offer ID",
+                        "name": "offerID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Not the offer's owner, or invalid state",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/offers/{offerID}/close": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Closes an offer the caller owns as merchant. A closed offer stops appearing on the marketplace and cannot be reactivated (unlike pausing).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Permanently close a P2P offer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Offer ID",
+                        "name": "offerID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Closed offer",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Not the offer's owner, or invalid state",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/offers/{offerID}/pause": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Temporarily hides an offer from the marketplace without closing it permanently. Can be reactivated later.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Pause a P2P offer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Offer ID",
+                        "name": "offerID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Not the offer's owner, or invalid state",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/offers/{offerID}/quote": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Returns an itemized breakdown (fees, VAT, charges, net amounts for both buyer and seller) for a hypothetical order against this offer at the given amount, without creating or persisting anything. Used by the order-creation screen to show the customer real numbers before they commit.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Get a fee quote for an offer before creating an order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Offer ID",
+                        "name": "offerID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Specified asset amount to quote",
+                        "name": "amount",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Fee breakdown",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/orders": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Lists orders the caller is party to, either as customer or merchant, with optional filters and pagination.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "List my P2P orders",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by role: customer or merchant",
+                        "name": "role",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by order status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Results per page (default 20)",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "data (orders), total, page, pageSize",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Creates an order (a trade) against an existing offer for a specified asset amount. Starts the order lifecycle (pending merchant acceptance, then escrow deposit, then fiat payment, then release).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Create a new P2P order against an offer",
+                "parameters": [
+                    {
+                        "description": "offerId and specifiedAssetAmount",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/p2p.createOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created order",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON or validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/orders/{orderID}": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Returns order details. Only the order's customer or merchant may view it. Also best-effort reconciles any escrow deposit made via the shared deposit link since the last check.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Get a single P2P order by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "orderID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Caller is not a party to this order",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Order not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/orders/{orderID}/accept": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Merchant accepts a pending P2P order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "orderID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Not the merchant, or invalid order state",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/orders/{orderID}/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Customer cancels their own P2P order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "orderID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Not the customer, or invalid order state",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/orders/{orderID}/customer-performance": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Lets a merchant look up the performance/trust history of the customer on a specific order they're party to, before deciding to accept it. Unlike merchant performance (public via the marketplace), a customer's history is private, so this only works if the caller is the merchant on orderID - it never accepts an arbitrary customer ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Get a customer's trading performance for one of my orders",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "orderID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Not the merchant on this order",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Order not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/orders/{orderID}/dispute": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Get the open dispute for a P2P order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "orderID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "No open dispute for this order",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/orders/{orderID}/disputes": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Lets either party to an order raise a dispute (e.g. payment sent but not confirmed) with a subject, description, and supporting evidence (e.g. screenshot URLs), pausing the order's normal flow for arbitration.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Open a dispute on a P2P order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "orderID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "subject, description, evidence (list of URLs)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/p2p.openDisputeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created dispute",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/orders/{orderID}/escrow-deposit": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Used by the asset depositor (the SELL-side party) to fund escrow for an order. Call it twice: first with an empty body to receive an unsigned transaction to sign locally, then again with the signed transaction and commit=1 to actually submit it. The source wallet must be a standard, non-temp wallet with no approver-based shared access.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Deposit the sold asset into P2P escrow",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "orderID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "transaction (base64, from a prior unsigned call), transactionSignature, commit (1 to submit)",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/p2p.depositEscrowRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Unsigned transaction to sign, or submission result",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Not the asset depositor, wrong wallet type, or shared-access wallet with approvers",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Order not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/orders/{orderID}/escrow-deposit/regenerate-shortlink": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Retries shortlink generation if the automatic attempt made when the order was accepted failed and left the order without a deposit shortlink.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Regenerate the shareable escrow-deposit link for an order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "orderID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/orders/{orderID}/merchant-cancel": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Merchant cancels a P2P order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "orderID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Not the merchant, or invalid order state",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/orders/{orderID}/payment-confirmed": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Called by the merchant after they have verified the buyer's fiat payment landed. Triggers release of the escrowed asset to the customer.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Merchant confirms fiat payment received",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "orderID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Not the merchant, or invalid order state",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/orders/{orderID}/payment-sent": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Called by the buying customer after they have sent the off-platform fiat payment to the merchant's payment method, to notify the merchant to check and confirm receipt.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Customer marks fiat payment as sent",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "orderID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Not the customer, or invalid order state",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/orders/{orderID}/reject": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Merchant rejects a pending P2P order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "orderID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Not the merchant, or invalid order state",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/payment-methods": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "List my saved P2P payment methods",
+                "responses": {
+                    "200": {
+                        "description": "data: list of payment methods",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Saves a new fiat settlement channel (e.g. bank transfer, mobile money) that the caller can later select from when creating SELL offers. Also backs the offer-creation form's inline \"add new payment method\" quick-create.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Add a new merchant payment method",
+                "parameters": [
+                    {
+                        "description": "paymentChannel, provider, account",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/p2p.paymentMethodRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created payment method",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/payment-methods/{paymentMethodID}": {
+            "put": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Update a saved P2P payment method",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Payment method ID",
+                        "name": "paymentMethodID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "paymentChannel, provider, account",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/p2p.paymentMethodRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/payment-methods/{paymentMethodID}/active": {
+            "put": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Toggles a payment method active/inactive. Payment methods are never deleted, only deactivated. Fails if the payment method is still referenced by a live offer.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Activate or deactivate a P2P payment method",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Payment method ID",
+                        "name": "paymentMethodID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "active: true or false",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/p2p.setPaymentMethodActiveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "409": {
+                        "description": "Payment method still in use by a live offer",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/refunds": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Lists every P2P escrow refund owed to the caller's wallet address, e.g. from a cancelled or disputed order where the deposited asset needs to be returned.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "List refunds owed to my wallet",
+                "responses": {
+                    "200": {
+                        "description": "data: list of refunds",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/p2p/refunds/{refundID}/claim": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Triggers the on-chain transfer of a pending refund back to the caller's wallet.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Claim an owed P2P escrow refund",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Refund ID",
+                        "name": "refundID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/patron": {
             "get": {
                 "produces": [
@@ -811,6 +2656,32 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/rates": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Returns the current exchange rates the wallet uses to price assets against fiat/reference currencies. Response is cached for up to 30 minutes.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rates"
+                ],
+                "summary": "Get current exchange rates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1893,6 +3764,72 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/shared-access/tokenization/early-exit/{tokenizedAssetID}": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Same as the standard early-exit endpoint, but for a shared-access wallet: the caller must either hold INITIATOR permission (when the wallet needs approvals) or be the wallet's own owner (when it's view-only), and every approver on the wallet is notified once the request is submitted.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Assets"
+                ],
+                "summary": "Exit a tokenized asset position early from a shared-access wallet",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tokenized asset ID",
+                        "name": "tokenizedAssetID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Early exit request (e.g. quantity to exit)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.TokenizedAssetEarlyExitInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Exit executed immediately",
+                        "schema": {
+                            "$ref": "#/definitions/users.TokenizedAssetEarlyExitInput"
+                        }
+                    },
+                    "202": {
+                        "description": "Exit pending approver authorization",
+                        "schema": {
+                            "$ref": "#/definitions/users.TokenizedAssetEarlyExitInput"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON or request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Wallet is temporary, or caller lacks initiator/owner permission on this shared-access wallet",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/shared-access/tokenization/subscriptions/{tokenizedAssetID}": {
             "post": {
                 "consumes": [
@@ -2479,6 +4416,66 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/tokenization/early-exit/{tokenizedAssetID}": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Lets a holder of a tokenized asset request an early exit (sell back before the asset's normal maturity/exit window), from their own standard wallet. Submits an early-exit request against the given tokenized asset and, on success, notifies the user by push notification.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Assets"
+                ],
+                "summary": "Exit a tokenized asset position early",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tokenized asset ID",
+                        "name": "tokenizedAssetID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Early exit request (e.g. quantity to exit)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.TokenizedAssetEarlyExitInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/users.TokenizedAssetEarlyExitInput"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON or request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Wallet is a temporary wallet, which is not allowed",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -6078,11 +8075,11 @@ const docTemplate = `{
                 "assetCode": {
                     "type": "string"
                 },
-                "contractAddress": {
-                    "type": "string"
-                },
                 "authorized": {
                     "type": "boolean"
+                },
+                "contractAddress": {
+                    "type": "string"
                 },
                 "createdAt": {
                     "type": "string"
@@ -6101,6 +8098,182 @@ const docTemplate = `{
                 }
             }
         },
+        "p2p.adminResolveDisputeRequest": {
+            "type": "object",
+            "properties": {
+                "resolution": {
+                    "type": "string"
+                },
+                "resolvedByAdminId": {
+                    "type": "string"
+                }
+            }
+        },
+        "p2p.createOfferRequest": {
+            "type": "object",
+            "properties": {
+                "asset": {
+                    "type": "string"
+                },
+                "availableLiquidity": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "countryCode": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "maxOrderAmount": {
+                    "type": "string"
+                },
+                "merchantPayoutAddress": {
+                    "type": "string"
+                },
+                "minOrderAmount": {
+                    "type": "string"
+                },
+                "offerType": {
+                    "type": "string"
+                },
+                "paymentMethodId": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "string"
+                },
+                "priceMargin": {
+                    "type": "string"
+                },
+                "priceType": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                }
+            }
+        },
+        "p2p.createOrderRequest": {
+            "type": "object",
+            "properties": {
+                "offerId": {
+                    "type": "string"
+                },
+                "specifiedAssetAmount": {
+                    "type": "string"
+                }
+            }
+        },
+        "p2p.depositEscrowRequest": {
+            "type": "object",
+            "properties": {
+                "commit": {
+                    "type": "integer"
+                },
+                "transaction": {
+                    "type": "string"
+                },
+                "transactionSignature": {
+                    "type": "string"
+                }
+            }
+        },
+        "p2p.merchantStatusResponse": {
+            "type": "object",
+            "properties": {
+                "isMerchant": {
+                    "type": "boolean"
+                },
+                "kycLevel": {
+                    "type": "integer"
+                },
+                "merchantOnline": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "p2p.openDisputeRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "evidence": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "subject": {
+                    "type": "string"
+                }
+            }
+        },
+        "p2p.paymentMethodRequest": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "type": "string"
+                },
+                "paymentChannel": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                }
+            }
+        },
+        "p2p.setMerchantOnlineStatusRequest": {
+            "type": "object",
+            "properties": {
+                "online": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "p2p.setPaymentMethodActiveRequest": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "p2p.updateOfferRequest": {
+            "type": "object",
+            "properties": {
+                "availableLiquidity": {
+                    "type": "string"
+                },
+                "maxOrderAmount": {
+                    "type": "string"
+                },
+                "merchantPayoutAddress": {
+                    "type": "string"
+                },
+                "minOrderAmount": {
+                    "type": "string"
+                },
+                "paymentMethodId": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "string"
+                },
+                "priceMargin": {
+                    "type": "string"
+                },
+                "priceType": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                }
+            }
+        },
         "payments.PaymentInfo": {
             "type": "object",
             "properties": {
@@ -6113,9 +8286,6 @@ const docTemplate = `{
                 "assetCode": {
                     "type": "string"
                 },
-                "contractAddress": {
-                    "type": "string"
-                },
                 "channelAccount": {
                     "type": "string"
                 },
@@ -6124,6 +8294,9 @@ const docTemplate = `{
                 },
                 "commit": {
                     "type": "integer"
+                },
+                "contractAddress": {
+                    "type": "string"
                 },
                 "destination": {
                     "type": "string"
@@ -7096,11 +9269,11 @@ const docTemplate = `{
                 "assetCode": {
                     "type": "string"
                 },
-                "contractAddress": {
-                    "type": "string"
-                },
                 "commit": {
                     "type": "integer"
+                },
+                "contractAddress": {
+                    "type": "string"
                 },
                 "currencyCode": {
                     "type": "string"
@@ -7152,9 +9325,6 @@ const docTemplate = `{
                 "assetCode": {
                     "type": "string"
                 },
-                "contractAddress": {
-                    "type": "string"
-                },
                 "channelAccount": {
                     "type": "string"
                 },
@@ -7163,6 +9333,9 @@ const docTemplate = `{
                 },
                 "commit": {
                     "type": "integer"
+                },
+                "contractAddress": {
+                    "type": "string"
                 },
                 "destination": {
                     "type": "string"
@@ -7499,6 +9672,59 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "users.TokenizedAssetEarlyExitInput": {
+            "type": "object",
+            "properties": {
+                "accountName": {
+                    "type": "string"
+                },
+                "accountNumber": {
+                    "type": "string"
+                },
+                "bankId": {
+                    "type": "integer"
+                },
+                "commit": {
+                    "type": "integer"
+                },
+                "memo": {
+                    "type": "string"
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "networkPassPhrase": {
+                    "type": "string"
+                },
+                "signatureRequired": {
+                    "type": "integer"
+                },
+                "swappedEstimate": {
+                    "type": "string"
+                },
+                "tokenQuantityToExit": {
+                    "type": "number"
+                },
+                "tokenizedAssetId": {
+                    "type": "string"
+                },
+                "transaction": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "transactionSignature": {
+                    "type": "string"
+                },
+                "walletAddress": {
                     "type": "string"
                 }
             }
@@ -9339,11 +11565,11 @@ const docTemplate = `{
                 "assetCode": {
                     "type": "string"
                 },
-                "contractAddress": {
-                    "type": "string"
-                },
                 "authorized": {
                     "type": "boolean"
+                },
+                "contractAddress": {
+                    "type": "string"
                 },
                 "reason": {
                     "type": "string"
@@ -9417,6 +11643,26 @@ const docTemplate = `{
                     "type": "number"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "JWT bearer token used by the internal \"trovo-manager\" (tm-api admin) routes. Send as \"Bearer \u003ctoken\u003e\". See internal/middleware/authentication_middleware.go's JwtTokenAuthMiddleware.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        },
+        "ServiceLinkApiKey": {
+            "description": "Static per-partner API key used by white-label \"service link\" integrations (and by tm-api for a few admin/server-to-server calls). Issued when a service link is provisioned; see internal/components/servicelinks. See internal/middleware/api_key_middleware.go.",
+            "type": "apiKey",
+            "name": "X-TW-SERVICE-LINK-API-KEY",
+            "in": "header"
+        },
+        "SignatureAuth": {
+            "description": "Request-signing scheme used by app-web and app-mobile for end-user requests. The caller sends four headers together: X-TW-PUBLIC-KEY (the wallet address making the call), X-TW-SIGNER (the address whose private key signed the request), X-TW-TIMESTAMP (a fresh timestamp), and X-TW-SIGNATURE (a signature over signer+timestamp, and for POST/PUT/PATCH over the request body/URI). There is no bearer token: every request is independently signed. See internal/middleware/authentication_middleware.go.",
+            "type": "apiKey",
+            "name": "X-TW-SIGNATURE",
+            "in": "header"
         }
     }
 }`

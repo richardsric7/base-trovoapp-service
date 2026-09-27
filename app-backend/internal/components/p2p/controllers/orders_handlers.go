@@ -16,6 +16,17 @@ type createOrderRequest struct {
 	SpecifiedAssetAmount string `json:"specifiedAssetAmount"`
 }
 
+// postOrdersHandler godoc
+// @Summary Create a new P2P order against an offer
+// @Description Creates an order (a trade) against an existing offer for a specified asset amount. Starts the order lifecycle (pending merchant acceptance, then escrow deposit, then fiat payment, then release).
+// @Tags P2P
+// @Accept json
+// @Produce json
+// @Param body body createOrderRequest true "offerId and specifiedAssetAmount"
+// @Success 201 {object} map[string]interface{} "Created order"
+// @Failure 400 {object} map[string]interface{} "Invalid JSON or validation error"
+// @Security SignatureAuth
+// @Router /v1/p2p/orders [post]
 func postOrdersHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)
@@ -41,6 +52,19 @@ func postOrdersHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+// getMyOrdersHandler godoc
+// @Summary List my P2P orders
+// @Description Lists orders the caller is party to, either as customer or merchant, with optional filters and pagination.
+// @Tags P2P
+// @Produce json
+// @Param role query string false "Filter by role: customer or merchant"
+// @Param status query string false "Filter by order status"
+// @Param page query int false "Page number (default 1)"
+// @Param pageSize query int false "Results per page (default 20)"
+// @Success 200 {object} map[string]interface{} "data (orders), total, page, pageSize"
+// @Failure 500 {object} map[string]interface{}
+// @Security SignatureAuth
+// @Router /v1/p2p/orders [get]
 func getMyOrdersHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)
@@ -65,6 +89,17 @@ func getMyOrdersHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+// getOrderHandler godoc
+// @Summary Get a single P2P order by ID
+// @Description Returns order details. Only the order's customer or merchant may view it. Also best-effort reconciles any escrow deposit made via the shared deposit link since the last check.
+// @Tags P2P
+// @Produce json
+// @Param orderID path string true "Order ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{} "Caller is not a party to this order"
+// @Failure 404 {object} map[string]interface{} "Order not found"
+// @Security SignatureAuth
+// @Router /v1/p2p/orders/{orderID} [get]
 func getOrderHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)
@@ -89,6 +124,15 @@ func getOrderHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+// postAcceptOrderHandler godoc
+// @Summary Merchant accepts a pending P2P order
+// @Tags P2P
+// @Produce json
+// @Param orderID path string true "Order ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Not the merchant, or invalid order state"
+// @Security SignatureAuth
+// @Router /v1/p2p/orders/{orderID}/accept [post]
 func postAcceptOrderHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)
@@ -105,6 +149,15 @@ func postAcceptOrderHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+// postRejectOrderHandler godoc
+// @Summary Merchant rejects a pending P2P order
+// @Tags P2P
+// @Produce json
+// @Param orderID path string true "Order ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Not the merchant, or invalid order state"
+// @Security SignatureAuth
+// @Router /v1/p2p/orders/{orderID}/reject [post]
 func postRejectOrderHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)
@@ -121,6 +174,15 @@ func postRejectOrderHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+// postCancelOrderHandler godoc
+// @Summary Customer cancels their own P2P order
+// @Tags P2P
+// @Produce json
+// @Param orderID path string true "Order ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Not the customer, or invalid order state"
+// @Security SignatureAuth
+// @Router /v1/p2p/orders/{orderID}/cancel [post]
 func postCancelOrderHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)
@@ -137,6 +199,15 @@ func postCancelOrderHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+// postMerchantCancelOrderHandler godoc
+// @Summary Merchant cancels a P2P order
+// @Tags P2P
+// @Produce json
+// @Param orderID path string true "Order ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Not the merchant, or invalid order state"
+// @Security SignatureAuth
+// @Router /v1/p2p/orders/{orderID}/merchant-cancel [post]
 func postMerchantCancelOrderHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)
@@ -153,6 +224,16 @@ func postMerchantCancelOrderHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFu
 	}
 }
 
+// postPaymentSentHandler godoc
+// @Summary Customer marks fiat payment as sent
+// @Description Called by the buying customer after they have sent the off-platform fiat payment to the merchant's payment method, to notify the merchant to check and confirm receipt.
+// @Tags P2P
+// @Produce json
+// @Param orderID path string true "Order ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Not the customer, or invalid order state"
+// @Security SignatureAuth
+// @Router /v1/p2p/orders/{orderID}/payment-sent [post]
 func postPaymentSentHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)
@@ -169,6 +250,16 @@ func postPaymentSentHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
+// postPaymentConfirmedHandler godoc
+// @Summary Merchant confirms fiat payment received
+// @Description Called by the merchant after they have verified the buyer's fiat payment landed. Triggers release of the escrowed asset to the customer.
+// @Tags P2P
+// @Produce json
+// @Param orderID path string true "Order ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Not the merchant, or invalid order state"
+// @Security SignatureAuth
+// @Router /v1/p2p/orders/{orderID}/payment-confirmed [post]
 func postPaymentConfirmedHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)

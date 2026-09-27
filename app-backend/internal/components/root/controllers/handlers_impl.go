@@ -9,6 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// getHandler godoc
+// @Summary Health/info check for the API
+// @Description Returns basic service info (used as a lightweight liveness check; also echoes the caller's wallet address back if the X-TW-PUBLIC-KEY header is present).
+// @Tags Root
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Security SignatureAuth
+// @Router / [get]
 func getHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
@@ -18,6 +26,13 @@ func getHandler() gin.HandlerFunc {
 	}
 }
 
+// getDotwellKnownAppleAppSiteAssociationHandler godoc
+// @Summary Apple App Site Association file (universal links)
+// @Description Serves the well-known apple-app-site-association document iOS uses to verify this domain is allowed to open links in the Trovo mobile app (universal links / deep linking).
+// @Tags Root
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router /.well-known/apple-app-site-association [get]
 func getDotwellKnownAppleAppSiteAssociationHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Content-Type", "application/json")
@@ -35,6 +50,13 @@ func getDotwellKnownAppleAppSiteAssociationHandler() gin.HandlerFunc {
 	}
 }
 
+// getDotwellKnownAssetlinksDotjsonHandler godoc
+// @Summary Android Asset Links file (app links)
+// @Description Serves the well-known assetlinks.json document Android uses to verify this domain is allowed to open links in the Trovo mobile app (Android App Links / deep linking).
+// @Tags Root
+// @Produce json
+// @Success 200 {array} map[string]interface{}
+// @Router /.well-known/assetlinks.json [get]
 func getDotwellKnownAssetlinksDotjsonHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Content-Type", "application/json")

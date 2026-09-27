@@ -22,12 +22,24 @@ var validAdminResolutions = map[string]bool{
 	p2pModels.DisputeResolutionSplit:           true,
 }
 
+// postAdminResolveDisputeHandler godoc
+// @Summary Admin-arbitrate a P2P dispute (server-to-server)
+// @Description Resolves a dispute that neither party's self-resolution shortcut covers. Called by tm-api on behalf of a staff arbiter, not directly by end-user clients: app-backend has no admin/staff user model of its own, so it trusts that tm-api has already authorized the specific admin, whose identity is only carried in the request body (resolvedByAdminId), not proven by this endpoint's own auth.
 // postAdminResolveDisputeHandler is the arbiter-driven path for a dispute
 // that neither self-resolution shortcut (Section 63) covers. Gated by
 // AuthenticationMiddlewareUsingAPIKey - app-backend trusts that whichever
 // admin-permissioned system calls this (tm-api) has already authorized the
 // specific admin user; the resolving admin's identity travels in the
 // request body, not this endpoint's own auth.
+// @Tags P2P
+// @Accept json
+// @Produce json
+// @Param disputeID path string true "Dispute ID"
+// @Param body body adminResolveDisputeRequest true "resolution (IN_FAVOR_OF_BUYER, IN_FAVOR_OF_SELLER, or SPLIT), resolvedByAdminId"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Invalid JSON, invalid resolution, or missing resolvedByAdminId"
+// @Security ServiceLinkApiKey
+// @Router /v1/p2p/disputes/{disputeID}/admin-resolve [post]
 func postAdminResolveDisputeHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		data, _ := io.ReadAll(c.Request.Body)

@@ -9,9 +9,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// getMyRefundsHandler lists every refund owed to the caller's wallet
-// address (Plan Section 45 - Refund.Sender is a wallet address, the same
-// identifier the escrow-deposit endpoint already authenticates by).
+// getMyRefundsHandler godoc
+// @Summary List refunds owed to my wallet
+// @Description Lists every P2P escrow refund owed to the caller's wallet address, e.g. from a cancelled or disputed order where the deposited asset needs to be returned.
+// @Tags P2P
+// @Produce json
+// @Success 200 {object} map[string]interface{} "data: list of refunds"
+// @Failure 500 {object} map[string]interface{}
+// @Security SignatureAuth
+// @Router /v1/p2p/refunds [get]
 func getMyRefundsHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		refunds, err := p2pServices.ListMyRefunds(gc.DB, middleware.ExtractAddress(c))
@@ -23,7 +29,16 @@ func getMyRefundsHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
-// postClaimRefundHandler implements Plan Section 45's claim sequence.
+// postClaimRefundHandler godoc
+// @Summary Claim an owed P2P escrow refund
+// @Description Triggers the on-chain transfer of a pending refund back to the caller's wallet.
+// @Tags P2P
+// @Produce json
+// @Param refundID path string true "Refund ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Security SignatureAuth
+// @Router /v1/p2p/refunds/{refundID}/claim [post]
 func postClaimRefundHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		refund, err := p2pServices.ClaimRefund(gc, c.Param("refundID"), middleware.ExtractAddress(c))

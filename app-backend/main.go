@@ -51,6 +51,21 @@ import (
 // @description Core wallet API for the Trovo platform — user accounts, crypto assets, deposits/withdrawals, swaps.
 // @host localhost:8080
 // @BasePath /
+//
+// @securityDefinitions.apikey SignatureAuth
+// @in header
+// @name X-TW-SIGNATURE
+// @description Request-signing scheme used by app-web and app-mobile for end-user requests. The caller sends four headers together: X-TW-PUBLIC-KEY (the wallet address making the call), X-TW-SIGNER (the address whose private key signed the request), X-TW-TIMESTAMP (a fresh timestamp), and X-TW-SIGNATURE (a signature over signer+timestamp, and for POST/PUT/PATCH over the request body/URI). There is no bearer token: every request is independently signed. See internal/middleware/authentication_middleware.go.
+//
+// @securityDefinitions.apikey ServiceLinkApiKey
+// @in header
+// @name X-TW-SERVICE-LINK-API-KEY
+// @description Static per-partner API key used by white-label "service link" integrations (and by tm-api for a few admin/server-to-server calls). Issued when a service link is provisioned; see internal/components/servicelinks. See internal/middleware/api_key_middleware.go.
+//
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description JWT bearer token used by the internal "trovo-manager" (tm-api admin) routes. Send as "Bearer <token>". See internal/middleware/authentication_middleware.go's JwtTokenAuthMiddleware.
 func main() {
 
 	//setup environment variables
