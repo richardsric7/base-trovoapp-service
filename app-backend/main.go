@@ -859,7 +859,9 @@ func main() {
 		go func() {
 			for {
 
-				MonitorStream(&globalConfig)
+				sharedconfig.WithSingletonLock(&globalConfig, "monitor-stream", 20*time.Second, func() {
+					MonitorStream(&globalConfig)
+				})
 				time.Sleep(5 * time.Second)
 			}
 		}()
@@ -871,7 +873,9 @@ func main() {
 
 			for {
 
-				userServices.ActivatePrimarySalesRoutine(&globalConfig)
+				sharedconfig.WithSingletonLock(&globalConfig, "activate-primary-sales", 20*time.Second, func() {
+					userServices.ActivatePrimarySalesRoutine(&globalConfig)
+				})
 				time.Sleep(5 * time.Second)
 			}
 		}()
@@ -879,7 +883,9 @@ func main() {
 		go func() {
 
 			for {
-				userServices.ActivateSecondarySalesRoutine(&globalConfig)
+				sharedconfig.WithSingletonLock(&globalConfig, "activate-secondary-sales", 20*time.Second, func() {
+					userServices.ActivateSecondarySalesRoutine(&globalConfig)
+				})
 				time.Sleep(5 * time.Second)
 			}
 		}()
@@ -888,9 +894,11 @@ func main() {
 		go func() {
 
 			for {
-				userServices.ProcessUpdateStablerailOnboardingStatus(&globalConfig)
-				time.Sleep(10 * time.Second)
-				userServices.ProcessUpdateStablerailCNGNOnrampStatus(&globalConfig)
+				sharedconfig.WithSingletonLock(&globalConfig, "stablerail-onboarding-onramp", time.Minute, func() {
+					userServices.ProcessUpdateStablerailOnboardingStatus(&globalConfig)
+					time.Sleep(10 * time.Second)
+					userServices.ProcessUpdateStablerailCNGNOnrampStatus(&globalConfig)
+				})
 				time.Sleep(10 * time.Second)
 
 			}
@@ -902,7 +910,9 @@ func main() {
 		go func() {
 			for {
 
-				userServices.SendPNToSuscribersForPrimarySales(&globalConfig)
+				sharedconfig.WithSingletonLock(&globalConfig, "send-pn-primary-sales-subscribers", 20*time.Second, func() {
+					userServices.SendPNToSuscribersForPrimarySales(&globalConfig)
+				})
 				time.Sleep(5 * time.Second)
 			}
 		}()
@@ -912,10 +922,12 @@ func main() {
 		go func() {
 
 			for {
-				_, e := userServices.StablerailSaveSupportedBanks(&globalConfig)
-				if e != nil {
-					log.Printf("[Error Fetching stablerail banks] %v\n", e)
-				}
+				sharedconfig.WithSingletonLock(&globalConfig, "stablerail-save-supported-banks", 30*time.Minute, func() {
+					_, e := userServices.StablerailSaveSupportedBanks(&globalConfig)
+					if e != nil {
+						log.Printf("[Error Fetching stablerail banks] %v\n", e)
+					}
+				})
 				time.Sleep(10 * time.Minute)
 			}
 		}()
@@ -926,9 +938,11 @@ func main() {
 		//more than 2 days without a webhook confirmation
 		go func() {
 			for {
-				if e := userServices.ExpireStalePaymentInvoices(&globalConfig); e != nil {
-					log.Printf("[MAIN] error expiring stale payment invoices: %v\n", e)
-				}
+				sharedconfig.WithSingletonLock(&globalConfig, "expire-stale-payment-invoices", 90*time.Minute, func() {
+					if e := userServices.ExpireStalePaymentInvoices(&globalConfig); e != nil {
+						log.Printf("[MAIN] error expiring stale payment invoices: %v\n", e)
+					}
+				})
 				time.Sleep(30 * time.Minute)
 			}
 		}()

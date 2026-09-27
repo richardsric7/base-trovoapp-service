@@ -98,27 +98,33 @@ func startBackgroundSweeps(gc *sharedconfig.GlobalConfig) {
 		ticker := time.NewTicker(1 * time.Minute)
 		defer ticker.Stop()
 		for range ticker.C {
-			if n, err := p2pServices.ExpireStaleOrders(gc); err != nil {
-				log.Printf("[p2p:ExpireStaleOrders] error: %v\n", err)
-			} else if n > 0 {
-				log.Printf("[p2p:ExpireStaleOrders] expired %d stale order(s)\n", n)
-			}
+			sharedconfig.WithSingletonLock(gc, "p2p-expire-stale-orders", 3*time.Minute, func() {
+				if n, err := p2pServices.ExpireStaleOrders(gc); err != nil {
+					log.Printf("[p2p:ExpireStaleOrders] error: %v\n", err)
+				} else if n > 0 {
+					log.Printf("[p2p:ExpireStaleOrders] expired %d stale order(s)\n", n)
+				}
+			})
 		}
 	}()
 	go func() {
 		ticker := time.NewTicker(2 * time.Minute)
 		defer ticker.Stop()
 		for range ticker.C {
-			p2pServices.RunEscrowReconciliationSweep(gc)
+			sharedconfig.WithSingletonLock(gc, "p2p-escrow-reconciliation-sweep", 6*time.Minute, func() {
+				p2pServices.RunEscrowReconciliationSweep(gc)
+			})
 		}
 	}()
 	go func() {
 		ticker := time.NewTicker(5 * time.Minute)
 		defer ticker.Stop()
 		for range ticker.C {
-			if err := p2pServices.CalculateRanking(gc); err != nil {
-				log.Printf("[p2p:CalculateRanking] error: %v\n", err)
-			}
+			sharedconfig.WithSingletonLock(gc, "p2p-calculate-ranking", 15*time.Minute, func() {
+				if err := p2pServices.CalculateRanking(gc); err != nil {
+					log.Printf("[p2p:CalculateRanking] error: %v\n", err)
+				}
+			})
 		}
 	}()
 }
