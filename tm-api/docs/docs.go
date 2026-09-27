@@ -15,6 +15,29 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/": {
+            "get": {
+                "description": "Unauthenticated root endpoint. Returns a static service name and status string, used as a basic \"is this the right service\" smoke check.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Meta"
+                ],
+                "summary": "Get service info",
+                "responses": {
+                    "200": {
+                        "description": "service, status",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/admin/careers/roles": {
             "get": {
                 "description": "Retrieves all career roles (including drafts) with optional filters. Admin endpoint, authentication required.",
@@ -764,6 +787,69 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/remove": {
+            "post": {
+                "description": "Usable by SuperAdmin only. Permanently deletes an admin user record by email. Does not affect the underlying Trovo Wallet account.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admins"
+                ],
+                "summary": "Remove an admin",
+                "parameters": [
+                    {
+                        "description": "Email of the admin to remove",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/server.RemoveAdminPayload"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "message\": \"Admin removed successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error\": \"Invalid payload",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error\": \"Failed to remove admin user",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/admin/suspend": {
             "patch": {
                 "description": "Suspends an admin by updating their status to 'SUSPENDED' in the database. Requires admin-level authorization.",
@@ -904,6 +990,168 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "error\": \"Failed to retrieve admin information\" or \"InternalServerError\" or \"Failed to update admin status",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/users/lift-suspension": {
+            "patch": {
+                "description": "Reactivates a suspended user, logging the mandatory reason for lifting the suspension.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Lift a user's suspension",
+                "parameters": [
+                    {
+                        "description": "Email of the user to reactivate, and the mandatory reason for lifting the suspension",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SuspendOrLiftUserPayload"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "message\": \"User's suspension has been lifted",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error\": \"Invalid request payload\" or \"User is not currently suspended",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "error\": \"Unauthorized access",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "error\": \"User does not exist",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error\": \"Failed to update user status\" or \"Failed to log suspension activity",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/users/suspend": {
+            "patch": {
+                "description": "Suspends a normal user, logging the mandatory reason. Blocks the user's wallet(s) from any transaction until lifted.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Suspend a user",
+                "parameters": [
+                    {
+                        "description": "Email of the user to suspend, and the mandatory reason",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SuspendOrLiftUserPayload"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "message\": \"User has been suspended",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error\": \"Invalid request payload\" or \"User is already suspended",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "error\": \"Unauthorized access",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "error\": \"User does not exist",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error\": \"Failed to update user status\" or \"Failed to log suspension activity",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1244,22 +1492,58 @@ const docTemplate = `{
                 }
             }
         },
-        "/appeal/list": {
+        "/asset-classes": {
             "get": {
-                "security": [
-                    {
-                        "JwtTokenAuth": []
-                    }
-                ],
-                "description": "Retrieves the list of trades that are currently on appeal with pagination, filtering, and search.",
+                "description": "Reference list of asset categories (token/stablecoin/sto/nft) for the curated-asset admin form.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Appeals"
+                    "CuratedAssets"
                 ],
-                "summary": "Get list of trades on appeal",
-                "operationId": "GetAppealList",
+                "summary": "List asset classes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/assets/curated": {
+            "get": {
+                "description": "Paginated, filterable list of the platform's curated asset catalog.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CuratedAssets"
+                ],
+                "summary": "List curated assets",
                 "parameters": [
                     {
                         "type": "string",
@@ -1272,51 +1556,39 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "default": 1,
-                        "description": "Page number for pagination",
+                        "description": "Page number",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "default": 10,
-                        "description": "Number of items per page",
+                        "default": 20,
+                        "description": "Items per page",
                         "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by appeal ID",
-                        "name": "appeal_id",
+                        "description": "Filter by asset code (partial match)",
+                        "name": "assetCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by asset class",
+                        "name": "assetClassId",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by customer name",
-                        "name": "customer_name",
+                        "description": "Filter by P2P-enabled (true/false)",
+                        "name": "p2pEnabled",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by description",
-                        "name": "description",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by updated date (YYYY-MM-DD)",
-                        "name": "updated_on",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by status e.g suspended, ",
-                        "name": "status",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "General search across multiple fields",
-                        "name": "search",
+                        "description": "Filter by active status (true/false)",
+                        "name": "inactive",
                         "in": "query"
                     }
                 ],
@@ -1327,22 +1599,280 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.Data"
                         }
                     },
-                    "400": {
-                        "description": "Invalid request parameters",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Action must be one of: ` + "`" + `create` + "`" + `, ` + "`" + `update` + "`" + `. ID should only be provided for ` + "`" + `update` + "`" + `. Setting p2pEnabled makes the asset available for P2P offer creation/marketplace search; unset (or absent on create) keeps it unavailable there.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CuratedAssets"
+                ],
+                "summary": "Create or update a curated asset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Curated asset payload",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CuratedAssetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "type": "object"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/assets/curated/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CuratedAssets"
+                ],
+                "summary": "Get curated asset by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Curated asset ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/assets/curated/{id}/inactive": {
+            "put": {
+                "description": "Retires or restores a curated asset without deleting it - deactivation is the supported way to remove an asset from active use everywhere it's already referenced (wallets, historical offers/orders).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CuratedAssets"
+                ],
+                "summary": "Set a curated asset's active/inactive status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Curated asset ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Inactive flag",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/usermetrics.setInactiveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/assets/curated/{id}/p2p-enabled": {
+            "put": {
+                "description": "Enables or disables an asset for P2P operations without touching any of its other fields.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CuratedAssets"
+                ],
+                "summary": "Set a curated asset's P2P-enabled flag",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Curated asset ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "P2P-enabled flag",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/usermetrics.setP2PEnabledRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -1499,6 +2029,106 @@ const docTemplate = `{
                         "description": "Access log not found",
                         "schema": {
                             "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/callbacks/auth/{serviceName}": {
+            "post": {
+                "description": "Internal callback invoked by app-backend when a user approves a pending step-up authorization. Validates the callback against the matching PendingAuthorization row before broadcasting.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Receive an authorization approval callback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service name the authorization was scoped to",
+                        "name": "serviceName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Authorization callback payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AuthorizationCallbackInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.AuthorizationCallbackInput"
+                        }
+                    },
+                    "400": {
+                        "description": "error\": \"invalid JSON body, unknown auth ID, or mismatched target user",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/callbacks/login/{serviceName}": {
+            "post": {
+                "description": "Internal callback invoked by app-backend when a user approves a pending login request. Broadcasts the approval to any client subscribed via /login/stream/{loginID}. Not intended to be called directly by tm-web.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Receive a login approval callback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service name the login was scoped to",
+                        "name": "serviceName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Login callback payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.LoginCallbackInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.LoginCallbackInput"
+                        }
+                    },
+                    "400": {
+                        "description": "error\": \"invalid JSON body",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -4279,14 +4909,14 @@ const docTemplate = `{
                         "JwtTokenAuth": []
                     }
                 ],
-                "description": "Retrieves the list of trades for users.",
+                "description": "Retrieves a paginated, filterable list of P2P orders from the P2P module.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "P2P"
                 ],
-                "summary": "Get list of trades",
+                "summary": "Get list of P2P trades (orders)",
                 "operationId": "GetTradeList",
                 "parameters": [
                     {
@@ -4298,360 +4928,6 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "Filter by ID",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by order type",
-                        "name": "order_type",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by creation date",
-                        "name": "created_at",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by update date",
-                        "name": "updated_at",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by expiration date",
-                        "name": "expires_at",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by acceptance date",
-                        "name": "accepted_at",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by cancel after date",
-                        "name": "cancel_after",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer ID",
-                        "name": "offer_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer type",
-                        "name": "offer_type",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer maker",
-                        "name": "offer_maker",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer maker phone",
-                        "name": "offer_maker_phone",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer maker country code",
-                        "name": "offer_maker_country_code",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Filter by max time per transaction",
-                        "name": "offer_max_time_per_transaction",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer taker",
-                        "name": "offer_taker",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer taker phone",
-                        "name": "offer_taker_phone",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer payment method ID",
-                        "name": "offer_payment_method_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer payment channel ID",
-                        "name": "offer_payment_channel_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer payment method name",
-                        "name": "offer_payment_method_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer payment method destination account",
-                        "name": "offer_payment_method_destination_account",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer payment method memo",
-                        "name": "offer_payment_method_memo",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer payment method bank name",
-                        "name": "offer_payment_method_bank_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer payment method account opening branch",
-                        "name": "offer_payment_method_account_opening_branch",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method ID",
-                        "name": "offer_currency_payment_method_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment channel ID",
-                        "name": "offer_currency_payment_channel_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method name",
-                        "name": "offer_currency_payment_method_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method destination account",
-                        "name": "offer_currency_payment_method_destination_account",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method memo",
-                        "name": "offer_currency_payment_method_memo",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method bank name",
-                        "name": "offer_currency_payment_method_bank_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method account opening branch",
-                        "name": "offer_currency_payment_method_account_opening_branch",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method country code",
-                        "name": "offer_currency_payment_method_country_code",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method currency ID",
-                        "name": "offer_currency_payment_method_currency_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency ID",
-                        "name": "offer_currency_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Filter by offer asset amount",
-                        "name": "offer_asset_amount",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer asset ID",
-                        "name": "offer_asset_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Filter by offer asset price",
-                        "name": "offer_asset_price",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Filter by offer min trade amount",
-                        "name": "offer_min_trade_amount",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Filter by offer max trade amount",
-                        "name": "offer_max_trade_amount",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer remark",
-                        "name": "offer_remark",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method ID",
-                        "name": "taker_payment_method_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment channel ID",
-                        "name": "taker_payment_channel_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method name",
-                        "name": "taker_payment_method_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method destination account",
-                        "name": "taker_payment_method_destination_account",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method memo",
-                        "name": "taker_payment_method_memo",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method bank name",
-                        "name": "taker_payment_method_bank_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method account opening branch",
-                        "name": "taker_payment_method_account_opening_branch",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method country code",
-                        "name": "taker_payment_method_country_code",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method currency ID",
-                        "name": "taker_payment_method_currency_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by order escrow address",
-                        "name": "order_escrow_address",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by order payment memo",
-                        "name": "order_payment_memo",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Filter by order amount",
-                        "name": "order_amount",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Filter by order maker fee",
-                        "name": "order_maker_fee",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Filter by order taker fee",
-                        "name": "order_taker_fee",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by order escrow transaction ID",
-                        "name": "order_escrow_transaction_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by order asset release transaction ID",
-                        "name": "order_asset_release_transaction_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Filter by order status ID",
-                        "name": "order_status_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by order status",
-                        "name": "order_status",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by dynamic link",
-                        "name": "dynamic_link",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by QR code",
-                        "name": "qr_code",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by fiat deposit transaction ID",
-                        "name": "fiat_deposit_transaction_id",
-                        "in": "query"
-                    },
-                    {
                         "type": "integer",
                         "default": 1,
                         "description": "Page number for pagination",
@@ -4662,435 +4938,31 @@ const docTemplate = `{
                         "type": "integer",
                         "default": 10,
                         "description": "Number of items per page",
-                        "name": "page_size",
+                        "name": "pageSize",
                         "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/orders/trade/list": {
-            "get": {
-                "security": [
-                    {
-                        "JwtTokenAuth": []
-                    }
-                ],
-                "description": "Retrieves the list of trades for users.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "P2P"
-                ],
-                "summary": "Get list of trades where user is taker or maker",
-                "operationId": "GetTradeListByUserName",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "default": "Bearer \u003cyour-token\u003e",
-                        "description": "JWT Token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Filters tradelist by username and returns all trades that matches that username.",
+                        "description": "Filter by offer type (BUY or SELL)",
+                        "name": "offerType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by order status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by merchant or customer username",
                         "name": "username",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by ID",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by order type",
-                        "name": "order_type",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by creation date",
-                        "name": "created_at",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by update date",
-                        "name": "updated_at",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by expiration date",
-                        "name": "expires_at",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by acceptance date",
-                        "name": "accepted_at",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by cancel after date",
-                        "name": "cancel_after",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer ID",
-                        "name": "offer_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer type",
-                        "name": "offer_type",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer maker",
-                        "name": "offer_maker",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer maker phone",
-                        "name": "offer_maker_phone",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer maker country code",
-                        "name": "offer_maker_country_code",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Filter by max time per transaction",
-                        "name": "offer_max_time_per_transaction",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer taker",
-                        "name": "offer_taker",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer taker phone",
-                        "name": "offer_taker_phone",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer payment method ID",
-                        "name": "offer_payment_method_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer payment channel ID",
-                        "name": "offer_payment_channel_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer payment method name",
-                        "name": "offer_payment_method_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer payment method destination account",
-                        "name": "offer_payment_method_destination_account",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer payment method memo",
-                        "name": "offer_payment_method_memo",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer payment method bank name",
-                        "name": "offer_payment_method_bank_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer payment method account opening branch",
-                        "name": "offer_payment_method_account_opening_branch",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method ID",
-                        "name": "offer_currency_payment_method_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment channel ID",
-                        "name": "offer_currency_payment_channel_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method name",
-                        "name": "offer_currency_payment_method_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method destination account",
-                        "name": "offer_currency_payment_method_destination_account",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method memo",
-                        "name": "offer_currency_payment_method_memo",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method bank name",
-                        "name": "offer_currency_payment_method_bank_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method account opening branch",
-                        "name": "offer_currency_payment_method_account_opening_branch",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method country code",
-                        "name": "offer_currency_payment_method_country_code",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency payment method currency ID",
-                        "name": "offer_currency_payment_method_currency_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer currency ID",
-                        "name": "offer_currency_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Filter by offer asset amount",
-                        "name": "offer_asset_amount",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer asset ID",
-                        "name": "offer_asset_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Filter by offer asset price",
-                        "name": "offer_asset_price",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Filter by offer min trade amount",
-                        "name": "offer_min_trade_amount",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Filter by offer max trade amount",
-                        "name": "offer_max_trade_amount",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by offer remark",
-                        "name": "offer_remark",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method ID",
-                        "name": "taker_payment_method_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment channel ID",
-                        "name": "taker_payment_channel_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method name",
-                        "name": "taker_payment_method_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method destination account",
-                        "name": "taker_payment_method_destination_account",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method memo",
-                        "name": "taker_payment_method_memo",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method bank name",
-                        "name": "taker_payment_method_bank_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method account opening branch",
-                        "name": "taker_payment_method_account_opening_branch",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method country code",
-                        "name": "taker_payment_method_country_code",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by taker payment method currency ID",
-                        "name": "taker_payment_method_currency_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by order escrow address",
-                        "name": "order_escrow_address",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by order payment memo",
-                        "name": "order_payment_memo",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Filter by order amount",
-                        "name": "order_amount",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Filter by order maker fee",
-                        "name": "order_maker_fee",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Filter by order taker fee",
-                        "name": "order_taker_fee",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by order escrow transaction ID",
-                        "name": "order_escrow_transaction_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by order asset release transaction ID",
-                        "name": "order_asset_release_transaction_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Filter by order status ID",
-                        "name": "order_status_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by order status",
-                        "name": "order_status",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by dynamic link",
-                        "name": "dynamic_link",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by QR code",
-                        "name": "qr_code",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by fiat deposit transaction ID",
-                        "name": "fiat_deposit_transaction_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number for pagination",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Number of items per page",
-                        "name": "page_size",
+                        "description": "Filter by creation date (YYYY-MM-DD)",
+                        "name": "createdAt",
                         "in": "query"
                     }
                 ],
@@ -5998,22 +5870,21 @@ const docTemplate = `{
                 }
             }
         },
-        "/p2p/statistics": {
+        "/p2p/reports/disputes": {
             "get": {
                 "security": [
                     {
                         "JwtTokenAuth": []
                     }
                 ],
-                "description": "Retrieves statistics related to P2P metrics based on the selected filter or custom range.",
+                "description": "Dispute open/resolve trend, resolution rate, and breakdowns by subject/resolution.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "P2P"
+                    "P2P Reports"
                 ],
-                "summary": "Get P2P statistics",
-                "operationId": "GetP2PStatisticsNew",
+                "summary": "Get P2P dispute report",
                 "parameters": [
                     {
                         "type": "string",
@@ -6025,29 +5896,9 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "The start date for the custom range (format: YYYY-MM-DD).",
-                        "name": "start_date",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "The end date for the custom range (format: YYYY-MM-DD).",
-                        "name": "end_date",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "today",
-                            "yesterday",
-                            "last_week",
-                            "last_month",
-                            "last_3_months",
-                            "last_year",
-                            "custom"
-                        ],
-                        "type": "string",
-                        "description": "The time filter to apply (e.g., today, yesterday, last_week, last_month, last_3_months, last_year, custom).",
-                        "name": "filter",
+                        "default": "30d",
+                        "description": "7d, 30d, 90d, or 1y",
+                        "name": "range",
                         "in": "query"
                     }
                 ],
@@ -6055,17 +5906,17 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/usermetrics.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "type": "object"
                         }
@@ -6079,22 +5930,21 @@ const docTemplate = `{
                 }
             }
         },
-        "/p2p/transaction/history": {
+        "/p2p/reports/distribution": {
             "get": {
                 "security": [
                     {
                         "JwtTokenAuth": []
                     }
                 ],
-                "description": "Retrieves transaction history for a user based on email, including both offer_maker and offer_taker transactions.",
+                "description": "Trade breakdown by asset, currency, country, and order status.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "P2P"
+                    "P2P Reports"
                 ],
-                "summary": "Get Transaction History",
-                "operationId": "GetTransactionHistory",
+                "summary": "Get P2P distribution report",
                 "parameters": [
                     {
                         "type": "string",
@@ -6106,24 +5956,378 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "User email for fetching transaction history",
-                        "name": "email",
-                        "in": "query",
+                        "default": "30d",
+                        "description": "7d, 30d, 90d, or 1y",
+                        "name": "range",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/p2p/reports/growth": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "New offers and first-time merchants trended over a date range.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P Reports"
+                ],
+                "summary": "Get P2P growth report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "30d",
+                        "description": "7d, 30d, 90d, or 1y",
+                        "name": "range",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/p2p/reports/hourly-activity": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Order count by hour-of-day (UTC), summed across the date range - for staffing/support-hours planning.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P Reports"
+                ],
+                "summary": "Get P2P hourly activity report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "30d",
+                        "description": "7d, 30d, 90d, or 1y",
+                        "name": "range",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/p2p/reports/merchants": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Paginated merchant performance leaderboard, sortable by trades/volume/completion rate/disputes.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P Reports"
+                ],
+                "summary": "Get P2P merchant leaderboard report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     },
                     {
                         "type": "integer",
                         "default": 1,
-                        "description": "Page number for pagination",
+                        "description": "Page number",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "default": 10,
-                        "description": "Number of items per page",
+                        "description": "Items per page",
                         "name": "pageSize",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "completedTrades",
+                        "description": "completedTrades, completedVolume, completionRate, or disputesOpened",
+                        "name": "sortBy",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/p2p/reports/revenue": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Platform/regulatory fee and VAT revenue collected on completed orders, trended over time.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P Reports"
+                ],
+                "summary": "Get P2P revenue report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "30d",
+                        "description": "7d, 30d, 90d, or 1y",
+                        "name": "range",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/p2p/reports/volume": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Daily trading volume/order-count trend over a date range.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P Reports"
+                ],
+                "summary": "Get P2P trading volume report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "30d",
+                        "description": "7d, 30d, 90d, or 1y",
+                        "name": "range",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/p2p/statistics": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Retrieves aggregate P2P marketplace statistics (offers, orders, disputes) from the P2P module.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "P2P"
+                ],
+                "summary": "Get P2P statistics",
+                "operationId": "GetP2PStatistics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -6136,25 +6340,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "type": "object"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "type": "object"
                         }
                     }
                 }
@@ -6167,15 +6365,15 @@ const docTemplate = `{
                         "JwtTokenAuth": []
                     }
                 ],
-                "description": "Retrieves a list of P2P users with pagination and optional filtering by various attributes.",
+                "description": "Retrieves wallet users with their P2P trading performance (merchant/customer) from the P2P module.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "P2P"
                 ],
-                "summary": "Get P2P User List",
-                "operationId": "GetP2PUserList",
+                "summary": "Get list of P2P users",
+                "operationId": "GetP2PUsers",
                 "parameters": [
                     {
                         "type": "string",
@@ -6207,73 +6405,19 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Filter by user email",
+                        "description": "Filter by email",
                         "name": "email",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by user phone number",
+                        "description": "Filter by phone",
                         "name": "phone",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by user first_name",
-                        "name": "first_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by user last name",
-                        "name": "last_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by user city",
-                        "name": "city",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by public_key",
-                        "name": "public_key",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Filter by suspension status (0 or 1)",
-                        "name": "suspended",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Filter by KYC level",
-                        "name": "kyc_level",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Filter by admin level",
-                        "name": "admin_level",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by registration date (start) in YYYY-MM-DD format",
-                        "name": "registration_date_from",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by registration date (end) in YYYY-MM-DD format",
-                        "name": "registration_date_to",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "General search across multiple fields",
+                        "description": "General search across username/email/phone",
                         "name": "search",
                         "in": "query"
                     }
@@ -6288,19 +6432,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "type": "object"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "type": "object"
                         }
                     }
                 }
@@ -6750,6 +6894,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/ping": {
+            "get": {
+                "description": "Unauthenticated liveness smoke check - always returns \"pong\" if the process is up and routing requests. Distinct from /health, which also reports on DB/cache dependency status.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Meta"
+                ],
+                "summary": "Ping",
+                "responses": {
+                    "200": {
+                        "description": "message\": \"pong",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/public/tokenization": {
             "get": {
                 "security": [
@@ -6990,20 +7157,14 @@ const docTemplate = `{
         },
         "/service-links": {
             "get": {
-                "security": [
-                    {
-                        "JwtTokenAuth": []
-                    }
-                ],
-                "description": "Retrieves a list of all service links.",
+                "description": "Paginated, filterable list of white-label partner integration (service link) accounts, each enriched with a summary of its owner's user record.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "ServiceLinks"
                 ],
-                "summary": "Get all service links",
-                "operationId": "GetAllServiceLinks",
+                "summary": "List service links",
                 "parameters": [
                     {
                         "type": "string",
@@ -7012,37 +7173,260 @@ const docTemplate = `{
                         "name": "Authorization",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by owner username (partial match)",
+                        "name": "ownerUsername",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by short name (partial match)",
+                        "name": "shortName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by active status (true/false)",
+                        "name": "inactive",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by verified status (true/false)",
+                        "name": "verified",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by suspended status (true/false)",
+                        "name": "suspended",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/usermetrics.ServiceLink"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Action must be one of: ` + "`" + `create` + "`" + `, ` + "`" + `update` + "`" + `. ID should only be provided for ` + "`" + `update` + "`" + `. On create, the owner username must already exist in the users table - its wallet address is copied onto the new row, and the ID/API key are always server-generated GUIDs, never accepted from the client.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ServiceLinks"
+                ],
+                "summary": "Create or update a service link",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Service link payload",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ServiceLinkRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/service-links/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ServiceLinks"
+                ],
+                "summary": "Get service link by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Service link ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/service-links/{id}/inactive": {
+            "put": {
+                "description": "Retires or restores a service link without deleting it.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ServiceLinks"
+                ],
+                "summary": "Set a service link's active/inactive status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Service link ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Inactive flag",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/usermetrics.setServiceLinkInactiveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -13300,7 +13684,7 @@ const docTemplate = `{
         },
         "/trades/statistics": {
             "get": {
-                "description": "Retrieve trade statistics for a user",
+                "description": "Retrieve P2P trade statistics (completion rate, top traders, recent trades) from the P2P module.",
                 "consumes": [
                     "application/json"
                 ],
@@ -13338,105 +13722,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/user/suspend-or-reactivate": {
-            "patch": {
-                "description": "Suspends a normal user by updating their status to 'SUSPENDED' or reactivates them by updating their status to 'ACTIVE' in the database.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Suspend or Reactivate a user",
-                "parameters": [
-                    {
-                        "description": "User suspension or reactivation details",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.SuspendNormalUserPayload"
-                        }
-                    },
-                    {
-                        "description": "Reason for suspension (1: Violation of terms of service, 2: Violation of community guidelines, 3: Violation of KYC/AML policy, 4: Violation of security policy, 5: Violation of privacy policy, 6: Violation of trading policy, 7: Violation of payment policy, 8: Violation of dispute resolution policy, 9: Violation of support policy)",
-                        "name": "SuspensionReasonID",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "description": "Additional note or comment regarding the suspension",
-                        "name": "SuspensionNote",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "default": "Bearer \u003cyour-token\u003e",
-                        "description": "JWT Token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "message\": \"User status updated to suspended/reactivated",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "error\": \"Invalid request payload\" or \"Only 'suspended' or 'active' status is allowed\" or \"User is already in that status",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "error\": \"Unauthorized access",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "error\": \"User does not exist",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "error\": \"Failed to retrieve user information\" or \"InternalServerError\" or \"Failed to update user status",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -13524,8 +13809,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Filter by public_key",
-                        "name": "public_key",
+                        "description": "Filter by address",
+                        "name": "address",
                         "in": "query"
                     },
                     {
@@ -13689,6 +13974,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/suspension-history/{email}": {
+            "get": {
+                "description": "Retrieves suspend/lift activity (each with its logged reason) for a specific normal user by email.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get a user's suspension history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User email",
+                        "name": "email",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.UserSuspensionHistory"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error\": \"Invalid or missing email",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/users/verify/{targetUser}/{loginID}": {
             "get": {
                 "description": "Verifies the login ID of a user based on provided parameters.",
@@ -13747,6 +14076,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/admin/users/update/{targetUser}": {
+            "put": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Admin-only. Updates the KYC level and related fields of the user identified by targetUser in the shared TrovoWalletDB/P2P schema. The caller must be a wallet-side admin (AdminLevel \u003e 0 on their own user record, not a tm-api AdminUser role) - a non-admin caller gets 401. Logged to the audit trail.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update a user's KYC level (admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username or email of the user whose KYC level is being changed",
+                        "name": "targetUser",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New KYC fields",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.KYCUpdateInfo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "error\": \"invalid payload or update failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "error\": \"Unauthorized access. Only admins can access this endpoint",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/login/token/refresh": {
             "post": {
                 "responses": {
@@ -13771,14 +14164,148 @@ const docTemplate = `{
                 }
             }
         },
-        "/wallet-balances/{walletPublicKey}": {
+        "/v1/users/detail/{targetUser}": {
             "get": {
                 "security": [
                     {
                         "JwtTokenAuth": []
                     }
                 ],
-                "description": "Get the wallet balances of the walletPublicKey submitted in the URI request",
+                "description": "Returns the caller's own Trovo Wallet user record (username/email/phone, balances metadata, KYC level, etc). targetUser is looked up and then compared against the caller's own token subject - a request for anyone else's targetUser is rejected with 401. Cached for 2 minutes per identifier. Reads from the shared TrovoWalletDB/P2P schema.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get a user's own wallet detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username, email, or user ID to look up (must resolve to the caller's own account)",
+                        "name": "targetUser",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "error\": \"user not found or lookup failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "error\": \"unauthorized access",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/toggle": {
+            "put": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Merchants only (KYCLevel must be non-zero, i.e. merchant-tier KYC). Flips the caller's own online/offline flag and broadcasts a userOnline/userOffline event to their connection streams. Logged to the audit trail.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Toggle the caller's own merchant online/offline status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "error\": \"Offline/Online toggle is for merchants only, or toggle failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/update": {
+            "put": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Updates the caller's own Trovo Wallet user record (e.g. contact phone) in the shared TrovoWalletDB/P2P schema, then broadcasts the change to any connected clients and invalidates cached lookups for the user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update the caller's own contact info",
+                "parameters": [
+                    {
+                        "description": "Fields to update on the caller's own account",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UserUpdateInfo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "error\": \"invalid payload or update failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wallet-balances/{walletAddress}": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Get the wallet balances of the walletAddress submitted in the URI request",
                 "produces": [
                     "application/json"
                 ],
@@ -13798,8 +14325,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Wallet Public Key",
-                        "name": "walletPublicKey",
+                        "description": "Wallet Address",
+                        "name": "walletAddress",
                         "in": "path",
                         "required": true
                     }
@@ -14160,7 +14687,7 @@ const docTemplate = `{
                 "vaultField",
                 "vaultMount",
                 "vaultPath",
-                "walletPublicKey"
+                "walletAddress"
             ],
             "properties": {
                 "activeSigningCount": {
@@ -14178,7 +14705,7 @@ const docTemplate = `{
                 "vaultPath": {
                     "type": "string"
                 },
-                "walletPublicKey": {
+                "walletAddress": {
                     "type": "string"
                 }
             }
@@ -14712,10 +15239,10 @@ const docTemplate = `{
                 "initial_owner_preferred_wallet_address": {
                     "type": "string"
                 },
-                "issuing_wallet_alias": {
+                "issuing_wallet_address": {
                     "type": "string"
                 },
-                "issuing_wallet_public_key": {
+                "issuing_wallet_alias": {
                     "type": "string"
                 },
                 "market_making_wallet": {
@@ -14768,6 +15295,17 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/models.AuditLogPage"
+                }
+            }
+        },
+        "models.AuthorizationCallbackInput": {
+            "type": "object",
+            "properties": {
+                "authId": {
+                    "type": "string"
+                },
+                "targetUser": {
+                    "type": "string"
                 }
             }
         },
@@ -15221,9 +15759,6 @@ const docTemplate = `{
                 "fiat_label": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "integer"
-                },
                 "legal_and_professional_fee_fixed": {
                     "type": "number"
                 },
@@ -15287,6 +15822,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "country_code": {
+                    "description": "No ID: the wallet-owned ` + "`" + `countries` + "`" + ` table is keyed on country_code.",
                     "type": "string"
                 },
                 "country_name": {
@@ -15300,9 +15836,6 @@ const docTemplate = `{
                 },
                 "fiat_label": {
                     "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "legal_and_professional_fee_fixed": {
                     "type": "number"
@@ -15715,6 +16248,85 @@ const docTemplate = `{
                 }
             }
         },
+        "models.CuratedAssetRequest": {
+            "type": "object",
+            "required": [
+                "action",
+                "assetCode"
+            ],
+            "properties": {
+                "action": {
+                    "type": "string",
+                    "enum": [
+                        "create",
+                        "update"
+                    ]
+                },
+                "assetClassId": {
+                    "type": "integer"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetConditions": {
+                    "type": "string"
+                },
+                "assetLimit": {
+                    "type": "number"
+                },
+                "assetName": {
+                    "type": "string"
+                },
+                "assetRedemptionInstructions": {
+                    "type": "string"
+                },
+                "closedGroup": {
+                    "type": "string"
+                },
+                "contactEmail": {
+                    "type": "string"
+                },
+                "contractAddress": {
+                    "type": "string"
+                },
+                "decimalPlaces": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "generateDepositAddress": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "inactive": {
+                    "type": "boolean"
+                },
+                "organization": {
+                    "type": "string"
+                },
+                "p2pEnabled": {
+                    "type": "boolean"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "realAssetImageUrl": {
+                    "type": "string"
+                },
+                "website": {
+                    "type": "string"
+                },
+                "withdrawable": {
+                    "type": "boolean"
+                }
+            }
+        },
         "models.CurrencyTotal": {
             "type": "object",
             "properties": {
@@ -16058,7 +16670,7 @@ const docTemplate = `{
                 "amount": {
                     "type": "string"
                 },
-                "beneficiary_public_key": {
+                "beneficiary_address": {
                     "type": "string"
                 },
                 "cannot_receive_asset": {
@@ -16835,6 +17447,14 @@ const docTemplate = `{
             "type": "object",
             "additionalProperties": true
         },
+        "models.KYCUpdateInfo": {
+            "type": "object",
+            "properties": {
+                "kycLevel": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.KycConfigRequest": {
             "type": "object",
             "required": [
@@ -16929,6 +17549,17 @@ const docTemplate = `{
                 }
             }
         },
+        "models.LoginCallbackInput": {
+            "type": "object",
+            "properties": {
+                "loginId": {
+                    "type": "string"
+                },
+                "targetUser": {
+                    "type": "string"
+                }
+            }
+        },
         "models.LoginInput": {
             "type": "object",
             "properties": {
@@ -16937,6 +17568,20 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "models.MakerStats": {
+            "type": "object",
+            "properties": {
+                "completedTrades": {
+                    "type": "integer"
+                },
+                "completionRate": {
+                    "type": "string"
+                },
+                "disputesOpened": {
+                    "type": "integer"
                 }
             }
         },
@@ -17004,198 +17649,6 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/models.StakeholderNotificationPreference"
-                }
-            }
-        },
-        "models.Order": {
-            "type": "object",
-            "properties": {
-                "acceptedAt": {
-                    "type": "string"
-                },
-                "cancelAfter": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "dynamicLink": {
-                    "type": "string"
-                },
-                "expiresAt": {
-                    "type": "string"
-                },
-                "fiatDepositTransactionID": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "offerAssetAmount": {
-                    "type": "number"
-                },
-                "offerAssetId": {
-                    "type": "string"
-                },
-                "offerAssetPrice": {
-                    "type": "number"
-                },
-                "offerCurrencyID": {
-                    "type": "string"
-                },
-                "offerCurrencyPaymentChannelId": {
-                    "type": "string"
-                },
-                "offerCurrencyPaymentMethodAccountOpeningBranch": {
-                    "type": "string"
-                },
-                "offerCurrencyPaymentMethodCountryCode": {
-                    "type": "string"
-                },
-                "offerCurrencyPaymentMethodCurrencyId": {
-                    "type": "string"
-                },
-                "offerCurrencyPaymentMethodDestinationAccount": {
-                    "type": "string"
-                },
-                "offerCurrencyPaymentMethodId": {
-                    "type": "string"
-                },
-                "offerCurrencyPaymentMethodMemo": {
-                    "type": "string"
-                },
-                "offerCurrencyPaymentMethodName": {
-                    "description": "beneficiary name",
-                    "type": "string"
-                },
-                "offerId": {
-                    "type": "string"
-                },
-                "offerMaker": {
-                    "type": "string"
-                },
-                "offerMakerCountryCode": {
-                    "type": "string"
-                },
-                "offerMakerPhone": {
-                    "type": "string"
-                },
-                "offerMaxTimePerTransaction": {
-                    "type": "integer"
-                },
-                "offerMaxTradeAmount": {
-                    "type": "number"
-                },
-                "offerMinTradeAmount": {
-                    "type": "number"
-                },
-                "offerPaymentChannelId": {
-                    "type": "string"
-                },
-                "offerPaymentCurrencyMethodBankName": {
-                    "type": "string"
-                },
-                "offerPaymentMethodAccountOpeningBranch": {
-                    "type": "string"
-                },
-                "offerPaymentMethodBankName": {
-                    "type": "string"
-                },
-                "offerPaymentMethodDestinationAccount": {
-                    "type": "string"
-                },
-                "offerPaymentMethodId": {
-                    "type": "string"
-                },
-                "offerPaymentMethodMemo": {
-                    "type": "string"
-                },
-                "offerPaymentMethodName": {
-                    "description": "beneficiary name",
-                    "type": "string"
-                },
-                "offerRemark": {
-                    "type": "string"
-                },
-                "offerTaker": {
-                    "type": "string"
-                },
-                "offerTakerPhone": {
-                    "type": "string"
-                },
-                "offerType": {
-                    "type": "string"
-                },
-                "orderAmount": {
-                    "type": "number"
-                },
-                "orderAssetReleaseTransactionId": {
-                    "type": "string"
-                },
-                "orderEscrowAddress": {
-                    "type": "string"
-                },
-                "orderEscrowTransactionId": {
-                    "type": "string"
-                },
-                "orderMakerFee": {
-                    "type": "number"
-                },
-                "orderPaymentMemo": {
-                    "type": "string"
-                },
-                "orderStatus": {
-                    "$ref": "#/definitions/models.OrderStatus"
-                },
-                "orderStatusId": {
-                    "type": "integer"
-                },
-                "orderTakerFee": {
-                    "type": "number"
-                },
-                "orderType": {
-                    "type": "string"
-                },
-                "qrCode": {
-                    "type": "string"
-                },
-                "takerPaymentChannelId": {
-                    "type": "string"
-                },
-                "takerPaymentMethodAccountOpeningBranch": {
-                    "type": "string"
-                },
-                "takerPaymentMethodBankName": {
-                    "type": "string"
-                },
-                "takerPaymentMethodCountryCode": {
-                    "type": "string"
-                },
-                "takerPaymentMethodCurrencyId": {
-                    "type": "string"
-                },
-                "takerPaymentMethodDestinationAccount": {
-                    "type": "string"
-                },
-                "takerPaymentMethodId": {
-                    "type": "string"
-                },
-                "takerPaymentMethodMemo": {
-                    "type": "string"
-                },
-                "takerPaymentMethodName": {
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.OrderStatus": {
-            "type": "object",
-            "properties": {
-                "status": {
-                    "type": "string"
                 }
             }
         },
@@ -17296,6 +17749,71 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "organization_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.P2POrder": {
+            "type": "object",
+            "properties": {
+                "asset": {
+                    "type": "string"
+                },
+                "combinedPlatformFee": {
+                    "type": "string"
+                },
+                "combinedRegulatoryFee": {
+                    "type": "string"
+                },
+                "combinedVat": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "countryCode": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "customerUserId": {
+                    "type": "string"
+                },
+                "customerUsername": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isDisputed": {
+                    "type": "boolean"
+                },
+                "merchantUserId": {
+                    "type": "string"
+                },
+                "merchantUsername": {
+                    "type": "string"
+                },
+                "offerId": {
+                    "type": "string"
+                },
+                "offerType": {
+                    "type": "string"
+                },
+                "orderStatus": {
+                    "type": "string"
+                },
+                "paymentAmount": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "string"
+                },
+                "specifiedAssetAmount": {
                     "type": "string"
                 }
             }
@@ -17624,6 +18142,77 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/models.SegregatedAccountPage"
+                }
+            }
+        },
+        "models.ServiceLinkRequest": {
+            "type": "object",
+            "required": [
+                "action",
+                "ownerUsername",
+                "shortName"
+            ],
+            "properties": {
+                "action": {
+                    "type": "string",
+                    "enum": [
+                        "create",
+                        "update"
+                    ]
+                },
+                "allowReferralForRegisteredUsers": {
+                    "type": "boolean"
+                },
+                "allowUserInfo": {
+                    "type": "boolean"
+                },
+                "authorizationPermission": {
+                    "type": "boolean"
+                },
+                "createUsersPermission": {
+                    "type": "boolean"
+                },
+                "eventPermission": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "inactive": {
+                    "type": "boolean"
+                },
+                "includePhoneNumbers": {
+                    "type": "boolean"
+                },
+                "includeUserBalances": {
+                    "type": "boolean"
+                },
+                "loginPermission": {
+                    "type": "boolean"
+                },
+                "longName": {
+                    "type": "string"
+                },
+                "ownerUsername": {
+                    "type": "string"
+                },
+                "paymentPermission": {
+                    "type": "boolean"
+                },
+                "pushNotificationPermission": {
+                    "type": "boolean"
+                },
+                "shortName": {
+                    "type": "string"
+                },
+                "tokenInfoPermission": {
+                    "type": "boolean"
+                },
+                "tokenizedAssetAuthorizationPermission": {
+                    "type": "boolean"
+                },
+                "verified": {
+                    "type": "boolean"
                 }
             }
         },
@@ -18166,21 +18755,31 @@ const docTemplate = `{
                 }
             }
         },
-        "models.SuspendNormalUserPayload": {
+        "models.SuspendOrLiftUserPayload": {
             "type": "object",
             "required": [
                 "email",
-                "suspension_note",
-                "suspension_reason_id"
+                "reason"
             ],
             "properties": {
                 "email": {
                     "type": "string"
                 },
-                "suspension_note": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TakerReputation": {
+            "type": "object",
+            "properties": {
+                "completedTrades": {
+                    "type": "integer"
+                },
+                "completionRate": {
                     "type": "string"
                 },
-                "suspension_reason_id": {
+                "disputesOpened": {
                     "type": "integer"
                 }
             }
@@ -18635,6 +19234,100 @@ const docTemplate = `{
                         "disabled"
                     ],
                     "example": "disabled"
+                }
+            }
+        },
+        "models.UserInfo": {
+            "type": "object",
+            "properties": {
+                "CountryCode": {
+                    "type": "string"
+                },
+                "adminLevel": {
+                    "type": "integer"
+                },
+                "contactPhone": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "imageThumbnail": {
+                    "type": "string"
+                },
+                "kycLevel": {
+                    "type": "integer"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "maxAssetPerOffer": {
+                    "type": "number"
+                },
+                "maxAssetPerOrder": {
+                    "type": "number"
+                },
+                "mobile": {
+                    "type": "string"
+                },
+                "offline": {
+                    "type": "integer"
+                },
+                "suspended": {
+                    "type": "integer"
+                },
+                "takerFee": {
+                    "type": "string"
+                },
+                "takerReputation": {
+                    "$ref": "#/definitions/models.TakerReputation"
+                },
+                "tradeStats": {
+                    "$ref": "#/definitions/models.MakerStats"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserSuspensionHistory": {
+            "type": "object",
+            "properties": {
+                "actionPerformedBy": {
+                    "type": "string"
+                },
+                "actionType": {
+                    "description": "SUSPENDED or REACTIVATED",
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "suspensionDateTime": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserUpdateInfo": {
+            "type": "object",
+            "properties": {
+                "contactPhone": {
+                    "type": "string"
                 }
             }
         },
@@ -19126,6 +19819,17 @@ const docTemplate = `{
                 }
             }
         },
+        "server.RemoveAdminPayload": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
         "services.DependencyStatus": {
             "type": "object",
             "properties": {
@@ -19321,10 +20025,10 @@ const docTemplate = `{
                 "assetCode": {
                     "type": "string"
                 },
-                "contractAddress": {
+                "closedGroup": {
                     "type": "string"
                 },
-                "closedGroup": {
+                "contractAddress": {
                     "type": "string"
                 },
                 "cryptoWalletDepositAddresses": {
@@ -19382,9 +20086,6 @@ const docTemplate = `{
         "usermetrics.CryptoWalletDepositAddress": {
             "type": "object",
             "properties": {
-                "TrovoWalletPublicKey": {
-                    "type": "string"
-                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -19401,6 +20102,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "qrCode": {
+                    "type": "string"
+                },
+                "trovoWalletAddress": {
                     "type": "string"
                 }
             }
@@ -19425,10 +20129,10 @@ const docTemplate = `{
                 "asset_code": {
                     "type": "string"
                 },
-                "contract_address": {
+                "belongs_to_enterprise_profile": {
                     "type": "string"
                 },
-                "belongs_to_enterprise_profile": {
+                "contract_address": {
                     "type": "string"
                 },
                 "created_at": {
@@ -19443,10 +20147,10 @@ const docTemplate = `{
                 "from_username": {
                     "type": "string"
                 },
-                "from_wallet_alias": {
+                "from_wallet_address": {
                     "type": "string"
                 },
-                "from_wallet_public_key": {
+                "from_wallet_alias": {
                     "type": "string"
                 },
                 "id": {
@@ -19463,43 +20167,6 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
-                }
-            }
-        },
-        "usermetrics.MetaData": {
-            "type": "object",
-            "properties": {
-                "total_active_users": {
-                    "description": "Total active users across all divisions",
-                    "type": "integer"
-                },
-                "total_new_users": {
-                    "description": "Total new users across all divisions",
-                    "type": "integer"
-                }
-            }
-        },
-        "usermetrics.Response": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "description": "The time divisions (e.g., days, hours, months)",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/usermetrics.TimePeriod"
-                    }
-                },
-                "filter": {
-                    "description": "The applied filter (e.g., \"today\", \"yesterday\", \"last_week\", etc.)",
-                    "type": "string"
-                },
-                "meta": {
-                    "description": "Metadata containing aggregated totals",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/usermetrics.MetaData"
-                        }
-                    ]
                 }
             }
         },
@@ -19523,62 +20190,6 @@ const docTemplate = `{
                 }
             }
         },
-        "usermetrics.ServiceLink": {
-            "type": "object",
-            "properties": {
-                "allow_user_info": {
-                    "type": "integer"
-                },
-                "authorization_permission": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "inactive": {
-                    "type": "integer"
-                },
-                "include_phone_numbers": {
-                    "type": "integer"
-                },
-                "include_user_balances": {
-                    "type": "integer"
-                },
-                "login_permission": {
-                    "type": "integer"
-                },
-                "long_name": {
-                    "type": "string"
-                },
-                "owner_username": {
-                    "type": "string"
-                },
-                "payment_permission": {
-                    "type": "integer"
-                },
-                "push_notification_permission": {
-                    "type": "integer"
-                },
-                "reward_only": {
-                    "type": "integer"
-                },
-                "short_name": {
-                    "type": "string"
-                },
-                "suspended": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "verified": {
-                    "type": "integer"
-                }
-            }
-        },
         "usermetrics.ServiceLinkServiceFee": {
             "type": "object",
             "properties": {
@@ -19599,23 +20210,6 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
-                }
-            }
-        },
-        "usermetrics.TimePeriod": {
-            "type": "object",
-            "properties": {
-                "active_users": {
-                    "description": "Count of active users in this time division",
-                    "type": "integer"
-                },
-                "label": {
-                    "description": "Name of the time division (e.g., \"Monday\", \"00:00\", \"January\")",
-                    "type": "string"
-                },
-                "new_users": {
-                    "description": "Count of new users in this time division",
-                    "type": "integer"
                 }
             }
         },
@@ -20172,10 +20766,10 @@ const docTemplate = `{
                 "investorAccreditationRequired": {
                     "type": "integer"
                 },
-                "issuingWalletAlias": {
+                "issuingWalletAddress": {
                     "type": "string"
                 },
-                "issuingWalletPublicKey": {
+                "issuingWalletAlias": {
                     "type": "string"
                 },
                 "lastUpdatedBy": {
@@ -20332,49 +20926,46 @@ const docTemplate = `{
         "usermetrics.TradeStatistics": {
             "type": "object",
             "properties": {
-                "average_trade_size": {
-                    "type": "number"
-                },
-                "cancelled_trades": {
+                "cancelledTrades": {
                     "type": "integer"
                 },
-                "completed_trades": {
+                "completedTrades": {
                     "type": "integer"
                 },
-                "recent_trades": {
+                "expiredTrades": {
+                    "type": "integer"
+                },
+                "openDisputes": {
+                    "type": "integer"
+                },
+                "recentTrades": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Order"
+                        "$ref": "#/definitions/models.P2POrder"
                     }
                 },
-                "top_traders": {
+                "topTraders": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/usermetrics.TraderStats"
                     }
                 },
-                "total_trades": {
+                "totalTrades": {
                     "type": "integer"
                 },
-                "total_volume": {
+                "tradeSuccessRate": {
                     "type": "number"
-                },
-                "trade_success_rate": {
-                    "type": "number"
-                },
-                "trades_on_appeal": {
-                    "type": "integer"
                 }
             }
         },
         "usermetrics.TraderStats": {
             "type": "object",
             "properties": {
-                "offer_maker": {
-                    "type": "string"
-                },
-                "order_count": {
+                "completedTrades": {
                     "type": "integer"
+                },
+                "merchantUsername": {
+                    "type": "string"
                 }
             }
         },
@@ -20386,6 +20977,30 @@ const docTemplate = `{
                 },
                 "salesStart": {
                     "type": "string"
+                }
+            }
+        },
+        "usermetrics.setInactiveRequest": {
+            "type": "object",
+            "properties": {
+                "inactive": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "usermetrics.setP2PEnabledRequest": {
+            "type": "object",
+            "properties": {
+                "p2pEnabled": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "usermetrics.setServiceLinkInactiveRequest": {
+            "type": "object",
+            "properties": {
+                "inactive": {
+                    "type": "boolean"
                 }
             }
         }

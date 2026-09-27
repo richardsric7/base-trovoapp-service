@@ -13,6 +13,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	_ "trovo-wallet-payment-history-engine/docs"
+
 	"trovo-wallet-payment-history-engine/internal/cache"
 	"trovo-wallet-payment-history-engine/internal/components/health"
 	paymentModels "trovo-wallet-payment-history-engine/internal/components/payments/models"
@@ -64,6 +66,11 @@ func isTrackAddress() bool {
 	return atomic.LoadInt32(&trackAddress) == 1
 }
 
+// @title Payment History Engine
+// @version 1.0
+// @description Background worker that indexes on-chain Base (EVM) payment activity - native transfers and B20/ERC-20 Transfer events - for Trovo Wallet's tracked wallets, writing the results to its own RoachDB (CockroachDB) payment-history database. It has no request/response API of its own: the only HTTP surface is the liveness/readiness probe pair documented below, served for monitoring purposes.
+// @host localhost:8080
+// @BasePath /
 func main() {
 
 	//setup environment variables
