@@ -1,125 +1,191 @@
-# Deployment Guide - Swagger Documentation Fix
+# Deployment Guide
 
-This guide explains how to ensure the Swagger YAML structure fix runs in your CI/CD pipeline.
+This is a from-scratch guide to building, running and deploying `tm-api`,
+written for someone who has never touched this codebase before. Everything
+below is verified against this repo's own `Dockerfile`, `Makefile` and
+`.github/workflows/` — nothing is assumed from memory. See
+[CONFIGURATION.md](./CONFIGURATION.md) for what every environment variable
+does, and [README.md](./README.md) for the project overview and the
+two-database architecture.
 
-## Problem
+## 1. Prerequisites
 
-The `swag` tool generates `swagger.yaml` with incorrect structure (swagger version at the end instead of beginning), causing parser errors on deployment.
+| Tool | Why you need it | Install |
+|---|---|---|
+| **Go 1.23+** (toolchain 1.24.3, per `go.mod`) | Build/run the API | https://go.dev/doc/install |
+| **Docker** | Build/run the production container image | https://docs.docker.com/get-docker/ |
+| **Access to a Postgres database** for `ADMIN_CONNECTION_STRING` | tm-api's own schema (`AdminDB`) — see README's two-database section | Any reachable Postgres 13+ instance. For local dev, the easiest path is `docker run -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:16` |
+| **Access to app-backend's shared Postgres database**, if you need working wallet/P2P features locally | `TrovoWalletDB`/`P2P` — as of this snapshot this is *the same connection string* as `ADMIN_CONNECTION_STRING` (see README), so you need a database that already has app-backend's schema (`users`, curated assets, etc) applied, not just an empty one. Ask whoever owns `app-backend` locally for a dump/seed, or run `app-backend`'s own migrations against the same database first. | — |
+| **`swag` CLI** (only if you're changing Swagger annotations) | Regenerates `docs/` | `go install github.com/swaggo/swag/cmd/swag@latest` |
+| **`golangci-lint`** (only if you're running `make lint`/`make ci` locally) | Matches CI's lint step | https://golangci-lint.run/usage/install/ |
 
-## Solution
+## 2. Building
 
-We've created a post-generation script (`scripts/fix-swagger-yaml.sh`) that automatically fixes the YAML structure. This script must run after `swag init` in your build/deployment pipeline.
-
-## Integration Methods
-
-### 1. Docker Build (Recommended)
-
-The Dockerfile has been updated to automatically:
-- Install `swag`
-- Generate swagger docs
-- Run the fix script
-
-**No additional steps needed** - it's already integrated!
-
-### 2. GitHub Actions
-
-If using GitHub Actions, use the provided `.github/workflows/deploy-dev.yml`:
-
-```yaml
-- name: Generate Swagger docs
-  run: |
-    export PATH=$PATH:$(go env GOPATH)/bin
-    make swagger-clean
-```
-
-The Makefile automatically runs the fix script after `swag init`.
-
-### 3. GitLab CI
-
-Copy `.gitlab-ci.yml.example` to `.gitlab-ci.yml` and customize:
-
-```yaml
-script:
-  - make swagger-clean
-  - # Verify structure
-```
-
-### 4. Jenkins / Other CI/CD
-
-Add this to your build script:
+### 2a. Plain `go build`
 
 ```bash
-# Install swag
-go install github.com/swaggo/swag/cmd/swag@latest
-
-# Generate and fix swagger docs
-export PATH=$PATH:$(go env GOPATH)/bin
-make swagger-clean
-
-# Or manually:
-# swag init
-# ./scripts/fix-swagger-yaml.sh
+go mod download
+go build -o main .
+./main
 ```
 
-### 5. Pre-deployment Script
-
-Use `scripts/pre-deploy.sh` as a pre-deployment hook:
+### 2b. Via `make`
 
 ```bash
-./scripts/pre-deploy.sh
+make build   # go build ./...
+make vet     # go vet ./...
+make lint    # golangci-lint run -v --fix
+make test    # go test ./... -race -coverprofile=coverage.out -covermode=atomic
+make ci      # tidy-check + build + vet + lint + test — the same checks CI runs
 ```
 
-This script:
-- Checks if swag is installed
-- Generates swagger docs
-- Runs the fix script
-- Verifies the structure is correct
+### 2c. Walking through the `Dockerfile`
 
-## Verification
+The `Dockerfile` at the repo root is a two-stage build:
 
-To verify the fix worked, check that `swagger.yaml` starts with:
-
-```yaml
-swagger: "2.0"
-info:
-  ...
+```dockerfile
+FROM golang:alpine3.20 AS builder
 ```
+**Stage 1 (`builder`)** — compiles the binary:
 
-You can verify in CI/CD:
+1. Sets `CGO_ENABLED=0`, `GOOS=linux`, `GOARCH=amd64` for a static, portable binary.
+2. Installs `ca-certificates build-base runc curl bash` (bash is needed for the swagger-fix script below; the others support the Go toolchain and outbound TLS calls the app itself makes at runtime, like `app-backend`/Discord/Mailgun/Vault).
+3. `COPY go.mod go.sum` then `go mod download` — dependencies are cached in their own Docker layer, so a code-only change doesn't re-download the module graph.
+4. `COPY . .` — copies the full build context in.
+5. `go install github.com/swaggo/swag/cmd/swag@latest` — installs the swag CLI *inside the image*, so Swagger docs are always regenerated fresh at build time rather than trusting whatever's committed in `docs/`.
+6. `bash scripts/docker-build-swagger.sh` — locates the just-installed `swag` binary, deletes `docs/`, runs `swag init`, then runs `scripts/fix-swagger-yaml.sh` (see the note below on why that fix-up exists).
+7. `go build -ldflags "-X admin-panel-dashboard/internal/components/health/services.buildVersion=${APP_VERSION}" -o main .` — builds the binary, stamping the `APP_VERSION` build arg into the health package so `/health` reports exactly which build is running. CI passes the git SHA as `APP_VERSION`; for a local `docker build` it defaults to `unknown`.
+8. Copies the resulting `main` binary into `/dist`.
+
+```dockerfile
+FROM alpine:latest
+```
+**Stage 2 (final image)** — a minimal runtime image: just `ca-certificates` and `curl` (for any outbound HTTPS calls and for a container healthcheck script, if one is added) plus the compiled `main` binary, run directly as the container's `ENTRYPOINT`. No Go toolchain, no source, no swag — the final image is small.
+
+**Why the Swagger YAML fix-up exists:** the installed version of `swag` has a
+known quirk where `swag init`'s generated `docs/swagger.yaml` sometimes puts
+the `swagger:` and `info:` keys after other content instead of at the top,
+which some YAML/OpenAPI parsers reject. `scripts/fix-swagger-yaml.sh` checks
+`docs/swagger.yaml`, and if `swagger:` doesn't appear before `info:`,
+rewrites the file with those two blocks moved to the front. `make swagger`
+and `make swagger-clean` both run this automatically after `swag init` — see
+the `Makefile`. **You should never need to run `swag init` directly without
+also running this script (or `make swagger`/`make swagger-clean`).**
+
+### 2d. Building the Docker image directly
 
 ```bash
-if ! head -1 docs/swagger.yaml | grep -q "^swagger:"; then
-  echo "Error: swagger.yaml structure is incorrect"
-  exit 1
-fi
+docker build -t tm-api:local .
+# with a real version stamp:
+docker build --build-arg APP_VERSION=$(git rev-parse --short HEAD) -t tm-api:local .
 ```
 
-## Manual Testing
-
-Before deploying, test locally:
+## 3. Running locally (no Docker)
 
 ```bash
-make swagger-clean
-head -5 docs/swagger.yaml  # Should start with "swagger:"
+cp .env-sample .env
+# edit .env — at minimum set ADMIN_CONNECTION_STRING to a real Postgres DSN
+# (see CONFIGURATION.md for every variable)
+
+go mod download
+go run main.go
+# or: make run
 ```
 
-## Troubleshooting
+On startup, `main.go`:
 
-### Script not running in CI/CD
+1. Loads `.env` (skipped in `GIN_MODE=release`, where real env vars are expected instead).
+2. Opens `AdminDB` and runs GORM `AutoMigrate` against it (creates/updates tm-api's own tables — see `internal/db/main.go`).
+3. Seeds the default super-admins (`DEFAULT_SUPER_ADMINS`, or `obi,toluwase` if unset — see CONFIGURATION.md), the role/permission config, and suspension reasons.
+4. Wires up every route (see the list of components in README.md).
+5. Starts listening on `PORT` (default `8082`).
 
-1. Ensure the script is executable: `chmod +x scripts/fix-swagger-yaml.sh`
-2. Check that the script path is correct in your CI/CD config
-3. Verify `swag` is installed before running the script
+Confirm it's up:
 
-### Script fails in Docker
+```bash
+curl http://localhost:8082/health
+curl http://localhost:8082/ping
+open http://localhost:8082/swagger/index.html   # Swagger UI
+```
 
-- Ensure `bash` is installed in the Docker image
-- Check that the script has execute permissions
-- Verify the working directory is correct
+## 4. Running via Docker
 
-### Still getting parser errors
+```bash
+docker build -t tm-api:local .
 
-- Verify the script actually ran (check CI/CD logs)
-- Manually test: `./scripts/fix-swagger-yaml.sh`
-- Check that `docs/swagger.yaml` exists before the script runs
+docker run --rm -p 8082:8082 \
+  --env-file .env \
+  -e PORT=8082 \
+  tm-api:local
+```
 
+Notes:
+
+- `.env` must contain a Postgres DSN reachable **from inside the container**
+  — `localhost` in `.env` will not resolve to your host machine's Postgres
+  from inside Docker. Use `host.docker.internal` (Docker Desktop) or run
+  Postgres as a linked container / on a shared Docker network instead.
+- The container has no `ENV PORT` default baked in beyond what `main.go`
+  falls back to (`8082`), so make sure the `-p` mapping matches whatever
+  `PORT` you set.
+
+## 5. CI/CD
+
+There are two separate sets of GitHub Actions workflows that touch this
+repository, and **they are not equivalent** — read this section before
+trusting either one for tm-api specifically.
+
+### 5a. tm-api's own workflows (`tm-api/.github/workflows/`)
+
+- **`dev-deploy.yml`** ("Deploy to Dev (Auto)") — on every push to `develop`
+  (or manual dispatch): installs Go 1.21 and `swag`, runs `make swagger-clean`,
+  verifies `swagger.yaml`'s structure, builds and pushes a Docker image to
+  DigitalOcean Container Registry
+  (`registry.digitalocean.com/service-images/trovo-wallet-api:dsb-dev`), then
+  triggers a Portainer webhook to redeploy it. This is the real, currently
+  wired-up deployment path for tm-api's dev environment.
+- **`deploy-dev.yml`** ("Deploy to Dev") — a similar but more manual/older
+  workflow on the same `develop` branch trigger: builds the Docker image
+  locally in the runner but leaves the actual push/deploy step as a
+  placeholder comment. Likely superseded by `dev-deploy.yml` above; treat it
+  as legacy unless someone tells you otherwise.
+- **`golangci.yml`** — lint checks.
+
+Both deploy workflows pin **Go 1.21** in `actions/setup-go`, which is older
+than the **Go 1.23** this module (`go.mod`) actually declares. Go's toolchain
+directive (`toolchain go1.24.3`) will auto-download a newer toolchain as
+needed, so this has not broken the build, but it's worth knowing about if CI
+ever behaves differently from a local build.
+
+### 5b. The monorepo-root workflow (`.github/workflows/deploy.yml`)
+
+This workflow builds and pushes images for "backend" and "web" using `paths`
+filters against directories named **`backend/`**, **`web/`**,
+**`trovotech-io/`** and **`trovo-app-website/`**. **None of these directories
+exist in this monorepo** — the actual top-level layout is `tm-api/`,
+`tm-web/`, `app-backend/`, `app-mobile/`, `app-web/`,
+`payment-history-engine/`, `wallet-core/`. This workflow's path filters will
+never match a change under `tm-api/`, so **it will not build or deploy
+tm-api**, regardless of what its job names ("backend") might suggest.
+
+**Treat `deploy.yml` as stale/inherited — likely copied in from an older
+monorepo layout — and not something to trust or extend for tm-api.** If
+you're asked to wire up a new deployment target for tm-api, use `dev-deploy.yml`
+as the template (it already targets this repo correctly), not `deploy.yml`.
+
+## 6. Swagger docs in deployment
+
+Every deploy path (Docker build, `dev-deploy.yml`) regenerates `docs/`
+(`docs.go`, `swagger.json`, `swagger.yaml`) from source at build time via
+`swag init` + the YAML fix-up script — it does not simply trust whatever is
+committed. If you change a route or a `@Summary`/`@Router`/... annotation,
+regenerate locally before committing so the committed copy in `docs/` stays
+in sync with what reviewers see on GitHub:
+
+```bash
+make swagger          # swag init + fix-swagger-yaml.sh
+# or, to force a completely clean regeneration:
+make swagger-clean     # rm -rf docs/ && swag init + fix-swagger-yaml.sh
+
+head -5 docs/swagger.yaml   # should start with "swagger:"
+```

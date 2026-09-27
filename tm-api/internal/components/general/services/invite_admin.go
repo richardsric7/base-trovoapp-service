@@ -874,7 +874,21 @@ type RemoveAdminPayload struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
-// ONLY SUPER ADMIN
+// RemoveAdmin permanently deletes an admin user record from AdminDB. This
+// does not touch the person's underlying Trovo Wallet user account (in
+// TrovoWalletDB) - it only revokes their admin-dashboard access; they can be
+// re-invited later via AddAdmin.
+// @Summary      Remove an admin
+// @Description  Usable by SuperAdmin only. Permanently deletes an admin user record by email. Does not affect the underlying Trovo Wallet account.
+// @Tags         Admins
+// @Accept       json
+// @Produce      json
+// @Param        payload  body      RemoveAdminPayload  true  "Email of the admin to remove"
+// @Success      200      {object}  map[string]string   "message": "Admin removed successfully"
+// @Failure      400      {object}  map[string]string   "error": "Invalid payload"
+// @Failure      500      {object}  map[string]string   "error": "Failed to remove admin user"
+// @Param Authorization header string true "JWT Token" default(Bearer <your-token>)
+// @Router       /admin/remove [post]
 func RemoveAdmin(adminDB *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var payload RemoveAdminPayload

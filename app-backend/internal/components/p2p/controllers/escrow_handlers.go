@@ -18,12 +18,26 @@ type depositEscrowRequest struct {
 	Commit               int    `json:"commit"`
 }
 
+// postEscrowDepositHandler godoc
+// @Summary Deposit the sold asset into P2P escrow
+// @Description Used by the asset depositor (the SELL-side party) to fund escrow for an order. Call it twice: first with an empty body to receive an unsigned transaction to sign locally, then again with the signed transaction and commit=1 to actually submit it. The source wallet must be a standard, non-temp wallet with no approver-based shared access.
 // postEscrowDepositHandler mirrors postUsersPaymentHandler's own
 // constraints exactly (Plan Section 28/29): source wallet must be a
 // standard wallet (WalletType == 0), not temp, and not a shared-access
 // wallet with approvers. The first call (no Commit) returns an unsigned
 // transaction for the client to sign locally; the second call, carrying
 // the signature and Commit=1, actually submits it.
+// @Tags P2P
+// @Accept json
+// @Produce json
+// @Param orderID path string true "Order ID"
+// @Param body body depositEscrowRequest false "transaction (base64, from a prior unsigned call), transactionSignature, commit (1 to submit)"
+// @Success 202 {object} map[string]interface{} "Unsigned transaction to sign, or submission result"
+// @Failure 400 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{} "Not the asset depositor, wrong wallet type, or shared-access wallet with approvers"
+// @Failure 404 {object} map[string]interface{} "Order not found"
+// @Security SignatureAuth
+// @Router /v1/p2p/orders/{orderID}/escrow-deposit [post]
 func postEscrowDepositHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)
@@ -76,9 +90,16 @@ func postEscrowDepositHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	}
 }
 
-// postRegenerateEscrowShortlinkHandler lets the escrow-deposit screen
-// retry shortlink generation if the best-effort attempt made during
-// AcceptOrder failed and left EscrowDepositShortlink empty.
+// postRegenerateEscrowShortlinkHandler godoc
+// @Summary Regenerate the shareable escrow-deposit link for an order
+// @Description Retries shortlink generation if the automatic attempt made when the order was accepted failed and left the order without a deposit shortlink.
+// @Tags P2P
+// @Produce json
+// @Param orderID path string true "Order ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Security SignatureAuth
+// @Router /v1/p2p/orders/{orderID}/escrow-deposit/regenerate-shortlink [post]
 func postRegenerateEscrowShortlinkHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := currentUser(c, gc)

@@ -1,70 +1,129 @@
-# Getting Started with Create React App
+# Trovo Wallet Web App (`app-web`)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+`app-web` is the end-user web client for **Trovo Wallet** — the customer-facing
+app people use to manage their wallet, send and receive payments, swap
+assets, trade on the P2P marketplace, and hold tokenized assets.
 
-## Available Scripts
+It is a **pure frontend**: it has no server of its own and exposes no API.
+Every piece of data it shows comes from HTTP (and WebSocket) calls to the
+[`app-backend`](../app-backend) Go API. Some cryptographic operations
+(key generation, mnemonic handling, request signing) are done client-side
+using a Rust crate from [`wallet-core`](../wallet-core), compiled to
+WebAssembly and vendored into this project — see
+[`INTEGRATION.md`](./INTEGRATION.md) for details.
 
-In the project directory, you can run:
+This app is unrelated to the internal admin tooling in the monorepo
+(`tm-api` / `tm-web`) — see [`INTEGRATION.md`](./INTEGRATION.md#c-no-relationship-to-tm-api--tm-web)
+for that distinction.
 
-### `npm start`
+## Tech stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+| Concern | Library / tool |
+|---|---|
+| Framework | React 18 (`react` / `react-dom` ^18.2) |
+| Language | TypeScript ^5.9 |
+| Build tool / dev server | Vite ^7.3 (`@vitejs/plugin-react`) |
+| Routing | React Router (`react-router-dom` ^6.21) |
+| State management | Redux Toolkit (`@reduxjs/toolkit`, `react-redux`) |
+| Data fetching / server cache | RTK Query (`createApi`, via `@reduxjs/toolkit/query/react`), with a **custom Axios-based `baseQuery`** (not the default `fetchBaseQuery`) |
+| HTTP client | Axios |
+| Styling | Tailwind CSS (`tailwindcss`, `postcss`, `autoprefixer`) + `tw-elements-react` |
+| Client-side crypto | `wallet_core` — a Rust crate from the sibling `wallet-core` project, compiled to WASM and vendored under `src/walletCore/` |
+| PDF generation | `@react-pdf/renderer` (e.g. exporting receipts/statements) |
+| Payments (fiat on-ramp) | `flutterwave-react-v3` (Flutterwave) |
+| Testing | `@testing-library/react`, `@testing-library/jest-dom` |
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+The project was originally bootstrapped with Create React App and has since
+been migrated to Vite; some CRA-era artifacts (e.g. `public/manifest.json`,
+`browserslist` in `package.json`) are still present.
 
-### `npm test`
+## Directory structure (`src/`)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+src/
+├── pages/            Route-level screens, one folder per flow:
+│                        onboarding/, createAccount/, importWallet/,
+│                        accountRecovery/, dashboard/, pay/, pdfPages/
+├── components/        Shared/reusable UI components (buttons, modals,
+│                        tables, wallet cards, dropdowns, etc.), plus a
+│                        components/p2p/ subfolder for P2P-marketplace-
+│                        specific components
+├── routingSetup/      React Router setup: appRouter.tsx (route table) and
+│                        routeGuard.tsx (ProtectedRoutes — redirects to
+│                        /login or /welcome when the user isn't logged in)
+├── store/             Redux state + data layer
+│   ├── api/             RTK Query "API slices" per backend domain:
+│   │                      authApi.ts, walletApis.ts, p2pApis.ts,
+│   │                      tokenizationApis.ts, sharedAccessApis.ts,
+│   │                      cacheApi.ts, and baseapi/ (the shared
+│   │                      axios-backed baseQuery + auth/signing headers)
+│   ├── reduxStore/       Store configuration (configureStore, preloaded
+│   │                      state)
+│   ├── config.ts         BASE_URL / SOCKET_URL (reads VITE_API_URL /
+│   │                      VITE_SOCKET_URL)
+│   ├── constants.ts       localStorage keys and misc constants
+│   └── *Slice.ts          Redux slices (auth, sidebar, cache, app state)
+├── walletCore/        Vendored wasm-bindgen output from the wallet-core
+│                        Rust crate (wallet_core.js, wallet_core_bg.wasm,
+│                        and .d.ts types) — do not hand-edit, see
+│                        INTEGRATION.md
+├── utils/              Helpers, incl. trovoSDK.ts (thin wrapper around
+│                        walletCore for key generation / signing) and
+│                        storage.ts (localStorage helpers)
+├── hooks/              Custom React hooks
+├── types/              Shared TypeScript types
+├── assets/, fonts/     Static images/fonts imported by components
+```
 
-### `npm run build`
+Other notable root files:
+- `vite.config.mts` — Vite config (dev server on port 3000, Node globals
+  polyfill for browser use of a couple of Node-oriented deps).
+- `tailwind.config.js` / `postcss.config.js` — Tailwind/PostCSS setup.
+- `Dockerfile` / `nginx.conf.template` — production container build; see
+  [`DEPLOYMENT.md`](./DEPLOYMENT.md).
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Running it locally
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Run these from inside the `app-web/` directory.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+# 1. Use Node 20 (matches CI; see DEPLOYMENT.md for details)
+nvm use 20   # or install Node 20.x another way
 
-### `npm run eject`
+# 2. Install dependencies (exact versions, from package-lock.json)
+npm ci
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+# 3. Point the app at a backend (optional — see below for the default)
+cp .env.example .env.local
+# edit .env.local if you want to hit a different app-backend instance
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# 4. Start the dev server
+npm start
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+# 5. Open the app
+# Vite opens it automatically at http://localhost:3000
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+By default (no `.env.local`), the app talks to same-origin `/api` and
+`/ws/v1` — that only works behind the nginx container described in
+`DEPLOYMENT.md`. For local development against a real backend, set
+`VITE_API_URL` / `VITE_SOCKET_URL` in `.env.local` — see
+[`CONFIGURATION.md`](./CONFIGURATION.md) for the full list of environment
+variables and how to get real values for them.
 
-## Learn More
+To type-check and build a production bundle locally:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+npm run build   # runs `tsc && vite build`, output goes to dist/
+npm run preview # serve the built dist/ locally, for a quick smoke test
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Further documentation
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- [`DEPLOYMENT.md`](./DEPLOYMENT.md) — how to build and deploy this app,
+  including how the Docker/nginx setup injects runtime config.
+- [`CONFIGURATION.md`](./CONFIGURATION.md) — every environment variable
+  this app reads, what it does, and how to get a real value.
+- [`INTEGRATION.md`](./INTEGRATION.md) — how this app talks to
+  `app-backend` (auth/signing) and to the `wallet-core` WASM package, and
+  its (non-)relationship to `tm-api` / `tm-web`.

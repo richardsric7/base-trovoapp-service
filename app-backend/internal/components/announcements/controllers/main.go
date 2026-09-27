@@ -13,7 +13,20 @@ import (
 // Init initializes /v1/assets endpoint
 func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
-	router.GET("/v1/announcements", func(c *gin.Context) {
+	router.GET("/v1/announcements", getAnnouncementsHandler(gc))
+	router.GET("/v1/app-version", getAppVersionHandler(gc))
+
+}
+
+// getAnnouncementsHandler godoc
+// @Summary Get active in-app announcements
+// @Description Returns announcement banners/messages to show in the client apps, targeted by the caller's IP-derived location. No authentication required. Response is cached for up to 30 minutes.
+// @Tags Announcements
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router /v1/announcements [get]
+func getAnnouncementsHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
 		cacheKey := "[GET] /v1/announcements"
 
@@ -34,8 +47,18 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		cacheDurationInSeconds := 30 * 60 //30 minutes
 		gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, announcements, cacheDurationInSeconds)
 
-	})
-	router.GET("/v1/app-version", func(c *gin.Context) {
+	}
+}
+
+// getAppVersionHandler godoc
+// @Summary Get the minimum/latest supported app version
+// @Description Returns the current app-version requirements the mobile client uses to prompt for a forced or optional update. No authentication required. Response is cached for up to 30 minutes.
+// @Tags Announcements
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router /v1/app-version [get]
+func getAppVersionHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
 		cacheKey := "[GET] /v1/app-version"
 
@@ -56,6 +79,5 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		cacheDurationInSeconds := 30 * 60 //30 minutes
 		gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, appVersion, cacheDurationInSeconds)
 
-	})
-
+	}
 }

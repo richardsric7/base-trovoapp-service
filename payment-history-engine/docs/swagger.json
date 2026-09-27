@@ -1,0 +1,175 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Background worker that indexes on-chain Base (EVM) payment activity - native transfers and B20/ERC-20 Transfer events - for Trovo Wallet's tracked wallets, writing the results to its own RoachDB (CockroachDB) payment-history database. It has no request/response API of its own: the only HTTP surface is the liveness/readiness probe pair documented below, served for monitoring purposes.",
+        "title": "Payment History Engine",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/health": {
+            "get": {
+                "description": "Reports that the payment-history-engine process is running. Performs no\ndependency checks, so it stays 200 even while a database or the Base RPC\nnode is unreachable - use GET /ready to decide whether the service is able\nto do its job. Intended for container/orchestrator liveness checks. No\nauthentication required.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Liveness probe",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/health.LivenessResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/ready": {
+            "get": {
+                "description": "Checks every backing dependency in parallel (the primary wallet database,\nthe RoachDB payment-history database, Redis when ENABLE_CACHING=1, and the\nBase RPC node) and reports each one individually, alongside whether the\nblock-processing stream is still making progress. Returns 503 only when a\nREQUIRED dependency (wallet_db or roach_db) is down. An optional dependency\nbeing down, or the stream having stalled, is reported as \"degraded\" but\nstill returns 200 - restarting the container would not fix a network outage\nor a quiet chain, so this deliberately avoids causing a restart loop. No\nauthentication required.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Readiness probe",
+                "responses": {
+                    "200": {
+                        "description": "Ready (status up, idle, or degraded)",
+                        "schema": {
+                            "$ref": "#/definitions/health.ReadinessResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "A required dependency (wallet_db or roach_db) is down",
+                        "schema": {
+                            "$ref": "#/definitions/health.ReadinessResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "health.DependencyStatus": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "latency_ms": {
+                    "type": "integer",
+                    "example": 4
+                },
+                "latency_us": {
+                    "type": "integer",
+                    "example": 4210
+                },
+                "name": {
+                    "type": "string",
+                    "example": "wallet_db"
+                },
+                "optional": {
+                    "type": "boolean"
+                },
+                "skip_reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "up"
+                }
+            }
+        },
+        "health.LivenessResponse": {
+            "type": "object",
+            "properties": {
+                "service": {
+                    "type": "string",
+                    "example": "payment-history-engine"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "up"
+                },
+                "time": {
+                    "type": "string",
+                    "example": "2026-09-10T12:00:00Z"
+                },
+                "uptime_seconds": {
+                    "type": "integer",
+                    "example": 3600
+                },
+                "version": {
+                    "type": "string",
+                    "example": "a1b2c3d"
+                }
+            }
+        },
+        "health.ReadinessResponse": {
+            "type": "object",
+            "properties": {
+                "dependencies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/health.DependencyStatus"
+                    }
+                },
+                "service": {
+                    "type": "string",
+                    "example": "payment-history-engine"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "up"
+                },
+                "stream": {
+                    "$ref": "#/definitions/health.StreamStatus"
+                },
+                "time": {
+                    "type": "string",
+                    "example": "2026-09-10T12:00:00Z"
+                },
+                "uptime_seconds": {
+                    "type": "integer",
+                    "example": 3600
+                },
+                "version": {
+                    "type": "string",
+                    "example": "a1b2c3d"
+                }
+            }
+        },
+        "health.StreamStatus": {
+            "type": "object",
+            "properties": {
+                "last_cursor": {
+                    "type": "string"
+                },
+                "last_operation_at": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "operations_processed": {
+                    "type": "integer",
+                    "example": 14238
+                },
+                "seconds_since_last_operation": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "up"
+                }
+            }
+        }
+    }
+}

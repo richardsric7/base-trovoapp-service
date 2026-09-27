@@ -1,0 +1,197 @@
+# Deployment Guide
+
+This guide assumes you have never deployed a Go service before. It covers
+building, running, and (as far as this repository's own files let us verify
+accurately) how `app-backend` is deployed today.
+
+All commands below are run from the `app-backend/` directory unless stated
+otherwise.
+
+## 1. Prerequisites
+
+| Tool | Why you need it | Install |
+| --- | --- | --- |
+| **Go** (see `go.mod` for the exact version — currently `1.23`, toolchain `1.24.3`) | To build/run the service directly | [go.dev/doc/install](https://go.dev/doc/install) |
+| **Docker** | To build/run the container image the way it's deployed in production | [docs.docker.com/get-docker](https://docs.docker.com/get-docker/) |
+| **PostgreSQL** (optional for local dev — SQLite works too) | The production database | [postgresql.org/download](https://www.postgresql.org/download/) |
+
+You do **not** need Postgres to get the app running locally: the
+`.env.example` file ships with `DB_TYPE=sqlite`, which needs no separate
+database server at all.
+
+## 2. Building
+
+### Plain Go build
+
+```bash
+go build ./...
+```
+
+This compiles every package and reports any compile errors. It does not
+produce a single runnable binary by itself for `main.go` if you're inside a
+subdirectory — to build the actual server binary:
+
+```bash
+go build -o trovo-wallet-api .
+```
+
+### Docker build
+
+The repository's `Dockerfile` is a two-stage build:
+
+```dockerfile
+FROM golang:alpine3.20 AS builder
+...
+RUN go build -o main .
+...
+FROM alpine:latest
+COPY --from=builder /dist/main /
+COPY trovo-logo.png /trovo-logo.png
+COPY ht2.png /ht2.png
+ENTRYPOINT ["/main"]
+```
+
+Stage by stage:
+
+1. **`builder` stage** (`golang:alpine3.20`) — installs `ca-certificates`,
+   `build-base`, `runc`, and `curl`; copies `go.mod`/`go.sum` and runs
+   `go mod download` first (so Docker's layer cache is reused across builds
+   that don't change dependencies); then copies the rest of the source and
+   runs `go build -o main .` to produce a single static-ish binary.
+2. **Final stage** (`alpine:latest`) — a small runtime image. It installs
+   only the runtime packages it needs (`ca-certificates`, `runc`, `curl`),
+   copies the compiled `main` binary and the two image assets the app
+   embeds by file path (`trovo-logo.png`, `ht2.png`) from the builder
+   stage, and sets `ENTRYPOINT ["/main"]`.
+
+To build the image yourself:
+
+```bash
+docker build -t trovo-wallet-api:local .
+```
+
+## 3. Running locally
+
+### Directly with `go run`
+
+```bash
+go run main.go
+```
+
+At minimum, `main.go` refuses to start (see the `requiredEnvironmentVariables`
+list near the top of `main()`) unless roughly 50 environment variables are
+set — covering the blockchain RPC endpoint, mnemonics for several signer
+roles, the RoachDB connection string, Mailgun, Redis, JWT secrets, and a
+long list of fee-wallet addresses. The full, documented list — with example
+values and where to get real ones — is in
+**[CONFIGURATION.md](CONFIGURATION.md)**. The fastest way to get a complete,
+valid set for local development is:
+
+```bash
+cp .env.example .env
+# then fill in the blanks per CONFIGURATION.md
+go run main.go
+```
+
+The server listens on `PORT` if set, otherwise `:8080`.
+
+### Via Docker
+
+```bash
+docker run --rm -p 8080:8080 --env-file .env trovo-wallet-api:local
+```
+
+Same environment-variable requirements as above. If you're using SQLite in
+`DB_TYPE`, remember the SQLite file path is relative to the container's
+filesystem, not your host's — either bind-mount a directory in or switch to
+Postgres for a containerized run.
+
+## 4. Database migrations and `DB_AUTOMIGRATE`
+
+This service uses **GORM `AutoMigrate`**, not hand-written SQL migration
+files. On every boot (see `internal/db/main.go`'s `MigrateDB` and
+`main.go`'s call to it), unless `DB_AUTOMIGRATE=0` is set, the app calls
+`AutoMigrate` against roughly **107 GORM models** — one call per model —
+which inspects and, if needed, alters the live schema to match each Go
+struct.
+
+This has one important consequence: **it is slow**, especially over a
+network connection to the database rather than a local/same-datacenter one.
+A comment in this monorepo's top-level `.github/workflows/deploy.yml`
+(written for a differently-laid-out sibling backend — see the caveat below)
+notes that running this AutoMigrate step from a GitHub Actions runner (i.e.
+over the public internet to the database) took **over 20 minutes**, because
+each of the ~107 models' AutoMigrate calls does multiple catalog round-trips
+against Postgres — roughly **~800 round-trips in total** for the full set.
+The practical implications for you:
+
+- **Local development**: leave `DB_AUTOMIGRATE` unset or `1` (the
+  `.env.example` default) — your DB is local, so the round-trip cost is
+  negligible.
+- **A real deployment**: run migrations from *inside* the same network as
+  the database (e.g. on the server itself, or a same-region CI runner), not
+  from a general-purpose CI runner reaching the DB over the public internet.
+  This codebase supports a **`MIGRATE_ONLY=1`** mode (see the top of
+  `main()` in `main.go`) specifically for this: with `MIGRATE_ONLY=1`, the
+  process opens only the wallet's own Postgres database, runs
+  `AutoMigrate`, and exits — without booting the HTTP server or requiring
+  the ~50 other required environment variables the serving process needs.
+  The serving process itself is then expected to run with
+  `DB_AUTOMIGRATE=0`, so it boots straight into serving traffic without
+  re-running AutoMigrate on every restart.
+
+## 5. How this service is actually deployed today
+
+**What we can verify from this repository:**
+
+- `app-backend/.github/workflows/dev-deploy.yml` is a real, working
+  pipeline for this project. On every push to the `dev` branch (or a manual
+  trigger), it:
+  1. Checks out the code and sets up Go 1.21.
+  2. Installs the `swag` CLI and regenerates the Swagger docs
+     (`swag init --parseDependency=false`) — see the header of
+     `docs/docs.go` for the exact flags this project uses.
+  3. Builds and pushes a Docker image to DigitalOcean Container Registry
+     (`registry.digitalocean.com/service-images/trovo-wallet-api:wip`),
+     using this directory (`app-backend/`) as the build context and this
+     `Dockerfile`.
+  4. Triggers a **Portainer** webhook (`PORTAINER_WEBHOOK_URL` secret),
+     which tells Portainer to re-pull and redeploy the new image.
+- The `Dockerfile` and `Makefile` in this directory are real and describe
+  a standard build → small-image → run flow (see sections 2–3 above).
+
+**A caveat about the monorepo-level workflow:** there is also a
+`.github/workflows/deploy.yml` at the **root** of the monorepo (i.e.
+*outside* this project, one level up from `app-backend/`). It describes a
+more elaborate pipeline — per-component change detection, a gated DB
+migration job using `MIGRATE_ONLY`, and Portainer webhooks per component —
+but its `paths:` filters and build context reference a `backend/`
+directory (e.g. `context: backend`, `dockerfile: backend/Dockerfile`), which
+**does not match this repository's actual layout** (`app-backend/`, not
+`backend/`). This strongly suggests that workflow was written for, or
+copied from, a sibling repository with a different directory layout, and it
+is likely stale or simply inactive for this project as currently laid out.
+**Do not treat it as an accurate description of how `app-backend` is
+deployed** — it's included here only because it documents design intent
+(the `MIGRATE_ONLY` pattern, the `DB_AUTOMIGRATE` slowness note) that *is*
+directly relevant to this codebase, as referenced in section 4 above. If
+you need to know with certainty how staging/production deploys are wired
+today, confirm with whoever owns the DigitalOcean/Portainer setup — this
+document only describes what's verifiable from the code.
+
+## 6. Makefile targets
+
+The `Makefile` in this directory mirrors what CI runs, so you can run the
+same checks locally before pushing:
+
+```bash
+make build   # go build ./...
+make vet     # go vet -stringintconv=false ./...  (see comment in Makefile for why)
+make lint    # golangci-lint run (requires golangci-lint installed)
+make test    # go test ./internal/... -race -vet=off -coverprofile=coverage.out
+make ci      # tidy-check + build + vet + lint + test, in that order
+```
+
+`make test` intentionally excludes the root package's `main_test.go`, which
+is an integration suite that expects a live server already running at
+`localhost:8080`.

@@ -84,6 +84,20 @@ import (
 //	}
 //}
 
+// LoginCallback is called by app-backend (not by tm-web) when a user
+// approves a login request from the Trovo mobile app. It broadcasts the
+// approval over the login SSE stream (see LoginNotificationStream) so a
+// browser waiting on /login/stream/{loginID} learns the login succeeded.
+// @Summary Receive a login approval callback
+// @Description Internal callback invoked by app-backend when a user approves a pending login request. Broadcasts the approval to any client subscribed via /login/stream/{loginID}. Not intended to be called directly by tm-web.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param serviceName path string true "Service name the login was scoped to"
+// @Param body body models.LoginCallbackInput true "Login callback payload"
+// @Success 200 {object} models.LoginCallbackInput
+// @Failure 400 {object} map[string]string "error": "invalid JSON body"
+// @Router /callbacks/login/{serviceName} [post]
 func LoginCallback(c *gin.Context, s *serverModels.Server) {
 	// gc := models.GlobalConfig{} // check to insert correctly
 
@@ -133,6 +147,21 @@ func LoginCallback(c *gin.Context, s *serverModels.Server) {
 	c.JSON(http.StatusOK, callbakInput)
 }
 
+// AuthCallback is called by app-backend when a user approves a pending
+// step-up authorization (e.g. authorizing a beneficiary or a token
+// release) from the Trovo mobile app. It looks up the matching
+// PendingAuthorization row by AuthID and broadcasts the approval to
+// whichever admin-dashboard listener is waiting on it.
+// @Summary Receive an authorization approval callback
+// @Description Internal callback invoked by app-backend when a user approves a pending step-up authorization. Validates the callback against the matching PendingAuthorization row before broadcasting.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param serviceName path string true "Service name the authorization was scoped to"
+// @Param body body models.AuthorizationCallbackInput true "Authorization callback payload"
+// @Success 200 {object} models.AuthorizationCallbackInput
+// @Failure 400 {object} map[string]string "error": "invalid JSON body, unknown auth ID, or mismatched target user"
+// @Router /callbacks/auth/{serviceName} [post]
 func AuthCallback(c *gin.Context, s *serverModels.Server) {
 	// gc := models.GlobalConfig{} // check to insert correctly
 
