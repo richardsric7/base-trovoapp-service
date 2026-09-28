@@ -5,7 +5,7 @@ import { FC, ReactNode, useRef } from 'react';
 import { Provider } from 'react-redux';
 
 export const StoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const storeRef = useRef<AppStore>();
+  const storeRef = useRef<AppStore | undefined>(undefined);
   if (!storeRef.current) {
     storeRef.current = makeStore();
   }

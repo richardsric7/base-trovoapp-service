@@ -66,9 +66,14 @@ const AuditFilter = ({ onApply }: AuditFilterProps) => {
                 style={{ width: "100%" }}
                 placeholder="YYYY-MM-DD"
                 size="large"
-                onChange={(_date: unknown, dateString: string | string[]) =>
+                onChange={(
+                  _date: unknown,
+                  dateString: string | string[] | null,
+                ) =>
                   setSelectedDate(
-                    Array.isArray(dateString) ? dateString[0] ?? "" : dateString,
+                    Array.isArray(dateString)
+                      ? dateString[0] ?? ""
+                      : dateString ?? "",
                   )
                 }
               />

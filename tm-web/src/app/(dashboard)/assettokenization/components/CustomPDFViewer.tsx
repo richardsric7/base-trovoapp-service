@@ -133,6 +133,7 @@ const CustomPDFViewer: React.FC<CustomPDFViewerProps> = ({
       canvas.width = viewport.width;
 
       const renderContext = {
+        canvas,
         canvasContext: context!,
         viewport: viewport,
       };

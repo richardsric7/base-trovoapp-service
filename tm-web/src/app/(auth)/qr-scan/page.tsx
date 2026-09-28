@@ -2,7 +2,12 @@
 import React, { SetStateAction, useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 import { useRouter } from "next/navigation";
-import { deleteCookie, getCookie, hasCookie, setCookie } from "cookies-next";
+import {
+  deleteCookie,
+  getCookie,
+  hasCookie,
+  setCookie,
+} from "cookies-next/client";
 import { CookieType } from "@/app/CookieType";
 import { TOKEN, useLoginMutation, useVerifyLoginQuery } from "@/redux";
 import { showErrorToast, showSuccessToast } from "@/components";

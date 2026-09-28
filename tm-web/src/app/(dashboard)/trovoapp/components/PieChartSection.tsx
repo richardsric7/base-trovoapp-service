@@ -94,7 +94,7 @@ const PieChartSection = () => {
       states: {
         hover: {
           filter: {
-            type: "none",
+            type: "none" as const,
           },
         },
       },
@@ -116,7 +116,7 @@ const PieChartSection = () => {
               width: 300,
             },
             legend: {
-              position: "bottom",
+              position: "bottom" as const,
             },
           },
         },
