@@ -123,6 +123,15 @@ func UserWebSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 	auth.Message = "success"
 	message := gin.H{"stream": auth, "streamType": "auth"}
 	ws.WriteJSON(message)
+
+	// Live P2P order/offer/escrow/dispute updates for this user, fanned
+	// out across instances via Redis (see sharedconfig/realtime.go and
+	// p2p/services/notifications.go's NotifyUsername) - fire-and-forget,
+	// a live nudge alongside the existing push notification, not a
+	// catch-up-able feed.
+	p2pStreamChan, unregisterP2PStream := sharedconfig.RegisterUserStreamConnection(gc, identifier)
+	defer unregisterP2PStream()
+
 	ip := c.ClientIP()
 	if len(c.GetHeader("Cf-Connecting-Ip")) > 4 {
 		ip = c.GetHeader("Cf-Connecting-Ip")
@@ -165,7 +174,11 @@ func UserWebSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 	}()
 
 	for {
-		v := <-messageChan
+		var v map[string]interface{}
+		select {
+		case v = <-messageChan:
+		case v = <-p2pStreamChan:
+		}
 		err = ws.WriteJSON(v)
 		if err != nil {
 			log.Printf("Error Sending stream: %v\nError %v\n", v, err)

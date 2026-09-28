@@ -21,6 +21,7 @@ import (
 	"firebase.google.com/go/storage"
 	"github.com/ecnepsnai/discord"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"golang.org/x/text/cases"
@@ -51,6 +52,14 @@ type GlobalConfig struct {
 	ChannelAccountKeysByAddress map[string]*evmkeypair.Full
 	ChannelAccountKeysMutex     sync.RWMutex
 	ChannelOfTokenizedAssetIDs  chan string
+
+	// userStreamConnections/userStreamMutex/userStreamPubSub back the
+	// per-instance user event stream (see realtime.go) - username to the
+	// set of local websocket connections currently registered for it, plus
+	// the one shared Redis subscription StartUserStreamRelay reads from.
+	userStreamConnections map[string]map[string]chan map[string]interface{}
+	userStreamMutex        sync.Mutex
+	userStreamPubSub       *redis.PubSub
 }
 
 type ClientUploader struct {

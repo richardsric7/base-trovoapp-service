@@ -3,6 +3,8 @@ package p2p
 import (
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	"trovo-wallet-api/internal/sharedconfig"
+
+	"github.com/gin-gonic/gin"
 )
 
 // NotifyUsername sends a direct push notification to a username, matching
@@ -19,4 +21,14 @@ func NotifyUsername(gc *sharedconfig.GlobalConfig, username, title, body string,
 		return
 	}
 	user.SendPushMessage(title, body, "", dataPayload, gc)
+
+	// Also nudge any open websocket connection this user has right now
+	// (see sharedconfig/realtime.go) - every existing P2P notification
+	// call site gets live delivery automatically since they all funnel
+	// through this one function.
+	gc.PublishUserStreamEvent(username, "p2pEvent", gin.H{
+		"title": title,
+		"body":  body,
+		"data":  dataPayload,
+	})
 }

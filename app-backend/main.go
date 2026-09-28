@@ -358,6 +358,10 @@ func main() {
 	} else {
 		log.Println("STAKEHOLDER_DOCUMENTS_BUCKET_NAME is not configured; stakeholder document storage endpoints will return 503")
 	}
+	// Starts the shared Redis subscription P2P (and any future) live user
+	// event streams relay through - see sharedconfig/realtime.go. A no-op
+	// if Redis is disabled.
+	globalConfig.StartUserStreamRelay()
 	{
 
 		//update referral links for people with no referral link
