@@ -2305,17 +2305,17 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   // }
 
   Future<void> getFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    // file_picker 13's FilePicker.pickFile() replaces the old
+    // FilePicker.platform.pickFiles(...).files.single pattern; withData is
+    // gone (uploadAssetLogo uses file.path, not file.bytes).
+    PlatformFile? file = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'gif', 'png', 'pdf'],
-      withData: true,
     );
 
-    if (result == null) {
-      return null;
+    if (file == null) {
+      return;
     }
-
-    PlatformFile file = result.files.single;
 
     uploadAssetLogo(file);
   }

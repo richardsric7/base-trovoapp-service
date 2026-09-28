@@ -234,7 +234,7 @@ class _AssetVerificationDocumentOptionsView
                       GestureDetector(
                         onTap: () async {
                           var file = await getFile();
-                          if (file != null && file.size > 900000) {
+                          if (file != null && (file.lengthSync() ?? 0) > 900000) {
                             errorMsg = "filesizeerror".tr();
                             file = null;
                             setModalState(() {});

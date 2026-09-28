@@ -17,8 +17,8 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/store.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:trovo_app/utils/local_auth.dart';
-import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 
@@ -958,9 +958,9 @@ class _SettingsState extends State<Settings> {
           );
         });
       }
-    } on PlatformException catch (e) {
-      if (e.code == auth_error.notEnrolled ||
-          e.code == auth_error.notAvailable) {
+    } on LocalAuthException catch (e) {
+      if (e.code == LocalAuthExceptionCode.noBiometricsEnrolled ||
+          e.code == LocalAuthExceptionCode.noBiometricHardware) {
         if (!appState.biometricEnabled) {
           popup(
             context,
@@ -994,9 +994,9 @@ class _SettingsState extends State<Settings> {
           toggleHideBalances();
           return;
         }
-      } on PlatformException catch (e) {
-        if (e.code == auth_error.notEnrolled ||
-            e.code == auth_error.notAvailable) {
+      } on LocalAuthException catch (e) {
+        if (e.code == LocalAuthExceptionCode.noBiometricsEnrolled ||
+            e.code == LocalAuthExceptionCode.noBiometricHardware) {
           biometricsErrorAlert(context);
         }
       }
