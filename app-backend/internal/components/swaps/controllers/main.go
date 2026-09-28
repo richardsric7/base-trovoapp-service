@@ -1,6 +1,7 @@
 package payments
 
 import (
+	"time"
 	"trovo-wallet-api/internal/middleware"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -11,6 +12,6 @@ import (
 
 func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
-	router.POST("/v1/users/swap", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersSwapHandler(gc))
-	router.POST("/v1/shared-access/swap", middleware.AuthenticationMiddlewareUsingTimestamp(), postSharedAccessSwapHandler(gc))
+	router.POST("/v1/users/swap", middleware.AuthenticationMiddlewareUsingTimestamp(), middleware.RateLimitMiddleware(gc, "swap", 10, time.Minute), postUsersSwapHandler(gc))
+	router.POST("/v1/shared-access/swap", middleware.AuthenticationMiddlewareUsingTimestamp(), middleware.RateLimitMiddleware(gc, "swap", 10, time.Minute), postSharedAccessSwapHandler(gc))
 }

@@ -177,10 +177,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.GET("/v1/trovo-api/users/balance/:walletAddress", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getTrovoApiUsersBalanceWalletAddressHandler(gc))
 
 	//get wallet payment history from service link
-	router.GET("/v1/trovo-api/users/payment-history/:walletAddress", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getTrovoApiUsersPaymentHistoryWalletAddressHandler(gc))
+	router.GET("/v1/trovo-api/users/payment-history/:walletAddress", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-payment-history", 120, time.Minute), getTrovoApiUsersPaymentHistoryWalletAddressHandler(gc))
 
 	//send payment from service link
-	router.POST("/v1/trovo-api/users/payment", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postTrovoApiUsersPaymentHandler(callBackRetryChan, gc))
+	router.POST("/v1/trovo-api/users/payment", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-payment", 20, time.Minute), postTrovoApiUsersPaymentHandler(callBackRetryChan, gc))
 
 	//create new subwallet from service link
 	router.POST("/v1/trovo-api/users/subwallet", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postTrovoApiUsersSubwalletHandler(gc))

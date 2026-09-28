@@ -88,6 +88,42 @@ by `SERVICE_LINK_USERNAME`/`SERVICE_LINK_API_KEY` (see
 point of view, just another service-link partner integration, with whatever
 permission flags that row has been granted.
 
+### 2c. `payment_histories` — read-only, direct-DB read
+
+`GET /payment/history` (`internal/components/general/services/payment_history.go`)
+reads the `payment_histories` table directly via `s.TrovoWalletDB`, the same
+physical database app-backend owns and migrates — tm-api never writes or
+migrates this table, only reads it. Each row is split into a **source**
+side (what left `fromAddress`) and a **destination** side (what arrived at
+`toAddress`), replacing the old flat `assetCode`/`contractAddress`/`amount`
+fields:
+
+```json
+{
+  "sourceNetwork": "base",
+  "sourceContractAddress": "0x...",
+  "sourceAssetCode": "USDC",
+  "sourceAmount": "100.0000000",
+  "destinationNetwork": "base",
+  "destinationContractAddress": "0x...",
+  "destinationAssetCode": "USDC",
+  "destinationAmount": "100.0000000"
+}
+```
+
+For a plain payment (everything today) the two sides are identical; a row
+where they differ is a swap. The query/search filters follow the same
+split (`destinationAssetCode`/`destinationContractAddress` and
+`sourceAssetCode`/`sourceContractAddress`, replacing the old flat
+`assetCode`/`contractAddress` filter names) — see
+[app-backend's INTEGRATION.md](../app-backend/INTEGRATION.md#payment-history-source-vs-destination)
+for the full rationale, since app-backend's payment-history-engine is the
+table's only writer.
+
+This endpoint, along with every other tm-api route, sits behind the global
+rate limiter described in
+[CONFIGURATION.md](./CONFIGURATION.md#8-rate-limiting).
+
 ## 3. The RBAC model
 
 Three tables in `AdminDB` (`internal/models/admin_permissions.go`) define

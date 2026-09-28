@@ -124,6 +124,28 @@ wallet and never reuse it for anything real.
 
 ---
 
+## Rate limiting
+
+A Redis-backed fixed-window limiter (`INCR`+`EXPIRE`) protecting the payment-history, payment, and swap endpoints from abuse. It's Redis-backed rather than in-memory on purpose: an in-memory counter is per-process, so with more than one instance behind a load balancer it would silently multiply the effective limit by the instance count. See `internal/middleware/rate_limit_middleware.go`.
+
+**`RATE_LIMIT_ENABLED`**
+- Example: `1`
+- What it does: When unset/`1` (and Redis is enabled via `ENABLE_CACHING=1`), rate limiting is active. Set to `0` to disable it entirely, e.g. for local dev or load testing.
+- How to get a real value: leave unset in production (defaults on); set `0` only when you deliberately want it off.
+- **Requires Redis:** if `ENABLE_CACHING=0` or Redis is unreachable, the middleware no-ops (fails open) regardless of this flag — same graceful-degradation posture as the caching layer itself.
+
+**`RATE_LIMIT_REQUESTS_PER_MINUTE`**
+- Example: `30`
+- What it does: A global default limit (requests per 60s window) applied to every rate-limited route that doesn't have its own override. Each route also has a hardcoded default in code (e.g. 30/min for payment-history reads, 20/min for payment/swap writes, 120/min for the service-link payment-history endpoint) - this env var overrides all of them at once.
+- How to get a real value: leave unset to use the per-route defaults baked into the code; set it to tune globally without a redeploy.
+
+**`RATE_LIMIT_<KEY>_PER_MINUTE`** (per-route override)
+- Example: `RATE_LIMIT_SWAP_PER_MINUTE=5`
+- What it does: Overrides the limit for one specific route's key (uppercased, hyphens to underscores - e.g. the `"swap"` key becomes `RATE_LIMIT_SWAP_PER_MINUTE`, `"payment-history"` becomes `RATE_LIMIT_PAYMENT_HISTORY_PER_MINUTE`). Takes precedence over both the route's hardcoded default and the global `RATE_LIMIT_REQUESTS_PER_MINUTE`.
+- How to get a real value: only set when one specific endpoint needs a different budget than the rest; look up the exact key string at the route's `middleware.RateLimitMiddleware(gc, "<key>", ...)` call site.
+
+---
+
 ## Blockchain / network (Base chain)
 
 **`BASE_RPC_URL`**

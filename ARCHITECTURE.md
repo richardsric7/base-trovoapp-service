@@ -123,14 +123,24 @@ The pattern used everywhere this came up:
   (P2P order/offer/escrow/dispute updates over the user websocket) and
   `tm-api/internal/models/streams.go` (the admin QR-login notification
   stream).
+- **Cross-instance rate limiting** (a per-caller request budget that must
+  hold across every instance, not per-process) is a Redis fixed-window
+  counter (`INCR`+`EXPIRE`), reusing the same Redis connection as caching
+  and pub/sub above — an in-memory counter would silently multiply the
+  effective limit by however many replicas are running, which defeats the
+  point of having a limit at all. Fails open (no-ops) when Redis is
+  disabled/unreachable, same graceful-degradation posture as caching and
+  pub/sub. See `app-backend/internal/middleware/rate_limit_middleware.go`
+  and `tm-api/internal/middleware/rate_limit_middleware.go`.
 
 **Going forward:** if you're adding a new project to this monorepo, or a
 new piece of shared, cross-instance coordination to an existing one,
-follow the same two rules — a portable claim table instead of a
-database-specific locking primitive, and Redis Pub/Sub (with a
-non-Redis-dependent fallback) instead of an in-process map/channel — so
-the new code works the same whether it's one instance or ten, and works
-the same on SQLite as it does on Postgres.
+follow the same rules — a portable claim table instead of a
+database-specific locking primitive, Redis Pub/Sub (with a
+non-Redis-dependent fallback) instead of an in-process map/channel, and a
+Redis counter instead of an in-process one for anything resembling a rate
+limit — so the new code works the same whether it's one instance or ten,
+and works the same on SQLite as it does on Postgres.
 
 ## The documentation standard going forward
 

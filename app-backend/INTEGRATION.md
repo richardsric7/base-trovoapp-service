@@ -189,6 +189,52 @@ existing, differently-scoped flag.
 
 ---
 
+## Payment history: source vs. destination
+
+`GET /v1/users/payments/:targetAddressForHistory` and
+`GET /v1/trovo-api/users/payment-history/:walletAddress` (the service-link
+equivalent) both return each row split into a **source** side (what left
+`fromAddress`) and a **destination** side (what arrived at `toAddress`),
+replacing the old flat `assetCode`/`contractAddress`/`amount` fields:
+
+```json
+{
+  "sourceNetwork": "base",
+  "sourceContractAddress": "0x...",
+  "sourceAssetCode": "USDC",
+  "sourceAmount": "100.0000000",
+  "destinationNetwork": "base",
+  "destinationContractAddress": "0x...",
+  "destinationAssetCode": "USDC",
+  "destinationAmount": "100.0000000"
+}
+```
+
+For a plain payment (everything today, since Base has no live on-chain
+swap integration yet) the two sides are identical — that's not a
+placeholder, it's the correct representation of "the same asset left and
+arrived." A row where `sourceAssetCode`/`sourceNetwork` differ from
+`destinationAssetCode`/`destinationNetwork` is, by definition, a swap.
+`network` is currently always `"base"` on both sides; it's a real column
+(not inferred/hardcoded client-side) so a future second network or
+Base-native bridge doesn't require another breaking response-shape
+change — just a different value here.
+
+The read endpoints' query filters follow the same split:
+`destinationAssetCode`/`destinationContractAddress`/`destinationAmount`
+and `sourceAssetCode`/`sourceContractAddress`/`sourceAmount` (a
+`min%max` range for the amount filters), replacing the old flat
+`assetCode`/`contractAddress`/`amount` filter names.
+
+Both of these endpoints, along with `POST /v1/users/payment`,
+`POST /v1/shared-access/payment`, `POST /v1/users/swap`,
+`POST /v1/shared-access/swap`, and `POST /v1/trovo-api/users/payment`,
+are now rate-limited (see [Rate limiting](CONFIGURATION.md#rate-limiting)
+in `CONFIGURATION.md`) — a request over the limit gets `429 Too Many
+Requests` with a `Retry-After` header.
+
+---
+
 ## Live P2P updates over the websocket
 
 `GET /v1/users/websocket/:identifier` is a websocket endpoint every

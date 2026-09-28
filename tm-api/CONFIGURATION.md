@@ -96,7 +96,21 @@ notifications, tokenized-asset data).
 > nothing breaks — you just lose the guaranteed-fast push across
 > instances.
 
-## 8. Vault signer module
+## 8. Rate limiting
+
+A Redis-backed fixed-window limiter (`INCR`+`EXPIRE`, `internal/middleware/rate_limit_middleware.go`) applied globally via `router.Use(...)` in `main.go`. It's Redis-backed rather than in-memory so the limit is correct across more than one instance — an in-memory counter would be per-process, silently multiplying the effective limit by the instance count. This admin panel is JWT-protected with a much smaller abuse surface than the wallet API, so this is one generous global default rather than per-route budgets.
+
+| Variable | Example | Effect | How to get a real value |
+|---|---|---|---|
+| `RATE_LIMIT_ENABLED` | `1` | When unset/`1` (and `ENABLE_CACHING=1`), the global rate limit is active. `0` disables it entirely. | Leave unset in production (defaults on); `0` only for local dev/load testing. |
+| `RATE_LIMIT_REQUESTS_PER_MINUTE` | `300` | Requests-per-minute limit for the global default (key `"global"`). | Leave unset to use the built-in default (300/min); tune if that's too tight or too loose for your traffic. |
+| `RATE_LIMIT_GLOBAL_PER_MINUTE` | `300` | Same effect as `RATE_LIMIT_REQUESTS_PER_MINUTE` above, but scoped to just the `"global"` key (`RATE_LIMIT_<KEY>_PER_MINUTE` is the general per-route override pattern; tm-api only registers the one `"global"` key today). Takes precedence over `RATE_LIMIT_REQUESTS_PER_MINUTE` if both are set. | Only set if you need this key's limit to differ from a global env-var change affecting every rate-limited route. |
+
+> **Requires Redis:** if `ENABLE_CACHING=0` or Redis is unreachable, the
+> middleware no-ops (fails open) regardless of `RATE_LIMIT_ENABLED` — same
+> graceful-degradation posture as the caching layer itself.
+
+## 9. Vault signer module
 
 | Variable | Example | Effect | How to get a real value |
 |---|---|---|---|
@@ -106,7 +120,7 @@ notifications, tokenized-asset data).
 | `PERSONAL_ENV_VAULT_MOUNT` | `secret` | Vault KV mount path for personal-env secrets. | Match whatever mount your Vault cluster uses for this. |
 | `PERSONAL_ENV_VAULT_PATH_PREFIX` | `personal-envs` | Path prefix under that mount for personal-env secrets. | Match your Vault path layout, or leave as-is if unsure. |
 
-## 9. Observability (Trovo Manager health screens)
+## 10. Observability (Trovo Manager health screens)
 
 All optional — each unset value disables its screen, which reports "not
 configured" instead of showing an empty result. These are **internal service
@@ -125,7 +139,7 @@ names on the Docker network**; the browser never contacts them directly (see
 | `GRAFANA_URL` | *(empty)* | Public Grafana URL, shown as an "open in Grafana" link. | Your team's Grafana URL. |
 | `SENTRY_DSN` | *(empty)* | GlitchTip/Sentry-compatible DSN for crash reporting (`internal/observe`). Leave empty to disable — panics are still recovered and logged locally, just not reported externally. | Create a project in GlitchTip (or Sentry) and copy its DSN. |
 
-## 10. Email (Mailgun)
+## 11. Email (Mailgun)
 
 | Variable | Example | Effect | How to get a real value |
 |---|---|---|---|
@@ -141,7 +155,7 @@ names on the Docker network**; the browser never contacts them directly (see
 | `MAILGUN_VALIDATOR_API_KEY` | `pubkey-xxxxxxxx` | API key for Mailgun's email validation API, required if `ENABLE_EMAIL_VALIDATION=1`. | Mailgun dashboard → Settings → API Keys (the public validation key). |
 | `SHOW_MAIL_VALIDATION_RESULT` | `0` | `1` surfaces the validation result to the caller instead of only logging it. | `0` unless debugging validation behavior. |
 
-## 11. Blockchain / network
+## 12. Blockchain / network
 
 | Variable | Example | Effect | How to get a real value |
 |---|---|---|---|
@@ -149,7 +163,7 @@ names on the Docker network**; the browser never contacts them directly (see
 | `BASE_CHAIN_ID` | `8453` | Numeric chain ID matching `BASE_RPC_URL`. | The chain ID for whichever network `BASE_RPC_URL` points at. |
 | `BLOCKCHAIN_NETWORK_PASSPHRASE` | *(network-specific)* | Network passphrase used when constructing/validating blockchain transactions. | Ask the wallet-core/blockchain team for the correct value per network. |
 
-## 12. Legacy Discord error-alert webhooks
+## 13. Legacy Discord error-alert webhooks
 
 Each of these is optional; if unset (or shorter than 50 characters), the
 corresponding alert falls back to a shared, hardcoded Discord webhook already
@@ -165,14 +179,14 @@ in the source — a real value routes alerts to your own channel instead.
 **How to get a real value:** create a webhook on a Discord channel you own
 (Channel Settings → Integrations → Webhooks → New Webhook) and copy its URL.
 
-## 13. Geo / IP lookup
+## 14. Geo / IP lookup
 
 | Variable | Example | Effect | How to get a real value |
 |---|---|---|---|
 | `IPAPI_KEY` | `replace-with-ipapi-key` | API key for the IP-geolocation lookup used to enrich user records (`internal/models/geo.go`). If unset, geo lookup is skipped. | Sign up at [ipapi.com](https://ipapi.com/) (or whichever provider `IPAPI_HOST` points at) and copy your key. |
 | `IPAPI_HOST` | `https://api.ipapi.com/api` | Base URL of the IP-geolocation API. If unset, geo lookup is skipped. | The base URL for your ipapi.com-compatible provider. |
 
-## 14. Misc
+## 15. Misc
 
 | Variable | Example | Effect | How to get a real value |
 |---|---|---|---|
