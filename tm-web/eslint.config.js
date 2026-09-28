@@ -21,7 +21,11 @@ const globals = require("globals");
 // replace it.
 module.exports = [
   {
-    ignores: [".next/**", "out/**", "build/**", "next-env.d.ts"],
+    // public/ holds vendored static assets (e.g. pdf.worker.min.mjs) - not
+    // our source and not covered by the files glob below anyway (.mjs),
+    // so without this it falls through to bare js.configs.recommended
+    // defaults and floods the report with findings against minified code.
+    ignores: [".next/**", "out/**", "build/**", "next-env.d.ts", "public/**"],
   },
   js.configs.recommended,
   {
@@ -68,6 +72,24 @@ module.exports = [
       "react-hooks/exhaustive-deps": "warn",
       "react/jsx-key": "warn",
       "@next/next/no-img-element": "warn",
+      // eslint-plugin-react-hooks 6/7 added a batch of new React Compiler
+      // diagnostic rules to "recommended", all defaulting to "error" - none
+      // of these existed when this config was written, and auditing ~600
+      // newly-surfaced findings across the existing codebase is its own
+      // project, not something to force through a dependency bump. Same
+      // "downgrade to warn, fix incrementally" treatment as above.
+      "react-hooks/static-components": "warn",
+      "react-hooks/use-memo": "warn",
+      "react-hooks/preserve-manual-memoization": "warn",
+      "react-hooks/immutability": "warn",
+      "react-hooks/globals": "warn",
+      "react-hooks/refs": "warn",
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/error-boundaries": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/set-state-in-render": "warn",
+      "react-hooks/config": "warn",
+      "react-hooks/gating": "warn",
     },
   },
 ];
