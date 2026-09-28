@@ -408,14 +408,9 @@ func main() {
 
 	}
 	globalConfig.ChannelOfTokenizedAssetIDs = make(chan string, 10)
-	globalConfig.InUseChannelAccounts = make(map[string]*evmkeypair.Full)
+	globalConfig.ChannelAccountKeysByAddress = make(map[string]*evmkeypair.Full)
 	scas := strings.Split(os.Getenv("CHANNEL_ACCOUNTS"), ",")
 	count := decimal.RequireFromString(os.Getenv("CHANNEL_ACCOUNT_MIN_COUNT")).IntPart()
-	if len(scas) > int(count) {
-		globalConfig.ChannelAccounts = make(chan *evmkeypair.Full, len(scas))
-	} else {
-		globalConfig.ChannelAccounts = make(chan *evmkeypair.Full, count)
-	}
 
 	go func() {
 		var channelAccountsCSV string
@@ -487,7 +482,9 @@ func main() {
 
 				}
 				if os.Getenv("CHECK_CHANNEL_ACCOUNT_BALANCE") == "0" || os.Getenv("CHECK_CHANNEL_ACCOUNT_BALANCE") == "" {
-					globalConfig.ChannelAccounts <- k
+					if errSeed := sharedconfig.SeedChannelAccount(&globalConfig, k); errSeed != nil {
+						log.Printf("[SEED CHANNEL ACCOUNT] error seeding %v: %v\n", k.Address(), errSeed)
+					}
 					continue
 				}
 
@@ -511,7 +508,9 @@ func main() {
 						})
 					}
 				}
-				globalConfig.ChannelAccounts <- k
+				if errSeed := sharedconfig.SeedChannelAccount(&globalConfig, k); errSeed != nil {
+					log.Printf("[SEED CHANNEL ACCOUNT] error seeding %v: %v\n", k.Address(), errSeed)
+				}
 				if len(ops) == 0 {
 					log.Println("NO OPERATIONS for this wallet", k.Address())
 					continue
@@ -570,7 +569,9 @@ func main() {
 				}
 
 				log.Printf("Channel Account to be used:%v\n", k.Address())
-				globalConfig.ChannelAccounts <- k
+				if errSeed := sharedconfig.SeedChannelAccount(&globalConfig, k); errSeed != nil {
+					log.Printf("[SEED CHANNEL ACCOUNT] error seeding %v: %v\n", k.Address(), errSeed)
+				}
 
 				//check minimum balance
 

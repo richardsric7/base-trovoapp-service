@@ -546,10 +546,11 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 
 		}
 	}
-	chanAccount := <-gc.ChannelAccounts
-	defer func(c *evmkeypair.Full) {
-		gc.ChannelAccounts <- c
-	}(chanAccount)
+	chanAccount, releaseChanAccount, errCheckout := sharedconfig.CheckoutChannelAccount(gc)
+	if errCheckout != nil {
+		return "", nil, errCheckout
+	}
+	defer releaseChanAccount()
 	// paymentInfo.Messages = messages
 	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 	_, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, sourceWallet.ID, asset)
@@ -970,10 +971,11 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 
 	// }
 
-	chanAccount := <-gc.ChannelAccounts
-	defer func(c *evmkeypair.Full) {
-		gc.ChannelAccounts <- c
-	}(chanAccount)
+	chanAccount, releaseChanAccount, errCheckout := sharedconfig.CheckoutChannelAccount(gc)
+	if errCheckout != nil {
+		return "", nil, errCheckout
+	}
+	defer releaseChanAccount()
 	// paymentInfo.Messages = messages
 	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 	_, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, sourceWallet.ID, asset)

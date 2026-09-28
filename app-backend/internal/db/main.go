@@ -227,6 +227,12 @@ func MigrateDB(gormDB *gorm.DB) {
 // the lock above is held - unchanged from before other than the rename.
 func runSchemaMigration(gormDB *gorm.DB) {
 	{
+		errMigrate := gormDB.AutoMigrate(&sharedConfig.ChannelAccount{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ChannelAccount: ", errMigrate)
+		}
+	}
+	{
 		renameAssetIssuerColumns(gormDB)
 		errMigrate := gormDB.AutoMigrate(&users.User{})
 		if errMigrate != nil {

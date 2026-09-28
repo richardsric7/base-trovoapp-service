@@ -480,10 +480,11 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 	appliedCharge := decimal.NewFromFloat(0)
 	swapInfo.Messages = messages
 	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
-	chanAccount := <-gc.ChannelAccounts
-	defer func(c *evmkeypair.Full) {
-		gc.ChannelAccounts <- c
-	}(chanAccount)
+	chanAccount, releaseChanAccount, errCheckout := sharedconfig.CheckoutChannelAccount(gc)
+	if errCheckout != nil {
+		return "", errCheckout
+	}
+	defer releaseChanAccount()
 
 	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 
@@ -864,10 +865,11 @@ func generateSwapReceiveXdr(wallet *userModels.UserWallet, swapInfo *swapModels.
 	appliedCharge := decimal.NewFromFloat(0)
 	swapInfo.Messages = messages
 	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
-	chanAccount := <-gc.ChannelAccounts
-	defer func(c *evmkeypair.Full) {
-		gc.ChannelAccounts <- c
-	}(chanAccount)
+	chanAccount, releaseChanAccount, errCheckout := sharedconfig.CheckoutChannelAccount(gc)
+	if errCheckout != nil {
+		return "", nil, errCheckout
+	}
+	defer releaseChanAccount()
 
 	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 
