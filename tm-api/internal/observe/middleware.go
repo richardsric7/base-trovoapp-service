@@ -196,7 +196,7 @@ func reportServerError(c *gin.Context, status int) {
 	// response itself; attach them so the issue carries the real cause rather
 	// than just a status code.
 	if errs := c.Errors.Errors(); len(errs) > 0 {
-		hub.Scope().SetExtra("errors", errs)
+		hub.Scope().SetContext("errors", sentry.Context{"list": errs})
 	}
 	hub.CaptureException(fmt.Errorf("%d on %s %s", status, c.Request.Method, route))
 }

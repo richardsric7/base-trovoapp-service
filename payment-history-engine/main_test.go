@@ -351,7 +351,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	tsString := fmt.Sprintf("%v", ts)
 	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 		return
 
 	}
@@ -379,7 +379,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestSendPaymentMultiAccessDisabled]request error:", err)
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 
 		return
 	}
@@ -397,7 +397,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 			dsigned, err := middleware.SignBase64Txn(ckp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
 				log.Println("[TestSendPaymentMultiAccessDisabled]request error:", err)
-				t.Errorf(err.Error())
+				t.Errorf("%s", err.Error())
 
 				return
 			}
@@ -407,7 +407,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 		signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestSendPaymentMultiAccessDisabled] makePayment error:", err)
-			t.Errorf(err.Error())
+			t.Errorf("%s", err.Error())
 
 			return
 		}
@@ -418,7 +418,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 		tsString := fmt.Sprintf("%v", ts)
 		signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Errorf("%s", err.Error())
 			return
 
 		}
@@ -430,7 +430,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 			Base(baseURL).
 			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Errorf("%s", err.Error())
 			return
 
 		}

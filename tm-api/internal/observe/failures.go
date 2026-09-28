@@ -110,7 +110,7 @@ func RecordHandledFailure(msg string) {
 	hub.Scope().SetLevel(sentry.LevelError)
 	// The title is the operation alone so the issue groups on it; the full
 	// message goes in context, where scrubbing still applies.
-	hub.Scope().SetExtra("message", msg)
+	hub.Scope().SetContext("message", sentry.Context{"value": msg})
 	hub.CaptureException(fmt.Errorf("handled failure in %s", operation))
 }
 

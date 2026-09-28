@@ -683,7 +683,7 @@ func inviteUserFlow(s *serverModels.Server, payload InviteOrgAdminPayload, admin
 	var invitedRootUser models.OrganizationMember
 	if err := s.AdminDB.Where("email = ?", payload.AdminEmail).First(&invitedRootUser).Error; err == nil {
 		msg := fmt.Sprintf("This ROOT admin already exists with role %s", invitedRootUser.Role)
-		return nil, fmt.Errorf(msg)
+		return nil, fmt.Errorf("%s", msg)
 	}
 
 	// Generate organization ID
@@ -767,7 +767,7 @@ func inviteUserFlow(s *serverModels.Server, payload InviteOrgAdminPayload, admin
 	if err != nil {
 		log.Println("Error sending organization invite email:", err)
 		msg := fmt.Sprintf("Failed to send invitation email to %s: %v", payload.AdminEmail, err)
-		return nil, fmt.Errorf(msg)
+		return nil, fmt.Errorf("%s", msg)
 	}
 
 	inviteUserFlowStruct := &models.InviteUserFlowStruct{

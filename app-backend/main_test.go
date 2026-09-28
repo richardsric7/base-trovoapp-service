@@ -574,7 +574,7 @@ func TestCreateAccount(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestCreateAccount] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -635,7 +635,7 @@ func TestRequestAccountRecoveryEmailOTP(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestRequestEmailOTP] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -695,7 +695,7 @@ func TestEnableAccountRecovery(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestAccountEnableRecovery] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -799,7 +799,7 @@ func TestDisableAccountRecovery(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestAccountDisableRecovery] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -849,7 +849,7 @@ func TestDisableAccountRecovery(t *testing.T) {
 			Delete(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
 		if len(errorResponse.Error) > 0 {
 			log.Println("[TestAccountDisableRecovery] server response error:", *errorResponse)
-			t.Errorf(errorResponse.Error)
+			t.Errorf("%s", errorResponse.Error)
 			return
 
 		}
@@ -921,7 +921,7 @@ func TestDoAccountRecovery(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestDoAccountRecovery] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -957,7 +957,7 @@ func TestDoAccountRecovery(t *testing.T) {
 			Post(fullPath).BodyJSON(p).Receive(rResponse, errorResponse)
 		if len(errorResponse.Error) > 0 {
 			log.Println("[TestDoAccountRecovery] server response error:", *errorResponse)
-			t.Errorf(errorResponse.Error)
+			t.Errorf("%s", errorResponse.Error)
 			return
 
 		}
@@ -1026,7 +1026,7 @@ func TestAccountSetSecurityAnswer(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestAccountSetSecretAnswer] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -1513,7 +1513,7 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestSendPaymentFromSubWalletMultiAccessDisabled] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -1634,7 +1634,7 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestSendPaymentWithSharedAccessEnabled] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -2027,7 +2027,7 @@ func TestCreateSharedAccess(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestCreateSharedAccess] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -2074,7 +2074,7 @@ func TestCreateSharedAccess(t *testing.T) {
 			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
 		if len(errorResponse.Error) > 0 {
 			log.Println("[TestCreateSharedAccess] server 2nd response error:", *errorResponse)
-			t.Errorf(errorResponse.Error)
+			t.Errorf("%s", errorResponse.Error)
 			return
 
 		}
@@ -2168,7 +2168,7 @@ func TestCreateSharedAccessWithApprover(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestCreateSharedAccess] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -2215,7 +2215,7 @@ func TestCreateSharedAccessWithApprover(t *testing.T) {
 			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
 		if len(errorResponse.Error) > 0 {
 			log.Println("[TestCreateSharedAccess] server 2nd response error:", *errorResponse)
-			t.Errorf(errorResponse.Error)
+			t.Errorf("%s", errorResponse.Error)
 			return
 
 		}
@@ -2283,7 +2283,7 @@ func TestRemoveSharedAccessOnReadOnly(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestRemoveSharedAccessOnReadOnly] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -2330,7 +2330,7 @@ func TestRemoveSharedAccessOnReadOnly(t *testing.T) {
 			Delete(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
 		if len(errorResponse.Error) > 0 {
 			log.Println("[TestRemoveSharedAccessOnReadOnly] server 2nd response error:", *errorResponse)
-			t.Errorf(errorResponse.Error)
+			t.Errorf("%s", errorResponse.Error)
 			return
 
 		}
@@ -2450,7 +2450,7 @@ func TestModifySharedAccess(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestModifySharedAccessWithApprover] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -2498,7 +2498,7 @@ func TestModifySharedAccess(t *testing.T) {
 			Put(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
 		if len(errorResponse.Error) > 0 {
 			log.Println("[TestModifySharedAccessWithApprover] server 2nd response error:", *errorResponse)
-			t.Errorf(errorResponse.Error)
+			t.Errorf("%s", errorResponse.Error)
 			return
 
 		}
@@ -2566,7 +2566,7 @@ func TestRemoveSharedAccessWithApprover(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestRemoveSharedAccessWithApprover] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -2613,7 +2613,7 @@ func TestRemoveSharedAccessWithApprover(t *testing.T) {
 			Delete(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
 		if len(errorResponse.Error) > 0 {
 			log.Println("[TestRemoveSharedAccessWithApprover] server 2nd response error:", *errorResponse)
-			t.Errorf(errorResponse.Error)
+			t.Errorf("%s", errorResponse.Error)
 			return
 
 		}
@@ -2690,7 +2690,7 @@ func TestGetApproveTransaction(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestGetApproveTransaction] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -2766,7 +2766,7 @@ func TestApproveTransaction(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestApproveTransaction] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -2812,7 +2812,7 @@ func TestApproveTransaction(t *testing.T) {
 			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
 		if len(errorResponse.Error) > 0 {
 			log.Println("[TestApproveTransaction] server 2nd response error:", *errorResponse)
-			t.Errorf(errorResponse.Error)
+			t.Errorf("%s", errorResponse.Error)
 			return
 
 		}
@@ -2889,7 +2889,7 @@ func TestRejectTransaction(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestRejectTransaction] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -3010,7 +3010,7 @@ func TestCreateMarketOffer(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestCreateMarketOffer] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -3066,7 +3066,7 @@ func TestCreateMarketOffer(t *testing.T) {
 		}
 		if len(errorResponse.Error) > 0 {
 			log.Println("[TestCreateMarketOffer] server 2nd response error:", *errorResponse)
-			t.Errorf(errorResponse.Error)
+			t.Errorf("%s", errorResponse.Error)
 			return
 
 		}
@@ -3123,7 +3123,7 @@ func TestGenerateCryptoDepositAddress(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestGenerateCryptoDepositAddress] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -3193,7 +3193,7 @@ func TestCreateWithdrawalRequest(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestCreateWithdrawalRequest] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -3251,7 +3251,7 @@ func TestCreateWithdrawalRequest(t *testing.T) {
 		}
 		if len(errorResponse.Error) > 0 {
 			log.Println("[TestCreateWithdrawalRequest] server 2nd response error:", *errorResponse)
-			t.Errorf(errorResponse.Error)
+			t.Errorf("%s", errorResponse.Error)
 			return
 
 		}
@@ -3322,7 +3322,7 @@ func TestCreateWithdrawalRequestShared(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestCreateWithdrawalRequestShared] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -3380,7 +3380,7 @@ func TestCreateWithdrawalRequestShared(t *testing.T) {
 		}
 		if len(errorResponse.Error) > 0 {
 			log.Println("[TestCreateWithdrawalRequestShared] server 2nd response error:", *errorResponse)
-			t.Errorf(errorResponse.Error)
+			t.Errorf("%s", errorResponse.Error)
 			return
 
 		}
@@ -3444,7 +3444,7 @@ func TestPatronSubscription(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestPatronSubscription] server response error:", *errorResponse)
-		t.Errorf(errorResponse.Error)
+		t.Errorf("%s", errorResponse.Error)
 		return
 
 	}
@@ -3499,7 +3499,7 @@ func TestPatronSubscription(t *testing.T) {
 		}
 		if len(errorResponse.Error) > 0 {
 			log.Println("[TestPatronSubscription] server 2nd response error:", *errorResponse)
-			t.Errorf(errorResponse.Error)
+			t.Errorf("%s", errorResponse.Error)
 			return
 
 		}
