@@ -338,10 +338,7 @@ class _WalletDetailsState extends State<WalletDetails>
                     height: height / 1.76,
                     child: ReorderableListView(
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
-                      onReorder: (oldIndex, newIndex) {
-                        if (oldIndex < newIndex) {
-                          newIndex -= 1;
-                        }
+                      onReorderItem: (oldIndex, newIndex) {
                         final Asset item = tokenizedAssets.removeAt(oldIndex);
                         tokenizedAssets.insert(newIndex, item);
                         setState(() {});
@@ -529,10 +526,7 @@ class _WalletDetailsState extends State<WalletDetails>
                               height: height / 1.76,
                               child: ReorderableListView(
                                 padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
-                                onReorder: (oldIndex, newIndex) {
-                                  if (oldIndex < newIndex) {
-                                    newIndex -= 1;
-                                  }
+                                onReorderItem: (oldIndex, newIndex) {
                                   final Asset item = otherTokens.removeAt(
                                     oldIndex,
                                   );

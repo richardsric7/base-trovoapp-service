@@ -472,72 +472,68 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ),
               ),
               SizedBox(height: height / 50),
-              Column(
-                children: [
-                  Row(
-                    children: [
-                      SizedBox(
-                        height: 20,
-                        child: Transform.scale(
-                          scale: 1,
-                          child: Radio<bool>(
-                            value: true,
-                            activeColor: notifier.getbluewhitecolor,
-                            fillColor: WidgetStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor,
+              RadioGroup<bool>(
+                groupValue: assetExisting,
+                onChanged: (value) => {
+                  setState(() {
+                    assetExisting = value!;
+                  }),
+                },
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        SizedBox(
+                          height: 20,
+                          child: Transform.scale(
+                            scale: 1,
+                            child: Radio<bool>(
+                              value: true,
+                              activeColor: notifier.getbluewhitecolor,
+                              fillColor: WidgetStateColor.resolveWith(
+                                (states) => notifier.getbluewhitecolor,
+                              ),
                             ),
-                            groupValue: assetExisting,
-                            onChanged: (value) => {
-                              setState(() {
-                                assetExisting = value!;
-                              }),
-                            },
                           ),
                         ),
-                      ),
-                      Text(
-                        "assetexisting".tr(),
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: height / 70),
-                  Row(
-                    children: [
-                      SizedBox(
-                        height: 20,
-                        child: Transform.scale(
-                          scale: 1,
-                          child: Radio<bool>(
-                            value: false,
-                            groupValue: assetExisting,
-                            activeColor: notifier.getbluewhitecolor,
-                            fillColor: WidgetStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor,
-                            ),
-                            onChanged: (value) => {
-                              setState(() {
-                                assetExisting = value!;
-                              }),
-                            },
+                        Text(
+                          "assetexisting".tr(),
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
                           ),
                         ),
-                      ),
-                      Text(
-                        "assetnotyetexisting".tr(),
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
+                      ],
+                    ),
+                    SizedBox(height: height / 70),
+                    Row(
+                      children: [
+                        SizedBox(
+                          height: 20,
+                          child: Transform.scale(
+                            scale: 1,
+                            child: Radio<bool>(
+                              value: false,
+                              activeColor: notifier.getbluewhitecolor,
+                              fillColor: WidgetStateColor.resolveWith(
+                                (states) => notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        Text(
+                          "assetnotyetexisting".tr(),
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               SizedBox(height: height / 30),
               Padding(
@@ -571,104 +567,94 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ),
               ),
               SizedBox(height: height / 50),
-              Column(
-                children: [
-                  Row(
-                    children: [
-                      SizedBox(
-                        height: 20,
-                        child: Transform.scale(
-                          scale: 1,
-                          child: Radio<int>(
-                            value: 0,
-                            activeColor: notifier.getbluewhitecolor,
-                            fillColor: WidgetStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor,
+              RadioGroup<int>(
+                groupValue: fundingStructure,
+                onChanged: (value) => {
+                  setState(() {
+                    fundingStructure = value!;
+                  }),
+                },
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        SizedBox(
+                          height: 20,
+                          child: Transform.scale(
+                            scale: 1,
+                            child: Radio<int>(
+                              value: 0,
+                              activeColor: notifier.getbluewhitecolor,
+                              fillColor: WidgetStateColor.resolveWith(
+                                (states) => notifier.getbluewhitecolor,
+                              ),
                             ),
-                            groupValue: fundingStructure,
-                            onChanged: (value) => {
-                              setState(() {
-                                fundingStructure = value!;
-                              }),
-                            },
                           ),
                         ),
-                      ),
-                      Text(
-                        "Equity",
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: height / 70),
-                  Row(
-                    children: [
-                      SizedBox(
-                        height: 20,
-                        child: Transform.scale(
-                          scale: 1,
-                          child: Radio<int>(
-                            value: 1,
-                            groupValue: fundingStructure,
-                            activeColor: notifier.getbluewhitecolor,
-                            fillColor: WidgetStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor,
-                            ),
-                            onChanged: (value) => {
-                              setState(() {
-                                fundingStructure = value!;
-                              }),
-                            },
+                        Text(
+                          "Equity",
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
                           ),
                         ),
-                      ),
-                      Text(
-                        "Debt",
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: height / 70),
-                  Row(
-                    children: [
-                      SizedBox(
-                        height: 20,
-                        child: Transform.scale(
-                          scale: 1,
-                          child: Radio<int>(
-                            value: 2,
-                            groupValue: fundingStructure,
-                            activeColor: notifier.getbluewhitecolor,
-                            fillColor: WidgetStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor,
+                      ],
+                    ),
+                    SizedBox(height: height / 70),
+                    Row(
+                      children: [
+                        SizedBox(
+                          height: 20,
+                          child: Transform.scale(
+                            scale: 1,
+                            child: Radio<int>(
+                              value: 1,
+                              activeColor: notifier.getbluewhitecolor,
+                              fillColor: WidgetStateColor.resolveWith(
+                                (states) => notifier.getbluewhitecolor,
+                              ),
                             ),
-                            onChanged: (value) => {
-                              setState(() {
-                                fundingStructure = value!;
-                              }),
-                            },
                           ),
                         ),
-                      ),
-                      Text(
-                        "Hybrid",
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
+                        Text(
+                          "Debt",
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                    SizedBox(height: height / 70),
+                    Row(
+                      children: [
+                        SizedBox(
+                          height: 20,
+                          child: Transform.scale(
+                            scale: 1,
+                            child: Radio<int>(
+                              value: 2,
+                              activeColor: notifier.getbluewhitecolor,
+                              fillColor: WidgetStateColor.resolveWith(
+                                (states) => notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Text(
+                          "Hybrid",
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               SizedBox(height: height / 50),
               if (fundingStructure == 2) ...[
@@ -1012,65 +998,61 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ),
               ),
             ),
-            Row(
-              children: [
-                Row(
-                  children: [
-                    Transform.scale(
-                      scale: 1,
-                      child: Radio<bool>(
-                        value: true,
-                        groupValue: hasAllRequiredManagerDocuments,
-                        activeColor: notifier.getbluewhitecolor,
-                        fillColor: WidgetStateColor.resolveWith(
-                          (states) => notifier.getbluewhitecolor,
+            RadioGroup<bool>(
+              groupValue: hasAllRequiredManagerDocuments,
+              onChanged: (value) => {
+                setState(() {
+                  hasAllRequiredManagerDocuments = value!;
+                }),
+              },
+              child: Row(
+                children: [
+                  Row(
+                    children: [
+                      Transform.scale(
+                        scale: 1,
+                        child: Radio<bool>(
+                          value: true,
+                          activeColor: notifier.getbluewhitecolor,
+                          fillColor: WidgetStateColor.resolveWith(
+                            (states) => notifier.getbluewhitecolor,
+                          ),
                         ),
-                        onChanged: (value) => {
-                          setState(() {
-                            hasAllRequiredManagerDocuments = value!;
-                          }),
-                        },
                       ),
-                    ),
-                    Text(
-                      "yes".tr(),
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Transform.scale(
-                      scale: 1,
-                      child: Radio<bool>(
-                        value: false,
-                        activeColor: notifier.getbluewhitecolor,
-                        fillColor: WidgetStateColor.resolveWith(
-                          (states) => notifier.getbluewhitecolor,
+                      Text(
+                        "yes".tr(),
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
                         ),
-                        groupValue: hasAllRequiredManagerDocuments,
-                        onChanged: (value) => {
-                          setState(() {
-                            hasAllRequiredManagerDocuments = value!;
-                          }),
-                        },
                       ),
-                    ),
-                    Text(
-                      "no".tr(),
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Transform.scale(
+                        scale: 1,
+                        child: Radio<bool>(
+                          value: false,
+                          activeColor: notifier.getbluewhitecolor,
+                          fillColor: WidgetStateColor.resolveWith(
+                            (states) => notifier.getbluewhitecolor,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      Text(
+                        "no".tr(),
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
             SizedBox(height: height / 30),
             Row(

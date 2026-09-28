@@ -179,7 +179,7 @@ class _LoginState extends State<Login> {
                                   dropdownColor: notifier.isDark
                                       ? darktilewhitecolor
                                       : notifier.getaddsubwalletgrey,
-                                  value: appState.walletMode,
+                                  initialValue: appState.walletMode,
                                   icon: Icon(Icons.keyboard_arrow_down_rounded),
                                   decoration: InputDecoration(
                                     contentPadding: EdgeInsets.symmetric(

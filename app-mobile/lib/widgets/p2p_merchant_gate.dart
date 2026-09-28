@@ -90,7 +90,7 @@ class _P2PMerchantGateState extends State<P2PMerchantGate> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.storefront_outlined, size: 48, color: P2PTheme.warning.withOpacity(0.6)),
+            Icon(Icons.storefront_outlined, size: 48, color: P2PTheme.warning.withValues(alpha: 0.6)),
             const SizedBox(height: P2PTheme.space4),
             Text(
               'p2ponlymerchants'.tr(),

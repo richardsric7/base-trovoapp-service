@@ -424,6 +424,6 @@ class _BuyTokensReceipt extends State<BuyTokensReceipt>
       ],
     );
 
-    Share.share(shareString);
+    SharePlus.instance.share(ShareParams(text: shareString));
   }
 }

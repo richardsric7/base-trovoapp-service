@@ -455,7 +455,7 @@ class _SettingsState extends State<Settings> {
                       dropdownColor: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
-                      value: appState.walletMode,
+                      initialValue: appState.walletMode,
                       icon: Visibility(
                         visible: false,
                         child: Icon(Icons.arrow_downward),
@@ -542,7 +542,7 @@ class _SettingsState extends State<Settings> {
                       dropdownColor: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
-                      value: appState.timeout,
+                      initialValue: appState.timeout,
                       icon: Visibility(
                         visible: false,
                         child: Icon(Icons.arrow_downward),
@@ -669,7 +669,7 @@ class _SettingsState extends State<Settings> {
                       dropdownColor: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
-                      value: appState.defaultCurrency,
+                      initialValue: appState.defaultCurrency,
                       icon: Visibility(
                         visible: false,
                         child: Icon(Icons.arrow_downward),
@@ -747,7 +747,7 @@ class _SettingsState extends State<Settings> {
                       dropdownColor: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
-                      value: appState.defaultLanguage,
+                      initialValue: appState.defaultLanguage,
                       icon: Visibility(
                         visible: false,
                         child: Icon(Icons.arrow_downward),
@@ -888,7 +888,7 @@ class _SettingsState extends State<Settings> {
             Transform.scale(
               scale: 0.7,
               child: CupertinoSwitch(
-                activeColor: notifier.getgreencolor,
+                activeTrackColor: notifier.getgreencolor,
                 value: appState.biometricEnabled,
                 onChanged: (val) async {
                   toggleBiometrics();
@@ -929,7 +929,7 @@ class _SettingsState extends State<Settings> {
             Transform.scale(
               scale: 0.7,
               child: CupertinoSwitch(
-                activeColor: notifier.getgreencolor,
+                activeTrackColor: notifier.getgreencolor,
                 value: appState.hideBalances,
                 onChanged: (val) async {
                   if (val)

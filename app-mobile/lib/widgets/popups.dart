@@ -5759,70 +5759,70 @@ addSubWalletPopup(context) async {
                           ),
                         ),
                         SizedBox(height: 15),
-                        Row(
-                          children: [
-                            SizedBox(width: width / 10),
-                            SizedBox(
-                              height: 20,
-                              child: Transform.scale(
-                                scale: 1.3,
-                                child: Radio<WalletAction>(
-                                  value: WalletAction.import,
-                                  groupValue: action,
-                                  activeColor: notifier.getbluewhitecolor,
-                                  fillColor: MaterialStateColor.resolveWith(
-                                    (states) => notifier.getbluewhitecolor,
+                        RadioGroup<WalletAction>(
+                          groupValue: action,
+                          onChanged: (value) => {
+                            setStateForDialog(() {
+                              action = value;
+                            }),
+                          },
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  SizedBox(width: width / 10),
+                                  SizedBox(
+                                    height: 20,
+                                    child: Transform.scale(
+                                      scale: 1.3,
+                                      child: Radio<WalletAction>(
+                                        value: WalletAction.import,
+                                        activeColor: notifier.getbluewhitecolor,
+                                        fillColor: WidgetStateColor.resolveWith(
+                                          (states) => notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                  onChanged: (value) => {
-                                    setStateForDialog(() {
-                                      action = value;
-                                    }),
-                                  },
-                                ),
-                              ),
-                            ),
-                            Text(
-                              "importexistingwallet".tr(),
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontFamily: fontsemibold,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 15),
-                        Row(
-                          children: [
-                            SizedBox(width: width / 10),
-                            SizedBox(
-                              height: 20,
-                              child: Transform.scale(
-                                scale: 1.3,
-                                child: Radio<WalletAction>(
-                                  value: WalletAction.createNew,
-                                  activeColor: notifier.getbluewhitecolor,
-                                  fillColor: MaterialStateColor.resolveWith(
-                                    (states) => notifier.getbluewhitecolor,
+                                  Text(
+                                    "importexistingwallet".tr(),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
                                   ),
-                                  groupValue: action,
-                                  onChanged: (value) => {
-                                    setStateForDialog(() {
-                                      action = value;
-                                    }),
-                                  },
-                                ),
+                                ],
                               ),
-                            ),
-                            Text(
-                              "createnewwallet".tr(),
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontFamily: fontsemibold,
-                                color: notifier.getbluewhitecolor,
+                              SizedBox(height: 15),
+                              Row(
+                                children: [
+                                  SizedBox(width: width / 10),
+                                  SizedBox(
+                                    height: 20,
+                                    child: Transform.scale(
+                                      scale: 1.3,
+                                      child: Radio<WalletAction>(
+                                        value: WalletAction.createNew,
+                                        activeColor: notifier.getbluewhitecolor,
+                                        fillColor: WidgetStateColor.resolveWith(
+                                          (states) => notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    "createnewwallet".tr(),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         SizedBox(height: 15),
                         Padding(

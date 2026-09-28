@@ -3161,65 +3161,61 @@ class _AssetInformation extends State<AssetInformation>
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Transform.scale(
-                            scale: 1,
-                            child: Radio<bool>(
-                              value: true,
-                              groupValue: trusteeAppointed,
-                              activeColor: notifier.getbluewhitecolor,
-                              fillColor: WidgetStateColor.resolveWith(
-                                (states) => notifier.getbluewhitecolor,
+                  child: RadioGroup<bool>(
+                    groupValue: trusteeAppointed,
+                    onChanged: (value) => {
+                      setState(() {
+                        trusteeAppointed = value!;
+                      }),
+                    },
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Transform.scale(
+                              scale: 1,
+                              child: Radio<bool>(
+                                value: true,
+                                activeColor: notifier.getbluewhitecolor,
+                                fillColor: WidgetStateColor.resolveWith(
+                                  (states) => notifier.getbluewhitecolor,
+                                ),
                               ),
-                              onChanged: (value) => {
-                                setState(() {
-                                  trusteeAppointed = value!;
-                                }),
-                              },
                             ),
-                          ),
-                          Text(
-                            "yes".tr(),
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Transform.scale(
-                            scale: 1,
-                            child: Radio<bool>(
-                              value: false,
-                              activeColor: notifier.getbluewhitecolor,
-                              fillColor: WidgetStateColor.resolveWith(
-                                (states) => notifier.getbluewhitecolor,
+                            Text(
+                              "yes".tr(),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
                               ),
-                              groupValue: trusteeAppointed,
-                              onChanged: (value) => {
-                                setState(() {
-                                  trusteeAppointed = value!;
-                                }),
-                              },
                             ),
-                          ),
-                          Text(
-                            "no".tr(),
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Transform.scale(
+                              scale: 1,
+                              child: Radio<bool>(
+                                value: false,
+                                activeColor: notifier.getbluewhitecolor,
+                                fillColor: WidgetStateColor.resolveWith(
+                                  (states) => notifier.getbluewhitecolor,
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            Text(
+                              "no".tr(),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 SizedBox(height: height / 50),
@@ -3291,65 +3287,61 @@ class _AssetInformation extends State<AssetInformation>
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Transform.scale(
-                            scale: 1,
-                            child: Radio<bool>(
-                              value: true,
-                              groupValue: reserveFundInPlace,
-                              activeColor: notifier.getbluewhitecolor,
-                              fillColor: WidgetStateColor.resolveWith(
-                                (states) => notifier.getbluewhitecolor,
+                  child: RadioGroup<bool>(
+                    groupValue: reserveFundInPlace,
+                    onChanged: (value) => {
+                      setState(() {
+                        reserveFundInPlace = value!;
+                      }),
+                    },
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Transform.scale(
+                              scale: 1,
+                              child: Radio<bool>(
+                                value: true,
+                                activeColor: notifier.getbluewhitecolor,
+                                fillColor: WidgetStateColor.resolveWith(
+                                  (states) => notifier.getbluewhitecolor,
+                                ),
                               ),
-                              onChanged: (value) => {
-                                setState(() {
-                                  reserveFundInPlace = value!;
-                                }),
-                              },
                             ),
-                          ),
-                          Text(
-                            "yes".tr(),
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Transform.scale(
-                            scale: 1,
-                            child: Radio<bool>(
-                              value: false,
-                              activeColor: notifier.getbluewhitecolor,
-                              fillColor: WidgetStateColor.resolveWith(
-                                (states) => notifier.getbluewhitecolor,
+                            Text(
+                              "yes".tr(),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
                               ),
-                              groupValue: reserveFundInPlace,
-                              onChanged: (value) => {
-                                setState(() {
-                                  reserveFundInPlace = value!;
-                                }),
-                              },
                             ),
-                          ),
-                          Text(
-                            "no".tr(),
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Transform.scale(
+                              scale: 1,
+                              child: Radio<bool>(
+                                value: false,
+                                activeColor: notifier.getbluewhitecolor,
+                                fillColor: WidgetStateColor.resolveWith(
+                                  (states) => notifier.getbluewhitecolor,
+                                ),
+                              ),
                             ),
+                            Text(
+                              "no".tr(),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
+                              ),
                           ),
                         ],
                       ),
                     ],
+                  ),
                   ),
                 ),
                 if (reserveFundInPlace) ...[

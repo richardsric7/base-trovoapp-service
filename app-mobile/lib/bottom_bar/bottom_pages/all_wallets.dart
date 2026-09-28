@@ -184,7 +184,7 @@ class _AllWalletsView extends State<AllWalletsView>
                                   ? darktilewhitecolor
                                   : notifier.getaddsubwalletgrey,
                             ),
-                            value: selectedWalletMode,
+                            initialValue: selectedWalletMode,
                             icon: Icon(
                               Icons.keyboard_arrow_down_rounded,
                               color: notifier.getbluewhitecolor,
@@ -636,63 +636,63 @@ class _AllWalletsView extends State<AllWalletsView>
                       ),
                     ),
                     SizedBox(height: height / 50),
-                    Row(
-                      children: [
-                        SizedBox(width: width / 10),
-                        Transform.scale(
-                          scale: 1.5,
-                          child: Radio<WalletAction>(
-                            value: WalletAction.import,
-                            groupValue: action,
-                            activeColor: notifier.getbluewhitecolor,
-                            fillColor: MaterialStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor,
-                            ),
-                            onChanged: (value) => {
-                              setState(() {
-                                action = value;
-                              }),
-                            },
+                    RadioGroup<WalletAction>(
+                      groupValue: action,
+                      onChanged: (value) => {
+                        setState(() {
+                          action = value;
+                        }),
+                      },
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              SizedBox(width: width / 10),
+                              Transform.scale(
+                                scale: 1.5,
+                                child: Radio<WalletAction>(
+                                  value: WalletAction.import,
+                                  activeColor: notifier.getbluewhitecolor,
+                                  fillColor: WidgetStateColor.resolveWith(
+                                    (states) => notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                "importexistingwallet".tr(),
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        Text(
-                          "importexistingwallet".tr(),
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
+                          Row(
+                            children: [
+                              SizedBox(width: width / 10),
+                              Transform.scale(
+                                scale: 1.5,
+                                child: Radio<WalletAction>(
+                                  value: WalletAction.createNew,
+                                  activeColor: notifier.getbluewhitecolor,
+                                  fillColor: WidgetStateColor.resolveWith(
+                                    (states) => notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                "createnewwallet".tr(),
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        SizedBox(width: width / 10),
-                        Transform.scale(
-                          scale: 1.5,
-                          child: Radio<WalletAction>(
-                            value: WalletAction.createNew,
-                            activeColor: notifier.getbluewhitecolor,
-                            fillColor: MaterialStateColor.resolveWith(
-                              (states) => notifier.getbluewhitecolor,
-                            ),
-                            groupValue: action,
-                            onChanged: (value) => {
-                              setState(() {
-                                action = value;
-                              }),
-                            },
-                          ),
-                        ),
-                        Text(
-                          "createnewwallet".tr(),
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     SizedBox(height: height / 50),
                     Column(

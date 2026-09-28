@@ -168,7 +168,7 @@ class _P2PMyOffersViewState extends State<P2PMyOffersView> {
                                 if (!isClosed)
                                   Switch(
                                     value: o.isOnline,
-                                    activeColor: P2PTheme.success,
+                                    activeThumbColor: P2PTheme.success,
                                     onChanged: (_) => _toggle(o),
                                   ),
                               ],
@@ -223,9 +223,9 @@ class _P2PMyOffersViewState extends State<P2PMyOffersView> {
       child: Container(
         padding: const EdgeInsets.all(P2PTheme.space4),
         decoration: BoxDecoration(
-          color: online ? Colors.white : P2PTheme.danger.withOpacity(0.08),
+          color: online ? Colors.white : P2PTheme.danger.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(P2PTheme.cardRadius),
-          border: online ? null : Border.all(color: P2PTheme.danger.withOpacity(0.3)),
+          border: online ? null : Border.all(color: P2PTheme.danger.withValues(alpha: 0.3)),
           boxShadow: online ? P2PTheme.cardShadow : null,
         ),
         child: Row(
@@ -248,7 +248,7 @@ class _P2PMyOffersViewState extends State<P2PMyOffersView> {
             ),
             Switch(
               value: online,
-              activeColor: P2PTheme.success,
+              activeThumbColor: P2PTheme.success,
               onChanged: togglingMerchant ? null : (_) => _toggleMerchantOnline(),
             ),
           ],

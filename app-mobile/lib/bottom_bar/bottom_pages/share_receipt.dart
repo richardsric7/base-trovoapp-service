@@ -582,6 +582,6 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
         );
     }
 
-    Share.share(shareString);
+    SharePlus.instance.share(ShareParams(text: shareString));
   }
 }

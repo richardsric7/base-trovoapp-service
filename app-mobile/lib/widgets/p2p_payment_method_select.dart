@@ -102,7 +102,7 @@ class _P2PPaymentMethodSelectState extends State<P2PPaymentMethodSelect> {
               borderRadius: BorderRadius.circular(P2PTheme.space2),
             ),
             child: DropdownButtonFormField<String>(
-              value: addingNew ? _addNew : widget.value,
+              initialValue: addingNew ? _addNew : widget.value,
               isExpanded: true,
               decoration: InputDecoration(
                 hintText: 'p2pselectpaymentmethod'.tr(),

@@ -175,7 +175,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                 width: width / 1.6,
                 child: DropdownButtonFormField<String>(
                   isExpanded: true,
-                  value: selectedAsset,
+                  initialValue: selectedAsset,
                   dropdownColor: notifier.isDark
                       ? darktilewhitecolor
                       : notifier.getaddsubwalletgrey,

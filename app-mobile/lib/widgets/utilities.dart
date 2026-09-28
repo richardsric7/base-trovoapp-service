@@ -459,7 +459,7 @@ Widget iconDropdown(
             ? darktilewhitecolor
             : notifier.getaddsubwalletgrey,
       ),
-      value: value,
+      initialValue: value,
       hint: Icon(
         Icons.filter_list_outlined,
         color: notifier.getbluewhitecolor,
@@ -550,7 +550,7 @@ Widget dropdown(
                   ? darktilewhitecolor
                   : notifier.getaddsubwalletgrey,
             ),
-            value: value,
+            initialValue: value,
             icon: onChanged == null
                 ? null
                 : Icon(
@@ -641,10 +641,12 @@ Future<void> sharePDF(String message, GlobalKey snapshotAreaKey) async {
 
   File file = await File(fileName).create();
   file.writeAsBytesSync(await pdf.save());
-  await Share.shareXFiles(
-    [XFile(fileName)],
-    text: message,
-    sharePositionOrigin: boundary.paintBounds,
+  await SharePlus.instance.share(
+    ShareParams(
+      files: [XFile(fileName)],
+      text: message,
+      sharePositionOrigin: boundary.paintBounds,
+    ),
   );
 }
 

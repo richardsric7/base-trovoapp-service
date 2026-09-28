@@ -150,9 +150,9 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
       margin: const EdgeInsets.only(bottom: P2PTheme.space4),
       padding: const EdgeInsets.all(P2PTheme.space3),
       decoration: BoxDecoration(
-        color: P2PTheme.danger.withOpacity(0.08),
+        color: P2PTheme.danger.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(P2PTheme.cardRadius),
-        border: Border.all(color: P2PTheme.danger.withOpacity(0.3)),
+        border: Border.all(color: P2PTheme.danger.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -219,7 +219,7 @@ class _P2POrderDetailViewState extends State<P2POrderDetailView> {
               color: color,
               size: 20,
             ),
-            if (!isLast) Container(width: 2, height: 28, color: color.withOpacity(0.3)),
+            if (!isLast) Container(width: 2, height: 28, color: color.withValues(alpha: 0.3)),
           ],
         ),
         const SizedBox(width: P2PTheme.space3),

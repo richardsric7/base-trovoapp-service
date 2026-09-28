@@ -120,25 +120,25 @@ class _P2PCreateOfferViewState extends State<P2PCreateOfferView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: RadioListTile<String>(
-                      value: 'SELL',
-                      groupValue: offerType,
-                      title: Text('p2psell'.tr()),
-                      onChanged: (v) => setState(() => offerType = v!),
+              RadioGroup<String>(
+                groupValue: offerType,
+                onChanged: (v) => setState(() => offerType = v!),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: RadioListTile<String>(
+                        value: 'SELL',
+                        title: Text('p2psell'.tr()),
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: RadioListTile<String>(
-                      value: 'BUY',
-                      groupValue: offerType,
-                      title: Text('p2pbuy'.tr()),
-                      onChanged: (v) => setState(() => offerType = v!),
+                    Expanded(
+                      child: RadioListTile<String>(
+                        value: 'BUY',
+                        title: Text('p2pbuy'.tr()),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               _field('p2passetcodelabel'.tr(), asset),
               _field('p2ppriceperunit'.tr(), price, numeric: true),

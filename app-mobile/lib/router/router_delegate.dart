@@ -169,6 +169,13 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
   Widget build(BuildContext context) {
     return Navigator(
       key: navigatorKey,
+      // onDidRemovePage cannot veto a pop (it fires after removal already
+      // happened), but _onPopPage relies on returning false from canPop()
+      // to block popping past the last remaining page. Migrating would
+      // require restructuring pop-vetoing onto PopScope per-page across
+      // this router's ~100+ page types, so this deprecated callback is
+      // kept intentionally.
+      // ignore: deprecated_member_use
       onPopPage: _onPopPage,
       pages: buildPages(),
     );

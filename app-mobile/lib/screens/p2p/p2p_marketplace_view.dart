@@ -178,7 +178,7 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField<int?>(
-                    value: assetClassId,
+                    initialValue: assetClassId,
                     isExpanded: true,
                     decoration: const InputDecoration(
                       isDense: true,
@@ -263,7 +263,7 @@ class _P2PMarketplaceViewState extends State<P2PMarketplaceView> {
     required ValueChanged<String?> onChanged,
   }) {
     return DropdownButtonFormField<String?>(
-      value: value,
+      initialValue: value,
       isExpanded: true,
       decoration: const InputDecoration(
         isDense: true,
