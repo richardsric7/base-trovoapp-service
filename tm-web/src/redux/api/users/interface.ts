@@ -141,9 +141,14 @@ export interface Transaction {
   to: string;
   toAddress: string;
   memo: string;
-  contractAddress: string;
-  assetCode: string;
-  amount: string;
+  sourceNetwork: string;
+  sourceContractAddress: string;
+  sourceAssetCode: string;
+  sourceAmount: string;
+  destinationNetwork: string;
+  destinationContractAddress: string;
+  destinationAssetCode: string;
+  destinationAmount: string;
   transactionId: string;
 }
 

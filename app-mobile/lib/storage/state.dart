@@ -456,8 +456,12 @@ class DataProvider with ChangeNotifier {
       var uri = '/v1/users/payments/${forAddress}?limit=$limit${query}';
       if (!filterAsset.contains("*")) {
         var splitAssetInfo = filterAsset.split("|");
+        // Filters on the destination side - the asset that arrived - since
+        // that's what this asset-filter dropdown is built from (claimed
+        // assets currently held), matching the payment-history API's
+        // source/destination split (see PaymentHistory in app-backend).
         uri +=
-            "&contractAddress=${splitAssetInfo[0]}&assetCode=${splitAssetInfo[1].isEmpty ? "ETH" : splitAssetInfo[1]}";
+            "&destinationContractAddress=${splitAssetInfo[0]}&destinationAssetCode=${splitAssetInfo[1].isEmpty ? "ETH" : splitAssetInfo[1]}";
       }
       Map responseData = await makeGetRequest(
         uri: uri,

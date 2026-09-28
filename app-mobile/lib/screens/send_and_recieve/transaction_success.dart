@@ -213,6 +213,10 @@ class _TransactionSuccess extends State<TransactionSuccess>
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
+                  final sentAssetCode = getAssetCode(viewData['assetCode']);
+                  final sentContractAddress = viewData['contractAddress']
+                      .toString();
+                  final sentAmount = double.parse(viewData['amount']);
                   TransactionInfo transaction = TransactionInfo(
                     transactionDate: DateTime.now(),
                     transactionType: 'Payment',
@@ -221,9 +225,14 @@ class _TransactionSuccess extends State<TransactionSuccess>
                     to: '${viewData['destinationFirstName']} ${viewData['destinationLastName']}[${viewData['destination']}]',
                     toAddress: viewData['destinationAddress'],
                     transactionDirection: TransactionDirection.Send,
-                    assetCode: getAssetCode(viewData['assetCode']),
-                    contractAddress: viewData['contractAddress'].toString(),
-                    amount: double.parse(viewData['amount']),
+                    sourceNetwork: kNetworkBase,
+                    sourceAssetCode: sentAssetCode,
+                    sourceContractAddress: sentContractAddress,
+                    sourceAmount: sentAmount,
+                    destinationNetwork: kNetworkBase,
+                    destinationAssetCode: sentAssetCode,
+                    destinationContractAddress: sentContractAddress,
+                    destinationAmount: sentAmount,
                     memo: viewData['memo'],
                     transactionId: viewData['transactionId'],
                   );

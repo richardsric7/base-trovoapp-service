@@ -10,6 +10,7 @@ import TransactionModal from "./TransactionModal";
 import { useGetPaymentHistoryQuery } from "@/redux/api/users";
 import { useParams } from "next/navigation";
 import SelectedFiltersComponent from "@/components/SelectedFilter";
+import SourceDestinationTags from "@/components/SourceDestinationTags";
 interface FilterState {
   from?: string;
   category?: string;
@@ -110,10 +111,19 @@ const TransactionsTab = () => {
             : "";
 
         return (
-          <WalletName>
-            <Avatar />
-            {isSwap ? swapDirection || "--" : record.assetCode || "--"}
-          </WalletName>
+          <div>
+            <WalletName>
+              <Avatar />
+              {isSwap ? swapDirection || "--" : record.assetCode || "--"}
+            </WalletName>
+            <SourceDestinationTags
+              isSwap={record.isSwap}
+              sourceAssetCode={record.sourceAssetCode}
+              sourceNetwork={record.sourceNetwork}
+              destinationAssetCode={record.destinationAssetCode}
+              destinationNetwork={record.destinationNetwork}
+            />
+          </div>
         );
       },
     },
@@ -226,24 +236,44 @@ const TransactionsTab = () => {
     if (isLoading || !Array.isArray(data?.data?.data)) {
       return [];
     }
-    return data.data.data.map((record: any) => ({
-      key: record.transactionId,
+    return data.data.data.map((record: any) => {
+      // assetCode/amount alias the destination side (what arrived) -
+      // matches the payment-history API's default, single-asset display.
+      // sourceAssetCode/sourceNetwork are only shown when they differ from
+      // the destination (a swap) - see SourceDestinationTags.
+      const sourceAssetCode = record.sourceAssetCode;
+      const sourceNetwork = record.sourceNetwork || "base";
+      const destinationAssetCode = record.destinationAssetCode;
+      const destinationNetwork = record.destinationNetwork || "base";
+      const isSwap =
+        sourceAssetCode !== destinationAssetCode ||
+        sourceNetwork !== destinationNetwork;
 
-      amount: formatAmount(record.amount),
+      return {
+        key: record.transactionId,
 
-      description: record.memo || "No description",
-      category: record.transactionType?.split(" ")[0] || record.transactionType,
+        amount: formatAmount(record.destinationAmount),
 
-      date: formatDate(record.transactionDate),
+        description: record.memo || "No description",
+        category:
+          record.transactionType?.split(" ")[0] || record.transactionType,
 
-      transactionId: record.transactionId,
-      to: record.to,
-      from: record.from,
-      assetCode: record.assetCode,
-      fromAddress: record.fromAddress,
-      toAddress: record.toAddress,
-      transactionType: record.transactionType,
-    }));
+        date: formatDate(record.transactionDate),
+
+        transactionId: record.transactionId,
+        to: record.to,
+        from: record.from,
+        assetCode: destinationAssetCode,
+        sourceAssetCode,
+        sourceNetwork,
+        destinationAssetCode,
+        destinationNetwork,
+        isSwap,
+        fromAddress: record.fromAddress,
+        toAddress: record.toAddress,
+        transactionType: record.transactionType,
+      };
+    });
   }, [data, isLoading]);
 
   const handlePageChange = (pageNumber: number) => {

@@ -13,6 +13,7 @@ import 'package:trovo_app/storage/state.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+import 'package:trovo_app/widgets/source_destination_tag.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -587,6 +588,17 @@ class Payment_HistoryState extends State<PaymentHistory>
                             ),
                           ),
                         ],
+                      ),
+                      SizedBox(height: 4),
+                      SourceDestinationTags(
+                        isSwap: transaction.isSwap,
+                        sourceAssetCode:
+                            transaction.sourceAssetCode ?? assetCode ?? '',
+                        sourceNetwork:
+                            transaction.sourceNetwork ?? kNetworkBase,
+                        destinationAssetCode: assetCode ?? '',
+                        destinationNetwork:
+                            transaction.destinationNetwork ?? kNetworkBase,
                       ),
                     ],
                   ),

@@ -15,6 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
+import 'package:trovo_app/widgets/source_destination_tag.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -128,6 +129,18 @@ class _PaymentDetails extends State<PaymentDetails>
                       : notifier.getgreencolor,
                   fontFamily: fontsemibold,
                   fontSize: 20,
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Center(
+                child: SourceDestinationTags(
+                  isSwap: viewData.isSwap,
+                  sourceAssetCode:
+                      viewData.sourceAssetCode ?? assetCode ?? '',
+                  sourceNetwork: viewData.sourceNetwork ?? kNetworkBase,
+                  destinationAssetCode: assetCode ?? '',
+                  destinationNetwork:
+                      viewData.destinationNetwork ?? kNetworkBase,
                 ),
               ),
               SizedBox(height: height / 50),

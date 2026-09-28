@@ -21,11 +21,17 @@ import { transactionTypeConfig } from './data';
 import {
   formatAmount,
   formatRelativeTime,
+  getTransactionAmount,
   getTransactionAssetCode,
+  getTransactionDestinationNetwork,
+  getTransactionSourceAssetCode,
+  getTransactionSourceNetwork,
+  isTransactionSwap,
   normalizeTransactionType,
   parseAmountValue,
   parseDate,
 } from '../../../utils/transactionUtils';
+import PermissionChip from '../sharedAccess/components/PermissionChip';
 
 type FilterState = {
   username: string;
@@ -55,6 +61,11 @@ type HistoryRow = {
   toAddress: string;
   transactionId: string;
   memo: string;
+  sourceAssetCode: string;
+  sourceNetwork: string;
+  destinationAssetCode: string;
+  destinationNetwork: string;
+  isSwap: boolean;
 };
 
 const defaultFilters: FilterState = {
@@ -198,13 +209,18 @@ export const History = () => {
         item,
         forAddress,
       );
-      const amountValue = parseAmountValue(item.amount);
+      const amountValue = parseAmountValue(getTransactionAmount(item));
       const assetCode = getTransactionAssetCode(item);
+      const sourceAssetCode = getTransactionSourceAssetCode(item);
+      const sourceNetwork = getTransactionSourceNetwork(item);
+      const destinationNetwork = getTransactionDestinationNetwork(item);
+      const swap = isTransactionSwap(item);
+      const amountRaw = getTransactionAmount(item);
       const amountPrefix =
         type === 'Sent' ? '-' : type === 'Received' ? '+' : '+';
       const amountText =
-        typeof item.amount === 'string' && item.amount.trim().length > 0
-          ? item.amount
+        typeof amountRaw === 'string' && amountRaw.trim().length > 0
+          ? amountRaw
           : formatAmount(amountValue, assetCode);
       const createdAt = parseDate(
         item.transactionDate ?? item.createdAt ?? item.date,
@@ -246,6 +262,11 @@ export const History = () => {
         toAddress: `${item.toAddress ?? item.receiverAddress ?? ''}`,
         transactionId: `${item.transactionId ?? item.id ?? item._id ?? item.reference ?? ''}`,
         memo: `${item.memo ?? item.narration ?? ''}`.trim(),
+        sourceAssetCode,
+        sourceNetwork,
+        destinationAssetCode: assetCode,
+        destinationNetwork,
+        isSwap: swap,
       };
     },
   );
@@ -500,7 +521,10 @@ export const History = () => {
                       {row.price}
                     </div>
                     <TransactionType tx={row} />
-                    <div className={styles.description}>{row.description}</div>
+                    <div className={styles.description}>
+                      {row.description}
+                      <PaymentSourceDestinationTags row={row} />
+                    </div>
                     <div className={styles.date}>{row.dateLabel}</div>
                   </button>
                 ))}
@@ -568,6 +592,9 @@ export const History = () => {
                   selectedHistoryRow.dateRaw,
                 )}
               />
+              <div className={styles.detailsRow}>
+                <PaymentSourceDestinationTags row={selectedHistoryRow} />
+              </div>
             </div>
 
             <div className={styles.detailsActions}>
@@ -843,6 +870,44 @@ const TransactionType = ({ tx }: { tx: { type: string } }) => {
     <div className={styles.txType}>
       <img className={styles.txIcon} src={config.icon} alt={tx.type} />
       <span className={config.color}>{tx.type}</span>
+    </div>
+  );
+};
+
+// PaymentSourceDestinationTags shows which asset/network funds left with
+// (source) and which they arrived as (destination). Identical on both
+// sides - the common case today, since Base has no live swap integration
+// yet - collapses into one combined tag; a row where they differ is a
+// swap, shown as two distinct tags.
+const PaymentSourceDestinationTags = ({
+  row,
+}: {
+  row: Pick<
+    HistoryRow,
+    'isSwap' | 'sourceAssetCode' | 'sourceNetwork' | 'destinationAssetCode' | 'destinationNetwork'
+  >;
+}) => {
+  if (!row.isSwap) {
+    return (
+      <div className={styles.sourceDestinationTags}>
+        <PermissionChip
+          label={`${row.destinationAssetCode} · ${row.destinationNetwork}`}
+          tone="primary"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.sourceDestinationTags}>
+      <PermissionChip
+        label={`From ${row.sourceAssetCode} · ${row.sourceNetwork}`}
+        tone="warning"
+      />
+      <PermissionChip
+        label={`To ${row.destinationAssetCode} · ${row.destinationNetwork}`}
+        tone="success"
+      />
     </div>
   );
 };
