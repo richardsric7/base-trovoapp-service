@@ -173,6 +173,14 @@ func renameAssetIssuerColumns(gormDB *gorm.DB) {
 		{"activation_amounts", "asset_issuer", "contract_address"},
 		{"fee_collections", "asset_issuer", "contract_address"},
 		{"payment_histories", "asset_issuer", "contract_address"},
+		// Source/destination split (payment history can now represent a
+		// swap, where the asset leaving From differs from the asset
+		// arriving at To) - the old single asset/contract/amount columns
+		// become the destination side; the source side is a new,
+		// additively-created set of columns AutoMigrate handles below.
+		{"payment_histories", "asset_code", "destination_asset_code"},
+		{"payment_histories", "contract_address", "destination_contract_address"},
+		{"payment_histories", "amount", "destination_amount"},
 	}
 	migrator := gormDB.Migrator()
 	for _, r := range renames {
@@ -186,6 +194,37 @@ func renameAssetIssuerColumns(gormDB *gorm.DB) {
 				log.Printf("[MigrateDB] renamed %s.%s -> %s\n", r.table, r.oldColumn, r.newColumn)
 			}
 		}
+	}
+}
+
+// backfillPaymentHistorySourceColumns fills in every payment_histories row
+// created before the source/destination split (see renameAssetIssuerColumns
+// above and the PaymentHistory struct) with source_* mirroring its
+// destination_* values. Every write path that predates this split only ever
+// recorded a single-leg transfer, so source == destination is the correct
+// historical value, not a placeholder - without this, every pre-existing
+// row would read back with an empty source side and look like a
+// (nonsensical) swap out of nothing. Idempotent: only touches rows whose
+// source_asset_code is still empty, so it's a no-op on every boot after the
+// first.
+func backfillPaymentHistorySourceColumns(gormDB *gorm.DB) {
+	if !gormDB.Migrator().HasTable("payment_histories") {
+		return
+	}
+	result := gormDB.Exec(`
+		UPDATE payment_histories
+		SET source_network = destination_network,
+		    source_asset_code = destination_asset_code,
+		    source_contract_address = destination_contract_address,
+		    source_amount = destination_amount
+		WHERE source_asset_code = ''
+	`)
+	if result.Error != nil {
+		log.Printf("[MigrateDB] failed to backfill payment_histories source columns: %v\n", result.Error)
+		return
+	}
+	if result.RowsAffected > 0 {
+		log.Printf("[MigrateDB] backfilled source columns for %d payment_histories row(s)\n", result.RowsAffected)
 	}
 }
 
@@ -453,6 +492,7 @@ func runSchemaMigration(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating PaymentHistory: ", errMigrate)
 		}
+		backfillPaymentHistorySourceColumns(gormDB)
 
 		errMigrate = gormDB.AutoMigrate(&paymentModels.CurrencyRates{})
 		if errMigrate != nil {

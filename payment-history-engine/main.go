@@ -594,7 +594,7 @@ func processNativeTransfer(from, to string, weiAmount *big.Int, txHash string, b
 	amount := decimal.NewFromBigInt(weiAmount, -18)
 	pt := fmt.Sprintf("%020d", blockNumber)
 
-	e := paymentServices.SavePaymentHistory(from, fromAlias, fromName, to, toAlias, toName, "", "", os.Getenv("NATIVE_ASSET_CODE"), amount.String(), txHash, "PAYMENT", pt, txHash, fmt.Sprintf("%d", nonce), time.Unix(int64(blockTime), 0), db)
+	e := paymentServices.SavePaymentHistory(from, fromAlias, fromName, to, toAlias, toName, "", "", os.Getenv("NATIVE_ASSET_CODE"), amount.String(), paymentModels.NetworkBase, txHash, "PAYMENT", pt, txHash, fmt.Sprintf("%d", nonce), time.Unix(int64(blockTime), 0), db)
 	if e != nil {
 		log.Println("[processNativeTransfer] unable to save SavePaymentHistory:", e)
 	}
@@ -635,7 +635,7 @@ func processB20TransferLog(client *ethclient.Client, lg types.Log, blockTime uin
 	pt := fmt.Sprintf("%020d-%010d", lg.BlockNumber, lg.Index)
 	id := fmt.Sprintf("%s-%d", lg.TxHash.Hex(), lg.Index)
 
-	e := paymentServices.SavePaymentHistory(from, fromAlias, fromName, to, toAlias, toName, "", tokenContract, meta.symbol, amount.String(), lg.TxHash.Hex(), paymentType, pt, id, fmt.Sprintf("%d", lg.TxIndex), time.Unix(int64(blockTime), 0), db)
+	e := paymentServices.SavePaymentHistory(from, fromAlias, fromName, to, toAlias, toName, "", tokenContract, meta.symbol, amount.String(), paymentModels.NetworkBase, lg.TxHash.Hex(), paymentType, pt, id, fmt.Sprintf("%d", lg.TxIndex), time.Unix(int64(blockTime), 0), db)
 	if e != nil {
 		log.Println("[processB20TransferLog] unable to save SavePaymentHistory:", e)
 	}

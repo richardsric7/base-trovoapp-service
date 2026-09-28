@@ -29,8 +29,10 @@ import (
 // @Param from query string false "Filter by sender alias or name"
 // @Param to query string false "Filter by recipient alias or name"
 // @Param memo query string false "Filter by transaction memo"
-// @Param contractAddress query string false "Filter by asset issuer"
-// @Param assetCode query string false "Filter by asset code"
+// @Param destinationContractAddress query string false "Filter by destination asset issuer"
+// @Param destinationAssetCode query string false "Filter by destination asset code"
+// @Param sourceContractAddress query string false "Filter by source asset issuer"
+// @Param sourceAssetCode query string false "Filter by source asset code"
 // @Param search query string false "Search across multiple fields (e.g., from, to, transaction ID)"
 // @Success 200 {object} response.Data
 // @Failure 400 {object} models.ErrorResponse "Invalid request parameters"
@@ -59,16 +61,18 @@ func GetPaymentHistory(walletDB *gorm.DB) gin.HandlerFunc {
 
 		// Construct request object for filtering
 		req := models.PaymentHistoryRequest{
-			Page:            page,
-			PageSize:        pageSize,
-			TransactionType: c.Query("transactionType"),
-			TransactionDate: c.Query("transactionDate"),
-			From:            c.Query("from"),
-			To:              c.Query("to"),
-			Memo:            c.Query("memo"),
-			ContractAddress: c.Query("contractAddress"),
-			AssetCode:       c.Query("assetCode"),
-			Search:          c.Query("search"),
+			Page:                       page,
+			PageSize:                   pageSize,
+			TransactionType:            c.Query("transactionType"),
+			TransactionDate:            c.Query("transactionDate"),
+			From:                       c.Query("from"),
+			To:                         c.Query("to"),
+			Memo:                       c.Query("memo"),
+			DestinationContractAddress: c.Query("destinationContractAddress"),
+			DestinationAssetCode:       c.Query("destinationAssetCode"),
+			SourceContractAddress:      c.Query("sourceContractAddress"),
+			SourceAssetCode:            c.Query("sourceAssetCode"),
+			Search:                     c.Query("search"),
 		}
 
 		// Retrieve payment history
@@ -140,11 +144,17 @@ func GetPaymentHistoryList(req models.PaymentHistoryRequest, db *gorm.DB) ([]mod
 	if req.Memo != "" {
 		query = query.Where("memo LIKE ?", "%"+req.Memo+"%")
 	}
-	if req.ContractAddress != "" {
-		query = query.Where("contract_address LIKE ?", "%"+req.ContractAddress+"%")
+	if req.DestinationContractAddress != "" {
+		query = query.Where("destination_contract_address LIKE ?", "%"+req.DestinationContractAddress+"%")
 	}
-	if req.AssetCode != "" {
-		query = query.Where("asset_code = ?", req.AssetCode)
+	if req.DestinationAssetCode != "" {
+		query = query.Where("destination_asset_code = ?", req.DestinationAssetCode)
+	}
+	if req.SourceContractAddress != "" {
+		query = query.Where("source_contract_address LIKE ?", "%"+req.SourceContractAddress+"%")
+	}
+	if req.SourceAssetCode != "" {
+		query = query.Where("source_asset_code = ?", req.SourceAssetCode)
 	}
 	if req.Search != "" {
 		query = query.Where("from LIKE ? OR to LIKE ? OR transaction_id LIKE ?", "%"+req.Search+"%", "%"+req.Search+"%", "%"+req.Search+"%")
@@ -159,9 +169,9 @@ func GetPaymentHistoryList(req models.PaymentHistoryRequest, db *gorm.DB) ([]mod
 				//db.Where("\"to\" ILIKE ?", search),
 				db.Where("transaction_id ILIKE ?", search),
 				db.Where("memo ILIKE ?", search),
-				db.Where("contract_address ILIKE ?", search),
-				db.Where("asset_code ILIKE ?", search),
-				db.Where("CAST(amount AS TEXT) ILIKE ?", search),
+				db.Where("destination_contract_address ILIKE ?", search),
+				db.Where("destination_asset_code ILIKE ?", search),
+				db.Where("CAST(destination_amount AS TEXT) ILIKE ?", search),
 			),
 		)
 	}
@@ -182,17 +192,22 @@ func GetPaymentHistoryList(req models.PaymentHistoryRequest, db *gorm.DB) ([]mod
 	paymentHistoryJSON := []models.PaymentHistoryJSON{}
 	for _, ph := range paymentHistory {
 		paymentHistoryJSON = append(paymentHistoryJSON, models.PaymentHistoryJSON{
-			TransactionDate: ph.TransactionDate,
-			TransactionType: ph.TransactionType,
-			From:            coalesce(ph.From),
-			FromAddress:     ph.FromAddress,
-			To:              coalesce(ph.To),
-			ToAddress:       ph.ToAddress,
-			Memo:            coalesce(ph.Memo),
-			ContractAddress: coalesce(ph.ContractAddress),
-			AssetCode:       ph.AssetCode,
-			Amount:          ph.Amount,
-			TransactionID:   ph.TransactionID,
+			TransactionDate:            ph.TransactionDate,
+			TransactionType:            ph.TransactionType,
+			From:                       coalesce(ph.From),
+			FromAddress:                ph.FromAddress,
+			To:                         coalesce(ph.To),
+			ToAddress:                  ph.ToAddress,
+			Memo:                       coalesce(ph.Memo),
+			SourceNetwork:              ph.SourceNetwork,
+			SourceContractAddress:      coalesce(ph.SourceContractAddress),
+			SourceAssetCode:            ph.SourceAssetCode,
+			SourceAmount:               ph.SourceAmount,
+			DestinationNetwork:         ph.DestinationNetwork,
+			DestinationContractAddress: coalesce(ph.DestinationContractAddress),
+			DestinationAssetCode:       ph.DestinationAssetCode,
+			DestinationAmount:          ph.DestinationAmount,
+			TransactionID:              ph.TransactionID,
 		})
 	}
 

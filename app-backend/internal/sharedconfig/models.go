@@ -58,8 +58,8 @@ type GlobalConfig struct {
 	// set of local websocket connections currently registered for it, plus
 	// the one shared Redis subscription StartUserStreamRelay reads from.
 	userStreamConnections map[string]map[string]chan map[string]interface{}
-	userStreamMutex        sync.Mutex
-	userStreamPubSub       *redis.PubSub
+	userStreamMutex       sync.Mutex
+	userStreamPubSub      *redis.PubSub
 }
 
 type ClientUploader struct {
