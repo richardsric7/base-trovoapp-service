@@ -37,7 +37,7 @@ import (
 	"trovo-wallet-api/internal/middleware"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/joho/godotenv"
 	"github.com/shopspring/decimal"
 	swaggerFiles "github.com/swaggo/files"

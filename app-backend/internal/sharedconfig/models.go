@@ -21,7 +21,7 @@ import (
 	"firebase.google.com/go/storage"
 	"github.com/ecnepsnai/discord"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"golang.org/x/text/cases"

@@ -38,7 +38,7 @@ import (
 
 	_ "github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
