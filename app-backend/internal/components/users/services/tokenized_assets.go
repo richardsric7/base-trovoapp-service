@@ -3776,9 +3776,18 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		NumberOfApprovalsNeeded: len(aps) - 2,
 		Permissions:             permInfo,
 	}
-	if err = checkDistributionWalletHasQuoteCurrencyAuthorization(quoteCurrency.AssetCode, quoteCurrency.ContractAddress, &distributionWallet, gc); err != nil {
-		return "", "", messages, issuingWallet, err
-	}
+	// checkDistributionWalletHasQuoteCurrencyAuthorization used to gate minting on the
+	// distribution wallet already holding an authorized trustline to the internal balance
+	// asset (quoteCurrency). That's no longer needed: the internal balance asset is a B20
+	// regulated asset we control internally, and this same function unconditionally issues
+	// + authorizes that trustline for the distribution wallet a few ops below (see the
+	// "create + authorize distributionWallet trustline to the quote currency" ChangeTrust/
+	// SetTrustLineFlags pair), sourced from quoteCurrency.ContractAddress (the internal token
+	// issuer) on every mint. This pre-flight check was blocking first-time mints before that
+	// authorization step ever ran.
+	// if err = checkDistributionWalletHasQuoteCurrencyAuthorization(quoteCurrency.AssetCode, quoteCurrency.ContractAddress, &distributionWallet, gc); err != nil {
+	// 	return "", "", messages, issuingWallet, err
+	// }
 
 	if issuingWallet.SharedAccessEnabled == 0 {
 
