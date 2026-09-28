@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast.dart';
-import 'package:sembast/sembast_io.dart';
+import 'database_opener.dart';
 
 class AppDatabase {
   // Singleton instance
@@ -33,12 +31,7 @@ class AppDatabase {
   }
 
   Future _openDatabase() async {
-    // Get a platform-specific directory where persistent app data can be stored
-    final appDocumentDir = await getApplicationDocumentsDirectory();
-    // Path with the form: /platform-specific-directory/demo.db
-    final dbPath = join(appDocumentDir.path, 'trovoWallet.db');
-
-    final database = await databaseFactoryIo.openDatabase(dbPath);
+    final database = await openAppDatabase();
 
     // Any code awaiting the Completer's future will now start executing
     _dbOpenCompleter!.complete(database);

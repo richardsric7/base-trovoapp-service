@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:app_links/app_links.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -31,33 +32,43 @@ void main() async {
   await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
   TerminateRestart.instance.initialize();
-  var options = DefaultFirebaseOptions.currentPlatform(
-    await StoreData().storeGetData('walletMode') ?? "Testnet",
-  );
-  inspect(options);
-  await Firebase.initializeApp(options: options);
+  // firebase_options.dart has no web FirebaseOptions (FlutterFire CLI was
+  // only ever run for Android/iOS) - DefaultFirebaseOptions.currentPlatform
+  // throws UnsupportedError for kIsWeb, which would otherwise take the
+  // whole app down before runApp() ever executes. Skip Firebase entirely on
+  // web rather than crash on boot; push notifications/crashlytics/analytics/
+  // remote-config are unavailable there until a real web Firebase app is
+  // registered and firebase_options.dart is regenerated to include it.
+  if (!kIsWeb) {
+    var options = DefaultFirebaseOptions.currentPlatform(
+      await StoreData().storeGetData('walletMode') ?? "Testnet",
+    );
+    inspect(options);
+    await Firebase.initializeApp(options: options);
 
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  await StoreData().storeDeleteItem('initialDynamicLink');
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    await StoreData().storeDeleteItem('initialDynamicLink');
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-  NotificationSettings settings = await messaging.requestPermission(
-    alert: true,
-    announcement: false,
-    badge: true,
-    carPlay: false,
-    criticalAlert: false,
-    provisional: false,
-    sound: true,
-  );
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
 
-  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-    print('User granted permission');
-  } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
-    print('User granted provisional permission');
-  } else {
-    print('User declined or has not accepted permission');
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      print('User granted permission');
+    } else if (settings.authorizationStatus ==
+        AuthorizationStatus.provisional) {
+      print('User granted provisional permission');
+    } else {
+      print('User declined or has not accepted permission');
+    }
   }
 
   await EasyLocalization.ensureInitialized();
@@ -108,7 +119,12 @@ class _AppState extends State<App> {
         appState.setPage(page: SplashPageConfig, state: PageState.replaceAll);
       }
     });
-    initAppNotification(context, appState);
+    // initAppNotification reaches FirebaseMessaging.instance, which throws
+    // without a Firebase app (Firebase.initializeApp() is skipped on web -
+    // see main(), same reasoning).
+    if (!kIsWeb) {
+      initAppNotification(context, appState);
+    }
   }
 
   @override
