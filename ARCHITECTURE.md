@@ -93,6 +93,45 @@ workflow files. If/when this repo's actual CI is wired up (either by fixing
 these paths or replacing them), update this note and each project's
 `DEPLOYMENT.md` accordingly.
 
+## Running more than one instance of a service
+
+`app-backend` and `tm-api` are both safe to scale to multiple instances
+behind a load balancer. This wasn't automatic — a few things any single
+in-process instance could get away with (an in-memory map/channel for
+coordination, a background loop with no idea another copy of itself might
+be running elsewhere) needed a shared, cross-instance mechanism instead.
+The pattern used everywhere this came up:
+
+- **Cross-instance mutual exclusion** (who's allowed to do X right now)
+  is a plain database table claimed with a single atomic `UPDATE ...
+  WHERE` statement — never a Postgres advisory lock or `SELECT ... FOR
+  UPDATE`, since neither has an equivalent on SQLite, which every one of
+  these Go projects also needs to run correctly against for local
+  dev/tests. See `app-backend/internal/sharedconfig/distributed_lock.go`
+  (the schema-migration lock and the singleton-locked background loops)
+  and `app-backend/internal/sharedconfig/channel_accounts.go` (the
+  channel-account pool, same idea applied to claiming one of several
+  interchangeable rows instead of one named lock).
+- **Cross-instance real-time delivery** (an event that happened on
+  instance A needs to reach a websocket/SSE connection open on instance
+  B) is Redis Pub/Sub, reusing whatever Redis connection the service
+  already has for caching — fire-and-forget by design (`PUBLISH` is
+  at-most-once), which is an acceptable tradeoff everywhere it's used
+  because there's always a durable fallback (REST polling, a push
+  notification, the database itself) that isn't affected if the live
+  nudge is missed. See `app-backend/internal/sharedconfig/realtime.go`
+  (P2P order/offer/escrow/dispute updates over the user websocket) and
+  `tm-api/internal/models/streams.go` (the admin QR-login notification
+  stream).
+
+**Going forward:** if you're adding a new project to this monorepo, or a
+new piece of shared, cross-instance coordination to an existing one,
+follow the same two rules — a portable claim table instead of a
+database-specific locking primitive, and Redis Pub/Sub (with a
+non-Redis-dependent fallback) instead of an in-process map/channel — so
+the new code works the same whether it's one instance or ten, and works
+the same on SQLite as it does on Postgres.
+
 ## The documentation standard going forward
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for what's required whenever a new

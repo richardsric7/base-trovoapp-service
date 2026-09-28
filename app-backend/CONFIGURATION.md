@@ -45,6 +45,7 @@ wallet and never reuse it for anything real.
 - Example: `1`
 - What it does: When not `0`, GORM `AutoMigrate` runs against every model at boot, creating/altering tables to match the Go structs. Set to `0` to skip this (faster boot; use once the schema is already up to date). See [DEPLOYMENT.md](DEPLOYMENT.md) for why this matters for deploy speed.
 - How to get a real value: `1` for local dev (`.env.example` default); `0` on a serving instance once migrations have been run separately.
+- **Multi-instance note:** if two or more instances (or a `MIGRATE_ONLY=1` job and a serving instance) boot with `DB_AUTOMIGRATE` enabled at the same time, they no longer race each other's `AutoMigrate` calls against the same schema — a shared database-backed lock (`internal/sharedconfig/distributed_lock.go`) makes the second one wait for the first to finish instead. This works identically on SQLite and Postgres. See [DEPLOYMENT.md](DEPLOYMENT.md) section 4 for the full explanation, including a related dependency fix that was needed for `AutoMigrate` to work correctly against Postgres at all on anything but the very first boot.
 
 **`ENABLE_AUTH_MIDDLEWARE`**
 - Example: `1`
@@ -109,6 +110,7 @@ wallet and never reuse it for anything real.
 - Example: `1`
 - What it does: When `1`, connects to Redis and caches selected HTTP responses (curated assets, rates, announcements, etc.) to reduce DB load. When unset/`0`, every request hits the DB directly.
 - How to get a real value: `0` for simplest local dev; `1` once you have Redis running.
+- **Multi-instance note:** if you run more than one instance of this service, `ENABLE_CACHING=1` (a working Redis) is also what powers live delivery of P2P order/offer/escrow/dispute updates over the websocket (`GET /v1/users/websocket/:identifier`) to a connection that happens to be on a *different* instance than the one that processed the update — see `internal/sharedconfig/realtime.go`. With caching disabled, everything still works correctly (push notifications and REST responses are unaffected), you just won't get that live socket nudge across instances.
 
 **`REDIS_HOST`** / **`REDIS_PORT`** / **`REDIS_PASSWORD`**
 - Example: `localhost` / `6379` / `` (empty)
@@ -214,6 +216,16 @@ perform specific categories of on-chain actions automatically.
 ---
 
 ## Channel accounts (transaction fee payers)
+
+> **Multi-instance note:** which channel account is free to hand out is
+> coordinated across every running instance through a `channel_accounts`
+> database table (address + status only — the actual signing keys parsed
+> from `CHANNEL_ACCOUNTS` below stay in each instance's memory, never
+> written to the DB). You don't need to configure anything extra for
+> this — it works the same whether you're running one instance or ten,
+> and works identically on SQLite (local dev) and Postgres (production).
+> See `internal/sharedconfig/channel_accounts.go` if you're curious how it
+> works under the hood.
 
 **`CHANNEL_ACCOUNTS`**
 - Example: `0xabc...priv1,0xdef...priv2,0x123...priv3`

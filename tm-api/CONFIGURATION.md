@@ -84,6 +84,18 @@ notifications, tokenized-asset data).
 | `REDIS_SKIP_INSECURE_VERIFY` | `0` | `1` skips TLS certificate verification for the Redis connection. Only use for a self-signed cert you trust; never in production against an untrusted network. | Leave `0`/unset unless you know why you need `1`. |
 | `CACHING_PARAMETER` | *(empty)* | Overrides an internal cache key namespace parameter (`internal/cache/main.go`). Rarely needs setting. | Leave unset. |
 
+> **Multi-instance note:** if you run more than one instance of this
+> service, `ENABLE_CACHING=1` (a working Redis) is also what makes the
+> admin QR-login flow's live notification (`GET
+> /login/stream/{loginID}`) work correctly regardless of which instance
+> receives the wallet's approval callback (`POST
+> /callbacks/login/{serviceName}`) — see `internal/models/streams.go`.
+> Without Redis, the login stream still works whenever the callback lands
+> on the *same* instance that opened the SSE connection, and the client's
+> existing polling fallback (`GET /users/verify/...`) covers the rest, so
+> nothing breaks — you just lose the guaranteed-fast push across
+> instances.
+
 ## 8. Vault signer module
 
 | Variable | Example | Effect | How to get a real value |

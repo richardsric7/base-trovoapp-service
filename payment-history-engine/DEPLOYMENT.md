@@ -141,6 +141,20 @@ curl -s localhost:8080/ready  | jq
 open http://localhost:8080/swagger/index.html   # or just visit it in a browser
 ```
 
+### A dependency fix worth knowing about
+
+A real bug was found and fixed while auditing this monorepo for
+multi-instance readiness: the pinned `gorm.io/driver/postgres` version
+(`v1.3.7`) was out of sync with this project's `gorm.io/gorm` version in a
+way that broke `AutoMigrate` (used by `internal/db/main.go`'s
+`OpenRoachDB`) against any table that already existed — meaning every
+restart after the very first boot would have fatally failed migration
+against a real Postgres/CockroachDB database (reproduced and confirmed
+against real Postgres 16). This is fixed by bumping the driver to
+`v1.5.11`, verified against both real Postgres and the `ROACH_DB_TYPE=sqlite`
+local escape hatch. If you're working from this repo, you already have
+the fix — nothing to do.
+
 ## 4. No CI/CD found in this repo
 
 This monorepo's two GitHub Actions workflows were checked directly:

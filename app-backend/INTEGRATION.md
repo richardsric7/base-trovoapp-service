@@ -189,6 +189,60 @@ existing, differently-scoped flag.
 
 ---
 
+## Live P2P updates over the websocket
+
+`GET /v1/users/websocket/:identifier` is a websocket endpoint every
+authenticated user can connect to for live, in-app updates. Once
+connected, it pushes JSON messages shaped like:
+
+```json
+{ "stream": <payload>, "streamType": "<type>" }
+```
+
+The `streamType` you care about for live P2P updates is **`p2pEvent`** —
+you'll get one of these whenever something happens on an order/offer/
+escrow/dispute you're a party to (accepted, payment confirmed, dispute
+opened, etc.), with the same title/body/data your push notification for
+that event carries:
+
+```json
+{
+  "streamType": "p2pEvent",
+  "stream": {
+    "title": "Order accepted",
+    "body": "Your order was accepted by the merchant",
+    "data": { "route": "orderDetail", "orderId": "..." }
+  }
+}
+```
+
+**How to connect:** open the websocket connection the same way you'd open
+any other (`wss://.../v1/users/websocket/<your-wallet-address>`), send the
+initial subscription handshake the endpoint's Swagger entry describes,
+and then just listen — `p2pEvent` messages arrive automatically for as
+long as the connection stays open. There is nothing else to subscribe to
+per-order; every event for orders/offers you're involved in reaches this
+one connection.
+
+**Important: this is a live nudge, not a source of truth.** If your app
+has no open connection at the moment an event happens (app closed,
+connection dropped, etc.), that specific message is simply never
+delivered — there's no catch-up/replay. Treat a `p2pEvent` message as a
+hint to re-fetch the relevant order/offer from its REST endpoint, and
+always fall back to the existing push notification (which you already
+handle) plus normal polling/pull-to-refresh for anything you can't afford
+to miss. This is the same tradeoff the admin panel's (`tm-api`) login
+notification stream makes, and it's deliberate: the REST API and the
+database are always the source of truth, this socket is purely a "check
+now" signal.
+
+If you're the first client integrating this (`app-web`/`app-mobile`
+haven't wired it up yet as of this writing), the backend side is fully
+built and tested — you just need to open the connection and handle
+`streamType: "p2pEvent"` messages as described above.
+
+---
+
 ## Swagger UI: the per-endpoint reference
 
 Once the server is running, every documented endpoint — request
