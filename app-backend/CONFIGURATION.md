@@ -126,7 +126,16 @@ wallet and never reuse it for anything real.
 
 ## Rate limiting
 
-A Redis-backed fixed-window limiter (`INCR`+`EXPIRE`) protecting the payment-history, payment, and swap endpoints from abuse. It's Redis-backed rather than in-memory on purpose: an in-memory counter is per-process, so with more than one instance behind a load balancer it would silently multiply the effective limit by the instance count. See `internal/middleware/rate_limit_middleware.go`.
+A Redis-backed fixed-window limiter (`INCR`+`EXPIRE`) protecting every
+signature- or API-key-authenticated route worth protecting: the
+payment-history, payment, and swap endpoints, the `GET /v1/users/:targetUser`
+lookup, and all 33 white-label "service link" endpoints under
+`/v1/servicelinks/...`/`/v1/trovo-api/...` (login/authorize/event handshakes,
+user-info lookup, onboarding, KYC, minting, tokenization, stakeholder
+documents, etc). It's Redis-backed rather than in-memory on purpose: an
+in-memory counter is per-process, so with more than one instance behind a
+load balancer it would silently multiply the effective limit by the
+instance count. See `internal/middleware/rate_limit_middleware.go`.
 
 **`RATE_LIMIT_ENABLED`**
 - Example: `1`
@@ -136,13 +145,28 @@ A Redis-backed fixed-window limiter (`INCR`+`EXPIRE`) protecting the payment-his
 
 **`RATE_LIMIT_REQUESTS_PER_MINUTE`**
 - Example: `30`
-- What it does: A global default limit (requests per 60s window) applied to every rate-limited route that doesn't have its own override. Each route also has a hardcoded default in code (e.g. 30/min for payment-history reads, 20/min for payment/swap writes, 120/min for the service-link payment-history endpoint) - this env var overrides all of them at once.
+- What it does: A global default limit (requests per 60s window) applied to every rate-limited route that doesn't have its own override. Each route also has a hardcoded default in code (roughly: 60/min for read/lookup routes, 30/min for login/authorize/event handshakes, 10-20/min for mutating routes like onboarding/KYC/minting/tokenization) - this env var overrides all of them at once.
 - How to get a real value: leave unset to use the per-route defaults baked into the code; set it to tune globally without a redeploy.
 
 **`RATE_LIMIT_<KEY>_PER_MINUTE`** (per-route override)
 - Example: `RATE_LIMIT_SWAP_PER_MINUTE=5`
 - What it does: Overrides the limit for one specific route's key (uppercased, hyphens to underscores - e.g. the `"swap"` key becomes `RATE_LIMIT_SWAP_PER_MINUTE`, `"payment-history"` becomes `RATE_LIMIT_PAYMENT_HISTORY_PER_MINUTE`). Takes precedence over both the route's hardcoded default and the global `RATE_LIMIT_REQUESTS_PER_MINUTE`.
 - How to get a real value: only set when one specific endpoint needs a different budget than the rest; look up the exact key string at the route's `middleware.RateLimitMiddleware(gc, "<key>", ...)` call site.
+
+**Per-service-link override (no env var - set from tm-api).** Every
+`ServiceLink` row (`internal/components/servicelinks/models/servicelink.go`)
+carries a `RateLimitPerMinute` column, editable from tm-api's Service Links
+admin page. `0` (the default) means no override - the route's own
+default/env-based limit applies as normal. A positive value overrides
+**every** rate-limited API-key route that service link calls with that
+same per-minute budget, and takes precedence over both the route default
+and any `RATE_LIMIT_*` env var, since a per-tenant setting was
+deliberately configured for that partner and should always win. This is
+how an enterprise partner with unusually high (or low) legitimate traffic
+gets a budget different from every other partner's, without an env var
+change or redeploy. Only applies to API-key-authenticated routes - a
+route reached with `X-TW-SIGNER` (a wallet-app request, not a service
+link) never does this lookup.
 
 ---
 

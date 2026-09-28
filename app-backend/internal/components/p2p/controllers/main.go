@@ -67,7 +67,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	// server endpoint an admin-authorized tm-api call can reach, the same
 	// API-key trust boundary as every other app-backend<->tm-api
 	// integration point (internal/components/servicelinks).
-	router.POST("/v1/p2p/disputes/:disputeID/admin-resolve", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postAdminResolveDisputeHandler(gc))
+	router.POST("/v1/p2p/disputes/:disputeID/admin-resolve", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "p2p-admin-resolve", 20, time.Minute), postAdminResolveDisputeHandler(gc))
 
 	// Refunds
 	router.GET("/v1/p2p/refunds", auth, getMyRefundsHandler(gc))

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	servicelinkServices "trovo-wallet-api/internal/components/servicelinks/services"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/gin-gonic/gin"
@@ -26,12 +27,15 @@ import (
 // key rather than IP, since a service link's calls may fan out through a
 // shared egress IP), falling back to client IP when neither is present.
 //
-// defaultLimit is used unless overridden by RATE_LIMIT_<KEY>_PER_MINUTE or
-// the global RATE_LIMIT_REQUESTS_PER_MINUTE env var (see
-// rateLimitPerWindow). Set RATE_LIMIT_ENABLED=0 to disable rate limiting
-// entirely. When Redis is disabled or unreachable, this middleware no-ops -
-// same graceful-degradation posture as the rest of the caching layer -
-// rather than failing requests closed.
+// defaultLimit is used unless overridden, in precedence order: (1) the
+// calling ServiceLink's own RateLimitPerMinute (API-key routes only - a
+// per-tenant setting always wins, since it was deliberately configured for
+// that partner from tm-api's admin UI), (2) RATE_LIMIT_<KEY>_PER_MINUTE,
+// (3) the global RATE_LIMIT_REQUESTS_PER_MINUTE env var (see
+// rateLimitPerWindow), (4) defaultLimit. Set RATE_LIMIT_ENABLED=0 to
+// disable rate limiting entirely. When Redis is disabled or unreachable,
+// this middleware no-ops - same graceful-degradation posture as the rest
+// of the caching layer - rather than failing requests closed.
 func RateLimitMiddleware(gc *sharedconfig.GlobalConfig, key string, defaultLimit int, window time.Duration) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if os.Getenv("RATE_LIMIT_ENABLED") == "0" {
@@ -44,8 +48,10 @@ func RateLimitMiddleware(gc *sharedconfig.GlobalConfig, key string, defaultLimit
 		}
 
 		identity := ExtractSigner(c)
+		apiKey := ""
 		if identity == "" {
-			identity = ExtractServiceLinkApiKey(c)
+			apiKey = ExtractServiceLinkApiKey(c)
+			identity = apiKey
 		}
 		if identity == "" {
 			identity = c.ClientIP()
@@ -53,6 +59,11 @@ func RateLimitMiddleware(gc *sharedconfig.GlobalConfig, key string, defaultLimit
 
 		redisKey := "ratelimit:" + key + ":" + identity
 		limit := rateLimitPerWindow(key, defaultLimit)
+		if apiKey != "" {
+			if serviceLink, err := servicelinkServices.GetServiceLinkByAPIKey(apiKey, gc.DB); err == nil && serviceLink.RateLimitPerMinute > 0 {
+				limit = serviceLink.RateLimitPerMinute
+			}
+		}
 
 		count, err := gc.RedisCache.Client.Incr(gc.RedisCache.Context, redisKey).Result()
 		if err != nil {

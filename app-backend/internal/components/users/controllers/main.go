@@ -30,7 +30,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	router.GET("/v1/curated-assets/users", middleware.AuthenticationMiddlewareUsingTimestamp(), getCuratedAssetsUsersHandler(callBackRetryChan, gc))
 
-	router.GET("/v1/users/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), getUsersTargetUserHandler(callBackRetryChan, gc))
+	router.GET("/v1/users/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), middleware.RateLimitMiddleware(gc, "get-user", 60, time.Minute), getUsersTargetUserHandler(callBackRetryChan, gc))
 
 	router.POST("/v1/users", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersHandler(callBackRetryChan, gc))
 

@@ -87,6 +87,12 @@ const ServiceLinksPage = () => {
       render: (v: number) => (v ? "Yes" : "No"),
     },
     {
+      title: "Rate limit",
+      dataIndex: "rateLimitPerMinute",
+      render: (_: any, record: IServiceLink) =>
+        record.rateLimitPerMinute > 0 ? `${record.rateLimitPerMinute}/min` : "Default",
+    },
+    {
       title: "Active",
       dataIndex: "inactive",
       render: (_: any, record: IServiceLink) => (

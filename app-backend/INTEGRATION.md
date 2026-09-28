@@ -226,12 +226,17 @@ and `sourceAssetCode`/`sourceContractAddress`/`sourceAmount` (a
 `min%max` range for the amount filters), replacing the old flat
 `assetCode`/`contractAddress`/`amount` filter names.
 
-Both of these endpoints, along with `POST /v1/users/payment`,
-`POST /v1/shared-access/payment`, `POST /v1/users/swap`,
-`POST /v1/shared-access/swap`, and `POST /v1/trovo-api/users/payment`,
-are now rate-limited (see [Rate limiting](CONFIGURATION.md#rate-limiting)
-in `CONFIGURATION.md`) — a request over the limit gets `429 Too Many
-Requests` with a `Retry-After` header.
+Both of these endpoints, along with every other API-key-authenticated
+service-link route (`/v1/servicelinks/...`, `/v1/trovo-api/...`),
+`POST /v1/users/payment`, `POST /v1/shared-access/payment`,
+`POST /v1/users/swap`, `POST /v1/shared-access/swap`, and
+`GET /v1/users/:targetUser`, are rate-limited (see
+[Rate limiting](CONFIGURATION.md#rate-limiting) in `CONFIGURATION.md`) —
+a request over the limit gets `429 Too Many Requests` with a
+`Retry-After` header. A service-link partner with unusually high (or low)
+traffic needs can get a per-partner limit override instead of the
+route's shared default — see CONFIGURATION.md's "Per-service-link
+override", set from tm-api's Service Links admin page, not an env var.
 
 ---
 

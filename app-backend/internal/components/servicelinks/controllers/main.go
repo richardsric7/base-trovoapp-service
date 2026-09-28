@@ -112,13 +112,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	}
 
 	//service login request
-	router.POST("/v1/servicelinks/login/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postServicelinksLoginRequestTargetUserHandler(gc))
+	router.POST("/v1/servicelinks/login/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "servicelinks-login-request", 30, time.Minute), postServicelinksLoginRequestTargetUserHandler(gc))
 
 	//user login approval url; uses signature algorithm bcos it is only called by trovoApp.
 	router.POST("/v1/users/servicelinks/login/approval/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersServicelinksLoginApprovalTargetUserHandler(callBackRetryChan, gc))
 
 	//service login verify url
-	router.GET("/v1/servicelinks/login/verify/:ownerUsername/:targetUser/:loginID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getServicelinksLoginVerifyOwnerUsernameTargetUserLoginIDHandler(gc))
+	router.GET("/v1/servicelinks/login/verify/:ownerUsername/:targetUser/:loginID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "servicelinks-login-verify", 60, time.Minute), getServicelinksLoginVerifyOwnerUsernameTargetUserLoginIDHandler(gc))
 
 	//service login refresh token url
 	router.POST("/v1/servicelinks/token/refresh", postServicelinksTokenRefreshHandler(gc))
@@ -130,13 +130,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.DELETE("/v1/servicelinks/token", deleteServicelinksTokenHandler(gc))
 
 	//service authorization request
-	router.POST("/v1/servicelinks/authorize/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postServicelinksAuthorizeRequestTargetUserHandler(gc))
+	router.POST("/v1/servicelinks/authorize/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "servicelinks-authorize-request", 30, time.Minute), postServicelinksAuthorizeRequestTargetUserHandler(gc))
 
 	//service authorization tokenizedAsset
-	router.POST("/v1/servicelinks/authorize/tokenized-asset", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postServicelinksAuthorizeTokenizedAssetHandler(gc))
+	router.POST("/v1/servicelinks/authorize/tokenized-asset", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "servicelinks-authorize-tokenized-asset", 30, time.Minute), postServicelinksAuthorizeTokenizedAssetHandler(gc))
 
 	//service event link request
-	router.POST("/v1/servicelinks/events/request", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postServicelinksEventsRequestHandler(gc))
+	router.POST("/v1/servicelinks/events/request", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "servicelinks-events-request", 30, time.Minute), postServicelinksEventsRequestHandler(gc))
 
 	//user authorization approval url
 	router.POST("/v1/users/servicelinks/authorize/approval/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersServicelinksAuthorizeApprovalTargetUserHandler(callBackRetryChan, gc))
@@ -145,7 +145,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.POST("/v1/users/servicelinks/events/approval/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersServicelinksEventsApprovalTargetUserHandler(callBackRetryChan, gc))
 
 	//service authorization verify url
-	router.GET("/v1/servicelinks/authorize/verify/:ownerUsername/:targetUser/:authId", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getServicelinksAuthorizeVerifyOwnerUsernameTargetUserAuthIdHandler(gc))
+	router.GET("/v1/servicelinks/authorize/verify/:ownerUsername/:targetUser/:authId", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "servicelinks-authorize-verify", 60, time.Minute), getServicelinksAuthorizeVerifyOwnerUsernameTargetUserAuthIdHandler(gc))
 	//app authorization verify url
 	router.GET("/v1/servicelinks/app/authorize/verify/:ownerUsername/:targetUser/:authId", middleware.AuthenticationMiddlewareUsingTimestamp(), getServicelinksAppAuthorizeVerifyOwnerUsernameTargetUserAuthIdHandler(gc))
 
@@ -153,28 +153,28 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.GET("/v1/servicelinks/payment/request/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), getServicelinksPaymentRequestTargetUserHandler(gc))
 
 	//api service payment request
-	router.GET("/v1/trovo-api/payment/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getTrovoApiPaymentRequestTargetUserHandler(gc))
+	router.GET("/v1/trovo-api/payment/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-payment-request", 60, time.Minute), getTrovoApiPaymentRequestTargetUserHandler(gc))
 
 	//service tokenized asset request
-	router.GET("/v1/servicelinks/tokenized-asset/:assetCode", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getServicelinksTokenizedAssetAssetCodeHandler(gc))
+	router.GET("/v1/servicelinks/tokenized-asset/:assetCode", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "servicelinks-tokenized-asset", 60, time.Minute), getServicelinksTokenizedAssetAssetCodeHandler(gc))
 
 	//SERVICELINK USER INFO request
-	router.GET("/v1/servicelinks/:ownerUsername/:targetUser/userinfo", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getServicelinksOwnerUsernameTargetUserUserinfoHandler(gc))
+	router.GET("/v1/servicelinks/:ownerUsername/:targetUser/userinfo", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "servicelinks-userinfo", 60, time.Minute), getServicelinksOwnerUsernameTargetUserUserinfoHandler(gc))
 
 	//SERVICE push notification request
-	router.POST("/v1/servicelinks/:ownerUsername/:targetUser/push", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postServicelinksOwnerUsernameTargetUserPushHandler(gc))
+	router.POST("/v1/servicelinks/:ownerUsername/:targetUser/push", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "servicelinks-push", 30, time.Minute), postServicelinksOwnerUsernameTargetUserPushHandler(gc))
 
 	//register user from service link
-	router.POST("/v1/trovo-api/users/onboard", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postTrovoApiUsersOnboardHandler(gc))
+	router.POST("/v1/trovo-api/users/onboard", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-onboard", 20, time.Minute), postTrovoApiUsersOnboardHandler(gc))
 
 	//update user kyc from service link
-	router.POST("/v1/trovo-api/users/update-kyc", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postTrovoApiUsersUpdateKycHandler(gc))
+	router.POST("/v1/trovo-api/users/update-kyc", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-update-kyc", 20, time.Minute), postTrovoApiUsersUpdateKycHandler(gc))
 
 	//mint token from service link
-	router.POST("/v1/trovo-api/tokens/mint", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postTrovoApiTokensMintHandler(gc))
+	router.POST("/v1/trovo-api/tokens/mint", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-mint", 10, time.Minute), postTrovoApiTokensMintHandler(gc))
 
 	//get wallet balance from service link
-	router.GET("/v1/trovo-api/users/balance/:walletAddress", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getTrovoApiUsersBalanceWalletAddressHandler(gc))
+	router.GET("/v1/trovo-api/users/balance/:walletAddress", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-balance", 60, time.Minute), getTrovoApiUsersBalanceWalletAddressHandler(gc))
 
 	//get wallet payment history from service link
 	router.GET("/v1/trovo-api/users/payment-history/:walletAddress", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-payment-history", 120, time.Minute), getTrovoApiUsersPaymentHistoryWalletAddressHandler(gc))
@@ -183,53 +183,53 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.POST("/v1/trovo-api/users/payment", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-payment", 20, time.Minute), postTrovoApiUsersPaymentHandler(callBackRetryChan, gc))
 
 	//create new subwallet from service link
-	router.POST("/v1/trovo-api/users/subwallet", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postTrovoApiUsersSubwalletHandler(gc))
+	router.POST("/v1/trovo-api/users/subwallet", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-subwallet", 20, time.Minute), postTrovoApiUsersSubwalletHandler(gc))
 
 	//Get tokenization parameters from service link
-	router.GET("/v1/trovo-api/assets/parameters", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getTrovoApiAssetsParametersHandler(gc))
+	router.GET("/v1/trovo-api/assets/parameters", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-assets-parameters", 60, time.Minute), getTrovoApiAssetsParametersHandler(gc))
 
 	//Get tokenization bank list from service link
-	router.GET("/v1/trovo-api/assets/bank-list/:countryCode", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getTrovoApiAssetsBankListCountryCodeHandler(gc))
+	router.GET("/v1/trovo-api/assets/bank-list/:countryCode", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-assets-bank-list", 60, time.Minute), getTrovoApiAssetsBankListCountryCodeHandler(gc))
 
 	//Get tokenization list for Admin from service link
-	router.GET("/v1/trovo-api/assets/admin/list", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getTrovoApiAssetsAdminListHandler(gc))
+	router.GET("/v1/trovo-api/assets/admin/list", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-assets-admin-list", 60, time.Minute), getTrovoApiAssetsAdminListHandler(gc))
 
 	//Get tokenization list for market from service link
-	router.GET("/v1/trovo-api/assets/marketplace/list", middleware.AuthenticationMiddlewareUsingAPIKey(gc), getTrovoApiAssetsMarketplaceListHandler(gc))
+	router.GET("/v1/trovo-api/assets/marketplace/list", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-assets-marketplace-list", 60, time.Minute), getTrovoApiAssetsMarketplaceListHandler(gc))
 
 	//Apply for tokenization from service link
-	router.POST("/v1/trovo-api/assets/apply", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postTrovoApiAssetsApplyHandler(gc))
+	router.POST("/v1/trovo-api/assets/apply", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-assets-apply", 20, time.Minute), postTrovoApiAssetsApplyHandler(gc))
 
 	//Upload logo for tokenization from service link
-	router.PUT("/v1/trovo-api/assets/logo", middleware.AuthenticationMiddlewareUsingAPIKey(gc), putTrovoApiAssetsLogoHandler(gc))
+	router.PUT("/v1/trovo-api/assets/logo", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-assets-logo", 20, time.Minute), putTrovoApiAssetsLogoHandler(gc))
 
 	//Upload documents for tokenization from service link
-	router.PUT("/v1/trovo-api/assets/documents", middleware.AuthenticationMiddlewareUsingAPIKey(gc), putTrovoApiAssetsDocumentsHandler(gc))
+	router.PUT("/v1/trovo-api/assets/documents", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-assets-documents", 20, time.Minute), putTrovoApiAssetsDocumentsHandler(gc))
 
 	// Store private stakeholder portal documents for Trovo Manager.
-	router.POST("/v1/trovo-api/stakeholder-documents", middleware.AuthenticationMiddlewareUsingAPIKey(gc), requireActiveServiceLink(gc), postStakeholderDocumentHandler(gc))
-	router.GET("/v1/trovo-api/stakeholder-documents/:objectID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), requireActiveServiceLink(gc), getStakeholderDocumentHandler(gc))
-	router.DELETE("/v1/trovo-api/stakeholder-documents/:objectID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), requireActiveServiceLink(gc), deleteStakeholderDocumentHandler(gc))
+	router.POST("/v1/trovo-api/stakeholder-documents", middleware.AuthenticationMiddlewareUsingAPIKey(gc), requireActiveServiceLink(gc), middleware.RateLimitMiddleware(gc, "trovo-api-stakeholder-documents-post", 20, time.Minute), postStakeholderDocumentHandler(gc))
+	router.GET("/v1/trovo-api/stakeholder-documents/:objectID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), requireActiveServiceLink(gc), middleware.RateLimitMiddleware(gc, "trovo-api-stakeholder-documents-get", 60, time.Minute), getStakeholderDocumentHandler(gc))
+	router.DELETE("/v1/trovo-api/stakeholder-documents/:objectID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), requireActiveServiceLink(gc), middleware.RateLimitMiddleware(gc, "trovo-api-stakeholder-documents-delete", 20, time.Minute), deleteStakeholderDocumentHandler(gc))
 
 	//Upload fee payment documents for tokenization from service link
-	router.PUT("/v1/trovo-api/assets/fees/document", middleware.AuthenticationMiddlewareUsingAPIKey(gc), putTrovoApiAssetsFeesDocumentHandler(gc))
+	router.PUT("/v1/trovo-api/assets/fees/document", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-assets-fees-document", 20, time.Minute), putTrovoApiAssetsFeesDocumentHandler(gc))
 
 	//confirm fee payment for tokenization from service link
-	router.POST("/v1/trovo-api/assets/fees/confirm/:tokenizationID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postTrovoApiAssetsFeesConfirmTokenizationIDHandler(gc))
+	router.POST("/v1/trovo-api/assets/fees/confirm/:tokenizationID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-assets-fees-confirm", 20, time.Minute), postTrovoApiAssetsFeesConfirmTokenizationIDHandler(gc))
 
 	//DELETE tokenization from service link
-	router.DELETE("/v1/trovo-api/assets/:tokenizationID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), deleteTrovoApiAssetsTokenizationIDHandler(gc))
+	router.DELETE("/v1/trovo-api/assets/:tokenizationID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-assets-delete", 20, time.Minute), deleteTrovoApiAssetsTokenizationIDHandler(gc))
 
 	//DELETE tokenization document from service link
-	router.DELETE("/v1/trovo-api/assets/documents/:documentID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), deleteTrovoApiAssetsDocumentsDocumentIDHandler(gc))
+	router.DELETE("/v1/trovo-api/assets/documents/:documentID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-assets-documents-delete", 20, time.Minute), deleteTrovoApiAssetsDocumentsDocumentIDHandler(gc))
 
 	//DELETE tokenization fee document from service link
-	router.DELETE("/v1/trovo-api/assets/fees/documents/:documentID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), deleteTrovoApiAssetsFeesDocumentsDocumentIDHandler(gc))
+	router.DELETE("/v1/trovo-api/assets/fees/documents/:documentID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-assets-fees-documents-delete", 20, time.Minute), deleteTrovoApiAssetsFeesDocumentsDocumentIDHandler(gc))
 
 	//Confirm Application for tokenization from service link
-	router.POST("/v1/trovo-api/assets/confirm-application/:tokenizationID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postTrovoApiAssetsConfirmApplicationTokenizationIDHandler(gc))
+	router.POST("/v1/trovo-api/assets/confirm-application/:tokenizationID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-assets-confirm-application", 20, time.Minute), postTrovoApiAssetsConfirmApplicationTokenizationIDHandler(gc))
 
 	//Purchase primary sales tokenized asset from service link
-	router.POST("/v1/trovo-api/assets/marketplace/primary", middleware.AuthenticationMiddlewareUsingAPIKey(gc), postTrovoApiAssetsMarketplacePrimaryHandler(gc))
+	router.POST("/v1/trovo-api/assets/marketplace/primary", middleware.AuthenticationMiddlewareUsingAPIKey(gc), middleware.RateLimitMiddleware(gc, "trovo-api-assets-marketplace-primary", 10, time.Minute), postTrovoApiAssetsMarketplacePrimaryHandler(gc))
 
 }
