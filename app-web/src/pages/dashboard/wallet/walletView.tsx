@@ -242,7 +242,9 @@ export default function WalletView() {
       isSharedAccess={wallet.sharedAccessEnabled}
       walletType={wallet.walletType!}
       key={index}
-      ref={(el) => (itemRefs.current[index] = el!)}
+      ref={(el) => {
+        itemRefs.current[index] = el!;
+      }}
     />
   ));
 
