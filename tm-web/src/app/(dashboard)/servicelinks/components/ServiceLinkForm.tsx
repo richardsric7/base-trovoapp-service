@@ -24,6 +24,7 @@ export type ServiceLinkFormValues = {
   allowReferralForRegisteredUsers: boolean;
   verified: boolean;
   inactive: boolean;
+  rateLimitPerMinute: number;
 };
 
 const PERMISSION_FIELDS: {
@@ -75,6 +76,7 @@ const fromServiceLink = (link?: IServiceLink): ServiceLinkFormValues => ({
   allowReferralForRegisteredUsers: !!link?.allowReferralForRegisteredUsers,
   verified: !!link?.verified,
   inactive: !!link?.inactive,
+  rateLimitPerMinute: link?.rateLimitPerMinute ?? 0,
 });
 
 const ServiceLinkForm = ({
@@ -97,6 +99,11 @@ const ServiceLinkForm = ({
   const handleTextChange = (key: "shortName" | "longName" | "ownerUsername") => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => set(key, e.target.value as never);
+
+  const handleRateLimitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const parsed = parseInt(e.target.value, 10);
+    set("rateLimitPerMinute", (Number.isNaN(parsed) ? 0 : Math.max(0, parsed)) as never);
+  };
 
   const handleSubmit = () => {
     if (!values.ownerUsername.trim()) {
@@ -167,6 +174,22 @@ const ServiceLinkForm = ({
           onChange={(checked) => set("inactive", !checked as never)}
         />
       </StatusRow>
+
+      <Field>
+        <Label>Rate limit override (requests/min)</Label>
+        <Input
+          type="number"
+          min={0}
+          value={values.rateLimitPerMinute}
+          onChange={handleRateLimitChange}
+          placeholder="0 = use the default limit"
+        />
+        <FieldHint>
+          0 uses each endpoint&apos;s default limit. A positive value overrides
+          every rate-limited endpoint this service link calls with this same
+          per-minute budget.
+        </FieldHint>
+      </Field>
 
       <SubmitRow>
         <PrimaryButton onClick={handleSubmit} disabled={submitting} buttonStyle={{ width: "auto", padding: "10px 32px" }}>

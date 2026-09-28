@@ -96,6 +96,21 @@ data (see the `deploy.yml` comment quoted above).
   update the matching struct in `app-backend` (and check `tm-api`'s reads),
   since three codebases independently define Go structs mapped onto the same
   table — there is no shared Go module or schema registry enforcing this.
+- `PaymentHistory` splits each row into a **source** side (`SourceNetwork`,
+  `SourceAssetCode`, `SourceContractAddress`, `SourceAmount` — what left
+  `FromAddress`) and a **destination** side (the equivalent `Destination*`
+  fields — what arrived at `ToAddress`). `SavePaymentHistory`
+  (`internal/components/payments/services/procedure.go`) takes a `network`
+  parameter and, since every current caller in `main.go` only ever observes
+  one leg of a transfer, writes it to both sides identically — a plain
+  payment genuinely has the same asset/network on both ends. `NetworkBase =
+  "base"` is the only network this engine watches today; it's a real column
+  (not left implicit) so a future second network or a Base-native bridge
+  is a new value here, not another schema change. A row where source and
+  destination differ would be a swap — this engine doesn't produce one
+  today (Base has no live DEX/AMM integration; `swapTransactionType()` in
+  `main.go` has zero callers), but the schema is ready for whoever builds
+  that correlation later.
 - If this engine is down, `app-backend`'s and `tm-api`'s payment-history
   endpoints keep serving whatever rows already exist — they degrade to
   "stale data", not "erroring out", because they don't depend on this

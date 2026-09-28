@@ -2,7 +2,7 @@ import React from 'react';
 
 type Props = {
   tabList: string[];
-  children: React.ReactNode[];
+  children?: React.ReactNode[];
   onTabChanged?: (index: number) => void;
 };
 
@@ -57,7 +57,3 @@ export default function Tabs({ tabList, children = [], onTabChanged }: Props) {
     </div>
   );
 }
-
-Tabs.defaultProps = {
-  children: [],
-};

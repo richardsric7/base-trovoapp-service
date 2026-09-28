@@ -28,7 +28,7 @@ const P2pUserDetailsPage = () => {
 
   const rawUsername = useParams().username;
   const username = decodeURIComponent(
-    Array.isArray(rawUsername) ? rawUsername[0] : rawUsername
+    (Array.isArray(rawUsername) ? rawUsername[0] : rawUsername) ?? ""
   );
 
   const { data, isLoading } = useP2pUsersQuery({

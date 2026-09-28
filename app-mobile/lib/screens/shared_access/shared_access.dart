@@ -809,7 +809,7 @@ class _SharedAccessState extends State<SharedAccess>
                             ? darktilewhitecolor
                             : notifier.getaddsubwalletgrey,
                       ),
-                      value: selectedAccessMode,
+                      initialValue: selectedAccessMode,
                       icon: Icon(
                         Icons.keyboard_arrow_down_rounded,
                         color: notifier.getbluewhitecolor,
@@ -871,7 +871,7 @@ class _SharedAccessState extends State<SharedAccess>
                               ? darktilewhitecolor
                               : notifier.getaddsubwalletgrey,
                         ),
-                        value: selectedFilter,
+                        initialValue: selectedFilter,
                         icon: Icon(
                           Icons.keyboard_arrow_down_rounded,
                           color: notifier.getbluewhitecolor,
@@ -1965,7 +1965,7 @@ class _SharedAccessState extends State<SharedAccess>
                                   ? darktilewhitecolor
                                   : notifier.getaddsubwalletgrey,
                             ),
-                            value: noOfApprovalsNeeded,
+                            initialValue: noOfApprovalsNeeded,
                             icon: Icon(
                               Icons.keyboard_arrow_down_rounded,
                               color: notifier.getbluewhitecolor,
@@ -2050,7 +2050,7 @@ class _SharedAccessState extends State<SharedAccess>
                                   ? darktilewhitecolor
                                   : notifier.getaddsubwalletgrey,
                             ),
-                            value: noOfApprovers,
+                            initialValue: noOfApprovers,
                             icon: Icon(
                               Icons.keyboard_arrow_down_rounded,
                               color: notifier.getbluewhitecolor,
@@ -2662,7 +2662,7 @@ class _SharedAccessState extends State<SharedAccess>
                       ? darktilewhitecolor
                       : notifier.getaddsubwalletgrey,
                 ),
-                value: selectedWallet,
+                initialValue: selectedWallet,
                 icon: isNewTokenizationAndDistributionWallet
                     ? null
                     : Icon(
@@ -2789,7 +2789,7 @@ class _SharedAccessState extends State<SharedAccess>
               ? darktilewhitecolor
               : notifier.getaddsubwalletgrey,
         ),
-        value: value,
+        initialValue: value,
         icon: Icon(
           Icons.keyboard_arrow_down_rounded,
           color: notifier.getbluewhitecolor,

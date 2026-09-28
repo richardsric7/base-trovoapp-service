@@ -41,12 +41,14 @@ func GetPaymentHistory(targetAddress string, gc *sharedconfig.GlobalConfig, c *g
 	limit := int(limitU)
 	pageU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("page", "1")), 10, 64)
 	page := int(pageU)
-	contractAddress := strings.TrimSpace(strings.ToUpper(c.Query("contractAddress")))
-	// var contractAddressVal *string
-	assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
+	destinationContractAddress := strings.TrimSpace(strings.ToUpper(c.Query("destinationContractAddress")))
+	destinationAssetCode := strings.TrimSpace(strings.ToUpper(c.Query("destinationAssetCode")))
+	sourceContractAddress := strings.TrimSpace(strings.ToUpper(c.Query("sourceContractAddress")))
+	sourceAssetCode := strings.TrimSpace(strings.ToUpper(c.Query("sourceAssetCode")))
 
 	transactionID := strings.ToLower(strings.TrimSpace(c.Query("transactionID")))
-	amountBetween := strings.TrimSpace(c.Query("amount"))
+	destinationAmountBetween := strings.TrimSpace(c.Query("destinationAmount"))
+	sourceAmountBetween := strings.TrimSpace(c.Query("sourceAmount"))
 	dateBetween := strings.TrimSpace(c.Query("dateBetween"))
 
 	orderBy := strings.TrimSpace(c.DefaultQuery("orderby", "transaction_date"))
@@ -84,14 +86,24 @@ func GetPaymentHistory(targetAddress string, gc *sharedconfig.GlobalConfig, c *g
 		countQuery = countQuery.Where("to_address = ?", toAddress)
 
 	}
-	if len(assetCode) > 0 {
-		query = query.Where("asset_code = ?", strings.ToUpper(assetCode))
-		countQuery = countQuery.Where("asset_code = ?", strings.ToUpper(assetCode))
+	if len(destinationAssetCode) > 0 {
+		query = query.Where("destination_asset_code = ?", destinationAssetCode)
+		countQuery = countQuery.Where("destination_asset_code = ?", destinationAssetCode)
 
 	}
-	if len(contractAddress) == 42 {
-		query = query.Where("contract_address = ?", contractAddress)
-		countQuery = countQuery.Where("contract_address = ?", contractAddress)
+	if len(destinationContractAddress) == 42 {
+		query = query.Where("destination_contract_address = ?", destinationContractAddress)
+		countQuery = countQuery.Where("destination_contract_address = ?", destinationContractAddress)
+
+	}
+	if len(sourceAssetCode) > 0 {
+		query = query.Where("source_asset_code = ?", sourceAssetCode)
+		countQuery = countQuery.Where("source_asset_code = ?", sourceAssetCode)
+
+	}
+	if len(sourceContractAddress) == 42 {
+		query = query.Where("source_contract_address = ?", sourceContractAddress)
+		countQuery = countQuery.Where("source_contract_address = ?", sourceContractAddress)
 
 	}
 	if len(name) > 2 {
@@ -133,11 +145,18 @@ func GetPaymentHistory(targetAddress string, gc *sharedconfig.GlobalConfig, c *g
 		countQuery = countQuery.Where("DATE(transaction_date) BETWEEN DATE(?) AND DATE(?)", dateRange[0], dateRange[1])
 
 	}
-	if len(amountBetween) > 2 && strings.Contains(amountBetween, "|") {
+	if len(destinationAmountBetween) > 2 && strings.Contains(destinationAmountBetween, "|") {
 		// 0|1
-		amountRange := strings.Split(amountBetween, "|")
-		query = query.Where("CAST(amount AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", amountRange[0], amountRange[1])
-		countQuery = countQuery.Where("CAST(amount AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", amountRange[0], amountRange[1])
+		amountRange := strings.Split(destinationAmountBetween, "|")
+		query = query.Where("CAST(destination_amount AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", amountRange[0], amountRange[1])
+		countQuery = countQuery.Where("CAST(destination_amount AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", amountRange[0], amountRange[1])
+
+	}
+	if len(sourceAmountBetween) > 2 && strings.Contains(sourceAmountBetween, "|") {
+		// 0|1
+		amountRange := strings.Split(sourceAmountBetween, "|")
+		query = query.Where("CAST(source_amount AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", amountRange[0], amountRange[1])
+		countQuery = countQuery.Where("CAST(source_amount AS REAL) BETWEEN CAST(? AS REAL) AND CAST(? AS REAL)", amountRange[0], amountRange[1])
 
 	}
 

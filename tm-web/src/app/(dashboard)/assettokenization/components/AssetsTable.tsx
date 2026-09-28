@@ -2,6 +2,7 @@
 import CustomTable from "@/components/CustomTable";
 import Link from "next/link";
 import React, { useMemo, useState } from "react";
+import type { JSX } from "react";
 import styled from "styled-components";
 import Pagination from "@/components/CustomPagination";
 

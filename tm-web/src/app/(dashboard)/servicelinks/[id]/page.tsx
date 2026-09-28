@@ -46,6 +46,7 @@ const EditServiceLinkPage = () => {
         allowReferralForRegisteredUsers: values.allowReferralForRegisteredUsers,
         verified: values.verified,
         inactive: values.inactive,
+        rateLimitPerMinute: values.rateLimitPerMinute,
       }).unwrap();
       showSuccessToast("Service link updated");
       router.push("/servicelinks");

@@ -148,7 +148,7 @@ class _TopDropdownsState extends State<TopDropdowns> {
                       ? darktilewhitecolor
                       : notifier.getaddsubwalletgrey,
                 ),
-                value: selectedAsset,
+                initialValue: selectedAsset,
                 icon: Icon(
                   Icons.keyboard_arrow_down_rounded,
                   color: notifier.getbluewhitecolor,

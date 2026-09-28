@@ -77,6 +77,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	}(callBackRetryChan)
 
-	router.POST("/v1/users/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersPaymentHandler(callBackRetryChan, gc))
-	router.POST("/v1/shared-access/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), postSharedAccessPaymentHandler(callBackRetryChan, gc))
+	router.POST("/v1/users/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), middleware.RateLimitMiddleware(gc, "payment", 20, time.Minute), postUsersPaymentHandler(callBackRetryChan, gc))
+	router.POST("/v1/shared-access/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), middleware.RateLimitMiddleware(gc, "payment", 20, time.Minute), postSharedAccessPaymentHandler(callBackRetryChan, gc))
 }

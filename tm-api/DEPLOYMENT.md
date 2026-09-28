@@ -108,6 +108,25 @@ curl http://localhost:8082/ping
 open http://localhost:8082/swagger/index.html   # Swagger UI
 ```
 
+### Running two or more instances
+
+`migrateAdminSchema` (`internal/db/main.go`) already guards `AutoMigrate`
+with a Postgres advisory lock, so two instances booting at the same time
+against the same database serialize their migration correctly instead of
+racing each other — nothing extra to configure there.
+
+Separately, a real bug was found and fixed while working on this: the
+pinned `gorm.io/driver/postgres` version (`v1.5.2`) was out of sync with
+this project's `gorm.io/gorm` version in a way that broke `AutoMigrate`
+against any table that already existed — meaning every restart after the
+very first boot would have fatally failed migration against a real
+Postgres database (reproduced and confirmed against real Postgres 13, 14,
+and 16). This is fixed by bumping the driver to `v1.5.11`, verified
+end-to-end via `AdminDB()` run three times in a row against the same
+database (simulating first boot plus two redeploys) and the existing
+SQLite migration test suite. If you're working from this repo, you
+already have the fix.
+
 ## 4. Running via Docker
 
 ```bash

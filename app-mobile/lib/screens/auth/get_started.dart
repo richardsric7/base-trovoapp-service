@@ -72,7 +72,7 @@ class _GetStartedState extends State<GetStarted> {
                               dropdownColor: notifier.isDark
                                   ? darktilewhitecolor
                                   : notifier.getaddsubwalletgrey,
-                              value: appState.walletMode,
+                              initialValue: appState.walletMode,
                               icon: Icon(Icons.keyboard_arrow_down_rounded),
                               decoration: InputDecoration(
                                 contentPadding: EdgeInsets.symmetric(

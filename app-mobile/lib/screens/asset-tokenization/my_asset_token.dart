@@ -13,6 +13,7 @@ import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/top_drop_downs.dart';
@@ -21,7 +22,6 @@ import 'package:trovo_app/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-import 'package:local_auth/error_codes.dart' as auth_error;
 
 class MyAssetTokenDetails extends StatefulWidget {
   const MyAssetTokenDetails({Key? key}) : super(key: key);
@@ -542,9 +542,9 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
       if (result) {
         toggleHideBalance();
       }
-    } on PlatformException catch (e) {
-      if (e.code == auth_error.notEnrolled ||
-          e.code == auth_error.notAvailable) {
+    } on LocalAuthException catch (e) {
+      if (e.code == LocalAuthExceptionCode.noBiometricsEnrolled ||
+          e.code == LocalAuthExceptionCode.noBiometricHardware) {
         biometricsErrorAlert(context);
       }
     }

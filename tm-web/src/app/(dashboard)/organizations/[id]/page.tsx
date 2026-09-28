@@ -146,7 +146,7 @@ const OrganizationDetailsPage = () => {
         </ActionsContainer>
       </Header>
 
-      <MembersTable organizationId={organizationId} />
+      <MembersTable organizationId={organizationId ?? ""} />
 
       {isEditModalOpen && selectedOrg && (
         <EditOrganizationModal

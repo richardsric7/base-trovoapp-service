@@ -133,7 +133,15 @@ func TrackUserWallet(userWallet userModels.UserWallet, roachDB, db *gorm.DB, tra
 
 }
 
-func SavePaymentHistory(fromPK, fromAlias, fromName, toPK, toAlias, toName, memo, contractAddress, assetCode, amount, transactionHash, transactionType, PT, ID, sss string, transactionTime time.Time, db *gorm.DB) error {
+// SavePaymentHistory records one detected transfer. Every current caller
+// only ever observes a single leg of a transfer (a native transfer or one
+// ERC-20 Transfer log), so the asset/contract/amount/network it's given is
+// written identically to both the source and destination side - accurate
+// for a plain payment, since both ends genuinely hold the same asset. A
+// future caller that has actually observed two distinct legs of a swap
+// (e.g. once a DEX/AMM router integration exists) would populate source
+// and destination independently instead of calling this helper.
+func SavePaymentHistory(fromPK, fromAlias, fromName, toPK, toAlias, toName, memo, contractAddress, assetCode, amount, network, transactionHash, transactionType, PT, ID, sss string, transactionTime time.Time, db *gorm.DB) error {
 	var from, to string
 	var fromVal, toVal, memoVal, issuerVal *string
 	if len(fromAlias) > 1 {
@@ -154,37 +162,33 @@ func SavePaymentHistory(fromPK, fromAlias, fromName, toPK, toAlias, toName, memo
 	if assetCode == "" {
 		assetCode = os.Getenv("NATIVE_ASSET_CODE")
 	}
+	if network == "" {
+		network = paymentModels.NetworkBase
+	}
 	paymentHistory := paymentModels.PaymentHistory{
-		ID:                    ID,
-		TransactionDate:       transactionTime,
-		From:                  fromVal,
-		FromAddress:           fromPK,
-		To:                    toVal,
-		ToAddress:             toPK,
-		Memo:                  memoVal,
-		ContractAddress:       issuerVal,
-		AssetCode:             assetCode,
-		Amount:                amount,
+		ID:              ID,
+		TransactionDate: transactionTime,
+		From:            fromVal,
+		FromAddress:     fromPK,
+		To:              toVal,
+		ToAddress:       toPK,
+		Memo:            memoVal,
+
+		SourceNetwork:         network,
+		SourceContractAddress: issuerVal,
+		SourceAssetCode:       assetCode,
+		SourceAmount:          amount,
+
+		DestinationNetwork:         network,
+		DestinationContractAddress: issuerVal,
+		DestinationAssetCode:       assetCode,
+		DestinationAmount:          amount,
+
 		TransactionID:         transactionHash,
 		TransactionType:       transactionType,
 		PT:                    PT,
 		SourceAccountSequence: sss,
 	}
-	// paymentHistory := paymentModels.PaymentHistory{
-	// 	ID:              uuid.NewString(),
-	// 	TransactionDate: transactionTime,
-	// 	From:            fromVal,
-	// 	FromAddress:   fromPK,
-	// 	To:              toVal,
-	// 	ToAddress:     toPK,
-	// 	Memo:            memoVal,
-	// 	ContractAddress:     issuerVal,
-	// 	AssetCode:       assetCode,
-	// 	Amount:          amount,
-	// 	TransactionID:   transactionHash,
-	// 	TransactionType: transactionType,
-	// 	PT:              PT,
-	// }
 
 	err := db.Create(&paymentHistory).Error
 	if err == nil {

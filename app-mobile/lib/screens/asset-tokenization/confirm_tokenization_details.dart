@@ -18,6 +18,7 @@ import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
@@ -25,7 +26,6 @@ import 'package:trovo_app/widgets/utilities.dart';
 
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-import 'package:local_auth/error_codes.dart' as auth_error;
 
 class ConfirmTokenizationDetails extends StatefulWidget {
   const ConfirmTokenizationDetails({Key? key}) : super(key: key);
@@ -765,9 +765,9 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
         // after authorizing with biometrics
         setState(() {});
       }
-    } on PlatformException catch (e) {
-      if (e.code == auth_error.notEnrolled ||
-          e.code == auth_error.notAvailable) {
+    } on LocalAuthException catch (e) {
+      if (e.code == LocalAuthExceptionCode.noBiometricsEnrolled ||
+          e.code == LocalAuthExceptionCode.noBiometricHardware) {
         biometricsErrorAlert(context);
       }
     }

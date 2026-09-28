@@ -2,6 +2,7 @@ declare module "*.png";
 declare module "*.jpg";
 declare module "*.gif";
 declare module "*.pdf";
+declare module "*.css";
 declare module "react-native-otp-textinput";
 declare module "react-native-freshchat-sdk";
 declare module "*.svg" {

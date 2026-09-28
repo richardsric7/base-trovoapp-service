@@ -37,7 +37,7 @@ import (
 	"trovo-wallet-api/internal/middleware"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/joho/godotenv"
 	"github.com/shopspring/decimal"
 	swaggerFiles "github.com/swaggo/files"
@@ -358,6 +358,10 @@ func main() {
 	} else {
 		log.Println("STAKEHOLDER_DOCUMENTS_BUCKET_NAME is not configured; stakeholder document storage endpoints will return 503")
 	}
+	// Starts the shared Redis subscription P2P (and any future) live user
+	// event streams relay through - see sharedconfig/realtime.go. A no-op
+	// if Redis is disabled.
+	globalConfig.StartUserStreamRelay()
 	{
 
 		//update referral links for people with no referral link
@@ -408,14 +412,9 @@ func main() {
 
 	}
 	globalConfig.ChannelOfTokenizedAssetIDs = make(chan string, 10)
-	globalConfig.InUseChannelAccounts = make(map[string]*evmkeypair.Full)
+	globalConfig.ChannelAccountKeysByAddress = make(map[string]*evmkeypair.Full)
 	scas := strings.Split(os.Getenv("CHANNEL_ACCOUNTS"), ",")
 	count := decimal.RequireFromString(os.Getenv("CHANNEL_ACCOUNT_MIN_COUNT")).IntPart()
-	if len(scas) > int(count) {
-		globalConfig.ChannelAccounts = make(chan *evmkeypair.Full, len(scas))
-	} else {
-		globalConfig.ChannelAccounts = make(chan *evmkeypair.Full, count)
-	}
 
 	go func() {
 		var channelAccountsCSV string
@@ -487,7 +486,9 @@ func main() {
 
 				}
 				if os.Getenv("CHECK_CHANNEL_ACCOUNT_BALANCE") == "0" || os.Getenv("CHECK_CHANNEL_ACCOUNT_BALANCE") == "" {
-					globalConfig.ChannelAccounts <- k
+					if errSeed := sharedconfig.SeedChannelAccount(&globalConfig, k); errSeed != nil {
+						log.Printf("[SEED CHANNEL ACCOUNT] error seeding %v: %v\n", k.Address(), errSeed)
+					}
 					continue
 				}
 
@@ -511,7 +512,9 @@ func main() {
 						})
 					}
 				}
-				globalConfig.ChannelAccounts <- k
+				if errSeed := sharedconfig.SeedChannelAccount(&globalConfig, k); errSeed != nil {
+					log.Printf("[SEED CHANNEL ACCOUNT] error seeding %v: %v\n", k.Address(), errSeed)
+				}
 				if len(ops) == 0 {
 					log.Println("NO OPERATIONS for this wallet", k.Address())
 					continue
@@ -570,7 +573,9 @@ func main() {
 				}
 
 				log.Printf("Channel Account to be used:%v\n", k.Address())
-				globalConfig.ChannelAccounts <- k
+				if errSeed := sharedconfig.SeedChannelAccount(&globalConfig, k); errSeed != nil {
+					log.Printf("[SEED CHANNEL ACCOUNT] error seeding %v: %v\n", k.Address(), errSeed)
+				}
 
 				//check minimum balance
 
@@ -859,7 +864,9 @@ func main() {
 		go func() {
 			for {
 
-				MonitorStream(&globalConfig)
+				sharedconfig.WithSingletonLock(&globalConfig, "monitor-stream", 20*time.Second, func() {
+					MonitorStream(&globalConfig)
+				})
 				time.Sleep(5 * time.Second)
 			}
 		}()
@@ -871,7 +878,9 @@ func main() {
 
 			for {
 
-				userServices.ActivatePrimarySalesRoutine(&globalConfig)
+				sharedconfig.WithSingletonLock(&globalConfig, "activate-primary-sales", 20*time.Second, func() {
+					userServices.ActivatePrimarySalesRoutine(&globalConfig)
+				})
 				time.Sleep(5 * time.Second)
 			}
 		}()
@@ -879,7 +888,9 @@ func main() {
 		go func() {
 
 			for {
-				userServices.ActivateSecondarySalesRoutine(&globalConfig)
+				sharedconfig.WithSingletonLock(&globalConfig, "activate-secondary-sales", 20*time.Second, func() {
+					userServices.ActivateSecondarySalesRoutine(&globalConfig)
+				})
 				time.Sleep(5 * time.Second)
 			}
 		}()
@@ -888,9 +899,11 @@ func main() {
 		go func() {
 
 			for {
-				userServices.ProcessUpdateStablerailOnboardingStatus(&globalConfig)
-				time.Sleep(10 * time.Second)
-				userServices.ProcessUpdateStablerailCNGNOnrampStatus(&globalConfig)
+				sharedconfig.WithSingletonLock(&globalConfig, "stablerail-onboarding-onramp", time.Minute, func() {
+					userServices.ProcessUpdateStablerailOnboardingStatus(&globalConfig)
+					time.Sleep(10 * time.Second)
+					userServices.ProcessUpdateStablerailCNGNOnrampStatus(&globalConfig)
+				})
 				time.Sleep(10 * time.Second)
 
 			}
@@ -902,7 +915,9 @@ func main() {
 		go func() {
 			for {
 
-				userServices.SendPNToSuscribersForPrimarySales(&globalConfig)
+				sharedconfig.WithSingletonLock(&globalConfig, "send-pn-primary-sales-subscribers", 20*time.Second, func() {
+					userServices.SendPNToSuscribersForPrimarySales(&globalConfig)
+				})
 				time.Sleep(5 * time.Second)
 			}
 		}()
@@ -912,10 +927,12 @@ func main() {
 		go func() {
 
 			for {
-				_, e := userServices.StablerailSaveSupportedBanks(&globalConfig)
-				if e != nil {
-					log.Printf("[Error Fetching stablerail banks] %v\n", e)
-				}
+				sharedconfig.WithSingletonLock(&globalConfig, "stablerail-save-supported-banks", 30*time.Minute, func() {
+					_, e := userServices.StablerailSaveSupportedBanks(&globalConfig)
+					if e != nil {
+						log.Printf("[Error Fetching stablerail banks] %v\n", e)
+					}
+				})
 				time.Sleep(10 * time.Minute)
 			}
 		}()
@@ -926,9 +943,11 @@ func main() {
 		//more than 2 days without a webhook confirmation
 		go func() {
 			for {
-				if e := userServices.ExpireStalePaymentInvoices(&globalConfig); e != nil {
-					log.Printf("[MAIN] error expiring stale payment invoices: %v\n", e)
-				}
+				sharedconfig.WithSingletonLock(&globalConfig, "expire-stale-payment-invoices", 90*time.Minute, func() {
+					if e := userServices.ExpireStalePaymentInvoices(&globalConfig); e != nil {
+						log.Printf("[MAIN] error expiring stale payment invoices: %v\n", e)
+					}
+				})
 				time.Sleep(30 * time.Minute)
 			}
 		}()

@@ -951,7 +951,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   Transform.scale(
                     scale: 0.7,
                     child: CupertinoSwitch(
-                      activeColor: notifier.getgreencolor,
+                      activeTrackColor: notifier.getgreencolor,
                       value: capOnPurchase,
                       onChanged: (val) async {
                         setState(() {
@@ -1428,7 +1428,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     child: TextButton(
                       onPressed: showCountryListPopup,
                       style: ButtonStyle(
-                        elevation: MaterialStateProperty.all<double>(0),
+                        elevation: WidgetStateProperty.all<double>(0),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1528,7 +1528,14 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 ],
               ),
               SizedBox(height: height / 50),
-              Column(
+              RadioGroup<bool>(
+                groupValue: hasAdditionalKYCRequirements,
+                onChanged: (value) {
+                  setState(() {
+                    hasAdditionalKYCRequirements = value!;
+                  });
+                },
+                child: Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -1536,18 +1543,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       height: 25,
                       child: Row(
                         children: [
-                          Radio(
-                            value: hasAdditionalKYCRequirements,
-                            groupValue: true,
+                          Radio<bool>(
+                            value: true,
                             activeColor: notifier.getbluewhitecolor,
-                            fillColor: MaterialStateProperty.all(
+                            fillColor: WidgetStateProperty.all(
                               notifier.getbluewhitecolor,
                             ),
-                            onChanged: (value) {
-                              setState(() {
-                                hasAdditionalKYCRequirements = true;
-                              });
-                            },
                           ),
                           Text(
                             'yes'.tr(),
@@ -1568,18 +1569,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       height: 25,
                       child: Row(
                         children: [
-                          Radio(
-                            value: hasAdditionalKYCRequirements,
-                            groupValue: false,
-                            fillColor: MaterialStateProperty.all(
+                          Radio<bool>(
+                            value: false,
+                            fillColor: WidgetStateProperty.all(
                               notifier.getbluewhitecolor,
                             ),
                             activeColor: notifier.getbluewhitecolor,
-                            onChanged: (value) {
-                              setState(() {
-                                hasAdditionalKYCRequirements = false;
-                              });
-                            },
                           ),
                           Text(
                             'no'.tr(),
@@ -1647,6 +1642,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     ),
                   ],
                 ],
+              ),
               ),
               SizedBox(height: height / 50),
               Row(
@@ -2309,17 +2305,17 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   // }
 
   Future<void> getFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    // file_picker 13's FilePicker.pickFile() replaces the old
+    // FilePicker.platform.pickFiles(...).files.single pattern; withData is
+    // gone (uploadAssetLogo uses file.path, not file.bytes).
+    PlatformFile? file = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'gif', 'png', 'pdf'],
-      withData: true,
     );
 
-    if (result == null) {
-      return null;
+    if (file == null) {
+      return;
     }
-
-    PlatformFile file = result.files.single;
 
     uploadAssetLogo(file);
   }

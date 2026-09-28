@@ -13,6 +13,15 @@ import 'package:trovo_app/widgets/utilities.dart';
 
 import '../custom_bloc_observer/fonts.dart';
 
+// google_sign_in 7's GoogleSignIn.instance.initialize() must be called
+// exactly once (and awaited) before any other GoogleSignIn method - caching
+// the Future here means repeated backup button presses reuse the same
+// initialization instead of violating that contract.
+Future<void>? _googleSignInInitFuture;
+Future<void> _ensureGoogleSignInInitialized() {
+  return _googleSignInInitFuture ??= GoogleSignIn.instance.initialize();
+}
+
 class Secret extends StatefulWidget {
   late final String alias;
   late final String secret;
@@ -179,16 +188,21 @@ class _SecretState extends State<Secret> {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  final googleSignIn = GoogleSignIn.standard(
-                    scopes: [DriveApi.driveFileScope],
+                  // google_sign_in 7 dropped GoogleSignIn.standard() and
+                  // GoogleSignInAuthentication.accessToken - authenticate()
+                  // now only returns identity tokens, and access tokens for
+                  // API scopes (like Drive) come from the account's separate
+                  // authorizationClient.
+                  await _ensureGoogleSignInInitialized();
+                  final googleSignIn = GoogleSignIn.instance;
+                  final account = await googleSignIn.authenticate(
+                    scopeHint: [DriveApi.driveFileScope],
                   );
-                  var account = await googleSignIn.signIn();
-                  final GoogleSignInAuthentication? auth =
-                      await account?.authentication;
-                  final String accessToken = auth!.accessToken!;
+                  final authorization = await account.authorizationClient
+                      .authorizeScopes([DriveApi.driveFileScope]);
                   var client = await GoogleDriveClient.create(
-                    googleSignIn.currentUser!,
-                    accessToken,
+                    account,
+                    authorization.accessToken,
                   );
 
                   var fileContent = await client.downloadFile();

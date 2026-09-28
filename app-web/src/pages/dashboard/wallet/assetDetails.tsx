@@ -15,25 +15,6 @@ import { showNotification } from '../../../utils/showToaster';
 import WalletOperations from '../../../components/walletOperations';
 import { Wallet } from '../../../types/wallet';
 
-type AssetDetailItemProps = {
-  asset: Asset;
-};
-
-// eslint-disable-next-line
-function AssetDetailItem({ asset }: AssetDetailItemProps) {
-  return (
-    <div className="rounded-2xl w-full bg-white px-4 py-3">
-      <div className="flex  flex-col space-y-2 w-full">
-        <p className="font-montserratSemiBold text-primary-400 md:text-lg">
-          {asset.assetCode}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-AssetDetailItem.defaultProps = { asset: '' };
-
 export default function AssetDetail() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

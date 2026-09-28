@@ -33,6 +33,7 @@ const AddServiceLinkPage = () => {
         allowReferralForRegisteredUsers: values.allowReferralForRegisteredUsers,
         verified: values.verified,
         inactive: values.inactive,
+        rateLimitPerMinute: values.rateLimitPerMinute,
       }).unwrap();
       showSuccessToast("Service link created");
       router.push("/servicelinks");

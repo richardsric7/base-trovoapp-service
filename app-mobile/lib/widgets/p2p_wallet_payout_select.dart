@@ -28,7 +28,7 @@ class P2PWalletPayoutSelect extends StatelessWidget {
             borderRadius: BorderRadius.circular(P2PTheme.space2),
           ),
           child: DropdownButtonFormField<String>(
-            value: value,
+            initialValue: value,
             isExpanded: true,
             decoration: InputDecoration(
               hintText: 'p2pselectwallet'.tr(),

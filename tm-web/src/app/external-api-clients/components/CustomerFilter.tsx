@@ -35,7 +35,10 @@ const CustomerFilter: React.FC<CustomerFilterProps> = ({
     date: filters.created_at || "",
   });
 
-  const handleDateChange = (date: any, dateString: string | string[]) => {
+  const handleDateChange = (
+    date: any,
+    dateString: string | string[] | null,
+  ) => {
     if (typeof dateString === "string") {
       setSelectValues({ ...selectValues, date: dateString });
     }

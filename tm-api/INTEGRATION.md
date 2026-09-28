@@ -51,7 +51,7 @@ preserve, tm-api reads *and writes* the shared database directly via GORM,
 the same as it does for its own `AdminDB` tables. Concretely:
 
 - **`curated_assets`** (`internal/models/curated_assets.go`) — the platform's asset catalog, including the `p2p_enabled` flag that gates whether an asset can be used to create a P2P offer. Managed via `PUT /assets/curated`, `PUT /assets/curated/{id}/p2p-enabled`, etc.
-- **`service_links`** (`internal/models/service_links.go`) — white-label partner integration accounts (the credentials third parties use to call app-backend's own `/v1/servicelinks` API). app-backend has never exposed a create/edit endpoint for these — every row has historically been provisioned by a direct DB insert — so tm-api owns their lifecycle. Managed via `/service-links`.
+- **`service_links`** (`internal/models/service_links.go`) — white-label partner integration accounts (the credentials third parties use to call app-backend's own `/v1/servicelinks` API). app-backend has never exposed a create/edit endpoint for these — every row has historically been provisioned by a direct DB insert — so tm-api owns their lifecycle. Managed via `/service-links`. Includes `rateLimitPerMinute` (0 = no override): a per-partner rate-limit budget enforced by app-backend's `RateLimitMiddleware` on every request that service link makes, overriding that route's shared default — set this when one partner's legitimate traffic needs a different budget than everyone else's. See app-backend's CONFIGURATION.md "Rate limiting" section for the enforcement side.
 - **Fee configs** (`internal/components/usermetrics/services/fees_handler.go`) — per-service-link fee configuration, managed via `/fee/configs`.
 - **`kyc_configs`, `faucet_configs`, `doja_widgets`, `kyc_levels`** (`internal/models/configs.go`) — third-party KYC/faucet provider configuration and KYC-level definitions, managed via `/kyc/configs`, `/faucet/configs`, `/doja/widgets`, `/kyc/levels`.
 
@@ -87,6 +87,42 @@ by `SERVICE_LINK_USERNAME`/`SERVICE_LINK_API_KEY` (see
 [CONFIGURATION.md](./CONFIGURATION.md)) — i.e. tm-api is, from app-backend's
 point of view, just another service-link partner integration, with whatever
 permission flags that row has been granted.
+
+### 2c. `payment_histories` — read-only, direct-DB read
+
+`GET /payment/history` (`internal/components/general/services/payment_history.go`)
+reads the `payment_histories` table directly via `s.TrovoWalletDB`, the same
+physical database app-backend owns and migrates — tm-api never writes or
+migrates this table, only reads it. Each row is split into a **source**
+side (what left `fromAddress`) and a **destination** side (what arrived at
+`toAddress`), replacing the old flat `assetCode`/`contractAddress`/`amount`
+fields:
+
+```json
+{
+  "sourceNetwork": "base",
+  "sourceContractAddress": "0x...",
+  "sourceAssetCode": "USDC",
+  "sourceAmount": "100.0000000",
+  "destinationNetwork": "base",
+  "destinationContractAddress": "0x...",
+  "destinationAssetCode": "USDC",
+  "destinationAmount": "100.0000000"
+}
+```
+
+For a plain payment (everything today) the two sides are identical; a row
+where they differ is a swap. The query/search filters follow the same
+split (`destinationAssetCode`/`destinationContractAddress` and
+`sourceAssetCode`/`sourceContractAddress`, replacing the old flat
+`assetCode`/`contractAddress` filter names) — see
+[app-backend's INTEGRATION.md](../app-backend/INTEGRATION.md#payment-history-source-vs-destination)
+for the full rationale, since app-backend's payment-history-engine is the
+table's only writer.
+
+This endpoint, along with every other tm-api route, sits behind the global
+rate limiter described in
+[CONFIGURATION.md](./CONFIGURATION.md#8-rate-limiting).
 
 ## 3. The RBAC model
 

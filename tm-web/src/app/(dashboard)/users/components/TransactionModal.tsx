@@ -5,6 +5,7 @@ import { FaArrowDown, FaArrowUp } from "react-icons/fa6";
 import { MdOutlineContentCopy } from "react-icons/md";
 import { toast } from "react-toastify";
 import styled from "styled-components";
+import SourceDestinationTags from "@/components/SourceDestinationTags";
 
 interface TransactionModalProps {
   openModal: boolean;
@@ -95,6 +96,16 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
         </TransactionValue>
       </ModalHeader>
 
+      <SourceDestinationTagsWrapper>
+        <SourceDestinationTags
+          isSwap={transaction.isSwap}
+          sourceAssetCode={transaction.sourceAssetCode}
+          sourceNetwork={transaction.sourceNetwork}
+          destinationAssetCode={transaction.destinationAssetCode}
+          destinationNetwork={transaction.destinationNetwork}
+        />
+      </SourceDestinationTagsWrapper>
+
       <ModalBody>
         <DetailsSection>
           <Label>Blockchain ID</Label>
@@ -165,6 +176,10 @@ const ModalTitle = styled.h3`
   line-height: 24.38px;
   color: #00225a;
   margin-bottom: 10px;
+`;
+
+const SourceDestinationTagsWrapper = styled.div`
+  margin-bottom: 20px;
 `;
 
 const ModalHeader = styled.div`

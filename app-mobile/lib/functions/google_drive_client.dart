@@ -69,11 +69,13 @@ class GoogleDriveClient {
       null, // We don't have a refreshToken at this example
       [gApi.DriveApi.driveAppdataScope],
     );
+    // google_sign_in 7 removed GoogleSignInAccount.authHeaders - the caller
+    // now passes a valid access token into create() (obtained via the
+    // account's authorizationClient), which the AccessCredentials above
+    // already turn into a fully authenticated http client, so no extra
+    // header merge is needed.
     var client = gAuth.authenticatedClient(http.Client(), credentials);
-    var localAuthHeaders = await _googleAccount.authHeaders;
-    var headers = localAuthHeaders;
-    var authClient = AuthClient(client, headers);
-    _driveApi = gApi.DriveApi(authClient);
+    _driveApi = gApi.DriveApi(client);
   }
 
   // Download the wanted file to the device in the specified folder

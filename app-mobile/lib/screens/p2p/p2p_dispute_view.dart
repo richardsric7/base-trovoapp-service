@@ -107,7 +107,7 @@ class _P2PDisputeViewState extends State<P2PDisputeView> {
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: P2PTheme.space3),
                 child: DropdownButtonFormField<String>(
-                  value: subject,
+                  initialValue: subject,
                   decoration: const InputDecoration(border: InputBorder.none),
                   items: subjects.entries
                       .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))

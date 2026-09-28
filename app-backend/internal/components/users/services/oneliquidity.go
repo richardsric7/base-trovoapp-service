@@ -14,7 +14,6 @@ import (
 	"trovo-wallet-api/internal/basetxn"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
-	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -1325,10 +1324,11 @@ func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.W
 			ErrMessage: "Wallet does not have " + wdlInput.Currency,
 		}
 	}
-	chanAccount := <-gc.ChannelAccounts
-	defer func(c *evmkeypair.Full) {
-		gc.ChannelAccounts <- c
-	}(chanAccount)
+	chanAccount, releaseChanAccount, errCheckout := sharedconfig.CheckoutChannelAccount(gc)
+	if errCheckout != nil {
+		return "", errCheckout
+	}
+	defer releaseChanAccount()
 
 	_, _, _, _, chanSourceAccount, errorChannel := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), basetxn.NativeAsset{})
 	if errorChannel != nil {

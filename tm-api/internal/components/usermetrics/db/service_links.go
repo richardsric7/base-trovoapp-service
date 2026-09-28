@@ -135,6 +135,7 @@ func SaveServiceLink(db *gorm.DB, req models.ServiceLinkRequest) (models.Service
 			AllowReferralForRegisteredUsers:       intFlag(req.AllowReferralForRegisteredUsers),
 			Verified:                              intFlag(req.Verified),
 			Inactive:                              intFlag(req.Inactive),
+			RateLimitPerMinute:                    req.RateLimitPerMinute,
 		}
 		if err := db.Create(&link).Error; err != nil {
 			return link, err
@@ -167,6 +168,7 @@ func SaveServiceLink(db *gorm.DB, req models.ServiceLinkRequest) (models.Service
 			"allow_referral_for_registered_users":      intFlag(req.AllowReferralForRegisteredUsers),
 			"verified":                                 intFlag(req.Verified),
 			"inactive":                                 intFlag(req.Inactive),
+			"rate_limit_per_minute":                    req.RateLimitPerMinute,
 		}
 		if err := db.Model(&models.ServiceLink{}).Where("id = ?", req.ID).Updates(updates).Error; err != nil {
 			return existing, err

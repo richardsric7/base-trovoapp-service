@@ -5,6 +5,7 @@ package users
 import (
 	"log"
 	"os"
+	"time"
 
 	userModels "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/middleware"
@@ -25,11 +26,11 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	//shortlink
 	router.GET("/v1/shortlinks/:linkID", getShortlinksLinkIDHandler(callBackRetryChan, gc))
 
-	router.GET("/v1/users/payments/:targetAddressForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), getUsersPaymentsTargetAddressForHistoryHandler(callBackRetryChan, gc))
+	router.GET("/v1/users/payments/:targetAddressForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), middleware.RateLimitMiddleware(gc, "payment-history", 30, time.Minute), getUsersPaymentsTargetAddressForHistoryHandler(callBackRetryChan, gc))
 
 	router.GET("/v1/curated-assets/users", middleware.AuthenticationMiddlewareUsingTimestamp(), getCuratedAssetsUsersHandler(callBackRetryChan, gc))
 
-	router.GET("/v1/users/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), getUsersTargetUserHandler(callBackRetryChan, gc))
+	router.GET("/v1/users/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), middleware.RateLimitMiddleware(gc, "get-user", 60, time.Minute), getUsersTargetUserHandler(callBackRetryChan, gc))
 
 	router.POST("/v1/users", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersHandler(callBackRetryChan, gc))
 

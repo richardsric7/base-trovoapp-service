@@ -60,6 +60,12 @@ type ServiceLink struct {
 	Inactive         int     `gorm:"column:inactive" json:"inactive"`
 	Suspended        int     `gorm:"column:suspended" json:"suspended"`
 	SuspensionReason *string `gorm:"column:suspension_reason" json:"suspensionReason"`
+
+	// RateLimitPerMinute overrides app-backend's default per-route rate
+	// limit for every API-key request this service link makes. 0 (the
+	// default) means "no override" - the route's own default applies.
+	// Admin-editable here; enforced in app-backend's RateLimitMiddleware.
+	RateLimitPerMinute int `gorm:"column:rate_limit_per_minute" json:"rateLimitPerMinute"`
 }
 
 func (ServiceLink) TableName() string { return "service_links" }
@@ -113,6 +119,9 @@ type ServiceLinkRequest struct {
 	AllowReferralForRegisteredUsers       bool   `json:"allowReferralForRegisteredUsers"`
 	Verified                              bool   `json:"verified"`
 	Inactive                              bool   `json:"inactive"`
+	// RateLimitPerMinute: 0/omitted keeps the route's default limit in
+	// app-backend; a positive value overrides it for this service link.
+	RateLimitPerMinute int `json:"rateLimitPerMinute"`
 }
 
 // ServiceLinkListRequest filters the paginated service-links admin table.

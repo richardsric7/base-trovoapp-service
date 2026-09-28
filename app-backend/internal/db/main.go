@@ -173,6 +173,14 @@ func renameAssetIssuerColumns(gormDB *gorm.DB) {
 		{"activation_amounts", "asset_issuer", "contract_address"},
 		{"fee_collections", "asset_issuer", "contract_address"},
 		{"payment_histories", "asset_issuer", "contract_address"},
+		// Source/destination split (payment history can now represent a
+		// swap, where the asset leaving From differs from the asset
+		// arriving at To) - the old single asset/contract/amount columns
+		// become the destination side; the source side is a new,
+		// additively-created set of columns AutoMigrate handles below.
+		{"payment_histories", "asset_code", "destination_asset_code"},
+		{"payment_histories", "contract_address", "destination_contract_address"},
+		{"payment_histories", "amount", "destination_amount"},
 	}
 	migrator := gormDB.Migrator()
 	for _, r := range renames {
@@ -189,9 +197,81 @@ func renameAssetIssuerColumns(gormDB *gorm.DB) {
 	}
 }
 
+// backfillPaymentHistorySourceColumns fills in every payment_histories row
+// created before the source/destination split (see renameAssetIssuerColumns
+// above and the PaymentHistory struct) with source_* mirroring its
+// destination_* values. Every write path that predates this split only ever
+// recorded a single-leg transfer, so source == destination is the correct
+// historical value, not a placeholder - without this, every pre-existing
+// row would read back with an empty source side and look like a
+// (nonsensical) swap out of nothing. Idempotent: only touches rows whose
+// source_asset_code is still empty, so it's a no-op on every boot after the
+// first.
+func backfillPaymentHistorySourceColumns(gormDB *gorm.DB) {
+	if !gormDB.Migrator().HasTable("payment_histories") {
+		return
+	}
+	result := gormDB.Exec(`
+		UPDATE payment_histories
+		SET source_network = destination_network,
+		    source_asset_code = destination_asset_code,
+		    source_contract_address = destination_contract_address,
+		    source_amount = destination_amount
+		WHERE source_asset_code = ''
+	`)
+	if result.Error != nil {
+		log.Printf("[MigrateDB] failed to backfill payment_histories source columns: %v\n", result.Error)
+		return
+	}
+	if result.RowsAffected > 0 {
+		log.Printf("[MigrateDB] backfilled source columns for %d payment_histories row(s)\n", result.RowsAffected)
+	}
+}
+
+// migrationLockName identifies the schema-migration lock row in
+// sharedConfig's distributed_locks table (see sharedconfig.TryAcquireLock).
+const migrationLockName = "schema-migration"
+
+// MigrateDB runs the full schema migration, gated by DB_AUTOMIGRATE and
+// guarded by a lock so that multiple instances booting at the same time
+// serialize their migration instead of racing GORM's AutoMigrate against
+// the same schema concurrently. Uses sharedConfig's portable
+// distributed_locks table rather than a Postgres advisory lock, since
+// this project's dev/test DB is SQLite, which has no equivalent primitive.
 func MigrateDB(gormDB *gorm.DB) {
 	//do automigrate if it is not explicitly disabled,
-	if os.Getenv("DB_AUTOMIGRATE") != "0" {
+	if os.Getenv("DB_AUTOMIGRATE") == "0" {
+		return
+	}
+	if err := gormDB.AutoMigrate(&sharedConfig.DistributedLock{}); err != nil {
+		log.Fatalln("[MigrateDB] failed to ensure distributed_locks table:", err)
+	}
+	if err := sharedConfig.EnsureDistributedLock(gormDB, migrationLockName); err != nil {
+		log.Fatalln("[MigrateDB] failed to seed migration lock row:", err)
+	}
+	holder := sharedConfig.InstanceIdentity()
+	acquired, err := sharedConfig.WaitAcquireLock(gormDB, migrationLockName, holder, 10*time.Minute, 60*time.Second)
+	if err != nil {
+		log.Fatalln("[MigrateDB] failed to acquire migration lock:", err)
+	}
+	if !acquired {
+		log.Fatalln("[MigrateDB] timed out waiting for the schema-migration lock - another instance may be stuck migrating")
+	}
+	defer sharedConfig.ReleaseLock(gormDB, migrationLockName, holder)
+
+	runSchemaMigration(gormDB)
+}
+
+// runSchemaMigration is MigrateDB's actual migration body, run only after
+// the lock above is held - unchanged from before other than the rename.
+func runSchemaMigration(gormDB *gorm.DB) {
+	{
+		errMigrate := gormDB.AutoMigrate(&sharedConfig.ChannelAccount{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ChannelAccount: ", errMigrate)
+		}
+	}
+	{
 		renameAssetIssuerColumns(gormDB)
 		errMigrate := gormDB.AutoMigrate(&users.User{})
 		if errMigrate != nil {
@@ -412,6 +492,7 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating PaymentHistory: ", errMigrate)
 		}
+		backfillPaymentHistorySourceColumns(gormDB)
 
 		errMigrate = gormDB.AutoMigrate(&paymentModels.CurrencyRates{})
 		if errMigrate != nil {

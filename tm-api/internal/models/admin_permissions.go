@@ -192,22 +192,38 @@ func HasPermission(db *gorm.DB, user *AdminUser, permissionName string) bool {
 	return count > 0
 }
 
-// PaymentHistory holds payment information
+// NetworkBase is the only network this admin panel's underlying wallet
+// data currently watches/supports. Kept in sync with the identical
+// constant in app-backend/payment-history-engine.
+const NetworkBase = "base"
+
+// PaymentHistory holds payment information. Source is the asset/network
+// leaving From/FromAddress; Destination is the asset/network arriving at
+// To/ToAddress. For a plain transfer the two sides are identical; a row
+// where they differ is, by definition, a swap.
 type PaymentHistory struct {
-	ID                    string
-	TransactionType       string    `gorm:"index:idx_payment_history_unique_key,unique"`
-	TransactionDate       time.Time `json:"transactionDate" gorm:"index:idx_payment_history_tx_time"`
-	From                  *string   `json:"from" gorm:"size:150;index:idx_payment_history_from;null"` // trovoWallet alias and name
-	FromAddress           string    `json:"fromAddress" gorm:"size:150;index:idx_payment_history_from_pk;not null"`
-	To                    *string   `json:"to" gorm:"size:100;index:idx_payment_history_to;null"` // trovoWallet alias and name
-	ToAddress             string    `json:"toAddress" gorm:"size:100;index:idx_payment_history_to_pk;not null;"`
-	Memo                  *string   `json:"memo" gorm:"size:28;null"`
-	ContractAddress       *string   `json:"contractAddress" gorm:"size:56;null;"`
-	AssetCode             string    `json:"assetCode" gorm:"size:12;not null;"`
-	Amount                string    `json:"amount" gorm:"index:idx_amount_ph"`
-	TransactionID         string    `json:"transactionId" gorm:"size:70;not null;index:idx_payment_history_txid;index:idx_payment_history_unique_key,unique"`
-	PT                    string    `json:"-" gorm:"size:70;not null;index:idx_payment_history_unique_key,unique;"`
-	SourceAccountSequence string    `json:"-" gorm:"size:70;not null;index:idx_payment_history_unique_key,unique;"`
+	ID              string
+	TransactionType string    `gorm:"index:idx_payment_history_unique_key,unique"`
+	TransactionDate time.Time `json:"transactionDate" gorm:"index:idx_payment_history_tx_time"`
+	From            *string   `json:"from" gorm:"size:150;index:idx_payment_history_from;null"` // trovoWallet alias and name
+	FromAddress     string    `json:"fromAddress" gorm:"size:150;index:idx_payment_history_from_pk;not null"`
+	To              *string   `json:"to" gorm:"size:100;index:idx_payment_history_to;null"` // trovoWallet alias and name
+	ToAddress       string    `json:"toAddress" gorm:"size:100;index:idx_payment_history_to_pk;not null;"`
+	Memo            *string   `json:"memo" gorm:"size:28;null"`
+
+	SourceNetwork         string  `json:"sourceNetwork" gorm:"size:20;not null;default:'base'"`
+	SourceContractAddress *string `json:"sourceContractAddress" gorm:"size:56;null;"`
+	SourceAssetCode       string  `json:"sourceAssetCode" gorm:"size:12;not null;default:''"`
+	SourceAmount          string  `json:"sourceAmount"`
+
+	DestinationNetwork         string  `json:"destinationNetwork" gorm:"size:20;not null;default:'base'"`
+	DestinationContractAddress *string `json:"destinationContractAddress" gorm:"size:56;null;"`
+	DestinationAssetCode       string  `json:"destinationAssetCode" gorm:"size:12;not null;"`
+	DestinationAmount          string  `json:"destinationAmount" gorm:"index:idx_amount_ph"`
+
+	TransactionID         string `json:"transactionId" gorm:"size:70;not null;index:idx_payment_history_txid;index:idx_payment_history_unique_key,unique"`
+	PT                    string `json:"-" gorm:"size:70;not null;index:idx_payment_history_unique_key,unique;"`
+	SourceAccountSequence string `json:"-" gorm:"size:70;not null;index:idx_payment_history_unique_key,unique;"`
 }
 
 // PaymentHistoryJSON holds payment information in json format
@@ -219,24 +235,34 @@ type PaymentHistoryJSON struct {
 	To              string    `json:"to"` // trovoWallet alias and name
 	ToAddress       string    `json:"toAddress"`
 	Memo            string    `json:"memo"`
-	ContractAddress string    `json:"contractAddress"`
-	AssetCode       string    `json:"assetCode"`
-	Amount          string    `json:"amount"`
-	TransactionID   string    `json:"transactionId"`
+
+	SourceNetwork         string `json:"sourceNetwork"`
+	SourceContractAddress string `json:"sourceContractAddress"`
+	SourceAssetCode       string `json:"sourceAssetCode"`
+	SourceAmount          string `json:"sourceAmount"`
+
+	DestinationNetwork         string `json:"destinationNetwork"`
+	DestinationContractAddress string `json:"destinationContractAddress"`
+	DestinationAssetCode       string `json:"destinationAssetCode"`
+	DestinationAmount          string `json:"destinationAmount"`
+
+	TransactionID string `json:"transactionId"`
 }
 
 // PaymentHistoryRequest holds the request parameters for fetching payment history
 type PaymentHistoryRequest struct {
-	Page            int    `json:"page"`
-	PageSize        int    `json:"pageSize"`
-	TransactionType string `json:"transactionType"`
-	TransactionDate string `json:"transactionDate"`
-	From            string `json:"from"`
-	To              string `json:"to"`
-	Memo            string `json:"memo"`
-	ContractAddress string `json:"contractAddress"`
-	AssetCode       string `json:"assetCode"`
-	Search          string `json:"search"`
+	Page                       int    `json:"page"`
+	PageSize                   int    `json:"pageSize"`
+	TransactionType            string `json:"transactionType"`
+	TransactionDate            string `json:"transactionDate"`
+	From                       string `json:"from"`
+	To                         string `json:"to"`
+	Memo                       string `json:"memo"`
+	DestinationContractAddress string `json:"destinationContractAddress"`
+	DestinationAssetCode       string `json:"destinationAssetCode"`
+	SourceContractAddress      string `json:"sourceContractAddress"`
+	SourceAssetCode            string `json:"sourceAssetCode"`
+	Search                     string `json:"search"`
 }
 
 // PaymentHistoryResponse represents the paginated response for payment history

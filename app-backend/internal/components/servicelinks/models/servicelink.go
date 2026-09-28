@@ -31,6 +31,13 @@ type ServiceLink struct {
 	Inactive         int     `json:"inactive" gorm:"type:integer;not null;default:0"`
 	Suspended        int     `json:"-" gorm:"type:integer;not null;default:0"`
 	SuspensionReason *string `json:"-" gorm:"null"`
+	// RateLimitPerMinute overrides the default per-route rate limit for
+	// every API-key-authenticated request this service link makes (see
+	// middleware.RateLimitMiddleware). 0 means "no override" - the
+	// route's own default (or a RATE_LIMIT_* env override) applies as
+	// normal. Set from tm-api's service-link admin UI for partners that
+	// need a different budget than the default.
+	RateLimitPerMinute int `json:"rateLimitPerMinute" gorm:"type:integer;not null;default:0"`
 }
 type ServiceLinkApiKeyLog struct {
 	ID            int64     `json:"-"`

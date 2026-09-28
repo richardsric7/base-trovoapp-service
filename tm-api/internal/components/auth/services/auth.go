@@ -738,6 +738,12 @@ func LoginNotificationStream(c *gin.Context, s *serverModels.Server) {
 		s.GC.Mutex.Unlock()
 	}()
 
+	// Also relay this loginID's Redis channel into ch, so this connection still gets
+	// notified when the approval callback (POST /callbacks/login/...) lands on a
+	// *different* instance than this one - see BroadcastToLoginID/publishStreamEvent.
+	stopRelay := s.GC.SubscribeStreamRelay(c.Request.Context(), models.LoginStreamChannel(loginID), ch)
+	defer stopRelay()
+
 	c.Header("Content-Type", "text/event-stream")
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")

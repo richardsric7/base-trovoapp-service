@@ -52,7 +52,7 @@ Future<void> initAppNotification(context, appState) async {
 
   requestPermissions();
   await flutterLocalNotificationsPlugin.initialize(
-    initializationSettings,
+    settings: initializationSettings,
     onDidReceiveNotificationResponse: onDidReceiveLocalNotification,
   );
   //requestPermissions();
@@ -126,10 +126,10 @@ Future<void> showNotification(RemoteMessage payload) async {
   );
   var rand = Random().nextInt(999999);
   await flutterLocalNotificationsPlugin.show(
-    rand,
-    payload.notification!.title!,
-    payload.notification!.body!,
-    platformChannelSpecifics,
+    id: rand,
+    title: payload.notification!.title!,
+    body: payload.notification!.body!,
+    notificationDetails: platformChannelSpecifics,
     payload: '${payload.data['route']}',
   );
 }

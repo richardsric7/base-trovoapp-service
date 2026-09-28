@@ -4,22 +4,42 @@ import (
 	"time"
 )
 
-// PaymentHistory holds payment information
+// NetworkBase is the only network this engine (and the rest of this
+// monorepo) currently watches/supports. Persisted per-row (rather than
+// left implicit) so a future second network - a Base-native bridge, or
+// support for another chain entirely - doesn't need another schema
+// change, just a different value written here.
+const NetworkBase = "base"
+
+// PaymentHistory holds payment information. Source is the asset/network
+// leaving From/FromAddress; Destination is the asset/network arriving at
+// To/ToAddress. For a plain transfer (the only kind this engine currently
+// detects - see SavePaymentHistory) the two sides are identical, which is
+// correct: a plain payment genuinely has the same asset/network on both
+// ends. A row where they differ is, by definition, a swap.
 type PaymentHistory struct {
-	ID                    string
-	TransactionType       string    `gorm:"index:idx_payment_history_unique_key,unique"`
-	TransactionDate       time.Time `json:"transactionDate" gorm:"index:idx_payment_history_tx_time"`
-	From                  *string   `json:"from" gorm:"size:150;index:idx_payment_history_from;null"` //trovoWallet alias and name
-	FromAddress           string    `json:"fromAddress" gorm:"size:150;index:idx_payment_history_from_pk;not null;index:idx_payment_history_unique_key,unique;index:idx_payment_history_unique_key,unique"`
-	To                    *string   `json:"to" gorm:"size:100;index:idx_payment_history_to;null"` //trovoWallet alias and name
-	ToAddress             string    `json:"toAddress" gorm:"size:100;index:idx_payment_history_to_pk;not null;index:idx_payment_history_unique_key,unique"`
-	Memo                  *string   `json:"memo" gorm:"size:60;null"`
-	ContractAddress       *string   `json:"contractAddress" gorm:"size:100;null;"`
-	AssetCode             string    `json:"assetCode" gorm:"size:12;not null;index:idx_payment_history_unique_key,unique"`
-	Amount                string    `json:"amount" gorm:"index:idx_payment_history_unique_key,unique"`
-	TransactionID         string    `json:"transactionId" gorm:"size:100;not null;index:idx_payment_history_txid;index:idx_payment_history_unique_key,unique"`
-	PT                    string    `json:"-" gorm:"size:100;not null;index:idx_payment_history_unique_key,unique;"`
-	SourceAccountSequence string    `json:"-" gorm:"size:100;not null;index:idx_payment_history_unique_key,unique;"`
+	ID              string
+	TransactionType string    `gorm:"index:idx_payment_history_unique_key,unique"`
+	TransactionDate time.Time `json:"transactionDate" gorm:"index:idx_payment_history_tx_time"`
+	From            *string   `json:"from" gorm:"size:150;index:idx_payment_history_from;null"` //trovoWallet alias and name
+	FromAddress     string    `json:"fromAddress" gorm:"size:150;index:idx_payment_history_from_pk;not null;index:idx_payment_history_unique_key,unique;index:idx_payment_history_unique_key,unique"`
+	To              *string   `json:"to" gorm:"size:100;index:idx_payment_history_to;null"` //trovoWallet alias and name
+	ToAddress       string    `json:"toAddress" gorm:"size:100;index:idx_payment_history_to_pk;not null;index:idx_payment_history_unique_key,unique"`
+	Memo            *string   `json:"memo" gorm:"size:60;null"`
+
+	SourceNetwork         string  `json:"sourceNetwork" gorm:"size:20;not null;default:'base'"`
+	SourceContractAddress *string `json:"sourceContractAddress" gorm:"size:100;null;"`
+	SourceAssetCode       string  `json:"sourceAssetCode" gorm:"size:12;not null;default:''"`
+	SourceAmount          string  `json:"sourceAmount"`
+
+	DestinationNetwork         string  `json:"destinationNetwork" gorm:"size:20;not null;default:'base'"`
+	DestinationContractAddress *string `json:"destinationContractAddress" gorm:"size:100;null;"`
+	DestinationAssetCode       string  `json:"destinationAssetCode" gorm:"size:12;not null;index:idx_payment_history_unique_key,unique"`
+	DestinationAmount          string  `json:"destinationAmount" gorm:"index:idx_payment_history_unique_key,unique"`
+
+	TransactionID         string `json:"transactionId" gorm:"size:100;not null;index:idx_payment_history_txid;index:idx_payment_history_unique_key,unique"`
+	PT                    string `json:"-" gorm:"size:100;not null;index:idx_payment_history_unique_key,unique;"`
+	SourceAccountSequence string `json:"-" gorm:"size:100;not null;index:idx_payment_history_unique_key,unique;"`
 }
 
 // PaymentHistoryJSON holds payment information in json format
@@ -31,10 +51,18 @@ type PaymentHistoryJSON struct {
 	To              string    `json:"to"` //trovoWallet alias and name
 	ToAddress       string    `json:"toAddress"`
 	Memo            string    `json:"memo"`
-	ContractAddress string    `json:"contractAddress"`
-	AssetCode       string    `json:"assetCode"`
-	Amount          string    `json:"amount"`
-	TransactionID   string    `json:"transactionId"`
+
+	SourceNetwork         string `json:"sourceNetwork"`
+	SourceContractAddress string `json:"sourceContractAddress"`
+	SourceAssetCode       string `json:"sourceAssetCode"`
+	SourceAmount          string `json:"sourceAmount"`
+
+	DestinationNetwork         string `json:"destinationNetwork"`
+	DestinationContractAddress string `json:"destinationContractAddress"`
+	DestinationAssetCode       string `json:"destinationAssetCode"`
+	DestinationAmount          string `json:"destinationAmount"`
+
+	TransactionID string `json:"transactionId"`
 }
 type TrackedWallet struct {
 	ID          string  `gorm:""`

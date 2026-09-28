@@ -31,6 +31,7 @@ import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
 import {
   formatAmount,
   formatRelativeTime,
+  getTransactionAmount,
   getTransactionAssetCode,
   normalizeTransactionType,
   parseAmountValue,
@@ -260,13 +261,14 @@ export default function Home() {
         item,
         primaryWallet.address,
       );
-      const amountValue = parseAmountValue(item.amount);
+      const amountRaw = getTransactionAmount(item);
+      const amountValue = parseAmountValue(amountRaw);
       const assetCode = getTransactionAssetCode(item);
       const amountPrefix =
         type === 'Sent' ? '-' : type === 'Received' ? '+' : '+';
       const amountText =
-        typeof item.amount === 'string' && item.amount.trim().length > 0
-          ? item.amount
+        typeof amountRaw === 'string' && amountRaw.trim().length > 0
+          ? amountRaw
           : formatAmount(amountValue, assetCode);
       const createdAt = parseDate(
         item.transactionDate ?? item.createdAt ?? item.date,

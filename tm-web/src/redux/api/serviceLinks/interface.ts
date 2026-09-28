@@ -42,6 +42,10 @@ export interface IServiceLink {
   inactive: number;
   suspended: number;
   suspensionReason: string | null;
+  // 0 = no override, use app-backend's per-route default. A positive
+  // value overrides the default for every API-key request this service
+  // link makes (see app-backend's RateLimitMiddleware).
+  rateLimitPerMinute: number;
   owner: IServiceLinkOwner | null;
 }
 
@@ -98,4 +102,5 @@ export interface ServiceLinkRequest {
   allowReferralForRegisteredUsers?: boolean;
   verified?: boolean;
   inactive?: boolean;
+  rateLimitPerMinute?: number;
 }

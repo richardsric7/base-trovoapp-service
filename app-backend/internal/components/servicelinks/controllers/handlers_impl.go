@@ -31,7 +31,7 @@ import (
 
 	evmkeypair "trovo-wallet-api/internal/evmkeypair"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm/clause"

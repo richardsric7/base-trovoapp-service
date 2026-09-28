@@ -14,11 +14,10 @@ class Authenticator {
     try {
       return await _localAuthentication.authenticate(
         localizedReason: 'Please authenticate to complete this action',
-        options: AuthenticationOptions(
-          biometricOnly: true,
-          useErrorDialogs: true, // show error in dialog
-          stickyAuth: true, // native process
-        ),
+        biometricOnly: true,
+        persistAcrossBackgrounding: true, // native process (was stickyAuth)
+        // useErrorDialogs is gone in local_auth 3.x - implementations now
+        // always behave as if it were false.
       );
     } catch (e) {
       return false;

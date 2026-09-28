@@ -1,7 +1,30 @@
 /* src/styles.css */
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import 'tailwindcss';
+@source '../node_modules/tw-elements-react/dist/js/**/*.js';
+@plugin 'tw-elements-react/dist/plugin.cjs';
+
+@theme {
+    --color-primary-100: #F2F6F9;
+    --color-primary-200: #CCDBE7;
+    --color-primary-300: #99B6CF;
+    --color-primary-500: #99B6CF;
+    --color-primary-600: #6692B8;
+    --color-primary-700: #336DA0;
+    --color-primary-800: #004988;
+
+    --color-trovored-light: #FFE7E2;
+    --color-trovored-primary: #BE3800;
+
+    --font-*: initial;
+    --font-matahariRegular: MatahariRegular, sans-serif;
+    --font-matahariExtended: MatahariExtended, sans-serif;
+    --font-montserratMedium: MontserratMedium, sans-serif;
+    --font-montserratRegular: MontserratRegular, sans-serif;
+    --font-montserratSemiBold: MontserratSemiBold, sans-serif;
+
+    --font-weight-*: initial;
+    --font-weight-bold: 700;
+}
 
 @font-face {
     font-family: "MatahariRegular";

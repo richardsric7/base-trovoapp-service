@@ -20,11 +20,11 @@ import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
+import 'package:local_auth/local_auth.dart';
 import '../../utils/local_auth.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/popups.dart';
 
-import 'package:local_auth/error_codes.dart' as auth_error;
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -179,7 +179,7 @@ class _LoginState extends State<Login> {
                                   dropdownColor: notifier.isDark
                                       ? darktilewhitecolor
                                       : notifier.getaddsubwalletgrey,
-                                  value: appState.walletMode,
+                                  initialValue: appState.walletMode,
                                   icon: Icon(Icons.keyboard_arrow_down_rounded),
                                   decoration: InputDecoration(
                                     contentPadding: EdgeInsets.symmetric(
@@ -450,9 +450,9 @@ class _LoginState extends State<Login> {
         );
         appState.isLoggedIn = true;
       }
-    } on PlatformException catch (e) {
-      if (e.code == auth_error.notEnrolled ||
-          e.code == auth_error.notAvailable) {
+    } on LocalAuthException catch (e) {
+      if (e.code == LocalAuthExceptionCode.noBiometricsEnrolled ||
+          e.code == LocalAuthExceptionCode.noBiometricHardware) {
         biometricsErrorAlert(context);
       }
     }

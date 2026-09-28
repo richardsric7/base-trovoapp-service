@@ -100,7 +100,7 @@ class P2PStatusPill extends StatelessWidget {
         vertical: P2PTheme.space1,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(P2PTheme.space6),
       ),
       child: Text(
@@ -139,7 +139,7 @@ class P2PEmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48, color: P2PTheme.primary.withOpacity(0.4)),
+            Icon(icon, size: 48, color: P2PTheme.primary.withValues(alpha: 0.4)),
             const SizedBox(height: P2PTheme.space4),
             Text(
               message,

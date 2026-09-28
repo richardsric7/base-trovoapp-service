@@ -9,6 +9,7 @@ import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:trovo_app/utils/local_auth.dart';
 import '../../custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
@@ -17,7 +18,6 @@ import '../../storage/state.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/popups.dart';
-import 'package:local_auth/error_codes.dart' as auth_error;
 
 class PasswordMgtView extends StatefulWidget {
   const PasswordMgtView({Key? key}) : super(key: key);
@@ -178,9 +178,9 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
         // after authorizing with biometrics
         setState(() {});
       }
-    } on PlatformException catch (e) {
-      if (e.code == auth_error.notEnrolled ||
-          e.code == auth_error.notAvailable) {
+    } on LocalAuthException catch (e) {
+      if (e.code == LocalAuthExceptionCode.noBiometricsEnrolled ||
+          e.code == LocalAuthExceptionCode.noBiometricHardware) {
         biometricsErrorAlert(context);
       }
     }

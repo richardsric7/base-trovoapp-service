@@ -16,10 +16,10 @@ import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../storage/store.dart';
+import 'package:local_auth/local_auth.dart';
 import '../../utils/local_auth.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-import 'package:local_auth/error_codes.dart' as auth_error;
 
 class FingerPrint extends StatefulWidget {
   const FingerPrint({Key? key}) : super(key: key);
@@ -162,9 +162,9 @@ class _FingerPrintState extends State<FingerPrint> {
           isSwitched = !isSwitched;
         });
       }
-    } on PlatformException catch (e) {
-      if (e.code == auth_error.notEnrolled ||
-          e.code == auth_error.notAvailable) {
+    } on LocalAuthException catch (e) {
+      if (e.code == LocalAuthExceptionCode.noBiometricsEnrolled ||
+          e.code == LocalAuthExceptionCode.noBiometricHardware) {
         biometricsErrorAlert(context);
       }
     }

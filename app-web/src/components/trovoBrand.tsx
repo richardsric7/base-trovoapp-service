@@ -1,4 +1,8 @@
-function TrovoBrand({ textColor }: { textColor: string }) {
+function TrovoBrand({
+  textColor = 'text-primary-800',
+}: {
+  textColor?: string;
+}) {
   const textClasses = `text-primary-800 font-montserratMedium text-xl xl:text-2xl ${textColor}`;
   return (
     <div className="flex items-center space-x-3 mt-5 mb-10 px-3 w-full">
@@ -7,9 +11,5 @@ function TrovoBrand({ textColor }: { textColor: string }) {
     </div>
   );
 }
-
-TrovoBrand.defaultProps = {
-  textColor: 'text-primary-800',
-};
 
 export default TrovoBrand;

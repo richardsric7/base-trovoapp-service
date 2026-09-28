@@ -60,7 +60,16 @@ export const formatRelativeTime = (date: Date | null) => {
   return `${diffInDays} days ago`;
 };
 
+// getTransactionAssetCode returns the asset that arrived at the recipient
+// (destinationAssetCode). The payment-history API now splits a payment into
+// a source and destination side (see getTransactionSourceAssetCode) - for a
+// plain payment they're identical, so most display code that only shows one
+// asset code should keep using this one.
 export const getTransactionAssetCode = (item: Record<string, any>) => {
+  if (item.destinationAssetCode !== undefined && item.destinationAssetCode !== '') {
+    return getAssetCode(item.destinationAssetCode);
+  }
+
   if (item.assetCode !== undefined) {
     return getAssetCode(item.assetCode);
   }
@@ -79,4 +88,39 @@ export const getTransactionAssetCode = (item: Record<string, any>) => {
   }
 
   return 'ETH';
+};
+
+// getTransactionSourceAssetCode returns the asset that left the sender. For
+// a plain payment this is the same as getTransactionAssetCode; when it
+// differs, the row is a swap.
+export const getTransactionSourceAssetCode = (item: Record<string, any>) => {
+  if (item.sourceAssetCode !== undefined && item.sourceAssetCode !== '') {
+    return getAssetCode(item.sourceAssetCode);
+  }
+  return getTransactionAssetCode(item);
+};
+
+// getTransactionAmount/getTransactionSourceAmount read the split
+// destination/source amount fields, falling back to the legacy flat
+// `amount` field for any caller that hasn't migrated.
+export const getTransactionAmount = (item: Record<string, any>) =>
+  item.destinationAmount ?? item.amount;
+
+export const getTransactionSourceAmount = (item: Record<string, any>) =>
+  item.sourceAmount ?? item.amount;
+
+export const getTransactionSourceNetwork = (item: Record<string, any>) =>
+  `${item.sourceNetwork ?? 'base'}`;
+
+export const getTransactionDestinationNetwork = (item: Record<string, any>) =>
+  `${item.destinationNetwork ?? 'base'}`;
+
+// isTransactionSwap mirrors the backend's definition: a row where the
+// source and destination side differ (asset or network) is a swap.
+export const isTransactionSwap = (item: Record<string, any>) => {
+  const sourceAsset = getTransactionSourceAssetCode(item);
+  const destinationAsset = getTransactionAssetCode(item);
+  const sourceNetwork = getTransactionSourceNetwork(item);
+  const destinationNetwork = getTransactionDestinationNetwork(item);
+  return sourceAsset !== destinationAsset || sourceNetwork !== destinationNetwork;
 };

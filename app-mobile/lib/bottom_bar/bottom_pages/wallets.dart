@@ -250,7 +250,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                               ? darktilewhitecolor
                               : notifier.getaddsubwalletgrey,
                         ),
-                        value: selectedWalletMode,
+                        initialValue: selectedWalletMode,
                         icon: Icon(
                           Icons.keyboard_arrow_down_rounded,
                           color: notifier.getbluewhitecolor,
@@ -545,10 +545,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                     height: height / 2.2,
                     child: ReorderableListView(
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
-                      onReorder: (oldIndex, newIndex) {
-                        if (oldIndex < newIndex) {
-                          newIndex -= 1;
-                        }
+                      onReorderItem: (oldIndex, newIndex) {
                         final Asset item = tokenizedAssets.removeAt(oldIndex);
                         tokenizedAssets.insert(newIndex, item);
                         setState(() {});
@@ -894,10 +891,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
               height: height / 2.2,
               child: ReorderableListView(
                 padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
-                onReorder: (oldIndex, newIndex) {
-                  if (oldIndex < newIndex) {
-                    newIndex -= 1;
-                  }
+                onReorderItem: (oldIndex, newIndex) {
                   final Asset item = otherTokens.removeAt(oldIndex);
                   otherTokens.insert(newIndex, item);
                   setState(() {});

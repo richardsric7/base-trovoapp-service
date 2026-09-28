@@ -17,8 +17,8 @@ import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/store.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:trovo_app/utils/local_auth.dart';
-import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 
@@ -455,7 +455,7 @@ class _SettingsState extends State<Settings> {
                       dropdownColor: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
-                      value: appState.walletMode,
+                      initialValue: appState.walletMode,
                       icon: Visibility(
                         visible: false,
                         child: Icon(Icons.arrow_downward),
@@ -542,7 +542,7 @@ class _SettingsState extends State<Settings> {
                       dropdownColor: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
-                      value: appState.timeout,
+                      initialValue: appState.timeout,
                       icon: Visibility(
                         visible: false,
                         child: Icon(Icons.arrow_downward),
@@ -669,7 +669,7 @@ class _SettingsState extends State<Settings> {
                       dropdownColor: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
-                      value: appState.defaultCurrency,
+                      initialValue: appState.defaultCurrency,
                       icon: Visibility(
                         visible: false,
                         child: Icon(Icons.arrow_downward),
@@ -747,7 +747,7 @@ class _SettingsState extends State<Settings> {
                       dropdownColor: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
-                      value: appState.defaultLanguage,
+                      initialValue: appState.defaultLanguage,
                       icon: Visibility(
                         visible: false,
                         child: Icon(Icons.arrow_downward),
@@ -888,7 +888,7 @@ class _SettingsState extends State<Settings> {
             Transform.scale(
               scale: 0.7,
               child: CupertinoSwitch(
-                activeColor: notifier.getgreencolor,
+                activeTrackColor: notifier.getgreencolor,
                 value: appState.biometricEnabled,
                 onChanged: (val) async {
                   toggleBiometrics();
@@ -929,7 +929,7 @@ class _SettingsState extends State<Settings> {
             Transform.scale(
               scale: 0.7,
               child: CupertinoSwitch(
-                activeColor: notifier.getgreencolor,
+                activeTrackColor: notifier.getgreencolor,
                 value: appState.hideBalances,
                 onChanged: (val) async {
                   if (val)
@@ -958,9 +958,9 @@ class _SettingsState extends State<Settings> {
           );
         });
       }
-    } on PlatformException catch (e) {
-      if (e.code == auth_error.notEnrolled ||
-          e.code == auth_error.notAvailable) {
+    } on LocalAuthException catch (e) {
+      if (e.code == LocalAuthExceptionCode.noBiometricsEnrolled ||
+          e.code == LocalAuthExceptionCode.noBiometricHardware) {
         if (!appState.biometricEnabled) {
           popup(
             context,
@@ -994,9 +994,9 @@ class _SettingsState extends State<Settings> {
           toggleHideBalances();
           return;
         }
-      } on PlatformException catch (e) {
-        if (e.code == auth_error.notEnrolled ||
-            e.code == auth_error.notAvailable) {
+      } on LocalAuthException catch (e) {
+        if (e.code == LocalAuthExceptionCode.noBiometricsEnrolled ||
+            e.code == LocalAuthExceptionCode.noBiometricHardware) {
           biometricsErrorAlert(context);
         }
       }

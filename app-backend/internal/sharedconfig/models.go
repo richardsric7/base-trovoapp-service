@@ -21,6 +21,7 @@ import (
 	"firebase.google.com/go/storage"
 	"github.com/ecnepsnai/discord"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/redis/go-redis/v9"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"golang.org/x/text/cases"
@@ -42,10 +43,23 @@ type GlobalConfig struct {
 	RoachDB                    *gorm.DB
 	BantuExpansionClient       *ethclient.Client
 	BantuNetworkPassphrase     string
-	ChannelAccounts            chan *evmkeypair.Full
-	InUseChannelAccounts       map[string]*evmkeypair.Full
-	Mutex                      sync.Mutex
-	ChannelOfTokenizedAssetIDs chan string
+	// ChannelAccountKeysByAddress caches this instance's parsed
+	// CHANNEL_ACCOUNTS signing keys, keyed by address - populated at boot
+	// by SeedChannelAccount/StoreInUseChannelAccount (see channel_accounts.go).
+	// Which address is actually free to hand out is coordinated across
+	// instances via the channel_accounts DB table, not this map - the map
+	// only ever holds key material, never availability state.
+	ChannelAccountKeysByAddress map[string]*evmkeypair.Full
+	ChannelAccountKeysMutex     sync.RWMutex
+	ChannelOfTokenizedAssetIDs  chan string
+
+	// userStreamConnections/userStreamMutex/userStreamPubSub back the
+	// per-instance user event stream (see realtime.go) - username to the
+	// set of local websocket connections currently registered for it, plus
+	// the one shared Redis subscription StartUserStreamRelay reads from.
+	userStreamConnections map[string]map[string]chan map[string]interface{}
+	userStreamMutex       sync.Mutex
+	userStreamPubSub      *redis.PubSub
 }
 
 type ClientUploader struct {
@@ -259,28 +273,6 @@ func (c *ClientUploader) SaveQrCodeAsFileToCloud(fileInput *os.File, fileName, i
 	}
 
 	return newImageThumbnailName, nil
-}
-
-func (gc *GlobalConfig) ReleaseInUseChannelAccount(pk string) {
-	if len(pk) == 0 {
-		return
-	}
-	gc.Mutex.Lock()
-	defer gc.Mutex.Unlock()
-	ca, ok := gc.InUseChannelAccounts[pk]
-	if ok {
-		gc.ChannelAccounts <- ca
-	}
-	delete(gc.InUseChannelAccounts, pk)
-}
-
-func (gc *GlobalConfig) StoreInUseChannelAccount(kp *evmkeypair.Full) {
-	if kp == nil {
-		return
-	}
-	gc.Mutex.Lock()
-	defer gc.Mutex.Unlock()
-	gc.InUseChannelAccounts[kp.Address()] = kp
 }
 
 // IsValidTokenizedAsset checks if the tokenized asset has bcome market ready at least....with status > 3

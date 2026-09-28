@@ -6,7 +6,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:provider/provider.dart';
@@ -25,6 +24,7 @@ import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/screens/send_and_recieve/deposit_withdrawal_history.dart';
 import 'package:trovo_app/storage/cache.dart';
 import 'package:trovo_app/storage/store.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/utils/medeiaqury/medeiaqury.dart';
 import 'package:trovo_app/widgets/loader.dart';
@@ -36,7 +36,6 @@ import '../router/ui_pages.dart';
 import '../screens/shared_access/shared_access.dart';
 import '../storage/state.dart';
 
-import 'package:local_auth/error_codes.dart' as auth_error;
 
 popup(
   context, {
@@ -4242,7 +4241,7 @@ showDocumentUploadPopup(
                                 onPressed: () async {
                                   errorMsg = '';
                                   file = await getFile();
-                                  if (file != null && file!.size > 900000) {
+                                  if (file != null && (file!.lengthSync() ?? 0) > 900000) {
                                     errorMsg = "filesizeerror".tr();
                                     file = null;
                                   }
@@ -4345,19 +4344,14 @@ showDocumentUploadPopup(
 }
 
 Future<PlatformFile?>? getFile() async {
-  FilePickerResult? result = await FilePicker.platform.pickFiles(
+  // file_picker 13's FilePicker.pickFile() replaces the old
+  // FilePicker.platform.pickFiles(...).files.single pattern - it's the
+  // dedicated single-file API, and withData is gone (nothing downstream
+  // reads file.bytes; file.path is used instead).
+  return FilePicker.pickFile(
     type: FileType.custom,
     allowedExtensions: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'csv'],
-    withData: true,
   );
-
-  if (result == null) {
-    return null;
-  }
-
-  PlatformFile file = result.files.single;
-
-  return file;
 }
 
 showSubscribePopup(
@@ -5488,9 +5482,9 @@ addSubWalletPopup(context) async {
           primaryWalletKeyPair,
         );
       }
-    } on PlatformException catch (e) {
-      if (e.code == auth_error.notEnrolled ||
-          e.code == auth_error.notAvailable) {
+    } on LocalAuthException catch (e) {
+      if (e.code == LocalAuthExceptionCode.noBiometricsEnrolled ||
+          e.code == LocalAuthExceptionCode.noBiometricHardware) {
         biometricsErrorAlert(context);
       }
     }
@@ -5759,70 +5753,70 @@ addSubWalletPopup(context) async {
                           ),
                         ),
                         SizedBox(height: 15),
-                        Row(
-                          children: [
-                            SizedBox(width: width / 10),
-                            SizedBox(
-                              height: 20,
-                              child: Transform.scale(
-                                scale: 1.3,
-                                child: Radio<WalletAction>(
-                                  value: WalletAction.import,
-                                  groupValue: action,
-                                  activeColor: notifier.getbluewhitecolor,
-                                  fillColor: MaterialStateColor.resolveWith(
-                                    (states) => notifier.getbluewhitecolor,
+                        RadioGroup<WalletAction>(
+                          groupValue: action,
+                          onChanged: (value) => {
+                            setStateForDialog(() {
+                              action = value;
+                            }),
+                          },
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  SizedBox(width: width / 10),
+                                  SizedBox(
+                                    height: 20,
+                                    child: Transform.scale(
+                                      scale: 1.3,
+                                      child: Radio<WalletAction>(
+                                        value: WalletAction.import,
+                                        activeColor: notifier.getbluewhitecolor,
+                                        fillColor: WidgetStateColor.resolveWith(
+                                          (states) => notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                  onChanged: (value) => {
-                                    setStateForDialog(() {
-                                      action = value;
-                                    }),
-                                  },
-                                ),
-                              ),
-                            ),
-                            Text(
-                              "importexistingwallet".tr(),
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontFamily: fontsemibold,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 15),
-                        Row(
-                          children: [
-                            SizedBox(width: width / 10),
-                            SizedBox(
-                              height: 20,
-                              child: Transform.scale(
-                                scale: 1.3,
-                                child: Radio<WalletAction>(
-                                  value: WalletAction.createNew,
-                                  activeColor: notifier.getbluewhitecolor,
-                                  fillColor: MaterialStateColor.resolveWith(
-                                    (states) => notifier.getbluewhitecolor,
+                                  Text(
+                                    "importexistingwallet".tr(),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
                                   ),
-                                  groupValue: action,
-                                  onChanged: (value) => {
-                                    setStateForDialog(() {
-                                      action = value;
-                                    }),
-                                  },
-                                ),
+                                ],
                               ),
-                            ),
-                            Text(
-                              "createnewwallet".tr(),
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontFamily: fontsemibold,
-                                color: notifier.getbluewhitecolor,
+                              SizedBox(height: 15),
+                              Row(
+                                children: [
+                                  SizedBox(width: width / 10),
+                                  SizedBox(
+                                    height: 20,
+                                    child: Transform.scale(
+                                      scale: 1.3,
+                                      child: Radio<WalletAction>(
+                                        value: WalletAction.createNew,
+                                        activeColor: notifier.getbluewhitecolor,
+                                        fillColor: WidgetStateColor.resolveWith(
+                                          (states) => notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    "createnewwallet".tr(),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluewhitecolor,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         SizedBox(height: 15),
                         Padding(
@@ -6604,9 +6598,9 @@ confirmAccountDeletionPopup(
       if (result) {
         onConfirmationSuccess();
       }
-    } on PlatformException catch (e) {
-      if (e.code == auth_error.notEnrolled ||
-          e.code == auth_error.notAvailable) {
+    } on LocalAuthException catch (e) {
+      if (e.code == LocalAuthExceptionCode.noBiometricsEnrolled ||
+          e.code == LocalAuthExceptionCode.noBiometricHardware) {
         biometricsErrorAlert(context);
       }
     }
@@ -7039,7 +7033,7 @@ uploadTokenizationFeePopup(
                           recieptFile = await getFile();
 
                           if (recieptFile != null &&
-                              recieptFile!.size > 900000) {
+                              (recieptFile!.lengthSync() ?? 0) > 900000) {
                             errorMsg = "filesizeerror".tr();
                             recieptFile = null;
                           }

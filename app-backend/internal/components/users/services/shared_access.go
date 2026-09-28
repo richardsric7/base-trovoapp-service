@@ -13,7 +13,6 @@ import (
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
-	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -1837,10 +1836,11 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 		}
 		return "", "", messages, err
 	}
-	chanAccount := <-gc.ChannelAccounts
-	defer func(c *evmkeypair.Full) {
-		gc.ChannelAccounts <- c
-	}(chanAccount)
+	chanAccount, releaseChanAccount, errCheckout := sharedconfig.CheckoutChannelAccount(gc)
+	if errCheckout != nil {
+		return "", "", nil, errCheckout
+	}
+	defer releaseChanAccount()
 	// paymentInfo.Messages = messages
 	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 
@@ -2052,10 +2052,11 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	if len(os.Getenv("WALLET_MINIMUM_BALANCE")) > 0 {
 		minBalance = decimal.RequireFromString(os.Getenv("WALLET_MINIMUM_BALANCE"))
 	}
-	chanAccount := <-gc.ChannelAccounts
-	defer func(c *evmkeypair.Full) {
-		gc.ChannelAccounts <- c
-	}(chanAccount)
+	chanAccount, releaseChanAccount, errCheckout := sharedconfig.CheckoutChannelAccount(gc)
+	if errCheckout != nil {
+		return "", "", nil, false, false, errCheckout
+	}
+	defer releaseChanAccount()
 	// paymentInfo.Messages = messages
 	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 

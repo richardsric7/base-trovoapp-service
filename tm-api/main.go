@@ -34,10 +34,11 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 
 	_ "github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
@@ -180,6 +181,11 @@ func main() {
 	router.GET("/metrics", observe.MetricsHandler())
 
 	router.Use(middleware.CORSMiddleware())
+	// Generous global default - this admin panel is JWT-protected with a
+	// much smaller abuse surface than the wallet API, so this is blanket
+	// insurance rather than a per-endpoint budget. See
+	// internal/middleware/rate_limit_middleware.go.
+	router.Use(middleware.RateLimitMiddleware(&gc, "global", 300, time.Minute))
 	s.SetupRouterParams(router)
 
 	root.Init(router)

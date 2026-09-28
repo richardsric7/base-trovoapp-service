@@ -290,7 +290,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                     child: DropdownButtonFormField<String>(
                       key: key1,
                       isExpanded: true,
-                      value: sourceAssetRawDropdownValue,
+                      initialValue: sourceAssetRawDropdownValue,
                       dropdownColor: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -427,7 +427,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                     child: DropdownButtonFormField<String>(
                       key: key2,
                       isExpanded: true,
-                      value: destinationAssetRawDropdownValue,
+                      initialValue: destinationAssetRawDropdownValue,
                       dropdownColor: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,

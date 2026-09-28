@@ -140,6 +140,44 @@ The practical implications for you:
   `DB_AUTOMIGRATE=0`, so it boots straight into serving traffic without
   re-running AutoMigrate on every restart.
 
+### Running two or more instances (and a dependency fix this needed)
+
+If you scale this service to more than one instance — or if `DB_AUTOMIGRATE`
+ends up enabled on a serving instance alongside a separate `MIGRATE_ONLY=1`
+job — more than one process can end up calling `AutoMigrate` against the
+same database at the same time. `MigrateDB` (`internal/db/main.go`) now
+guards this with a small **distributed lock**: a `distributed_locks`
+database table, claimed with a plain `UPDATE ... WHERE` statement that's
+atomic on both SQLite and Postgres (deliberately *not* a Postgres advisory
+lock or `SELECT ... FOR UPDATE`, since SQLite — this project's local/test
+database — supports neither). A second instance booting at the same time
+just waits (up to 10 minutes) for the first one's migration to finish,
+instead of racing it. You don't need to configure anything for this; it's
+automatic. See `internal/sharedconfig/distributed_lock.go` if you want the
+details.
+
+Alongside this, a real bug was found and fixed: `gorm.io/driver/postgres`
+was pinned to a version (`v1.3.7`) badly out of sync with this project's
+`gorm.io/gorm` version. The practical effect: `AutoMigrate` worked the
+*first* time it ran against a fresh table, but **every subsequent run
+against an already-existing table failed** with an `insufficient
+arguments` error — meaning, in practice, every restart or redeploy after
+the very first one would have fatally errored during migration against a
+real Postgres database (this was reproduced and confirmed against real
+Postgres 13, 14, and 16). This has been fixed by bumping the driver to
+`v1.5.11` (verified against all three Postgres versions and SQLite; no
+other dependency needed to change). If you're setting up a fresh
+environment from this repo, you already have the fix — nothing to do.
+
+This service's background sweep loops (sales activation, Stablerail
+pollers, order-expiry checks, etc. — see `main.go` and
+`internal/components/p2p/controllers/main.go`) are also now safe to run
+on multiple instances: each tick is guarded by the same kind of
+distributed lock, so only one instance actually does the work on a given
+tick and the others skip it, rather than every instance doing the same
+work redundantly. Again, nothing to configure — see
+`internal/sharedconfig/singleton_lock.go`.
+
 ## 5. How this service is actually deployed today
 
 **What we can verify from this repository:**

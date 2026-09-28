@@ -1,4 +1,8 @@
-import { withSentryConfig } from "@sentry/nextjs";
+// Next's own config loader resolves this via require() even for a .mjs
+// file, so @sentry/nextjs 11's CJS build is what actually loads here -
+// its named export isn't visible through that path, only the default.
+import sentryNextjsPkg from "@sentry/nextjs";
+const { withSentryConfig } = sentryNextjsPkg;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -10,25 +14,13 @@ const nextConfig = {
     styledComponents: true,
   },
   images: {
-    domains: ["storage.googleapis.com"],
+    remotePatterns: [{ hostname: "storage.googleapis.com" }],
   },
-
-  webpack: (config) => {
-    config.module.rules.push({
-      test: /\.pdf$/,
-      use: [
-        {
-          loader: "file-loader",
-          options: {
-            name: "[name].[ext]",
-            publicPath: "/_next/static/files/",
-            outputPath: "static/files/",
-          },
-        },
-      ],
-    });
-    return config;
-  },
+  // No file in this app statically imports a .pdf (only string-checks of
+  // filenames like foo.endsWith('.pdf')), so there's nothing for a
+  // turbopack.rules entry to do here - the old webpack file-loader rule for
+  // *.pdf was dead configuration, unexercised by any import.
+  turbopack: {},
 };
 
 // Sentry's plugin does two jobs: it bundles sentry.client.config.ts into the

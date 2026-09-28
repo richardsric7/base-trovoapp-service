@@ -110,7 +110,9 @@ class _P2PEscrowShareViewState extends State<P2PEscrowShareView> {
                       icon: const Icon(Icons.share, color: P2PTheme.brandDark),
                       label: Text('p2psharebutton'.tr(), style: const TextStyle(color: P2PTheme.brandDark, fontWeight: FontWeight.w600)),
                       onPressed: () {
-                        Share.share(order!.escrowDepositShortlink ?? '');
+                        SharePlus.instance.share(
+                          ShareParams(text: order!.escrowDepositShortlink ?? ''),
+                        );
                       },
                     ),
                   ),

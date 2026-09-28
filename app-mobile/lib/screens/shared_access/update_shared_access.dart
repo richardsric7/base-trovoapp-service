@@ -536,7 +536,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                                   ? darktilewhitecolor
                                   : notifier.getaddsubwalletgrey,
                             ),
-                            value: noOfApprovalsNeeded,
+                            initialValue: noOfApprovalsNeeded,
                             icon: Icon(
                               Icons.keyboard_arrow_down_rounded,
                               color: notifier.getbluewhitecolor,
@@ -618,7 +618,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                                   ? darktilewhitecolor
                                   : notifier.getaddsubwalletgrey,
                             ),
-                            value: noOfApprovers,
+                            initialValue: noOfApprovers,
                             icon: Icon(
                               Icons.keyboard_arrow_down_rounded,
                               color: notifier.getbluewhitecolor,

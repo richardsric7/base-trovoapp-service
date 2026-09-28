@@ -239,14 +239,16 @@ class _ConfirmQuickBuyView extends State<ConfirmQuickBuyView>
                     height: 20,
                     child: Transform.scale(
                       scale: 1,
-                      child: Radio<bool>(
-                        value: isActive,
-                        activeColor: notifier.getbluewhitecolor,
-                        fillColor: WidgetStateColor.resolveWith(
-                          (states) => notifier.getbluewhitecolor,
-                        ),
+                      child: RadioGroup<bool>(
                         groupValue: true,
                         onChanged: (value) => onTap(),
+                        child: Radio<bool>(
+                          value: isActive,
+                          activeColor: notifier.getbluewhitecolor,
+                          fillColor: WidgetStateColor.resolveWith(
+                            (states) => notifier.getbluewhitecolor,
+                          ),
+                        ),
                       ),
                     ),
                   ),
