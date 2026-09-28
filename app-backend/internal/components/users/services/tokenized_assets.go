@@ -3778,13 +3778,13 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 	}
 	// checkDistributionWalletHasQuoteCurrencyAuthorization used to gate minting on the
 	// distribution wallet already holding an authorized trustline to the internal balance
-	// asset (quoteCurrency). That's no longer needed: the internal balance asset is a B20
-	// regulated asset we control internally, and this same function unconditionally issues
-	// + authorizes that trustline for the distribution wallet a few ops below (see the
-	// "create + authorize distributionWallet trustline to the quote currency" ChangeTrust/
-	// SetTrustLineFlags pair), sourced from quoteCurrency.ContractAddress (the internal token
-	// issuer) on every mint. This pre-flight check was blocking first-time mints before that
-	// authorization step ever ran.
+	// asset (quoteCurrency), checked via network.IsWalletAuthorizedForAsset. The
+	// distribution wallet's authorization is now actively granted below instead of merely
+	// checked (see the network.SetWalletAssetAuthorization call for quoteCurrencyAsset a
+	// few lines down) - the internal balance asset is a B20 regulated asset we control
+	// internally, so there is no need to block the mint on a separate compliance step: we
+	// grant it here, the same way the original Stellar ChangeTrust/SetTrustLineFlags
+	// operations did unconditionally.
 	// if err = checkDistributionWalletHasQuoteCurrencyAuthorization(quoteCurrency.AssetCode, quoteCurrency.ContractAddress, &distributionWallet, gc); err != nil {
 	// 	return "", "", messages, issuingWallet, err
 	// }
@@ -3842,50 +3842,51 @@ func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sh
 		issuingWallet, _ = userModels.UserWalletID(*t.IssuingWalletAddress).GetWallet(gc.DB, gc)
 
 	}
-	// create distributionWallet trustline to tokenized asset
-	ops = append(ops, &basetxn.ChangeTrust{
-		Line:          basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletAddress},
-		Limit:         gc.TokenLimitAsString(),
-		SourceAccount: distributionWallet.ID,
-	})
-
-	//create trusline on fee wallet
-
-	//get fee wallet
-	ops = append(ops, &basetxn.ChangeTrust{
-		Line:          basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletAddress},
-		Limit:         gc.TokenLimitAsString(),
-		SourceAccount: feeWallet.Address(),
-	})
-
-	// allow trust from issuer to fee wallet
-	ops = append(ops, &basetxn.SetTrustLineFlags{
-		Trustor:       feeWallet.Address(),
-		Asset:         basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletAddress},
-		SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-		SourceAccount: *t.IssuingWalletAddress,
-	})
-
-	// allow trust from issuer to distribution wallet
-	ops = append(ops, &basetxn.SetTrustLineFlags{
-		Trustor:       distributionWallet.ID,
-		Asset:         basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletAddress},
-		SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-		SourceAccount: *t.IssuingWalletAddress,
-	})
-
-	// create + authorize distributionWallet trustline to the quote currency (internal balance token)
-	ops = append(ops, &basetxn.ChangeTrust{
-		Line:          basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.ContractAddress},
-		Limit:         gc.TokenLimitAsString(),
-		SourceAccount: distributionWallet.ID,
-	})
-	ops = append(ops, &basetxn.SetTrustLineFlags{
-		Trustor:       distributionWallet.ID,
-		Asset:         basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.ContractAddress},
-		SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-		SourceAccount: quoteCurrency.ContractAddress,
-	})
+	// B20 (ERC-20-shaped) tokens have no on-chain trustline/opt-in step - any
+	// address can receive a transfer without one. The Stellar-era
+	// ChangeTrust/SetTrustLineFlags operations that used to run here never
+	// actually ran on Base: basetxn.Transaction only signs/submits Payment
+	// operations (see internal/basetxn/basetxn.go's package doc and
+	// Transaction.Sign), so these were built into `ops` and then silently
+	// dropped. "Authorized to hold/send a regulated B20 asset" is enforced
+	// by this backend's own DB-backed table instead (see
+	// network.SetWalletAssetAuthorization/IsWalletAuthorizedForAsset) -
+	// grant it directly for the system wallets this mint moves funds
+	// through, the same wallets the original ops unconditionally authorized,
+	// since they're platform-owned distribution/fee wallets, not
+	// third-party holders needing a separate compliance review.
+	tokenizedAsset := basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletAddress}
+	if err = network.SetWalletAssetAuthorization(distributionWallet.ID, tokenizedAsset, true, *t.IssuingWalletAddress, "tokenization mint: distribution wallet"); err != nil {
+		log.Printf("[generateMintRegulatedTokenizedAssetXdr] Error authorizing distribution wallet [%v] for asset [%v]: %v\n", distributionWallet.ID, *t.AssetCode, err)
+		err = &tErrors.CustomError{
+			Param:      "IssuingWalletAddress",
+			Err:        "error-could-not-authorize-distribution-wallet",
+			ErrMessage: "Could not authorize the distribution wallet to hold the tokenized asset.",
+			Code:       404,
+		}
+		return "", "", messages, issuingWallet, err
+	}
+	if err = network.SetWalletAssetAuthorization(feeWallet.Address(), tokenizedAsset, true, *t.IssuingWalletAddress, "tokenization mint: fee wallet"); err != nil {
+		log.Printf("[generateMintRegulatedTokenizedAssetXdr] Error authorizing fee wallet [%v] for asset [%v]: %v\n", feeWallet.Address(), *t.AssetCode, err)
+		err = &tErrors.CustomError{
+			Param:      "IssuingWalletAddress",
+			Err:        "error-could-not-authorize-fee-wallet",
+			ErrMessage: "Could not authorize the fee wallet to hold the tokenized asset.",
+			Code:       404,
+		}
+		return "", "", messages, issuingWallet, err
+	}
+	quoteCurrencyAsset := basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.ContractAddress}
+	if err = network.SetWalletAssetAuthorization(distributionWallet.ID, quoteCurrencyAsset, true, authorizerKP.Address(), "tokenization mint: distribution wallet quote-currency (internal balance) authorization"); err != nil {
+		log.Printf("[generateMintRegulatedTokenizedAssetXdr] Error authorizing distribution wallet [%v] for quote currency [%v]: %v\n", distributionWallet.ID, quoteCurrency.AssetCode, err)
+		err = &tErrors.CustomError{
+			Param:      "IssuingWalletAddress",
+			Err:        "error-could-not-authorize-distribution-wallet-quote-currency",
+			ErrMessage: "Could not authorize the distribution wallet to hold the internal balance (quote currency) asset.",
+			Code:       404,
+		}
+		return "", "", messages, issuingWallet, err
+	}
 
 	//mint the token to distribution wallet
 	ops = append(ops, &basetxn.Payment{

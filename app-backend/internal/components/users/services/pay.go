@@ -484,7 +484,7 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 				}
 
 			}
-			if !destinationAccountTrustsAsset && !gc.IsValidTokenizedAsset(asset.GetCode()) {
+			if !destinationAccountTrustsAsset && !network.RequiresWalletAuthorization(asset.GetCode()) {
 
 				bantuAsset := userModels.BantuAsset{
 					AssetCode:       asset.GetCode(),
@@ -613,9 +613,10 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 		//custom asset
 
 		if !destinationAccountTrustsAsset {
-			// Only market-ready tokenized/regulated assets ever reach here
-			// (see network.IsWalletAuthorizedForAsset) - every other B20
-			// asset is always authorized on Base, no opt-in step needed.
+			// Only regulated B20 assets (market-ready tokenized assets, or
+			// internal balance tokens - see network.RequiresWalletAuthorization)
+			// ever reach here - every other B20 asset is always authorized on
+			// Base, no opt-in step needed.
 			if !publicKeyPayment {
 				return "", nil, &tErrors.CustomError{
 					Param:      "destination",
@@ -666,22 +667,21 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 				_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, asset)
 				if !feeAccountTrustsAsset {
 					signForFeeTrustLine = 1
-					//establish trustline automatically
-					ops = append(ops, &basetxn.ChangeTrust{
-						Line:          asset,
-						Limit:         "900000000000",
-						SourceAccount: feeAddress,
-					})
 
-					if gc.IsValidTokenizedAsset(asset.GetCode()) {
-						//check if it is a tokenized asset
-						// allow trust from issuer to destination wallet
-						ops = append(ops, &basetxn.SetTrustLineFlags{
-							Trustor:       feeAddress,
-							Asset:         basetxn.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
-							SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-							SourceAccount: asset.GetIssuer(),
-						})
+					if network.RequiresWalletAuthorization(asset.GetCode()) {
+						// B20 tokens have no on-chain trustline/opt-in step; the
+						// ChangeTrust/SetTrustLineFlags ops this used to build never
+						// actually ran on Base (basetxn.Transaction only signs/
+						// submits Payment operations - see internal/basetxn's
+						// package doc). Grant real DB-backed authorization instead.
+						if e := network.SetWalletAssetAuthorization(feeAddress, asset, true, asset.GetIssuer(), "auto-authorized shared-access fee wallet"); e != nil {
+							log.Println("[generatePaymentXdr] error authorizing shared-access fee wallet for asset", e)
+							return "", nil, &tErrors.CustomError{
+								Err:        "error-could-not-authorize-fee-wallet",
+								Param:      "feeAmount",
+								ErrMessage: "Could not authorize the fee wallet to hold this asset.",
+							}
+						}
 						tokenizedContractAddressMustSign = true
 					}
 
@@ -721,22 +721,21 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 				_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, asset)
 				if !feeAccountTrustsAsset {
 					signForFeeTrustLine = 1
-					//establish trustline automatically
-					ops = append(ops, &basetxn.ChangeTrust{
-						Line:          asset,
-						Limit:         "900000000000",
-						SourceAccount: feeAddress,
-					})
 
-					if gc.IsValidTokenizedAsset(asset.GetCode()) {
-						//check if it is a tokenized asset
-						// allow trust from issuer to destination wallet
-						ops = append(ops, &basetxn.SetTrustLineFlags{
-							Trustor:       feeAddress,
-							Asset:         basetxn.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
-							SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-							SourceAccount: asset.GetIssuer(),
-						})
+					if network.RequiresWalletAuthorization(asset.GetCode()) {
+						// B20 tokens have no on-chain trustline/opt-in step; the
+						// ChangeTrust/SetTrustLineFlags ops this used to build never
+						// actually ran on Base (basetxn.Transaction only signs/
+						// submits Payment operations - see internal/basetxn's
+						// package doc). Grant real DB-backed authorization instead.
+						if e := network.SetWalletAssetAuthorization(feeAddress, asset, true, asset.GetIssuer(), "auto-authorized enterprise payment fee wallet"); e != nil {
+							log.Println("[generatePaymentXdr] error authorizing enterprise fee wallet for asset", e)
+							return "", nil, &tErrors.CustomError{
+								Err:        "error-could-not-authorize-fee-wallet",
+								Param:      "feeAmount",
+								ErrMessage: "Could not authorize the fee wallet to hold this asset.",
+							}
+						}
 						tokenizedContractAddressMustSign = true
 					}
 
@@ -774,22 +773,21 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 			_, vatAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, vatAddress, asset)
 			if !vatAccountTrustsAsset {
 				signForFeeTrustLine = 1
-				//establish trustline automatically
-				ops = append(ops, &basetxn.ChangeTrust{
-					Line:          asset,
-					Limit:         "900000000000",
-					SourceAccount: vatAddress,
-				})
 
-				if gc.IsValidTokenizedAsset(asset.GetCode()) {
-					//check if it is a tokenized asset
-					// allow trust from issuer to destination wallet
-					ops = append(ops, &basetxn.SetTrustLineFlags{
-						Trustor:       vatAddress,
-						Asset:         basetxn.CreditAsset{Code: asset.GetCode(), Issuer: asset.GetIssuer()},
-						SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-						SourceAccount: asset.GetIssuer(),
-					})
+				if network.RequiresWalletAuthorization(asset.GetCode()) {
+					// B20 tokens have no on-chain trustline/opt-in step; the
+					// ChangeTrust/SetTrustLineFlags ops this used to build never
+					// actually ran on Base (basetxn.Transaction only signs/submits
+					// Payment operations - see internal/basetxn's package doc).
+					// Grant real DB-backed authorization instead.
+					if e := network.SetWalletAssetAuthorization(vatAddress, asset, true, asset.GetIssuer(), "auto-authorized VAT wallet"); e != nil {
+						log.Println("[generatePaymentXdr] error authorizing VAT wallet for asset", e)
+						return "", nil, &tErrors.CustomError{
+							Err:        "error-could-not-authorize-vat-wallet",
+							Param:      "feeAmont",
+							ErrMessage: "Could not authorize the VAT wallet to hold this asset.",
+						}
+					}
 					tokenizedContractAddressMustSign = true
 				}
 
@@ -1299,9 +1297,10 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 		//custom asset
 
 		if !destinationAccountTrustsAsset {
-			// Only market-ready tokenized/regulated assets ever reach here
-			// (see network.IsWalletAuthorizedForAsset) - every other B20
-			// asset is always authorized on Base, no opt-in step needed.
+			// Only regulated B20 assets (market-ready tokenized assets, or
+			// internal balance tokens - see network.RequiresWalletAuthorization)
+			// ever reach here - every other B20 asset is always authorized on
+			// Base, no opt-in step needed.
 			if !publicKeyPayment {
 				return "", nil, &tErrors.CustomError{
 					Param:      "destination",

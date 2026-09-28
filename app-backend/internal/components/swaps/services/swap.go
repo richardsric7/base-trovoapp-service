@@ -519,7 +519,7 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 
 			}
 
-			if bcAsset.Flags.AuthRequired && !gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
+			if bcAsset.Flags.AuthRequired && !network.RequiresWalletAuthorization(destinationAsset.GetCode()) {
 
 				err = &tErrors.CustomError{
 					Param:      "destination",
@@ -537,23 +537,25 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 			// appliedCharge = baseReserve.Mul(decimal.RequireFromString(charge)).Truncate(7)
 			totalFees = appliedCharge
 			log.Println("[generateSwapXdr] total fees:", totalFees)
-			//establish trustline
-			ops = append(ops, &basetxn.ChangeTrust{
-				Line:          destinationAsset,
-				Limit:         "900000000000",
-				SourceAccount: wallet.ID,
-			})
 
-			if gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
+			if network.RequiresWalletAuthorization(destinationAsset.GetCode()) {
 				tokenizedContractAddressMustSign = true
 
-				// allow trust from issuer to destination wallet
-				ops = append(ops, &basetxn.SetTrustLineFlags{
-					Trustor:       wallet.ID,
-					Asset:         basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationContractAddress},
-					SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-					SourceAccount: swapInfo.DestinationContractAddress,
-				})
+				// B20 tokens have no on-chain trustline/opt-in step; the
+				// ChangeTrust/SetTrustLineFlags ops this used to build never
+				// actually ran on Base (basetxn.Transaction only signs/submits
+				// Payment operations - see internal/basetxn's package doc).
+				// Grant real DB-backed authorization instead - swapping into a
+				// regulated asset is this wallet's own on-ramp into holding it,
+				// the same way the original ops auto-authorized it unconditionally.
+				if e := network.SetWalletAssetAuthorization(wallet.ID, destinationAsset, true, destinationAsset.GetIssuer(), "auto-authorized via swap into this asset"); e != nil {
+					log.Println("[generateSwapXdr] error authorizing wallet for destination asset", e)
+					return "", &tErrors.CustomError{
+						Param:      "destination",
+						Err:        "error-could-not-authorize-wallet",
+						ErrMessage: "Could not authorize this wallet to hold the destination asset.",
+					}
+				}
 			}
 
 		}
@@ -660,23 +662,23 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 			_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, sourceAsset)
 			if !feeAccountTrustsAsset {
 				signForFeeTrustLine = 1
-				//establish trustline automatically
-				ops = append(ops, &basetxn.ChangeTrust{
-					Line:          sourceAsset,
-					Limit:         "900000000000",
-					SourceAccount: feeAddress,
-				})
 
-				if gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
+				if network.RequiresWalletAuthorization(destinationAsset.GetCode()) {
 					tokenizedContractAddressMustSign = true
 
-					// allow trust from issuer to destination wallet
-					ops = append(ops, &basetxn.SetTrustLineFlags{
-						Trustor:       feeAddress,
-						Asset:         basetxn.CreditAsset{Code: sourceAsset.GetCode(), Issuer: sourceAsset.GetIssuer()},
-						SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-						SourceAccount: swapInfo.DestinationContractAddress,
-					})
+					// B20 tokens have no on-chain trustline/opt-in step; the
+					// ChangeTrust/SetTrustLineFlags ops this used to build never
+					// actually ran on Base (basetxn.Transaction only signs/
+					// submits Payment operations - see internal/basetxn's
+					// package doc). Grant real DB-backed authorization instead.
+					if e := network.SetWalletAssetAuthorization(feeAddress, sourceAsset, true, sourceAsset.GetIssuer(), "auto-authorized swap fee wallet"); e != nil {
+						log.Println("[generateSwapXdr] error authorizing swap fee wallet for asset", e)
+						return "", &tErrors.CustomError{
+							Err:        "error-could-not-authorize-fee-wallet",
+							Param:      "feeAmont",
+							ErrMessage: "Could not authorize the fee wallet to hold this asset.",
+						}
+					}
 				}
 
 			}
@@ -714,23 +716,23 @@ func generateSwapSendXdr(wallet *userModels.UserWallet, swapInfo *swapModels.Swa
 			_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, sourceAsset)
 			if !feeAccountTrustsAsset {
 				signForFeeTrustLine = 1
-				//establish trustline automatically
-				ops = append(ops, &basetxn.ChangeTrust{
-					Line:          sourceAsset,
-					Limit:         "900000000000",
-					SourceAccount: feeAddress,
-				})
 
-				if gc.IsValidTokenizedAsset(destinationAsset.GetCode()) {
+				if network.RequiresWalletAuthorization(destinationAsset.GetCode()) {
 					tokenizedContractAddressMustSign = true
 
-					// allow trust from issuer to destination wallet
-					ops = append(ops, &basetxn.SetTrustLineFlags{
-						Trustor:       feeAddress,
-						Asset:         basetxn.CreditAsset{Code: sourceAsset.GetCode(), Issuer: sourceAsset.GetIssuer()},
-						SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-						SourceAccount: swapInfo.DestinationContractAddress,
-					})
+					// B20 tokens have no on-chain trustline/opt-in step; the
+					// ChangeTrust/SetTrustLineFlags ops this used to build never
+					// actually ran on Base (basetxn.Transaction only signs/
+					// submits Payment operations - see internal/basetxn's
+					// package doc). Grant real DB-backed authorization instead.
+					if e := network.SetWalletAssetAuthorization(feeAddress, sourceAsset, true, sourceAsset.GetIssuer(), "auto-authorized swap VAT wallet"); e != nil {
+						log.Println("[generateSwapXdr] error authorizing swap VAT wallet for asset", e)
+						return "", &tErrors.CustomError{
+							Err:        "error-could-not-authorize-vat-wallet",
+							Param:      "feeAmont",
+							ErrMessage: "Could not authorize the VAT wallet to hold this asset.",
+						}
+					}
 				}
 
 			}

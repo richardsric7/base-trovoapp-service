@@ -409,10 +409,11 @@ type WalletAssetAuthorization struct {
 
 // IsWalletAuthorizedForAsset reports whether wallet may hold/send asset.
 // The native asset, and any B20 asset that doesn't require authorization,
-// is always authorized - only market-ready tokenized/regulated assets
-// (isTokenizedAsset) are gated behind an explicit authorization row.
+// is always authorized - only regulated B20 assets (RequiresWalletAuthorization:
+// market-ready tokenized assets, and internal balance tokens) are gated
+// behind an explicit authorization row.
 func IsWalletAuthorizedForAsset(wallet string, asset basetxn.Asset) bool {
-	if asset.IsNative() || authDB == nil || !isTokenizedAsset(asset.GetCode()) {
+	if asset.IsNative() || authDB == nil || !RequiresWalletAuthorization(asset.GetCode()) {
 		return true
 	}
 	var row WalletAssetAuthorization
@@ -424,11 +425,23 @@ func IsWalletAuthorizedForAsset(wallet string, asset basetxn.Asset) bool {
 	return row.Authorized
 }
 
+// RequiresWalletAuthorization reports whether assetCode is a regulated B20
+// asset - a market-ready tokenized asset, or a country's internal balance
+// token (also a B20 asset the platform itself issues and controls) - that
+// a wallet must be explicitly authorized for (see SetWalletAssetAuthorization)
+// before it may hold/send it. Every other B20 asset needs no such opt-in on
+// Base. Exported so service-layer callers (e.g.
+// internal/components/users/services) can decide whether to call
+// SetWalletAssetAuthorization themselves; IsWalletAuthorizedForAsset uses
+// the same check internally.
+func RequiresWalletAuthorization(assetCode string) bool {
+	return isTokenizedAsset(assetCode) || isInternalBalanceAsset(assetCode)
+}
+
 // isTokenizedAsset mirrors sharedconfig.GlobalConfig.IsValidTokenizedAsset's
 // query (duplicated rather than imported, to avoid a sharedconfig<->network
-// import cycle): an asset only requires wallet-level authorization once
-// it's a market-ready tokenized/regulated asset (Asset_Tokenization_Status
-// > 3). Every other B20 asset needs no opt-in on Base.
+// import cycle): true once assetCode is a market-ready tokenized/regulated
+// asset (Asset_Tokenization_Status > 3).
 func isTokenizedAsset(assetCode string) bool {
 	type Result struct {
 		ID string
@@ -436,6 +449,22 @@ func isTokenizedAsset(assetCode string) bool {
 	var result Result
 	authDB.Raw("SELECT id FROM Tokenized_Assets WHERE Asset_Tokenization_Status > 3 AND Asset_Code = upper(?)", assetCode).Scan(&result)
 	return len(result.ID) > 0
+}
+
+// isInternalBalanceAsset mirrors
+// internal/components/users/models.IsInternalBalanceAssetCode's query
+// (duplicated rather than imported, for the same sharedconfig<->network
+// import-cycle reason as isTokenizedAsset above): true when assetCode is
+// any country's internal balance token - a B20 asset the platform itself
+// issues and controls, and, like a tokenized asset, requires wallet-level
+// authorization before a wallet may hold/send it.
+func isInternalBalanceAsset(assetCode string) bool {
+	type Result struct {
+		CountryCode string
+	}
+	var result Result
+	authDB.Raw("SELECT country_code FROM country_configs WHERE internal_balance_token_code = upper(?)", assetCode).Scan(&result)
+	return len(result.CountryCode) > 0
 }
 
 // SetWalletAssetAuthorization grants or revokes wallet's authorization to
