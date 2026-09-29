@@ -177,39 +177,42 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 
 	var fees []sharedconfig.FeeCollection
 	creationFee := primary.GetSubwalletCreationFee(gc)
-	if creationFee.Inactive == 0 && creationFee.FeeFixed > 0 {
+	// the fee is set in USD (fee_fixed) and paid in the fee asset; the
+	// platform's tokenization issuing profile pays none
+	if creationFee.Inactive == 0 && creationFee.FeeFixed > 0 && !feeExemptProfile(accountOwner.Username) {
 		feeAddr, err := feeWalletAddress(creationFee.FeeWalletSecretKey, "sub-wallet creation fee wallet", gc)
 		if err != nil {
 			return subWalletInfo, err
 		}
-		var feeAsset basetxn.Asset = basetxn.NativeAsset{}
-		if common.IsHexAddress(creationFee.FeeContractAddress) {
-			feeAsset = basetxn.CreditAsset{Code: creationFee.FeeAssetCode, Issuer: creationFee.FeeContractAddress}
+		if !common.IsHexAddress(creationFee.FeeContractAddress) {
+			gc.LogDiscordFailedRequest("[CreateNewSubWallet] SUBWALLET_CREATION_FEE has no fee_contract_address (the fee must be a stablecoin)")
+			return subWalletInfo, &tErrors.CustomError{Param: "feeAmount", Err: "error-fee-asset-not-priceable", ErrMessage: "The sub-wallet creation fee is not configured correctly. Please try again later."}
 		}
-		amount := decimal.NewFromFloat(creationFee.FeeFixed)
+		feeAsset := basetxn.CreditAsset{Code: creationFee.FeeAssetCode, Issuer: creationFee.FeeContractAddress}
+		amount, err := usdAmountIn(creationFee.FeeFixed, creationFee.FeeAssetCode, creationFee.FeeContractAddress, gc)
+		if err != nil {
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[CreateNewSubWallet] the sub-wallet creation fee asset %v cannot be priced in USD", creationFee.FeeAssetCode))
+			return subWalletInfo, err
+		}
 		decimals, err := network.AssetDecimals(ctx, gc.BantuExpansionClient, feeAsset)
 		if err != nil {
 			return subWalletInfo, &tErrors.ErrorTemporaryServerError{}
 		}
+		amount = amount.Truncate(int32(decimals))
 		units, err := baseUnits(amount.String(), decimals)
 		if err != nil {
 			return subWalletInfo, err
 		}
-		if !feeAsset.IsNative() {
-			bal, err := network.B20BalanceOf(gc.BantuExpansionClient, feeAsset.GetIssuer(), primary.ID, decimals)
-			if err != nil || bal.LessThan(amount) {
-				return subWalletInfo, &tErrors.CustomError{Param: "username", Err: "error-primary-wallet-underfunded", ErrMessage: fmt.Sprintf("%v %v is required in your primary wallet to pay the sub-wallet creation fee.", amount, creationFee.FeeAssetCode), Code: http.StatusBadRequest}
-			}
-		} else {
-			ethNeeded.Add(ethNeeded, units)
+		bal, err := network.B20BalanceOf(gc.BantuExpansionClient, feeAsset.Issuer, primary.ID, decimals)
+		if err != nil {
+			return subWalletInfo, &tErrors.ErrorTemporaryServerError{}
+		}
+		if bal.LessThan(amount) {
+			return subWalletInfo, &tErrors.CustomError{Param: "username", Err: "error-primary-wallet-underfunded", ErrMessage: fmt.Sprintf("%v %v is required on wallet %v to pay the sub-wallet creation fee. Please first fund the wallet with at least %v %v.", amount, feeAsset.Code, accountOwner.Username, amount.Sub(bal), feeAsset.Code), Code: http.StatusBadRequest}
 		}
 		calls = append(calls, transferCall(feeAsset, feeAddr, units))
-		code := creationFee.FeeAssetCode
-		if feeAsset.IsNative() {
-			code = "ETH"
-		}
-		subWalletInfo.FeeAmount, subWalletInfo.FeeCode = amount.String(), code
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v is charged as the sub-wallet creation fee.", amount, code))
+		subWalletInfo.FeeAmount, subWalletInfo.FeeCode = amount.String(), feeAsset.Code
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v ($%v USD) will be deducted from wallet %v as the sub-wallet creation fee.", amount, feeAsset.Code, creationFee.FeeFixed, accountOwner.Username))
 		fees = append(fees, feeRecord("SUBWALLET_CREATION", primary, accountOwner, feeAsset, amount.String(), feeAddr, 0))
 	}
 

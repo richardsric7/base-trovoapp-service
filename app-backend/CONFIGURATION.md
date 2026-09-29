@@ -420,10 +420,15 @@ Missing, inactive or `0` means no seed - the sub-wallet then pays gas in
 the owner's gas-fee stablecoin once it holds some. Example: `0.0002`.
 
 **Sub-wallet creation fee.** The `SUBWALLET_CREATION_FEE` row of the
-`service_fees` table (`fee_fixed`, `fee_asset_code`,
-`fee_contract_address` - empty for ETH - and `inactive`) is charged from
-the primary wallet in the same operation and sent to
-`SUBWALLET_CREATION_FEE_WALLET`. Creation is refused when the primary
+`service_fees` table sets it: `fee_fixed` is the fee **in USD**, paid in
+the stablecoin `fee_asset_code` / `fee_contract_address` (the dollar
+asset, a USD-named stablecoin such as USDC at 1:1, or the naira asset at
+the USD/cNGN rate - other assets need a DEX and are refused), and
+`inactive = 1` turns it off. It is charged from the primary wallet in the
+same operation, sent to `SUBWALLET_CREATION_FEE_WALLET`, and recorded in
+`fee_collections` (type `SUBWALLET_CREATION`). The platform's tokenization
+issuing profile (`TOKENIZATION_ISSUING_PROFILE`, default `atprofile`) is
+exempt. Creation is refused when the primary
 wallet cannot cover the fee, the seeds and (when gas is paid in ETH) the
 network fee.
 

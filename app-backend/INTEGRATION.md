@@ -342,7 +342,8 @@ deployed by the **primary** wallet, so only the primary wallet signs:
    also gets a linked distribution Safe. The response carries `publicKey`
    (the new wallet), `linkedWalletAddress`, `transaction` (the primary
    wallet's operation that deploys them, seeds them with ETH and pays the
-   creation fee), `messages` and `feeAmount`/`feeCode`. A `publicKey`
+   creation fee - set in USD, charged in its stablecoin), `messages` and
+   `feeAmount`/`feeCode` (the fee in that stablecoin). A `publicKey`
    sent by the client is ignored.
 2. Second call with `transaction` and `primarySignature`. The wallets are
    recorded and the operation submitted; they are marked activated when it

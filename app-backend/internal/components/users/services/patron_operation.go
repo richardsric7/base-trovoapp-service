@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
 	"trovo-wallet-api/internal/aa"
@@ -32,22 +30,10 @@ type patronContext struct {
 	Fees              []sharedconfig.FeeCollection `json:"fees"`
 }
 
-// patronPriceIn converts a USD price into the payment asset. Only the
-// dollar-pegged (DOLLAR_ASSET) and naira-pegged (NAIRA_ASSET) stablecoins
-// can be priced without a DEX.
+// patronPriceIn converts a USD price into the payment asset (see
+// usdAmountIn: only dollar and naira stablecoins can be priced without a DEX).
 func patronPriceIn(usd float64, assetCode, contract string, gc *sharedconfig.GlobalConfig) (decimal.Decimal, error) {
-	id := strings.ToUpper(assetCode + ":" + contract)
-	if d := strings.TrimSpace(os.Getenv("DOLLAR_ASSET")); d != "" && strings.EqualFold(id, d) {
-		return decimal.NewFromFloat(usd), nil
-	}
-	if n := strings.TrimSpace(os.Getenv("NAIRA_ASSET")); n != "" && strings.EqualFold(id, n) {
-		a := gc.ConvertUsdToCngn(usd)
-		if !a.IsPositive() {
-			return decimal.Zero, &tErrors.ErrorTemporaryServerError{}
-		}
-		return a, nil
-	}
-	return decimal.Zero, &tErrors.CustomError{Param: "paymentAssetCode", Err: "error-payment-asset-not-supported", ErrMessage: "Subscriptions can currently be paid only in the dollar or naira stablecoin.", Code: http.StatusBadRequest}
+	return usdAmountIn(usd, assetCode, contract, gc)
 }
 
 // submitPatronSubscription is the payment half of a patron subscription,
