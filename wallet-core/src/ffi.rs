@@ -213,3 +213,17 @@ pub extern "C" fn wc_keypair_from_mnemonic(mnemonic: *const c_char, index: u32) 
         Err(e) => err_json(e),
     }
 }
+
+/// The permanent address of the user's primary wallet: the 1-of-1 Safe
+/// (with the ERC-4337 module) owned by `owner` with `salt_nonce` ("0" for
+/// the primary wallet). Returns `{"address":...}`.
+#[no_mangle]
+pub extern "C" fn wc_primary_safe_address(owner: *const c_char, salt_nonce: *const c_char) -> *mut c_char {
+    let (Ok(owner), Ok(salt_nonce)) = (unsafe { read_cstr(owner) }, unsafe { read_cstr(salt_nonce) }) else {
+        return err_json("invalid argument");
+    };
+    match crate::safe::primary_safe_address(&owner, &salt_nonce) {
+        Ok(address) => ok_json(&serde_json::json!({ "address": address })),
+        Err(e) => err_json(e),
+    }
+}

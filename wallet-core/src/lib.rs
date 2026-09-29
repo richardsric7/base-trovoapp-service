@@ -12,6 +12,7 @@
 //! over it, compiled in only for their respective targets.
 
 pub mod core;
+pub mod safe;
 
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
