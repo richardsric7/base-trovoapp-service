@@ -108,6 +108,39 @@ endpoint: `swag init -g main.go -o docs` (from `quote-service/`).
 Run at least two replicas behind a load balancer; they are stateless
 (every replica refreshes its own rates).
 
+## Local development stack
+
+`scripts/local-stack.js` deploys everything a Trovo wallet needs to a
+local node - EntryPoint v0.7, Safe v1.4.1 + Safe4337Module, a mock USDC
+and the paymaster - and serves a minimal **development** ERC-4337 bundler,
+so app-backend and the quote service run end to end without a real
+bundler:
+
+```bash
+cd paymaster/contracts
+npx hardhat node                                    # terminal 1
+npx hardhat run scripts/local-stack.js --network localhost   # terminal 2
+```
+
+It prints (and writes to `deployments/local-stack.json`) the settings to
+give app-backend (`ENTRYPOINT_ADDRESS`, `SAFE_*_ADDRESS`, `BUNDLER_URL`,
+`PAYMASTER_ADDRESS`, `BASE_CHAIN_ID`) and the quote service
+(`PAYMASTER_ADDRESS`, `ENTRYPOINT_ADDRESS`, and the mock USDC for
+`GAS_TOKENS`). The paymaster's quote signer is hardhat account #1
+(`0x59c6995e…690d` as `QUOTE_SIGNER_PRIVATE_KEY`). The dev bundler submits
+each operation alone with fixed gas estimates - never use it outside
+development.
+
+app-backend's `internal/aa` has an end-to-end test against this stack
+(activation paid in USDC, a second USDC-paid send, an ETH-paid send):
+
+```bash
+AA_LOCAL_STACK=../paymaster/contracts/deployments/local-stack.json \
+AA_RPC_URL=http://127.0.0.1:8545 \
+AA_QUOTE_SERVICE_URL=http://127.0.0.1:8090 AA_QUOTE_SERVICE_API_KEY=<key> \
+go test ./internal/aa/ -run TestLocalStackEndToEnd -v
+```
+
 ## Keeping the deposit funded
 
 The service logs and posts to `ALERT_WEBHOOK_URL` when the deposit drops
@@ -130,5 +163,7 @@ below `DEPOSIT_LOW_WATERMARK_ETH`. Treasury then:
   and ethers' signatures from a generated fixture; and an end-to-end run
   against a local chain in which the service's quotes paid for a deployed
   wallet's transfer (cNGN) and a new wallet's activation (USDC).
+- app-backend's operation builder: end to end against the local stack
+  with the real quote service (see above).
 - Not yet: a deployment to Base Sepolia with a real bundler, and an
   external audit.

@@ -4,3 +4,4 @@ cache/
 typechain-types/
 coverage/
 coverage.json
+deployments/local-stack.json
