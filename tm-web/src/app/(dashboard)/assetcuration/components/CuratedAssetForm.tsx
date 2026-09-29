@@ -23,6 +23,7 @@ export type CuratedAssetFormValues = {
   generateDepositAddress: boolean;
   inactive: boolean;
   p2pEnabled: boolean;
+  gasFeeEligible: boolean;
 };
 
 const fromAsset = (asset?: ICuratedAsset): CuratedAssetFormValues => ({
@@ -41,6 +42,7 @@ const fromAsset = (asset?: ICuratedAsset): CuratedAssetFormValues => ({
   generateDepositAddress: !!asset?.generateDepositAddress,
   inactive: !!asset?.inactive,
   p2pEnabled: !!asset?.p2pEnabled,
+  gasFeeEligible: !!asset?.gasFeeEligible,
 });
 
 const CuratedAssetForm = ({
@@ -156,6 +158,20 @@ const CuratedAssetForm = ({
         <P2PHint>
           When off, merchants cannot create a P2P offer for this asset, and any existing offer for
           it is hidden from marketplace search.
+        </P2PHint>
+      </P2PField>
+
+      <P2PField>
+        <ToggleSwitch
+          id="gasFeeEligible"
+          label="Users can pay network fees in this asset"
+          checked={values.gasFeeEligible}
+          onChange={(v) => set("gasFeeEligible", v as never)}
+        />
+        <P2PHint>
+          Only for stablecoins also enabled on the paymaster contract and priced by the paymaster
+          quote service. Users who pick it pay their network fees in it; otherwise fees are paid in
+          ETH.
         </P2PHint>
       </P2PField>
 

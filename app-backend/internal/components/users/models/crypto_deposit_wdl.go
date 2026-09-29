@@ -110,6 +110,8 @@ type WithdrawalRequestInput struct {
 	SignatureRequired    int     `json:"signatureRequired"`
 	Commit               int     `json:"commit"`
 	ReturnedDescription  string  `json:"-"`
+	// Messages describe the withdrawal and its network fee before signing.
+	Messages []string `json:"messages,omitempty"`
 }
 
 type WithdrawalRequest struct {

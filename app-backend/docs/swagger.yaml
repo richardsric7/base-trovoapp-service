@@ -772,6 +772,14 @@ definitions:
             type: string
         type: object
     type: object
+  users.GasFeeAssetInput:
+    properties:
+      assetCode:
+        description: AssetCode is a curated asset with gasFeeEligible; empty = pay
+          in ETH.
+        example: USDC
+        type: string
+    type: object
   users.InactiveAccountRecoveryRequest:
     properties:
       emailOtp:
@@ -2358,6 +2366,11 @@ definitions:
         type: integer
       currency:
         type: string
+      messages:
+        description: Messages describe the withdrawal and its network fee before signing.
+        items:
+          type: string
+        type: array
       networkPassPhrase:
         type: string
       signatureRequired:
@@ -7557,6 +7570,56 @@ paths:
       summary: POST /v1/users/servicelinks/login/approval/:targetUser
       tags:
       - servicelinks
+  /v1/users/settings/gas-fee-asset:
+    put:
+      consumes:
+      - application/json
+      description: Sets the stablecoin the user's wallets pay network fees in (through
+        the paymaster), or clears it with an empty assetCode. A wallet that holds
+        too little of it pays in ETH.
+      parameters:
+      - description: Gas fee asset
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/users.GasFeeAssetInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: PUT /v1/users/settings/gas-fee-asset
+      tags:
+      - users
+  /v1/users/settings/gas-fee-assets:
+    get:
+      description: The stablecoins the user can pay network fees in, and the one currently
+        chosen (gasFeeAsset; null = ETH).
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: GET /v1/users/settings/gas-fee-assets
+      tags:
+      - users
   /v1/users/stablerail/banks:
     get:
       produces:

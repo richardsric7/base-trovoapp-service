@@ -10,6 +10,7 @@ func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
 	jsonObj.ID = u.ID
 	jsonObj.Username = u.Username
 	jsonObj.Email = u.Email
+	jsonObj.GasFeeAsset = u.GasFeeAsset
 	jsonObj.FirstName = u.FirstName
 	jsonObj.Address = u.Address
 	jsonObj.PrimarySigner = u.PrimarySigner

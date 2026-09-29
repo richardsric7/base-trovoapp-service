@@ -7,9 +7,11 @@ import (
 )
 
 type UserJSON struct {
-	ID                     string                    `json:"-"`
-	Username               string                    `json:"username"`
-	Email                  string                    `json:"email"`
+	ID       string `json:"-"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	// GasFeeAsset is the stablecoin the user pays network fees in (null = ETH).
+	GasFeeAsset            *string                   `json:"gasFeeAsset"`
 	ImageThumbnailURL      string                    `json:"imageThumbnailURL"`
 	FirstName              string                    `json:"firstName"`
 	LastName               string                    `json:"lastName"`

@@ -30,6 +30,9 @@ export interface ICuratedAsset {
   // found in marketplace search - see app-backend's
   // CuratedAsset.P2PEnabled doc for the full contract.
   p2pEnabled: boolean;
+  // Lets app users pay network fees in this asset through the paymaster
+  // (it must also be enabled on the paymaster contract and quote service).
+  gasFeeEligible: boolean;
 }
 
 export interface CuratedAssetListQueryParams {
@@ -38,6 +41,7 @@ export interface CuratedAssetListQueryParams {
   assetCode?: string;
   assetClassId?: number;
   p2pEnabled?: "true" | "false";
+  gasFeeEligible?: "true" | "false";
   inactive?: "true" | "false";
 }
 
@@ -83,6 +87,7 @@ export interface CuratedAssetRequest {
   inactive?: boolean;
   closedGroup?: string;
   p2pEnabled?: boolean;
+  gasFeeEligible?: boolean;
 }
 
 export interface IAssetClass {

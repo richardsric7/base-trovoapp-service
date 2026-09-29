@@ -107,6 +107,7 @@ var contractsABI = mustABI(`[
  {"name":"getThreshold","type":"function","stateMutability":"view","inputs":[],"outputs":[{"type":"uint256"}]},
  {"name":"getNonce","type":"function","stateMutability":"view","inputs":[{"name":"sender","type":"address"},{"name":"key","type":"uint192"}],"outputs":[{"type":"uint256"}]},
  {"name":"transfer","type":"function","inputs":[{"name":"to","type":"address"},{"name":"amount","type":"uint256"}],"outputs":[{"type":"bool"}]},
+ {"name":"burn","type":"function","inputs":[{"name":"value","type":"uint256"}],"outputs":[]},
  {"name":"approve","type":"function","inputs":[{"name":"spender","type":"address"},{"name":"amount","type":"uint256"}],"outputs":[{"type":"bool"}]},
  {"name":"allowance","type":"function","stateMutability":"view","inputs":[{"name":"owner","type":"address"},{"name":"spender","type":"address"}],"outputs":[{"type":"uint256"}]},
  {"name":"balanceOf","type":"function","stateMutability":"view","inputs":[{"name":"account","type":"address"}],"outputs":[{"type":"uint256"}]}
@@ -198,6 +199,12 @@ func (c Config) CallData(calls []Call) ([]byte, error) {
 // ERC20Transfer is a token transfer call.
 func ERC20Transfer(token, to common.Address, amount *big.Int) Call {
 	return Call{To: token, Value: big.NewInt(0), Data: pack("transfer", to, amount)}
+}
+
+// ERC20Burn burns the wallet's own tokens (OpenZeppelin ERC20Burnable's
+// burn(uint256)); Trovo-issued tokens are redeemed this way.
+func ERC20Burn(token common.Address, amount *big.Int) Call {
+	return Call{To: token, Value: big.NewInt(0), Data: pack("burn", amount)}
 }
 
 // ERC20Approve is a token approval call.

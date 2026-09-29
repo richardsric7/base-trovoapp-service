@@ -62,9 +62,13 @@ func transferCall(asset basetxn.Asset, to string, amount *big.Int) aa.Call {
 	return aa.ERC20Transfer(common.HexToAddress(asset.GetIssuer()), common.HexToAddress(to), amount)
 }
 
-// feeWalletAddress parses a fee wallet setting that holds a private key and
-// returns its address (only the address is used).
+// feeWalletAddress returns the address of a fee wallet setting. The setting
+// should hold the address; a private key (the older form) is still
+// accepted, and only its address is used.
 func feeWalletAddress(secret, label string, gc *sharedconfig.GlobalConfig) (string, error) {
+	if s := strings.TrimSpace(secret); common.IsHexAddress(s) {
+		return common.HexToAddress(s).Hex(), nil
+	}
 	kp, err := evmkeypair.ParseFull(secret)
 	if err != nil {
 		log.Printf("[Pay] %v is not configured: %v", label, err)

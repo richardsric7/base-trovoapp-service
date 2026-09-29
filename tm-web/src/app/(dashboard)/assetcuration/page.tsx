@@ -12,6 +12,7 @@ import {
   ICuratedAsset,
   useGetCuratedAssetsQuery,
   useSetCuratedAssetP2PEnabledMutation,
+  useSetCuratedAssetGasFeeEligibleMutation,
   useSetCuratedAssetInactiveMutation,
 } from "@/redux/api/curatedAssets";
 
@@ -39,6 +40,7 @@ const AssetCurationPage = () => {
     inactive,
   });
   const [setP2PEnabled] = useSetCuratedAssetP2PEnabledMutation();
+  const [setGasFeeEligible] = useSetCuratedAssetGasFeeEligibleMutation();
   const [setInactive] = useSetCuratedAssetInactiveMutation();
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,6 +87,16 @@ const AssetCurationPage = () => {
         <ToggleSwitch
           checked={record.p2pEnabled}
           onChange={(checked) => setP2PEnabled({ id: record.id, p2pEnabled: checked })}
+        />
+      ),
+    },
+    {
+      title: "Pays Network Fees",
+      dataIndex: "gasFeeEligible",
+      render: (_: any, record: ICuratedAsset) => (
+        <ToggleSwitch
+          checked={record.gasFeeEligible}
+          onChange={(checked) => setGasFeeEligible({ id: record.id, gasFeeEligible: checked })}
         />
       ),
     },

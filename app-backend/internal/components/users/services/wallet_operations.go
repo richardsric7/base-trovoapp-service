@@ -311,27 +311,65 @@ func TrackWalletOperations(ctx context.Context, gc *sharedconfig.GlobalConfig) {
 			}
 			continue
 		}
-		tx := r.Receipt.TransactionHash.Hex()
-		success := r.Success
-		updates := map[string]interface{}{"status": userModels.WalletOperationIncluded, "tx_hash": tx, "success": success}
-		if !success {
-			updates["error"] = "the operation's calls reverted: " + r.Reason
-		}
-		gc.DB.Model(&userModels.WalletOperation{}).Where("id = ?", op.ID).Updates(updates)
-		// the wallet was deployed by this operation, even if its calls reverted
-		now := time.Now()
-		if op.Activation {
-			markActivated(op.WalletAddress, op.WalletAddress, tx, now, gc)
-		}
-		// wallets it deploys exist only if its calls succeeded
-		if success {
-			for _, w := range strings.Split(op.Deploys, ",") {
-				if w = strings.TrimSpace(w); w != "" {
-					markActivated(w, op.WalletAddress, tx, now, gc)
-				}
+		applyReceipt(op, r, gc)
+	}
+}
+
+// applyReceipt records a mined operation's outcome and marks the wallets it
+// deployed activated.
+func applyReceipt(op userModels.WalletOperation, r *aa.Receipt, gc *sharedconfig.GlobalConfig) {
+	tx := r.Receipt.TransactionHash.Hex()
+	success := r.Success
+	updates := map[string]interface{}{"status": userModels.WalletOperationIncluded, "tx_hash": tx, "success": success}
+	if !success {
+		updates["error"] = "the operation's calls reverted: " + r.Reason
+	}
+	gc.DB.Model(&userModels.WalletOperation{}).Where("id = ?", op.ID).Updates(updates)
+	// the wallet was deployed by this operation, even if its calls reverted
+	now := time.Now()
+	if op.Activation {
+		markActivated(op.WalletAddress, op.WalletAddress, tx, now, gc)
+	}
+	// wallets it deploys exist only if its calls succeeded
+	if success {
+		for _, w := range strings.Split(op.Deploys, ",") {
+			if w = strings.TrimSpace(w); w != "" {
+				markActivated(w, op.WalletAddress, tx, now, gc)
 			}
 		}
 	}
+}
+
+// WalletOperationOutcome reports what became of a submitted operation,
+// identified by its userOpHash, waiting for it until ctx ends. done is
+// false while it is not yet included; once done, success says whether its
+// calls succeeded and txHash is the transaction that included it.
+func WalletOperationOutcome(ctx context.Context, userOpHash string, gc *sharedconfig.GlobalConfig) (txHash string, success, done bool, err error) {
+	var op userModels.WalletOperation
+	if err := gc.DB.Where("user_op_hash = ?", userOpHash).First(&op).Error; err != nil {
+		return "", false, false, err
+	}
+	switch op.Status {
+	case userModels.WalletOperationIncluded:
+		if op.TxHash != nil {
+			txHash = *op.TxHash
+		}
+		return txHash, op.Success != nil && *op.Success, true, nil
+	case userModels.WalletOperationFailed, userModels.WalletOperationExpired:
+		return "", false, true, nil
+	case userModels.WalletOperationPending:
+		return "", false, false, nil
+	}
+	bun, ok := operationBuilder(gc).Bundler.(*aa.Bundler)
+	if !ok || bun.URL == "" {
+		return "", false, false, nil
+	}
+	r, err := bun.WaitReceipt(ctx, common.HexToHash(userOpHash))
+	if err != nil || r == nil {
+		return "", false, false, nil // not included yet
+	}
+	applyReceipt(op, r, gc)
+	return r.Receipt.TransactionHash.Hex(), r.Success, true, nil
 }
 
 func markActivated(wallet, by, tx string, at time.Time, gc *sharedconfig.GlobalConfig) {

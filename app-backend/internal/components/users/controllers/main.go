@@ -61,6 +61,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	router.PUT("/v1/users/upload-picture", middleware.AuthenticationMiddlewareUsingTimestamp(), putUsersUploadPictureHandler(callBackRetryChan, gc))
 
+	router.GET("/v1/users/settings/gas-fee-assets", middleware.AuthenticationMiddlewareUsingTimestamp(), getUsersGasFeeAssetsHandler(gc))
+	router.PUT("/v1/users/settings/gas-fee-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), middleware.RateLimitMiddleware(gc, "gas-fee-asset", 20, time.Minute), putUsersGasFeeAssetHandler(gc))
+
 	// get config
 	var config userModels.StablerailConfig
 	gc.DB.First(&config)

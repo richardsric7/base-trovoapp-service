@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -9,10 +10,10 @@ import (
 	"trovo-wallet-api/internal/components/p2p/safesigner"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	userModels "trovo-wallet-api/internal/components/users/models"
-	tErrors "trovo-wallet-api/internal/errors"
-	"trovo-wallet-api/internal/dynamiclinks"
-	"trovo-wallet-api/internal/network"
 	userServices "trovo-wallet-api/internal/components/users/services"
+	"trovo-wallet-api/internal/dynamiclinks"
+	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/shopspring/decimal"
@@ -123,13 +124,97 @@ func DepositEscrowFromOwnWallet(gc *sharedconfig.GlobalConfig, signerUser *userM
 
 	// Only the final, committed call has a real TransactionID - the first
 	// (unsigned-transaction) call returns it empty and must be passed back
-	// to the client to sign, not treated as a deposit.
+	// to the client to sign, not treated as a deposit. That ID is the
+	// wallet operation's userOpHash: the deposit is recorded as pending
+	// under it and applied to the order only once the operation is mined
+	// (under the mined transaction's hash, which reconciliation also sees).
 	if returnedInfo != nil && returnedInfo.TransactionID != "" && returnedInfo.TransactionID != "PENDING_AUTH" {
-		if err := recordCanonicalDeposit(gc, order, escrowAddress, sourceWallet.ID, returnedInfo.TransactionID, "P2P_API"); err != nil {
+		pending := p2pModels.BlockchainDeposit{
+			ID:              gc.GenerateUUIDString(),
+			OrderID:         order.ID,
+			Sender:          sourceWallet.ID,
+			Token:           order.Asset,
+			ContractAddress: order.AssetContractAddress,
+			Amount:          order.SellerEscrowAssetAmount,
+			TransactionHash: returnedInfo.TransactionID,
+			DetectionSource: detectionPendingOperation,
+		}
+		if err := gc.DB.Omit(clause.Associations).Create(&pending).Error; err != nil {
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[P2P] escrow deposit %v for order %v submitted but not recorded: %v", returnedInfo.TransactionID, order.ID, err))
+			return returnedInfo, &tErrors.ErrorTemporaryServerError{}
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+		defer cancel()
+		if err := resolvePendingDeposit(ctx, gc, pending); err != nil {
 			return returnedInfo, err
+		}
+		if refreshed, err := GetOrderByID(gc.DB, order.ID); err == nil && refreshed.OrderStatus == p2pModels.OrderStatusAwaitingEscrowDeposit {
+			returnedInfo.Messages = append(returnedInfo.Messages, "Your deposit was submitted; the order moves on once it is confirmed on the network.")
 		}
 	}
 	return returnedInfo, nil
+}
+
+// detectionPendingOperation marks a deposit made through the API whose
+// wallet operation is not mined yet; its TransactionHash is the userOpHash.
+const detectionPendingOperation = "P2P_API_PENDING"
+
+// resolvePendingDeposit applies a pending deposit once its wallet operation
+// is mined (or drops it if the operation failed). Still-pending operations
+// are left for the reconciliation sweep.
+func resolvePendingDeposit(ctx context.Context, gc *sharedconfig.GlobalConfig, pending p2pModels.BlockchainDeposit) error {
+	txHash, success, done, err := userServices.WalletOperationOutcome(ctx, pending.TransactionHash, gc)
+	if err != nil || !done {
+		return nil
+	}
+	if !success {
+		gc.DB.Where("id = ? AND detection_source = ?", pending.ID, detectionPendingOperation).Delete(&p2pModels.BlockchainDeposit{})
+		RecordAuditEvent(gc, pending.OrderID, "", "ESCROW_DEPOSIT_FAILED", pending.Sender, map[string]string{"userOpHash": pending.TransactionHash})
+		return &tErrors.CustomError{Param: "transaction", Err: "error-escrow-deposit-failed", ErrMessage: "The escrow deposit failed on the network. Please try again."}
+	}
+	// claim the row so the sweep and this call cannot both apply it
+	res := gc.DB.Model(&p2pModels.BlockchainDeposit{}).Where("id = ? AND detection_source = ?", pending.ID, detectionPendingOperation).
+		Updates(map[string]interface{}{"transaction_hash": txHash, "detection_source": "P2P_API"})
+	if res.Error != nil {
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	if res.RowsAffected == 0 {
+		return nil
+	}
+	pending.TransactionHash, pending.DetectionSource = txHash, "P2P_API"
+	RecordAuditEvent(gc, pending.OrderID, "", p2pModels.EventEscrowDepositDetected, pending.Sender, pending)
+	order, err := GetOrderByID(gc.DB, pending.OrderID)
+	if err != nil {
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	amount := decimal.RequireFromString(pending.Amount)
+	if order.OrderStatus != p2pModels.OrderStatusAwaitingEscrowDeposit {
+		// mined after the order moved on (e.g. expired): refund it
+		refund := p2pModels.Refund{
+			ID: gc.GenerateUUIDString(), DepositID: pending.ID, OrderID: order.ID, Sender: pending.Sender,
+			Token: pending.Token, ContractAddress: pending.ContractAddress, Amount: amount.String(), Reason: p2pModels.RefundReasonOrderExpired,
+		}
+		if err := gc.DB.Omit(clause.Associations).Create(&refund).Error; err != nil {
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		RecordAuditEvent(gc, order.ID, order.OfferID, p2pModels.EventRefundIssued, pending.Sender, refund)
+		return nil
+	}
+	return applyDepositToOrder(gc, &order, pending, amount)
+}
+
+// resolvePendingDeposits applies every pending API deposit whose operation
+// has been mined since.
+func resolvePendingDeposits(gc *sharedconfig.GlobalConfig) {
+	var pending []p2pModels.BlockchainDeposit
+	if err := gc.DB.Where("detection_source = ?", detectionPendingOperation).Limit(200).Find(&pending).Error; err != nil {
+		return
+	}
+	for _, d := range pending {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		_ = resolvePendingDeposit(ctx, gc, d)
+		cancel()
+	}
 }
 
 // recordCanonicalDeposit creates the BlockchainDeposit row and advances the
@@ -260,6 +345,7 @@ func ReconcileEscrowDepositsFromPaymentHistory(gc *sharedconfig.GlobalConfig, or
 // against every order currently AWAITING_ESCROW_DEPOSIT. Meant to be called
 // periodically (see controllers/main.go's Init).
 func RunEscrowReconciliationSweep(gc *sharedconfig.GlobalConfig) {
+	resolvePendingDeposits(gc)
 	var orders []p2pModels.Order
 	if err := gc.DB.Where("order_status = ?", p2pModels.OrderStatusAwaitingEscrowDeposit).Find(&orders).Error; err != nil {
 		return

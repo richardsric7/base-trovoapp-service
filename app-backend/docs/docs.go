@@ -7630,6 +7630,76 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/users/settings/gas-fee-asset": {
+            "put": {
+                "description": "Sets the stablecoin the user's wallets pay network fees in (through the paymaster), or clears it with an empty assetCode. A wallet that holds too little of it pays in ETH.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "PUT /v1/users/settings/gas-fee-asset",
+                "parameters": [
+                    {
+                        "description": "Gas fee asset",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.GasFeeAssetInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/settings/gas-fee-assets": {
+            "get": {
+                "description": "The stablecoins the user can pay network fees in, and the one currently chosen (gasFeeAsset; null = ETH).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "GET /v1/users/settings/gas-fee-assets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users/stablerail/banks": {
             "get": {
                 "produces": [
@@ -9299,6 +9369,16 @@ const docTemplate = `{
                             "type": "string"
                         }
                     }
+                }
+            }
+        },
+        "users.GasFeeAssetInput": {
+            "type": "object",
+            "properties": {
+                "assetCode": {
+                    "description": "AssetCode is a curated asset with gasFeeEligible; empty = pay in ETH.",
+                    "type": "string",
+                    "example": "USDC"
                 }
             }
         },
@@ -11675,6 +11755,13 @@ const docTemplate = `{
                 },
                 "currency": {
                     "type": "string"
+                },
+                "messages": {
+                    "description": "Messages describe the withdrawal and its network fee before signing.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "networkPassPhrase": {
                     "type": "string"

@@ -40,6 +40,7 @@ const EditCuratedAssetPage = () => {
         generateDepositAddress: values.generateDepositAddress,
         inactive: values.inactive,
         p2pEnabled: values.p2pEnabled,
+        gasFeeEligible: values.gasFeeEligible,
       }).unwrap();
       showSuccessToast("Curated asset updated");
       router.push("/assetcuration");

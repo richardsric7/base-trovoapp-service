@@ -44,6 +44,15 @@ export const curatedAssetsApi = baseApi.injectEndpoints({
       invalidatesTags: ["curatedAssets"],
     }),
 
+    setCuratedAssetGasFeeEligible: builder.mutation<CuratedAssetResponse, { id: number; gasFeeEligible: boolean }>({
+      query: ({ id, gasFeeEligible }) => ({
+        url: `/assets/curated/${id}/gas-fee-eligible`,
+        method: "PUT",
+        data: { gasFeeEligible },
+      }),
+      invalidatesTags: ["curatedAssets"],
+    }),
+
     setCuratedAssetInactive: builder.mutation<CuratedAssetResponse, { id: number; inactive: boolean }>({
       query: ({ id, inactive }) => ({
         url: `/assets/curated/${id}/inactive`,
@@ -67,6 +76,7 @@ export const {
   useGetCuratedAssetByIdQuery,
   useSaveCuratedAssetMutation,
   useSetCuratedAssetP2PEnabledMutation,
+  useSetCuratedAssetGasFeeEligibleMutation,
   useSetCuratedAssetInactiveMutation,
   useGetAssetClassesQuery,
 } = curatedAssetsApi;

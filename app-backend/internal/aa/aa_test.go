@@ -241,6 +241,24 @@ func TestOwnerManagementCalls(t *testing.T) {
 	}
 }
 
+func TestBurnAndDeployCalls(t *testing.T) {
+	token := common.HexToAddress("0x00000000000000000000000000000000000000aa")
+	call := ERC20Burn(token, big.NewInt(1234))
+	// burn(uint256) = 0x42966c68
+	if call.To != token || common.Bytes2Hex(call.Data[:4]) != "42966c68" || new(big.Int).SetBytes(call.Data[4:]).Int64() != 1234 {
+		t.Fatalf("burn call %x", call.Data)
+	}
+	cfg := ConfigFromEnv(big.NewInt(8453))
+	owners := []common.Address{common.HexToAddress("0x70997970C51812dc3A010C7d01b50e0d17dc79C8")}
+	call = cfg.DeploySafeCall(owners, 1, big.NewInt(7))
+	m, _ := contractsABI.MethodById(call.Data[:4])
+	args, _ := m.Inputs.Unpack(call.Data[4:])
+	if call.To != cfg.ProxyFactory || m.Name != "createProxyWithNonce" || args[0].(common.Address) != cfg.Singleton ||
+		common.Bytes2Hex(args[1].([]byte)) != common.Bytes2Hex(cfg.Initializer(owners, 1)) || args[2].(*big.Int).Int64() != 7 {
+		t.Fatal("DeploySafeCall must create the Safe SafeAddress predicts")
+	}
+}
+
 // --- Builder with fakes ---------------------------------------------------
 
 type fakeChain struct {

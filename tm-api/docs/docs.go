@@ -1587,6 +1587,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "Filter by gas-fee eligibility (true/false)",
+                        "name": "gasFeeEligible",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Filter by active status (true/false)",
                         "name": "inactive",
                         "in": "query"
@@ -1696,6 +1702,79 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/assets/curated/{id}/gas-fee-eligible": {
+            "put": {
+                "description": "Lets app users pick this asset (a stablecoin) to pay network fees in, through the paymaster. The asset must also be enabled on the paymaster contract and priced by the paymaster quote service; otherwise users fall back to ETH.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CuratedAssets"
+                ],
+                "summary": "Set whether users can pay network fees in a curated asset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Curated asset ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Gas-fee eligibility flag",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/usermetrics.setGasFeeEligibleRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -16384,6 +16463,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "gasFeeEligible": {
+                    "type": "boolean"
+                },
                 "generateDepositAddress": {
                     "type": "boolean"
                 },
@@ -21083,6 +21165,14 @@ const docTemplate = `{
                 },
                 "salesStart": {
                     "type": "string"
+                }
+            }
+        },
+        "usermetrics.setGasFeeEligibleRequest": {
+            "type": "object",
+            "properties": {
+                "gasFeeEligible": {
+                    "type": "boolean"
                 }
             }
         },

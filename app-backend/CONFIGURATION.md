@@ -336,9 +336,12 @@ or in ETH. See `internal/aa` and `internal/components/users/services/wallet_oper
 
 ## Fee wallets & amounts
 
-Each `*_FEE_WALLET` below is the wallet address (or, for a couple, the
-private key) that platform fees for that specific flow are collected into.
-For local development these can all point at the same test wallet.
+Each `*_FEE_WALLET` below is the wallet address that platform fees for
+that specific flow are collected into. Set the **address**: the fees are
+sent there by the user's own wallet, so app-backend never needs the key.
+(A private key is still accepted for backward compatibility, and only its
+address is used - prefer the address.) For local development these can
+all point at the same test wallet.
 
 | Variable | Fee for |
 | --- | --- |

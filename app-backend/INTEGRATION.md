@@ -353,6 +353,33 @@ deployed by the **primary** wallet, so only the primary wallet signs:
 If the primary wallet is not activated yet, the same operation activates
 it too.
 
+**Gas-fee asset.** `GET /v1/users/settings/gas-fee-assets` lists the
+curated assets users can pay network fees in (`gasFeeEligible`, set from
+tm-web) and the user's current choice; `PUT /v1/users/settings/gas-fee-asset`
+with `{"assetCode": "USDC"}` sets it (`""` clears it - fees in ETH). The
+user profile carries it as `gasFeeAsset`.
+
+**Other sends built the same way** (two calls, base64 SafeOp hash to sign):
+
+- *Crypto withdrawal* (`POST /v1/crypto/withdrawals` and the
+  shared-access variant): crypto deposits are minted as Trovo tokens, so
+  a withdrawal **burns** `amountSubmitted` from the wallet (`burn(uint256)`
+  of an OpenZeppelin `ERC20Burnable` token contract) and records the
+  withdrawal request for payout. The first response carries `messages`.
+- *Patron subscription*: paid from the primary wallet to the patron fee
+  wallet (price + VAT). Payable in the dollar (`DOLLAR_ASSET`) or naira
+  (`NAIRA_ASSET`, converted with the USD/cNGN rate) stablecoin; other
+  payment assets need a DEX and are refused with
+  `error-payment-asset-not-supported`.
+- *P2P escrow deposit from the depositor's own wallet* goes through the
+  payment flow; the deposit is recorded as pending under the operation's
+  `userOpHash` and applied to the order only once it is mined, under the
+  mined transaction's hash (the reconciliation sweep finishes deposits
+  that take longer than the request).
+
+Swaps still need a DEX route and are not available yet. (Closed-group
+creation had no endpoint; its unused transaction builder was removed.)
+
 **What app-backend calls.** The bundler (`BUNDLER_URL`:
 `eth_estimateUserOperationGas`, `eth_sendUserOperation`,
 `eth_getUserOperationReceipt`) and the paymaster quote service

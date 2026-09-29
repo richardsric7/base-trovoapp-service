@@ -1089,6 +1089,10 @@ paths:
         in: query
         name: p2pEnabled
         type: string
+      - description: Filter by gas-fee eligibility (true/false)
+        in: query
+        name: gasFeeEligible
+        type: string
       - description: Filter by active status (true/false)
         in: query
         name: inactive
@@ -1190,6 +1194,58 @@ paths:
           schema:
             type: object
       summary: Get curated asset by ID
+      tags:
+      - CuratedAssets
+  /assets/curated/{id}/gas-fee-eligible:
+    put:
+      consumes:
+      - application/json
+      description: Lets app users pick this asset (a stablecoin) to pay network fees
+        in, through the paymaster. The asset must also be enabled on the paymaster
+        contract and priced by the paymaster quote service; otherwise users fall back
+        to ETH.
+      parameters:
+      - default: Bearer <your-token>
+        description: JWT Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Curated asset ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Gas-fee eligibility flag
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/usermetrics.setGasFeeEligibleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: Set whether users can pay network fees in a curated asset
       tags:
       - CuratedAssets
   /assets/curated/{id}/inactive:
@@ -11017,6 +11073,8 @@ definitions:
         type: integer
       description:
         type: string
+      gasFeeEligible:
+        type: boolean
       generateDepositAddress:
         type: boolean
       id:
@@ -14150,6 +14208,11 @@ definitions:
         type: string
       salesStart:
         type: string
+    type: object
+  usermetrics.setGasFeeEligibleRequest:
+    properties:
+      gasFeeEligible:
+        type: boolean
     type: object
   usermetrics.setInactiveRequest:
     properties:
