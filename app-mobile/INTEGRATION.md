@@ -109,6 +109,29 @@ its models (`lib/models/`) are hand-written and specific to this app, and
 there is no shared/common package referenced from `pubspec.yaml` that
 points back into this monorepo.
 
+### Wallets are Safes: signer vs address
+
+Every wallet is a Safe smart account owned by the user's key. The key (from
+the mnemonic) signs everything and is sent as `X-TW-SIGNER`; the wallet
+address (the Safe) is `X-TW-PUBLIC-KEY`. They are no longer the same value.
+
+- **Registration/import** compute the primary wallet address with
+  `TrovoWalletSDK().primaryWalletAddress(signer)` (wallet-core's
+  `wc_primary_safe_address(signer, "0")` over FFI) and keep it in
+  `tempAddress`, with the key's address in `tempSigner`.
+- **Sends** are unchanged for the app: `transaction` is the base64 hash of
+  the wallet operation and `signBase64Txn` signs it.
+- **Sub-wallets** (wallets page and the add-wallet dialog) take only a tag,
+  description and type. The backend picks the Safe (and an issuing
+  wallet's linked distribution Safe); only `primarySignature` is sent, and
+  no new key is generated, imported, stored or backed up.
+- A wallet's `activated` is `false` until its first send deploys it; the
+  wallet details screen says so.
+- **Settings -> Network fees** (`lib/widgets/network_fee_setting.dart`)
+  picks the stablecoin wallets pay network fees in
+  (`GET /v1/users/settings/gas-fee-assets`,
+  `PUT /v1/users/settings/gas-fee-asset`).
+
 ## Relationship to `tm-api` / `tm-web`
 
 None. `tm-api`/`tm-web` are a separate internal admin console with their

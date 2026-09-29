@@ -19,6 +19,10 @@ class Wallet {
   int? walletThreshold;
   int? numberOfApprovalsNeeded;
   int? primaryWallet;
+  // false until the wallet's Safe is deployed, which its first send does
+  // (it can receive funds before that); null for wallets shared with the
+  // user, whose state is not reported
+  bool? activated;
   DateTime? sharedAccessCreatedAt;
   DateTime? sharedAccessUpdatedAt;
   List<Permission>? permissions;
@@ -45,6 +49,7 @@ class Wallet {
     this.walletThreshold,
     this.numberOfApprovalsNeeded,
     this.primaryWallet,
+    this.activated,
     this.permissions,
     this.permission,
     this.accesses,
@@ -70,6 +75,7 @@ class Wallet {
       "walletThreshold": walletThreshold,
       "numberOfApprovalsNeeded": numberOfApprovalsNeeded,
       "primaryWallet": primaryWallet,
+      "activated": activated,
       "sharedAccessCreatedAt": sharedAccessCreatedAt!.toIso8601String(),
       "sharedAccessUpdatedAt": sharedAccessUpdatedAt!.toIso8601String(),
       "permissions": permissions,
@@ -100,6 +106,7 @@ class Wallet {
       walletThreshold: m["walletThreshold"],
       numberOfApprovalsNeeded: m["numberOfApprovalsNeeded"],
       primaryWallet: m["primaryWallet"],
+      activated: m["activated"] as bool?,
       sharedAccessCreatedAt: DateTime.parse(m["sharedAccessCreatedAt"]),
       sharedAccessUpdatedAt: DateTime.parse(m["sharedAccessUpdatedAt"]),
       permissions: getPermissionList(m["permissions"]),

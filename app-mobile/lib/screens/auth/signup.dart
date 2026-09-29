@@ -1015,7 +1015,10 @@ class _SignUpState extends State<SignUp> {
       }
 
       if (creds != null) {
-        state.tempAddress = creds!.address;
+        // the key signs; the wallet is the Safe it owns
+        state.tempAddress = TrovoWalletSDK().primaryWalletAddress(
+          creds!.address,
+        );
         state.tempSigner = creds!.address;
         state.tempSecretKey = creds!.secretKey;
       }
@@ -1023,7 +1026,7 @@ class _SignUpState extends State<SignUp> {
       Map responseData = await makePostRequest(
         uri: '/v1/users',
         body: jsonBody,
-        signer: state.tempAddress,
+        signer: state.tempSigner!,
         address: state.tempAddress,
         secretKey: state.tempSecretKey,
       );

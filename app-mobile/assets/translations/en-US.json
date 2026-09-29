@@ -1243,5 +1243,11 @@
     "p2pofflinehint": "All your offers are hidden from marketplace search until you go back online.",
     "p2pallassets": "All assets",
     "p2pallcurrencies": "All currencies",
-    "p2pallcategories": "All categories"
+    "p2pallcategories": "All categories",
+    "subwalletownedbykey": "The new wallet is controlled by your existing key: your primary wallet creates it and pays for its setup. There is no new key to back up.",
+    "issuingwalletgetsdistribution": "An issuing wallet also gets a linked distribution wallet.",
+    "networkfees": "Network fees",
+    "networkfeesdescription": "Your wallets pay their own network fees. Choose a stablecoin to pay them in; a wallet that does not hold enough of it pays in ETH instead.",
+    "payfeesineth": "ETH (default)",
+    "notactivatedyet": "Not yet activated - activates with its first send"
 }

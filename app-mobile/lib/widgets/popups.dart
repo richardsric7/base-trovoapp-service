@@ -23,7 +23,6 @@ import 'package:trovo_app/models/wallets_list_view_data.dart';
 import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/screens/send_and_recieve/deposit_withdrawal_history.dart';
 import 'package:trovo_app/storage/cache.dart';
-import 'package:trovo_app/storage/store.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:trovo_app/utils/local_auth.dart';
 import 'package:trovo_app/utils/medeiaqury/medeiaqury.dart';
@@ -5259,25 +5258,8 @@ Future sendFullDataToServer(
       responseBody['networkPassPhrase'],
     );
 
-    // get secondary signature
-    var subWalletSignature = TrovoWalletSDK().signBase64Txn(
-      subWallet.secretKey,
-      responseBody['transaction'],
-      responseBody['networkPassPhrase'],
-    );
-
-    if (responseBody['linkedWalletMustSign'] == 1) {
-      var linkedWalletSignature = TrovoWalletSDK().signBase64Txn(
-        subWallet.distributionWalletSecretKey!,
-        responseBody['transaction'],
-        responseBody['networkPassPhrase'],
-      );
-
-      responseBody['linkedWalletSignature'] = linkedWalletSignature;
-    }
-
+    // only the primary wallet signs: it deploys the new wallet(s)
     responseBody['primarySignature'] = primarySignature;
-    responseBody['subWalletSignature'] = subWalletSignature;
 
     String requestBody = jsonEncode(responseBody);
 
@@ -5286,22 +5268,11 @@ Future sendFullDataToServer(
       body: requestBody,
       signer: primaryWalletKeyPair.address,
       secretKey: primaryWalletKeyPair.secretKey,
-      address: primaryWalletKeyPair.address,
+      address: appState.primaryWallet.address!,
     );
 
     if (responseData['statusCode'] == 200) {
-      // add the secret key of this new subwallet to
-      // the existing list of secrets
-      appState.secretKeys.add(subWallet.secretKey);
-      // store back the list of secret keys but this time it
-      // contains the secret key of the newly created subwallet
-      await StoreData().storeInsertData('secretKey', appState.secretKeys);
-      // add the secret key to list to be backed up
-      appState.backupSecrets.add(subWallet.secretKey);
-      if (subWallet.distributionWalletSecretKey != null) {
-        appState.backupSecrets.add(subWallet.distributionWalletSecretKey!);
-      }
-
+      final newAddress = responseData['data']['publicKey'] as String?;
       await updateUserInfo(
         appState.primaryWallet.signer,
         appState.secretKeys[0],
@@ -5312,11 +5283,12 @@ Future sendFullDataToServer(
       );
       // add the new subwallet to appState and
       // set the newly created subwallet as the activeWallet
+      // the new wallet signs with the same key as the primary wallet
       appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
-        (wallet) => wallet.address == subWallet.address,
+        (wallet) => wallet.address?.toLowerCase() == newAddress?.toLowerCase(),
+        orElse: () => appState.primaryWallet,
       );
-
-      appState.activeWallet!.secretKey = subWallet.secretKey;
+      appState.activeWallet!.secretKey = appState.secretKeys[0];
       // move to next page
       appState.currentAction = PageAction(
         state: PageState.addPage,
@@ -5348,12 +5320,12 @@ Future sendDataToServer(
     showLoader(context);
     // make initial request to the server using the
     // following credentials
+    // the backend picks the new Safe's address (and, for an issuing
+    // wallet, its linked distribution wallet)
     Map map = {
-      "publickey": subWallet.address,
       "walletTag": subWallet.tag,
-      "WalletDescription": subWallet.description,
+      "walletDescription": subWallet.description,
       "walletType": subWallet.walletType,
-      "linkedWalletAddress": subWallet.distributionWalletAddress,
     };
     String requestBody = jsonEncode(map);
 
@@ -5362,7 +5334,7 @@ Future sendDataToServer(
       body: requestBody,
       signer: primaryWalletKeyPair.address,
       secretKey: primaryWalletKeyPair.secretKey,
-      address: primaryWalletKeyPair.address,
+      address: state.primaryWallet.address!,
     );
 
     inspect(responseData);
@@ -5447,8 +5419,6 @@ addSubWalletPopup(context) async {
   final _formKey = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
 
-  WalletAction? action = WalletAction.createNew;
-  bool importExistingWalletForDistribution = false;
   var userInfo = appState.userInfo!;
   var walletView = WalletView.addSubWallet;
 
@@ -5587,27 +5557,6 @@ addSubWalletPopup(context) async {
               ),
               SizedBox(height: 15),
               Text(
-                "method".tr(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-              Text(
-                action == WalletAction.import
-                    ? "importsubwallet".tr()
-                    : "createnewsubwallet".tr(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontFamily: fontbody,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-              SizedBox(height: 15),
-              Text(
                 "wallettype".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -5626,45 +5575,14 @@ addSubWalletPopup(context) async {
                 ),
               ),
               SizedBox(height: 15),
-              Text(
-                "publickey".tr(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                child: Text(
-                  newSubWalletKeyPair.address,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontFamily: fontbody,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-              ),
-              SizedBox(height: 15),
-              if (newSubWalletKeyPair.distributionWalletAddress != null) ...[
-                Text(
-                  "distributionwalletpublickey".tr(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
+              if (newSubWalletKeyPair.walletType == 1) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15.0),
                   child: Text(
-                    newSubWalletKeyPair.distributionWalletAddress ?? "",
+                    "issuingwalletgetsdistribution".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 13,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -5744,78 +5662,12 @@ addSubWalletPopup(context) async {
                         ),
                         SizedBox(height: 15),
                         Text(
-                          "chooseamethod".tr(),
+                          "subwalletownedbykey".tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12,
-                            fontFamily: fontsemibold,
+                            fontFamily: fontbody,
                             color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                        SizedBox(height: 15),
-                        RadioGroup<WalletAction>(
-                          groupValue: action,
-                          onChanged: (value) => {
-                            setStateForDialog(() {
-                              action = value;
-                            }),
-                          },
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  SizedBox(width: width / 10),
-                                  SizedBox(
-                                    height: 20,
-                                    child: Transform.scale(
-                                      scale: 1.3,
-                                      child: Radio<WalletAction>(
-                                        value: WalletAction.import,
-                                        activeColor: notifier.getbluewhitecolor,
-                                        fillColor: WidgetStateColor.resolveWith(
-                                          (states) => notifier.getbluewhitecolor,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    "importexistingwallet".tr(),
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontFamily: fontsemibold,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 15),
-                              Row(
-                                children: [
-                                  SizedBox(width: width / 10),
-                                  SizedBox(
-                                    height: 20,
-                                    child: Transform.scale(
-                                      scale: 1.3,
-                                      child: Radio<WalletAction>(
-                                        value: WalletAction.createNew,
-                                        activeColor: notifier.getbluewhitecolor,
-                                        fillColor: WidgetStateColor.resolveWith(
-                                          (states) => notifier.getbluewhitecolor,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    "createnewwallet".tr(),
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontFamily: fontsemibold,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
                           ),
                         ),
                         SizedBox(height: 15),
@@ -5885,127 +5737,6 @@ addSubWalletPopup(context) async {
                 maxLength: 100,
                 validator: validateDescription,
               ),
-              if (action == WalletAction.import) ...[
-                SizedBox(height: 15),
-                // Secret Key
-                CustomPasswordFormField(
-                  "secretkey".tr(),
-                  notifier.getbluecolor,
-                  Icons.lock,
-                  notifier.getgrey,
-                  notifier.getbluewhitecolor,
-                  notifier.getblck,
-                  75,
-                  300,
-                  validator: (value) {
-                    var trimmedVal = value!.trim().replaceAll(' ', '');
-                    if (trimmedVal.isEmpty) {
-                      return "entersecretkeyempty".tr();
-                    }
-
-                    if (trimmedVal.length < 64) {
-                      return "secretkeyinvalid".tr();
-                    }
-
-                    try {
-                      TrovoWalletSDK().parseSecretKey(value);
-                    } catch (e) {
-                      return 'Secret Key is invalid';
-                    }
-
-                    return null;
-                  },
-                  onSaved: (value) {
-                    newSubWalletKeyPair.secretKey = value!.trim().replaceAll(
-                      ' ',
-                      '',
-                    );
-                  },
-                  maxLength: 66,
-                ),
-                if (newSubWalletKeyPair.walletType == 1) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Transform.scale(
-                        scale: 1.2,
-                        child: Checkbox(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(5.sp),
-                            ),
-                          ),
-                          activeColor: notifier.isDark
-                              ? notifier.getbluecolor50
-                              : notifier.getbluecolor90,
-                          side: BorderSide(
-                            color: notifier.isDark
-                                ? notifier.getbluecolor50
-                                : notifier.getbluecolor90,
-                          ),
-                          value: importExistingWalletForDistribution,
-                          onChanged: (bool? value) {
-                            setStateForDialog(
-                              () => {
-                                importExistingWalletForDistribution = value!,
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                      SizedBox(
-                        width: width / 1.4,
-                        child: Text(
-                          "importdistributionwallet".tr(),
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (importExistingWalletForDistribution) ...[
-                    SizedBox(height: height / 50),
-                    // Secret Key
-                    CustomPasswordFormField(
-                      "secretkey".tr(),
-                      notifier.getbluecolor,
-                      Icons.lock,
-                      notifier.getgrey,
-                      notifier.getbluewhitecolor,
-                      notifier.getblck,
-                      75,
-                      300,
-                      validator: (value) {
-                        var trimmedVal = value!.trim().replaceAll(' ', '');
-                        if (trimmedVal.isEmpty) {
-                          return "entersecretkeyempty".tr();
-                        }
-
-                        if (trimmedVal.length < 64) {
-                          return "secretkeyinvalid".tr();
-                        }
-
-                        try {
-                          TrovoWalletSDK().parseSecretKey(value.trim());
-                        } catch (e) {
-                          return "invalidsecretkey".tr();
-                        }
-
-                        return null;
-                      },
-                      onSaved: (value) {
-                        newSubWalletKeyPair.distributionWalletSecretKey = value!
-                            .trim()
-                            .replaceAll(' ', '');
-                      },
-                      maxLength: 66,
-                    ),
-                  ],
-                ],
-              ],
               SizedBox(height: height / 30),
               Button(
                 "continuee".tr(),
@@ -6034,67 +5765,9 @@ addSubWalletPopup(context) async {
                   );
 
                   setStateForDialog(() {
-                    if (action == WalletAction.import) {
-                      try {
-                        // parse supplied secret to get the keypair
-                        var ac = TrovoWalletSDK().parseSecretKey(
-                          newSubWalletKeyPair.secretKey,
-                        );
-
-                        newSubWalletKeyPair.address = ac.address;
-                        newSubWalletKeyPair.secretKey = ac.secretKey;
-                        newSubWalletKeyPair.isImport = true;
-                      } catch (e) {
-                        popup(
-                          context,
-                          title: "error".tr(),
-                          message: "invalidsecretkey".tr(),
-                        );
-                      }
-                    } else {
-                      // generate keypair for the new subwallet
-                      var ac = TrovoWalletSDK().createAccount();
-
-                      newSubWalletKeyPair = SubwalletInfo(
-                        address: ac.address,
-                        secretKey: ac.secretKey,
-                        tag: newSubWalletKeyPair.tag,
-                        description: newSubWalletKeyPair.description,
-                        walletType: newSubWalletKeyPair.walletType,
-                      );
-                    }
-
-                    if (newSubWalletKeyPair.walletType == 1) {
-                      if (importExistingWalletForDistribution) {
-                        try {
-                          // parse supplied secret to get the keypair
-                          var ac = TrovoWalletSDK().parseSecretKey(
-                            newSubWalletKeyPair.distributionWalletSecretKey,
-                          );
-
-                          newSubWalletKeyPair.distributionWalletAddress =
-                              ac.address;
-                          newSubWalletKeyPair.distributionWalletSecretKey =
-                              ac.secretKey;
-                        } catch (e) {
-                          popup(
-                            context,
-                            title: "error".tr(),
-                            message: "invalidsecretkey".tr(),
-                          );
-                          return;
-                        }
-                      } else {
-                        // generate keypair for the new subwallet
-                        var ac = TrovoWalletSDK().createAccount();
-
-                        newSubWalletKeyPair.distributionWalletAddress =
-                            ac.address;
-                        newSubWalletKeyPair.distributionWalletSecretKey =
-                            ac.secretKey;
-                      }
-                    }
-
+                    // the new wallet (and an issuing wallet's distribution
+                    // wallet) are Safes owned by the user's key: the backend
+                    // picks their addresses, so no keys are generated here
                     password = '';
                     walletView = WalletView.confirmAddSubWallet;
                     scrollController.animateTo(

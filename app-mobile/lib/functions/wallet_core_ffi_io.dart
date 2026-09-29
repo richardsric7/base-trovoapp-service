@@ -107,6 +107,7 @@ class WalletCoreFFI {
   late final _WcTwoArgDart _wcRecoverPersonalSigner;
   late final _WcNoArgDart _wcGenerateMnemonic;
   late final _WcMnemonicDeriveDart _wcKeypairFromMnemonic;
+  late final _WcTwoArgDart _wcPrimarySafeAddress;
 
   WalletCoreFFI._() {
     final lib = _openWalletCoreLibrary();
@@ -142,6 +143,9 @@ class WalletCoreFFI {
         .lookup<NativeFunction<_WcMnemonicDeriveNative>>(
           'wc_keypair_from_mnemonic',
         )
+        .asFunction();
+    _wcPrimarySafeAddress = lib
+        .lookup<NativeFunction<_WcTwoArgNative>>('wc_primary_safe_address')
         .asFunction();
   }
 
@@ -274,6 +278,22 @@ class WalletCoreFFI {
       );
     } finally {
       calloc.free(m);
+    }
+  }
+
+  /// The address of the Safe wallet (v1.4.1 with the ERC-4337 module)
+  /// owned by [owner] with [saltNonce] - "0" for the user's primary wallet.
+  /// It is fixed before the Safe is deployed, so the wallet can receive
+  /// funds from registration on.
+  String primarySafeAddress(String owner, String saltNonce) {
+    final o = owner.toNativeUtf8();
+    final salt = saltNonce.toNativeUtf8();
+    try {
+      final json = _callJson(() => _wcPrimarySafeAddress(o, salt));
+      return json['address'] as String;
+    } finally {
+      calloc.free(o);
+      calloc.free(salt);
     }
   }
 }
