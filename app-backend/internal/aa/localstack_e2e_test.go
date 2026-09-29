@@ -100,7 +100,7 @@ func TestLocalStackEndToEnd(t *testing.T) {
 	recipient := common.HexToAddress("0x000000000000000000000000000000000000bEEF")
 	before, _ := callView(ctx, client, usdc, "balanceOf", recipient)
 
-	run := func(label string, req Request) {
+	runSigned := func(label string, req Request, signers ...*evmkeypair.Full) {
 		t.Helper()
 		p, err := b.Prepare(ctx, req)
 		if err != nil {
@@ -108,8 +108,12 @@ func TestLocalStackEndToEnd(t *testing.T) {
 		}
 		stored, _ := p.Marshal() // what the backend keeps between the two calls
 		p, _ = UnmarshalPrepared(stored)
-		sig, _ := evmkeypair.SignPersonal(owner.PrivateKey(), p.SafeOpHash.Bytes()) // the app's signBase64Txn
-		hash, err := b.Submit(ctx, p, []OwnerSignature{{Owner: ownerAddr, Signature: sig}})
+		var sigs []OwnerSignature
+		for _, k := range signers {
+			sig, _ := evmkeypair.SignPersonal(k.PrivateKey(), p.SafeOpHash.Bytes()) // the app's signBase64Txn
+			sigs = append(sigs, OwnerSignature{Owner: common.HexToAddress(k.Address()), Signature: sig})
+		}
+		hash, err := b.Submit(ctx, p, sigs)
 		if err != nil {
 			t.Fatalf("%s: submit: %v", label, err)
 		}
@@ -127,6 +131,7 @@ func TestLocalStackEndToEnd(t *testing.T) {
 		}
 		t.Logf("%s: activation=%v gas in token=%v gas=%s wei tx=%s", label, p.Activation, p.GasToken != nil, r.ActualGasCost.ToInt(), r.Receipt.TransactionHash.Hex())
 	}
+	run := func(label string, req Request) { t.Helper(); runSigned(label, req, owner) }
 
 	var gasToken *common.Address
 	if b.Quotes != nil {
@@ -161,8 +166,53 @@ func TestLocalStackEndToEnd(t *testing.T) {
 		t.Fatalf("sub-wallet holds %v wei, want %v", bal, seed)
 	}
 
+	// shared access: a linked distribution Safe with this Safe as a module
+	distSalt := big.NewInt(777)
+	dist := cfg.SafeAddress([]common.Address{ownerAddr}, 1, distSalt, safe)
+	run("deploy linked distribution", Request{Wallet: w, Calls: []Call{cfg.DeploySafeCall([]common.Address{ownerAddr}, 1, distSalt, safe)}, GasToken: gasToken})
+
+	// enable two approvers (threshold 2) on both Safes in one operation the
+	// owner alone signs
+	ap1, _ := evmkeypair.Random()
+	ap2, _ := evmkeypair.Random()
+	target := []common.Address{ownerAddr, common.HexToAddress(ap1.Address()), common.HexToAddress(ap2.Address())}
+	own, err := PlanOwnerChange(safe, []common.Address{ownerAddr}, 1, target, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	distCalls, err := PlanOwnerChange(dist, []common.Address{ownerAddr}, 1, target, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range distCalls {
+		own = append(own, ViaModule(dist, c))
+	}
+	run("enable approvers", Request{Wallet: w, Calls: own, GasToken: gasToken})
+	for _, s := range []common.Address{safe, dist} {
+		o, th, err := OnchainOwners(ctx, client, s)
+		if err != nil || th != 2 || OwnersHash(o, th) != OwnersHash(target, 2) {
+			t.Fatalf("%s owners %v/%d, %v", s.Hex(), o, th, err)
+		}
+	}
+
+	// the owner alone can no longer send; two approvers can, on their own
+	// nonce keys so pending operations do not collide
+	shared := w
+	shared.Owners, shared.Threshold = target, 2
+	k1, _ := RandomNonceKey()
+	p1, err := b.Prepare(ctx, Request{Wallet: shared, Calls: []Call{ERC20Transfer(usdc, recipient, big.NewInt(1_000000))}, GasToken: gasToken, NonceKey: k1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ownerOnly, _ := evmkeypair.SignPersonal(owner.PrivateKey(), p1.SafeOpHash.Bytes())
+	if _, err := b.Submit(ctx, p1, []OwnerSignature{{Owner: ownerAddr, Signature: ownerOnly}}); err == nil {
+		t.Fatal("one signature must not satisfy threshold 2")
+	}
+	k2, _ := RandomNonceKey()
+	runSigned("approved payment", Request{Wallet: shared, Calls: []Call{ERC20Transfer(usdc, recipient, big.NewInt(1_000000))}, GasToken: gasToken, NonceKey: k2}, ap1, ap2)
+
 	after, _ := callView(ctx, client, usdc, "balanceOf", recipient)
-	if got := new(big.Int).Sub(after[0].(*big.Int), before[0].(*big.Int)); got.Int64() != 6_000000 {
-		t.Fatalf("recipient received %v USDC base units, want 6000000", got)
+	if got := new(big.Int).Sub(after[0].(*big.Int), before[0].(*big.Int)); got.Int64() != 7_000000 {
+		t.Fatalf("recipient received %v USDC base units, want 7000000", got)
 	}
 }

@@ -102,6 +102,10 @@ var contractsABI = mustABI(`[
  {"name":"addOwnerWithThreshold","type":"function","inputs":[{"name":"owner","type":"address"},{"name":"_threshold","type":"uint256"}],"outputs":[]},
  {"name":"removeOwner","type":"function","inputs":[{"name":"prevOwner","type":"address"},{"name":"owner","type":"address"},{"name":"_threshold","type":"uint256"}],"outputs":[]},
  {"name":"swapOwner","type":"function","inputs":[{"name":"prevOwner","type":"address"},{"name":"oldOwner","type":"address"},{"name":"newOwner","type":"address"}],"outputs":[]},
+ {"name":"execTransactionFromModule","type":"function","inputs":[
+   {"name":"to","type":"address"},{"name":"value","type":"uint256"},{"name":"data","type":"bytes"},{"name":"operation","type":"uint8"}],
+   "outputs":[{"name":"success","type":"bool"}]},
+ {"name":"isModuleEnabled","type":"function","stateMutability":"view","inputs":[{"name":"module","type":"address"}],"outputs":[{"type":"bool"}]},
  {"name":"changeThreshold","type":"function","inputs":[{"name":"_threshold","type":"uint256"}],"outputs":[]},
  {"name":"getOwners","type":"function","stateMutability":"view","inputs":[],"outputs":[{"type":"address[]"}]},
  {"name":"getThreshold","type":"function","stateMutability":"view","inputs":[],"outputs":[{"type":"uint256"}]},
@@ -139,16 +143,19 @@ func SortedOwners(owners []common.Address) []common.Address {
 }
 
 // Initializer is the Safe.setup calldata for owners/threshold, enabling the
-// Safe4337Module and using it as the fallback handler.
-func (c Config) Initializer(owners []common.Address, threshold int64) []byte {
-	enable := pack("enableModules", []common.Address{c.Safe4337Module})
+// Safe4337Module (plus any extra modules) and using the Safe4337Module as the
+// fallback handler. A linked distribution wallet enables its issuing
+// wallet's Safe as an extra module, so the issuing wallet's owners manage it.
+func (c Config) Initializer(owners []common.Address, threshold int64, extraModules ...common.Address) []byte {
+	modules := append([]common.Address{c.Safe4337Module}, extraModules...)
+	enable := pack("enableModules", modules)
 	return pack("setup", owners, big.NewInt(threshold), c.ModuleSetup, enable, c.Safe4337Module,
 		common.Address{}, big.NewInt(0), common.Address{})
 }
 
 // SafeAddress is the address createProxyWithNonce deploys the Safe to.
-func (c Config) SafeAddress(owners []common.Address, threshold int64, saltNonce *big.Int) common.Address {
-	init := c.Initializer(owners, threshold)
+func (c Config) SafeAddress(owners []common.Address, threshold int64, saltNonce *big.Int, extraModules ...common.Address) common.Address {
+	init := c.Initializer(owners, threshold, extraModules...)
 	salt := crypto.Keccak256(crypto.Keccak256(init), common.LeftPadBytes(saltNonce.Bytes(), 32))
 	initCode := append(append([]byte{}, c.ProxyCreationCode...), common.LeftPadBytes(c.Singleton.Bytes(), 32)...)
 	return crypto.CreateAddress2(c.ProxyFactory, common.BytesToHash(salt), crypto.Keccak256(initCode))
@@ -156,16 +163,16 @@ func (c Config) SafeAddress(owners []common.Address, threshold int64, saltNonce 
 
 // InitCode is the UserOperation initCode (factory ++ factoryData) that
 // deploys the Safe.
-func (c Config) InitCode(owners []common.Address, threshold int64, saltNonce *big.Int) []byte {
-	data := pack("createProxyWithNonce", c.Singleton, c.Initializer(owners, threshold), saltNonce)
+func (c Config) InitCode(owners []common.Address, threshold int64, saltNonce *big.Int, extraModules ...common.Address) []byte {
+	data := pack("createProxyWithNonce", c.Singleton, c.Initializer(owners, threshold, extraModules...), saltNonce)
 	return append(append([]byte{}, c.ProxyFactory.Bytes()...), data...)
 }
 
 // DeploySafeCall is a call to the proxy factory deploying the Safe owned by
 // owners/threshold with saltNonce - how a primary wallet deploys its
 // sub-wallets inside its own operation.
-func (c Config) DeploySafeCall(owners []common.Address, threshold int64, saltNonce *big.Int) Call {
-	return Call{To: c.ProxyFactory, Value: big.NewInt(0), Data: pack("createProxyWithNonce", c.Singleton, c.Initializer(owners, threshold), saltNonce)}
+func (c Config) DeploySafeCall(owners []common.Address, threshold int64, saltNonce *big.Int, extraModules ...common.Address) Call {
+	return Call{To: c.ProxyFactory, Value: big.NewInt(0), Data: pack("createProxyWithNonce", c.Singleton, c.Initializer(owners, threshold, extraModules...), saltNonce)}
 }
 
 // Call is one call the wallet makes.
@@ -260,6 +267,67 @@ func RemoveOwner(safe common.Address, currentOwners []common.Address, owner comm
 // ChangeThreshold sets the threshold.
 func ChangeThreshold(safe common.Address, threshold int64) Call {
 	return Call{To: safe, Value: big.NewInt(0), Data: pack("changeThreshold", big.NewInt(threshold))}
+}
+
+// ViaModule wraps call so that a Safe with the calling wallet enabled as a
+// module executes it: target.execTransactionFromModule(call). The issuing
+// wallet manages its linked distribution wallet this way (a call to the
+// distribution Safe itself changes that Safe's owners).
+func ViaModule(target common.Address, call Call) Call {
+	v := call.Value
+	if v == nil {
+		v = big.NewInt(0)
+	}
+	return Call{To: target, Value: big.NewInt(0), Data: pack("execTransactionFromModule", call.To, v, call.Data, uint8(gnosissafe.OperationCall))}
+}
+
+// PlanOwnerChange returns the calls a Safe makes to itself to go from its
+// current owners (in getOwners order) and threshold to the target owners
+// and threshold: owners are added first (Safe inserts them at the head of
+// its list), then removed, then the threshold is set.
+func PlanOwnerChange(safe common.Address, current []common.Address, currentThreshold int64, target []common.Address, targetThreshold int64) ([]Call, error) {
+	if len(target) == 0 || targetThreshold < 1 || targetThreshold > int64(len(target)) {
+		return nil, fmt.Errorf("aa: threshold %d is not possible with %d owners", targetThreshold, len(target))
+	}
+	in := func(list []common.Address, a common.Address) bool {
+		for _, x := range list {
+			if x == a {
+				return true
+			}
+		}
+		return false
+	}
+	owners := append([]common.Address(nil), current...)
+	threshold := currentThreshold
+	var calls []Call
+	for _, o := range target {
+		if in(owners, o) {
+			continue
+		}
+		calls = append(calls, AddOwner(safe, o, threshold))
+		owners = append([]common.Address{o}, owners...)
+	}
+	for _, o := range append([]common.Address(nil), owners...) {
+		if in(target, o) {
+			continue
+		}
+		call, err := RemoveOwner(safe, owners, o, targetThreshold)
+		if err != nil {
+			return nil, err
+		}
+		calls = append(calls, call)
+		for i := range owners {
+			if owners[i] == o {
+				owners = append(owners[:i:i], owners[i+1:]...)
+				break
+			}
+		}
+		threshold = targetThreshold
+	}
+	if threshold != targetThreshold {
+		calls = append(calls, ChangeThreshold(safe, targetThreshold))
+	}
+	return calls, nil
 }
 
 // OwnersHash is a stable digest of a Safe's owners and threshold, stored on

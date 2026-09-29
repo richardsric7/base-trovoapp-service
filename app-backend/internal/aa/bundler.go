@@ -148,9 +148,15 @@ func callView(ctx context.Context, c Caller, to common.Address, method string, a
 	return contractsABI.Unpack(method, out)
 }
 
-// EntryPointNonce reads the wallet's next UserOperation nonce (key 0).
-func (c Config) EntryPointNonce(ctx context.Context, r Caller, sender common.Address) (*big.Int, error) {
-	res, err := callView(ctx, r, c.EntryPoint, "getNonce", sender, big.NewInt(0))
+// EntryPointNonce reads the wallet's next UserOperation nonce for a nonce
+// key (nil = key 0). Each key is its own sequence, so operations built on
+// different keys do not invalidate each other.
+func (c Config) EntryPointNonce(ctx context.Context, r Caller, sender common.Address, key ...*big.Int) (*big.Int, error) {
+	k := big.NewInt(0)
+	if len(key) > 0 && key[0] != nil {
+		k = key[0]
+	}
+	res, err := callView(ctx, r, c.EntryPoint, "getNonce", sender, k)
 	if err != nil {
 		return nil, err
 	}

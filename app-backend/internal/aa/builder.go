@@ -2,6 +2,7 @@ package aa
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -45,6 +46,20 @@ type Wallet struct {
 	InitialOwners    []common.Address
 	InitialThreshold int64
 	SaltNonce        *big.Int
+	// InitialModules are extra modules enabled at deployment (besides the
+	// Safe4337Module), also part of what fixes its address.
+	InitialModules []common.Address
+}
+
+// RandomNonceKey returns a random 192-bit EntryPoint nonce key, for an
+// operation that may wait (for approvers) alongside others on the same
+// wallet.
+func RandomNonceKey() (*big.Int, error) {
+	b := make([]byte, 24)
+	if _, err := rand.Read(b); err != nil {
+		return nil, err
+	}
+	return new(big.Int).SetBytes(b), nil
 }
 
 // Request describes an operation to prepare.
@@ -57,6 +72,10 @@ type Request struct {
 	// Validity is how long the owners have to sign (0 = DefaultValidity).
 	// Shared wallets waiting for approvers ask for longer.
 	Validity time.Duration
+	// NonceKey selects the EntryPoint nonce sequence (nil = key 0).
+	// Operations that wait for approvers use their own key, so one pending
+	// operation does not invalidate another.
+	NonceKey *big.Int
 }
 
 // Prepared is an operation waiting for its owners' signatures. It is
@@ -131,10 +150,10 @@ func (b *Builder) Prepare(ctx context.Context, req Request) (*Prepared, error) {
 		if w.SaltNonce == nil || len(w.InitialOwners) == 0 {
 			return nil, fmt.Errorf("aa: wallet %s is not deployed and has no deployment parameters", w.Address.Hex())
 		}
-		if got := b.Config.SafeAddress(w.InitialOwners, w.InitialThreshold, w.SaltNonce); got != w.Address {
+		if got := b.Config.SafeAddress(w.InitialOwners, w.InitialThreshold, w.SaltNonce, w.InitialModules...); got != w.Address {
 			return nil, fmt.Errorf("aa: deployment parameters give %s, not wallet %s", got.Hex(), w.Address.Hex())
 		}
-		initCode = b.Config.InitCode(w.InitialOwners, w.InitialThreshold, w.SaltNonce)
+		initCode = b.Config.InitCode(w.InitialOwners, w.InitialThreshold, w.SaltNonce, w.InitialModules...)
 	}
 
 	calls := req.Calls
@@ -160,7 +179,7 @@ func (b *Builder) Prepare(ctx context.Context, req Request) (*Prepared, error) {
 	if err != nil {
 		return nil, err
 	}
-	nonce, err := b.Config.EntryPointNonce(ctx, b.Chain, w.Address)
+	nonce, err := b.Config.EntryPointNonce(ctx, b.Chain, w.Address, req.NonceKey)
 	if err != nil {
 		return nil, err
 	}
