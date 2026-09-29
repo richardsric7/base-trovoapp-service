@@ -11,7 +11,7 @@ an admin surface that manages its data (`tm-api` / `tm-web`), or a supporting
 library it or its clients depend on (`wallet-core`). `payment-history-engine` is
 a separate, narrower service with its own database.
 
-## The seven projects
+## The eight projects
 
 | Project | What it is | Talks to | Docs |
 |---|---|---|---|
@@ -22,6 +22,7 @@ a separate, narrower service with its own database.
 | `app-mobile` | Flutter (Dart). The end-user mobile wallet (iOS + Android). | Calls `app-backend`'s REST API. Uses `wallet-core` as a native library via Dart FFI. | [app-mobile/README.md](app-mobile/README.md) |
 | `tm-web` | Next.js + TypeScript. The internal admin dashboard staff use to manage the platform. | Calls `tm-api`'s REST API only — never talks to `app-backend` directly. | [tm-web/README.md](tm-web/README.md) |
 | `wallet-core` | Rust crate. Shared cryptographic/wallet primitives (key derivation, signing) compiled two ways: to WebAssembly for web frontends, and to a native library (cdylib/staticlib) that `app-mobile` links via Dart FFI. | Consumed by `app-web`/`tm-web` (as wasm) and `app-mobile` (as a native lib) — verify actual current usage in its own docs, since a library can exist without every consumer having wired it up yet. | [wallet-core/README.md](wallet-core/README.md) |
+| `paymaster` | Two parts: `contracts/` — `TrovoTokenPaymaster`, an ERC-4337 (EntryPoint v0.7) paymaster that lets wallets pay gas in curated stablecoins; `quote-service/` — Go service that discovers exchange rates from pluggable sources (Chainlink, DEX pool TWAP for cNGN, JSON APIs), adds Trovo's spread and signs per-operation quotes. Configured from Vault. | `app-backend` calls the quote service when building a stablecoin-paid UserOperation; the quote service reads Base (paymaster, EntryPoint deposit, feeds, pools) and external rate APIs; the bundler submits operations to the EntryPoint, which calls the paymaster. | [paymaster/README.md](paymaster/README.md) |
 
 ## How a request actually flows
 

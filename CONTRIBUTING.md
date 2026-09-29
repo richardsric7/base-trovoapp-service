@@ -7,7 +7,7 @@ other AI assistant) working in this repo identically — there is no separate,
 looser bar for automated changes.
 
 Read [ARCHITECTURE.md](ARCHITECTURE.md) first if you haven't already — it
-explains how the seven projects in this monorepo relate to each other and the
+explains how the eight projects in this monorepo relate to each other and the
 one design decision (direct shared-DB write vs. calling app-backend's API)
 that most new admin features need to make correctly.
 
