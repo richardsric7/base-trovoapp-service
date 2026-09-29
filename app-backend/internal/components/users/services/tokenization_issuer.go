@@ -42,6 +42,14 @@ const (
 	defaultSafeFallbackHandlerAddress = "0xfd0732Dc9E303f09fCEf3a7388Ad10A83459Ec99" // CompatibilityFallbackHandler
 )
 
+// issuingProfileKeyConfigured reports whether TOKENIZATION_ISSUING_PROFILE_WALLET
+// holds a valid private key: the issuing profile's primary signer key, which
+// signs the minting approvers' shared-access setup on each issuing Safe.
+func issuingProfileKeyConfigured() bool {
+	_, err := evmkeypair.ParseFull(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
+	return err == nil
+}
+
 func envOrDefault(key, def string) string {
 	if v := strings.TrimSpace(os.Getenv(key)); v != "" {
 		return v

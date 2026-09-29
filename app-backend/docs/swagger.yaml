@@ -1058,6 +1058,11 @@ definitions:
       type:
         type: string
     type: object
+  users.TokenizedAssetContractInput:
+    properties:
+      contractAddress:
+        type: string
+    type: object
   users.TokenizedAssetEarlyExitInput:
     properties:
       accountName:
@@ -6501,6 +6506,47 @@ paths:
             additionalProperties: true
             type: object
       summary: DELETE /v1/trovo-manager/tokenization/:tokenizationID
+      tags:
+      - users
+  /v1/trovo-manager/tokenization/contract/{tid}:
+    put:
+      consumes:
+      - application/json
+      description: Registers a tokenized asset's deployed B20 token contract. The
+        contract must already be deployed with the asset's issuing Safe as owner or
+        MINTER_ROLE holder, have the asset code as its symbol and zero supply; this
+        is verified on-chain. Only allowed before minting.
+      parameters:
+      - description: Tokenization ID
+        in: path
+        name: tid
+        required: true
+        type: string
+      - description: Token contract payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/users.TokenizedAssetContractInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: PUT /v1/trovo-manager/tokenization/contract/:tid
       tags:
       - users
   /v1/trovo-manager/tokenization/detail/{tid}:

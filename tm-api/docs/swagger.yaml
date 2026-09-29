@@ -4677,13 +4677,21 @@ paths:
         in: query
         name: memo
         type: string
-      - description: Filter by asset issuer
+      - description: Filter by destination asset issuer
         in: query
-        name: contractAddress
+        name: destinationContractAddress
         type: string
-      - description: Filter by asset code
+      - description: Filter by destination asset code
         in: query
-        name: assetCode
+        name: destinationAssetCode
+        type: string
+      - description: Filter by source asset issuer
+        in: query
+        name: sourceContractAddress
+        type: string
+      - description: Filter by source asset code
+        in: query
+        name: sourceAssetCode
         type: string
       - description: Search across multiple fields (e.g., from, to, transaction ID)
         in: query
@@ -8366,6 +8374,59 @@ paths:
       summary: Update tokenization request (Trovo Manager)
       tags:
       - Tokenization
+  /tokenization/contract/{tokenizedAssetID}:
+    put:
+      consumes:
+      - application/json
+      description: 'Records the deployed B20 token contract of a tokenized asset that
+        has not been minted yet. app-backend verifies on-chain that the contract''s
+        symbol is the asset code, its supply is zero, and the asset''s issuing Safe
+        (issuingWalletAddress) holds MINTER_ROLE or is the owner. The issuing Safe
+        is not the token: deploy the token with the issuing Safe as its owner/minter,
+        then register it here.'
+      operationId: RegisterTrovoManagerTokenizationContractWithRaw
+      parameters:
+      - default: Bearer <your-token>
+        description: JWT Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Tokenized Asset ID
+        in: path
+        name: tokenizedAssetID
+        required: true
+        type: string
+      - description: Token contract address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/usermetrics.RegisterTokenizedAssetContractRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/usermetrics.TokenizedAsset'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - JwtTokenAuth: []
+      summary: Register a tokenized asset's token contract (Trovo Manager)
+      tags:
+      - Tokenization
   /tokenization/detail/{tokenizedAssetID}:
     get:
       description: Get detailed information about a specific tokenization request
@@ -10245,6 +10306,11 @@ definitions:
       issuing_wallet_alias:
         type: string
       market_making_wallet:
+        type: string
+      token_contract_address:
+        description: |-
+          TokenContractAddress is the asset's B20 token contract (its on-chain
+          identity); IssuingWalletAddress is the Safe that owns and mints it.
         type: string
       wallet_to_hold_assets_not_for_sale:
         type: string
@@ -12224,6 +12290,11 @@ definitions:
         type: boolean
       pushNotificationPermission:
         type: boolean
+      rateLimitPerMinute:
+        description: |-
+          RateLimitPerMinute: 0/omitted keeps the route's default limit in
+          app-backend; a positive value overrides it for this service link.
+        type: integer
       shortName:
         type: string
       tokenInfoPermission:
@@ -13534,6 +13605,12 @@ definitions:
       updated_at:
         type: string
     type: object
+  usermetrics.RegisterTokenizedAssetContractRequest:
+    properties:
+      contractAddress:
+        example: 0x1234567890abcdef1234567890abcdef12345678
+        type: string
+    type: object
   usermetrics.SaveServiceLinkServiceFeeRequest:
     properties:
       payment_fee:
@@ -13887,6 +13964,10 @@ definitions:
         type: integer
       complianceNoViolation:
         type: integer
+      contractAddress:
+        description: the asset's B20 token contract; IssuingWalletAddress is the Safe
+          that mints it
+        type: string
       contractualProtectionPerfBond:
         type: integer
       contractualProtectionRevGuarantees:

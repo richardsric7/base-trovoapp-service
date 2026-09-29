@@ -943,7 +943,7 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		err = &tErrors.ErrorTemporaryServerError{}
 
 	}
-	if (ato.IssuingWalletAddress == nil || NotIssuedByIssuer) && len(input.AssetCode) > 0 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 42 {
+	if (ato.IssuingWalletAddress == nil || NotIssuedByIssuer) && len(input.AssetCode) > 0 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && issuingProfileKeyConfigured() {
 
 		//create issuing wallet
 		ato, issuingWallet, err = AssignIssuingWallet(tokenizationID, gc)
@@ -1387,7 +1387,7 @@ func AcknowledgeTokenizationFeePayment(tokenizationID string, initiator *userMod
 
 	}
 	assetCodeExists := ato.AssetCode != nil
-	if (ato.IssuingWalletAddress == nil || NotIssuedByIssuer) && assetCodeExists && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 42 {
+	if (ato.IssuingWalletAddress == nil || NotIssuedByIssuer) && assetCodeExists && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && issuingProfileKeyConfigured() {
 
 		//create issuing wallet
 		ato, _, err = AssignIssuingWallet(tokenizationID, gc)
@@ -4020,7 +4020,7 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 		return
 	}
 	assetCodeExists := ato.AssetCode != nil
-	if (ato.IssuingWalletAddress == nil || NotIssuedByIssuer) && assetCodeExists && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 42 {
+	if (ato.IssuingWalletAddress == nil || NotIssuedByIssuer) && assetCodeExists && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && issuingProfileKeyConfigured() {
 
 		//create issuing wallet
 		ato, _, err = AssignIssuingWallet(tokenizationID, gc)

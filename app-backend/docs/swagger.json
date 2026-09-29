@@ -6078,6 +6078,62 @@
                 }
             }
         },
+        "/v1/trovo-manager/tokenization/contract/{tid}": {
+            "put": {
+                "description": "Registers a tokenized asset's deployed B20 token contract. The contract must already be deployed with the asset's issuing Safe as owner or MINTER_ROLE holder, have the asset code as its symbol and zero supply; this is verified on-chain. Only allowed before minting.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "PUT /v1/trovo-manager/tokenization/contract/:tid",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tokenization ID",
+                        "name": "tid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Token contract payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.TokenizedAssetContractInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/trovo-manager/tokenization/detail/{tid}": {
             "get": {
                 "produces": [
@@ -9666,6 +9722,14 @@
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "users.TokenizedAssetContractInput": {
+            "type": "object",
+            "properties": {
+                "contractAddress": {
                     "type": "string"
                 }
             }

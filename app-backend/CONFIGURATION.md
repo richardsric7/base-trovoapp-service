@@ -391,9 +391,21 @@ per your network's economics (testnet values can be tiny).
 - How to get a real value: `0` or `1` per your deployment.
 
 **`TOKENIZATION_ISSUING_PROFILE`** / **`TOKENIZATION_ISSUING_PROFILE_WALLET`**
-- Example: `default` / `0x1111111111111111111111111111111111111`
-- What it does: Identifies the issuing profile/wallet used when minting tokenized assets. `TOKENIZATION_ISSUING_PROFILE_WALLET` must be a 42-character `0x...` address.
-- How to get a real value: the address of the wallet designated to issue tokenized assets on your platform.
+- Example: `atprofile` / `0x4c0883a69102937d6231471b5dbb6204fe512961708279f2e4f8d0a9e5c1a0b1`
+- What it does: The platform user that owns every tokenized asset's issuing Safe (as a wallet record, so minting approvers attach to it), and that user's primary signer **private key** (hex, not an address) - used to sign the minting approvers' shared-access setup on each issuing Safe. Startup fails if tokenization is enabled and this is not a valid key.
+- How to get a real value: create the issuing profile user, and take its primary signer key from your secrets manager.
+
+**`TOKENIZATION_ISSUING_SAFE_SIGNERS`** / **`TOKENIZATION_ISSUING_SAFE_THRESHOLD`**
+- Example: `0xkey1;0xkey2;0xkey3` / `3`
+- What it does: Each tokenized asset gets its own **issuing Safe** - a Safe multisig that owns the asset's token contract, is the only account allowed to mint it, and holds its unsold supply. It is deployed automatically (deterministically per tokenization, so retries reuse it) with the addresses of these keys as owners and `TOKENIZATION_ISSUING_SAFE_THRESHOLD` (default 3, or every owner when fewer are configured) as its threshold. After the minting approvers approve in the app, the backend signs the Safe mint with these keys. The **first** key also sends (and pays gas for) Safe deployments and mint transactions, so it must hold native balance.
+- How to get a real value: `;`-separated hex private keys of the platform's issuing signers, from your secrets manager. For testnet, any funded test keys.
+
+**`SAFE_PROXY_FACTORY_ADDRESS`** / **`SAFE_SINGLETON_ADDRESS`** / **`SAFE_FALLBACK_HANDLER_ADDRESS`** / **`SAFE_MULTISEND_CALL_ONLY_ADDRESS`**
+- Example: leave empty for the defaults
+- What it does: The Safe contracts issuing Safes are created from and batch mints through. Defaults are Safe's canonical deployments on Base and Base Sepolia: SafeProxyFactory v1.4.1 `0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67`, SafeL2 v1.4.1 `0x29fcB43b46531BcA003ddC8FCB67FFE91900C762`, CompatibilityFallbackHandler v1.4.1 `0xfd0732Dc9E303f09fCEf3a7388Ad10A83459Ec99`, MultiSendCallOnly v1.3.0 `0x40A2aCCbd92BCA938b02010E17A5b8929b49130D`. Each is checked for deployed code before use, so a wrong address fails clearly instead of deploying a broken Safe.
+- How to get a real value: leave empty unless you deploy on a network where Safe's contracts live elsewhere (see Safe's `safe-deployments` repository).
+
+A tokenized asset's **token contract** is not configuration: it is registered per asset through `PUT /v1/trovo-manager/tokenization/contract/:tid` (see [INTEGRATION.md](INTEGRATION.md#tokenized-assets-token-contract-vs-issuing-safe)).
 
 ---
 

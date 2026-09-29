@@ -294,6 +294,55 @@ built and tested — you just need to open the connection and handle
 
 ---
 
+## Tokenized assets: token contract vs issuing Safe
+
+On Base a tokenized asset has two different addresses, and nothing in the
+API treats one as the other:
+
+| Field | What it is | Used for |
+|---|---|---|
+| `contractAddress` | The asset's deployed **B20 token contract** - the asset itself | Every balance, transfer, purchase, wallet authorization, curated-asset listing, subscription/interest record, payout and deep link (`?action=tokenizedAsset&assetCode=...&contractAddress=...`) |
+| `issuingWalletAddress` | The asset's **issuing Safe**: a Safe multisig that owns the token contract, is its only minter, and holds unsold supply (treasury). `marketMakingWallet` / `walletToHoldAssetsNotForSale` are the same Safe | Minting, and as the issuer that approves wallet authorizations |
+
+Lifecycle, from the admin panel's point of view:
+
+1. **Issuing Safe** - assigned automatically when the asset's details are
+   submitted/vetted: a Safe is deployed through the canonical SafeProxyFactory
+   with `TOKENIZATION_ISSUING_SAFE_SIGNERS` as owners (see
+   [CONFIGURATION.md](CONFIGURATION.md#tokenization)) and recorded as a
+   wallet of the `TOKENIZATION_ISSUING_PROFILE` user.
+2. **Token contract** - operations deploy the asset's B20 token with the
+   issuing Safe as owner (Ownable) or `MINTER_ROLE` holder (AccessControl),
+   the asset code as `symbol()` and zero supply, exposing
+   `mint(address,uint256)`. Then register it:
+
+   ```
+   PUT /v1/trovo-manager/tokenization/contract/:tid
+   {"contractAddress": "0x..."}
+   ```
+
+   Allowed for minting initiators/approvers until the asset is minted. The
+   backend verifies on-chain that the contract exists, its symbol equals the
+   asset code, `decimals()` works, `totalSupply()` is 0, and the issuing Safe
+   can mint - otherwise it answers `400 error-invalid-token-contract` with
+   the reason. (tm-api proxies this as `PUT /tokenization/contract/:id`;
+   tm-web's tokenization Wallets panel has the form.)
+3. **Mint** - `POST /v1/trovo-manager/tokenization/mint/:tid` creates a
+   `TOKENIZE ASSET` approval on the issuing Safe's wallet. Its
+   `transaction` is the base64 of a plain-text statement of the exact Safe
+   call (`Safe 0x.. on chain N executes 0xToken.mint(0xSafe, amount) and
+   0xToken.mint(0xFeeWallet, fee)`), which approvers sign in the app. On the
+   final approval the backend re-derives that statement - it must match
+   what was signed - checks the token still has zero supply, and has the
+   Safe execute both mints atomically. A retried approval can never mint
+   twice. Rejecting the approval keeps the Safe and contract and resets
+   the approvers for a new request.
+
+Purchases, early exits and payouts refuse assets whose token contract is
+not registered (`error-token-contract-not-registered`).
+
+---
+
 ## Swagger UI: the per-endpoint reference
 
 Once the server is running, every documented endpoint — request

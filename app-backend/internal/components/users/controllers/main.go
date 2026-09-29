@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"time"
+	"trovo-wallet-api/internal/evmkeypair"
 
 	userModels "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/middleware"
@@ -153,8 +154,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	if os.Getenv("ENABLE_ASSET_TOKENIZATION") == "1" {
 		log.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ASSET TOKENIZATION is enabled!")
-		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) != 42 {
-			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV TOKENIZATION_ISSUING_PROFILE_WALLET is missing!")
+		// the issuing profile's primary signer private key (hex) - not an address
+		if _, err := evmkeypair.ParseFull(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")); err != nil {
+			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV TOKENIZATION_ISSUING_PROFILE_WALLET must be the issuing profile's hex private key!")
 
 		}
 		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) == 0 {
