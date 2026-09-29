@@ -77,22 +77,15 @@ of struct-based `Save()`/`Updates()` to avoid GORM silently dropping a field
 being set back to a zero value, and a dedicated single-field toggle endpoint
 for anything with an active/inactive-style flag).
 
-## A known gap: the CI workflows don't match this repo's layout
+## CI/CD
 
-`.github/workflows/deploy.yml` and `.github/workflows/pr-checks.yml` reference
-directories named `backend/`, `web/`, `mobile/`, `trovotech-io/`, and
-`trovo-app-website/`. **None of those directories exist in this repo** — the
-actual project directories are `app-backend/`, `app-web/`, `app-mobile/`,
-`tm-api/`, `tm-web/`, `payment-history-engine/`, `wallet-core/`. These
-workflow files appear to have been inherited from a differently-laid-out
-sibling repository and, as written, their path filters will never match a
-change made in this repo, so the jobs they gate (build/push images, trigger
-Portainer redeploys, PR build/lint/test checks) will not actually run here.
-Each project's own `DEPLOYMENT.md` describes what can be verified from that
-project's own `Dockerfile`/`Makefile`/CI config instead of trusting these
-workflow files. If/when this repo's actual CI is wired up (either by fixing
-these paths or replacing them), update this note and each project's
-`DEPLOYMENT.md` accordingly.
+There is **no CI/CD pipeline** in this repository. The GitHub Actions
+workflows and iOS fastlane setup that came in with the copied projects
+targeted other repositories' layouts and infrastructure, so they were
+removed. Each project's `DEPLOYMENT.md` describes how to build, test and
+run it by hand (Dockerfiles, `Makefile` targets such as `make ci`). When a
+pipeline is set up for this repo, document it here and in each project's
+`DEPLOYMENT.md`.
 
 ## Running more than one instance of a service
 

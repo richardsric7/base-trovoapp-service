@@ -2,8 +2,8 @@
 
 This is a from-scratch guide to building, running and deploying `tm-api`,
 written for someone who has never touched this codebase before. Everything
-below is verified against this repo's own `Dockerfile`, `Makefile` and
-`.github/workflows/` — nothing is assumed from memory. See
+below is verified against this repo's own `Dockerfile` and `Makefile` —
+nothing is assumed from memory. See
 [CONFIGURATION.md](./CONFIGURATION.md) for what every environment variable
 does, and [README.md](./README.md) for the project overview and the
 two-database architecture.
@@ -17,7 +17,7 @@ two-database architecture.
 | **Access to a Postgres database** for `ADMIN_CONNECTION_STRING` | tm-api's own schema (`AdminDB`) — see README's two-database section | Any reachable Postgres 13+ instance. For local dev, the easiest path is `docker run -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:16` |
 | **Access to app-backend's shared Postgres database**, if you need working wallet/P2P features locally | `TrovoWalletDB`/`P2P` — as of this snapshot this is *the same connection string* as `ADMIN_CONNECTION_STRING` (see README), so you need a database that already has app-backend's schema (`users`, curated assets, etc) applied, not just an empty one. Ask whoever owns `app-backend` locally for a dump/seed, or run `app-backend`'s own migrations against the same database first. | — |
 | **`swag` CLI** (only if you're changing Swagger annotations) | Regenerates `docs/` | `go install github.com/swaggo/swag/cmd/swag@latest` |
-| **`golangci-lint`** (only if you're running `make lint`/`make ci` locally) | Matches CI's lint step | https://golangci-lint.run/usage/install/ |
+| **`golangci-lint`** (only if you're running `make lint`/`make ci` locally) | Lints the code with this project's `.golangci.yml` | https://golangci-lint.run/usage/install/ |
 
 ## 2. Building
 
@@ -150,51 +150,16 @@ Notes:
 
 ## 5. CI/CD
 
-There are two separate sets of GitHub Actions workflows that touch this
-repository, and **they are not equivalent** — read this section before
-trusting either one for tm-api specifically.
-
-### 5a. tm-api's own workflows (`tm-api/.github/workflows/`)
-
-- **`dev-deploy.yml`** ("Deploy to Dev (Auto)") — on every push to `develop`
-  (or manual dispatch): installs Go 1.21 and `swag`, runs `make swagger-clean`,
-  verifies `swagger.yaml`'s structure, builds and pushes a Docker image to
-  DigitalOcean Container Registry
-  (`registry.digitalocean.com/service-images/trovo-wallet-api:dsb-dev`), then
-  triggers a Portainer webhook to redeploy it. This is the real, currently
-  wired-up deployment path for tm-api's dev environment.
-- **`deploy-dev.yml`** ("Deploy to Dev") — a similar but more manual/older
-  workflow on the same `develop` branch trigger: builds the Docker image
-  locally in the runner but leaves the actual push/deploy step as a
-  placeholder comment. Likely superseded by `dev-deploy.yml` above; treat it
-  as legacy unless someone tells you otherwise.
-- **`golangci.yml`** — lint checks.
-
-Both deploy workflows pin **Go 1.21** in `actions/setup-go`, which is older
-than the **Go 1.23** this module (`go.mod`) actually declares. Go's toolchain
-directive (`toolchain go1.24.3`) will auto-download a newer toolchain as
-needed, so this has not broken the build, but it's worth knowing about if CI
-ever behaves differently from a local build.
-
-### 5b. The monorepo-root workflow (`.github/workflows/deploy.yml`)
-
-This workflow builds and pushes images for "backend" and "web" using `paths`
-filters against directories named **`backend/`**, **`web/`**,
-**`trovotech-io/`** and **`trovo-app-website/`**. **None of these directories
-exist in this monorepo** — the actual top-level layout is `tm-api/`,
-`tm-web/`, `app-backend/`, `app-mobile/`, `app-web/`,
-`payment-history-engine/`, `wallet-core/`. This workflow's path filters will
-never match a change under `tm-api/`, so **it will not build or deploy
-tm-api**, regardless of what its job names ("backend") might suggest.
-
-**Treat `deploy.yml` as stale/inherited — likely copied in from an older
-monorepo layout — and not something to trust or extend for tm-api.** If
-you're asked to wire up a new deployment target for tm-api, use `dev-deploy.yml`
-as the template (it already targets this repo correctly), not `deploy.yml`.
+There is **no CI/CD pipeline** in this repository (the inherited GitHub
+Actions workflows were removed - see the root `ARCHITECTURE.md`). Before
+merging, run `make ci` (tidy check, build, vet, lint, test). To deploy,
+regenerate the Swagger docs (`make swagger`), build the image from this
+directory (`docker build -t tm-api .`), push it to your registry and
+redeploy it.
 
 ## 6. Swagger docs in deployment
 
-Every deploy path (Docker build, `dev-deploy.yml`) regenerates `docs/`
+The Docker build regenerates `docs/`
 (`docs.go`, `swagger.json`, `swagger.yaml`) from source at build time via
 `swag init` + the YAML fix-up script — it does not simply trust whatever is
 committed. If you change a route or a `@Summary`/`@Router`/... annotation,

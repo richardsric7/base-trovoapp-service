@@ -117,10 +117,9 @@ struct.
 
 This has one important consequence: **it is slow**, especially over a
 network connection to the database rather than a local/same-datacenter one.
-A comment in this monorepo's top-level `.github/workflows/deploy.yml`
-(written for a differently-laid-out sibling backend — see the caveat below)
-notes that running this AutoMigrate step from a GitHub Actions runner (i.e.
-over the public internet to the database) took **over 20 minutes**, because
+Running this AutoMigrate step from a machine far from the database (e.g.
+a hosted build runner, over the public internet) has been observed to take
+**over 20 minutes**, because
 each of the ~107 models' AutoMigrate calls does multiple catalog round-trips
 against Postgres — roughly **~800 round-trips in total** for the full set.
 The practical implications for you:
@@ -178,49 +177,23 @@ tick and the others skip it, rather than every instance doing the same
 work redundantly. Again, nothing to configure — see
 `internal/sharedconfig/singleton_lock.go`.
 
-## 5. How this service is actually deployed today
+## 5. How this service is deployed
 
-**What we can verify from this repository:**
+There is **no CI/CD pipeline** in this repository (the inherited GitHub
+Actions workflows were removed - see the root `ARCHITECTURE.md`). Build
+and deploy by hand:
 
-- `app-backend/.github/workflows/dev-deploy.yml` is a real, working
-  pipeline for this project. On every push to the `dev` branch (or a manual
-  trigger), it:
-  1. Checks out the code and sets up Go 1.21.
-  2. Installs the `swag` CLI and regenerates the Swagger docs
-     (`swag init --parseDependency=false`) — see the header of
-     `docs/docs.go` for the exact flags this project uses.
-  3. Builds and pushes a Docker image to DigitalOcean Container Registry
-     (`registry.digitalocean.com/service-images/trovo-wallet-api:wip`),
-     using this directory (`app-backend/`) as the build context and this
-     `Dockerfile`.
-  4. Triggers a **Portainer** webhook (`PORTAINER_WEBHOOK_URL` secret),
-     which tells Portainer to re-pull and redeploy the new image.
-- The `Dockerfile` and `Makefile` in this directory are real and describe
-  a standard build → small-image → run flow (see sections 2–3 above).
+1. Regenerate the Swagger docs if handlers changed (`swag init` - see the
+   header of `docs/docs.go` for the flags this project uses).
+2. Build the image from this directory: `docker build -t trovo-wallet-api .`
+3. Push it to your registry and redeploy it wherever it runs.
 
-**A caveat about the monorepo-level workflow:** there is also a
-`.github/workflows/deploy.yml` at the **root** of the monorepo (i.e.
-*outside* this project, one level up from `app-backend/`). It describes a
-more elaborate pipeline — per-component change detection, a gated DB
-migration job using `MIGRATE_ONLY`, and Portainer webhooks per component —
-but its `paths:` filters and build context reference a `backend/`
-directory (e.g. `context: backend`, `dockerfile: backend/Dockerfile`), which
-**does not match this repository's actual layout** (`app-backend/`, not
-`backend/`). This strongly suggests that workflow was written for, or
-copied from, a sibling repository with a different directory layout, and it
-is likely stale or simply inactive for this project as currently laid out.
-**Do not treat it as an accurate description of how `app-backend` is
-deployed** — it's included here only because it documents design intent
-(the `MIGRATE_ONLY` pattern, the `DB_AUTOMIGRATE` slowness note) that *is*
-directly relevant to this codebase, as referenced in section 4 above. If
-you need to know with certainty how staging/production deploys are wired
-today, confirm with whoever owns the DigitalOcean/Portainer setup — this
-document only describes what's verifiable from the code.
+Run schema migrations as a separate step when deploying to a remote
+database (see section 4: `MIGRATE_ONLY` / `DB_AUTOMIGRATE`).
 
 ## 6. Makefile targets
 
-The `Makefile` in this directory mirrors what CI runs, so you can run the
-same checks locally before pushing:
+The `Makefile` in this directory has the checks to run before merging:
 
 ```bash
 make build   # go build ./...

@@ -36,11 +36,9 @@ no HTTP API of its own to document that way.
    the API has grown — retrofitting is exactly the situation this
    documentation initiative had to dig out of for `app-backend`, `tm-api`,
    and `payment-history-engine`.
-4. Add it to `.github/workflows/pr-checks.yml`'s path-filtered build/lint/test
-   matrix if CI wiring for this repo's actual directory layout gets fixed
-   (see the note in ARCHITECTURE.md — as of this writing those workflows
-   reference a different directory layout and don't run against this repo's
-   projects at all).
+4. There is no CI pipeline yet (see ARCHITECTURE.md); document the
+   project's build/lint/test commands in its `DEPLOYMENT.md` so they can be
+   wired into one later.
 
 ## When you modify an existing project
 
