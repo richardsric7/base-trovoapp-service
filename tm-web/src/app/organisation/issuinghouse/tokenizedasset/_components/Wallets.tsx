@@ -9,27 +9,21 @@ import { IStakeholderAssetWallets } from "@/redux/api/sharedstakeholders";
 const dummyWallets = [
   {
     id: 1,
-    walletType: "Issuing Wallet",
-    walletOwner: "atprofile_iky001issuer",
+    // the issuing Safe owns and mints the token and holds unsold supply
+    walletType: "Issuing Safe (minter & treasury)",
+    walletOwner: "Not assigned",
     balanceLabel: "Total Balance",
     balanceNGN: "0 NGN",
     balanceUSD: "0 USD",
   },
   {
     id: 2,
-    walletType: "Distribution Wallet",
-    walletOwner: "atprofile_iky001issuer-distribution",
-    balanceLabel: "Total Balance",
-    balanceNGN: "0 NGN",
-    balanceUSD: "0 USD",
-  },
-  {
-    id: 3,
-    walletType: "Holding Wallet",
-    walletOwner: "atprofile_iky001issuer-holding",
-    balanceLabel: "Total Balance",
-    balanceNGN: "0 NGN",
-    balanceUSD: "0 USD",
+    // the token contract is the asset itself, not a wallet
+    walletType: "Token Contract",
+    walletOwner: "Not registered",
+    balanceLabel: "",
+    balanceNGN: "",
+    balanceUSD: "",
   },
 ];
 
@@ -42,13 +36,12 @@ const Wallets: React.FC<WalletsProps> = ({ wallets }) => {
     ...wallet,
     walletOwner:
       wallet.id === 1
-        ? wallets?.issuing_wallet_alias ||
-          wallets?.issuing_wallet_address ||
+        ? wallets?.issuing_wallet_address ||
+          wallets?.issuing_wallet_alias ||
           wallet.walletOwner
-        : wallet.id === 2
-          ? wallets?.market_making_wallet || wallet.walletOwner
-          : wallets?.wallet_to_hold_assets_not_for_sale || wallet.walletOwner,
+        : wallets?.token_contract_address || wallet.walletOwner,
   }));
+
 
   const shortenWallet = (value: string) =>
     value.length > 24 ? `${value.slice(0, 10)}...${value.slice(-8)}` : value;

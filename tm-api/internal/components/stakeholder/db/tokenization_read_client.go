@@ -117,6 +117,7 @@ type TokenizedAsset struct {
 	InitiatorUsername                        string    `gorm:"column:initiator_username" json:"initiatorUsername"`
 	IssuingWalletAddress                     string    `gorm:"column:issuing_wallet_address" json:"issuingWalletAddress"`
 	IssuingWalletAlias                       string    `gorm:"column:issuing_wallet_alias" json:"issuingWalletAlias"`
+	ContractAddress                          string    `gorm:"column:contract_address" json:"contractAddress"`
 	MarketMakingWallet                       string    `gorm:"column:market_making_wallet" json:"marketMakingWallet"`
 	InitialOwnerPreferredWalletAddress       string    `gorm:"column:initial_owner_preferred_wallet_address" json:"initialOwnerPreferredWalletAddress"`
 	WalletToHoldAssetsNotForSale             string    `gorm:"column:wallet_to_hold_assets_not_for_sale" json:"walletToHoldAssetsNotForSale"`

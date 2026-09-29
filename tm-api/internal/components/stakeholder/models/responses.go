@@ -103,8 +103,11 @@ type AssignedStakeholderResponse struct {
 }
 
 type AssetWalletDetails struct {
-	IssuingWalletAddress               string `json:"issuing_wallet_address,omitempty"`
-	IssuingWalletAlias                 string `json:"issuing_wallet_alias,omitempty"`
+	IssuingWalletAddress string `json:"issuing_wallet_address,omitempty"`
+	IssuingWalletAlias   string `json:"issuing_wallet_alias,omitempty"`
+	// TokenContractAddress is the asset's B20 token contract (its on-chain
+	// identity); IssuingWalletAddress is the Safe that owns and mints it.
+	TokenContractAddress               string `json:"token_contract_address,omitempty"`
 	MarketMakingWallet                 string `json:"market_making_wallet,omitempty"`
 	InitialOwnerPreferredWalletAddress string `json:"initial_owner_preferred_wallet_address,omitempty"`
 	WalletToHoldAssetsNotForSale       string `json:"wallet_to_hold_assets_not_for_sale,omitempty"`

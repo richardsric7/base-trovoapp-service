@@ -1,48 +1,39 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import logo from "@/assets/images/g647.svg";
 import Image from "next/image";
-import { TokenizationRecord } from "@/redux/api/assettokenization";
+import {
+  TokenizationRecord,
+  useRegisterTokenContractMutation,
+} from "@/redux/api/assettokenization";
 import { useGetWalletBalancesQuery } from "@/redux/api/users";
+import { showErrorToast, showSuccessToast } from "@/components";
 
 interface WalletProps {
   asset?: TokenizationRecord;
 }
 
+const isAddress = (value: string) => /^0x[0-9a-fA-F]{40}$/.test(value.trim());
+
+// A tokenized asset on Base has two distinct addresses:
+//  - the issuing Safe (issuingWalletAddress): a multisig that owns and mints
+//    the token and holds its unsold supply (treasury);
+//  - the token contract (contractAddress): the B20 token itself.
 const Wallets: React.FC<WalletProps> = ({ asset }) => {
-  // console.log("Asset prop:", asset);
+  const issuingSafe = asset?.issuingWalletAddress;
+  const tokenContract = asset?.contractAddress;
+  // the contract can be (re)registered until the asset is minted
+  const canRegister =
+    !!asset?.id && !!issuingSafe && (asset?.assetTokenizationStatus ?? 0) <= 3;
 
-  const issuingWalletAddress = asset?.issuingWalletAddress;
-  const marketMakingWallet = asset?.marketMakingWallet;
-  const holdingWallet = asset?.walletToHoldAssetsNotForSale;
-  // console.log("Using wallet key:", issuingWalletAddress);
+  const [contractInput, setContractInput] = useState("");
+  const [registerTokenContract, { isLoading: isRegistering }] =
+    useRegisterTokenContractMutation();
 
-  // Fetch wallet data
-  const { data: issuingWalletData } = useGetWalletBalancesQuery(
-    issuingWalletAddress!,
-    {
-      skip: !issuingWalletAddress,
-    }
-  );
-  const { data: marketMakingWalletData } = useGetWalletBalancesQuery(
-    marketMakingWallet!,
-    {
-      skip: !marketMakingWallet,
-    }
-  );
-  const { data: holdingWalletData } = useGetWalletBalancesQuery(
-    holdingWallet!,
-    {
-      skip: !holdingWallet,
-    }
-  );
-
-  useEffect(() => {
-    console.log("Issuing wallet data:", issuingWalletData?.claimed);
-    console.log("Market making wallet data:", marketMakingWalletData);
-    console.log("Holding wallet data:", holdingWalletData);
-  }, [issuingWalletData, marketMakingWalletData, holdingWalletData]);
+  const { data: issuingSafeData } = useGetWalletBalancesQuery(issuingSafe!, {
+    skip: !issuingSafe,
+  });
 
   // Helper function to extract the amount for a given asset code.
   // For NGN, assetCode is "" and for USD we look for "USDT"
@@ -50,69 +41,88 @@ const Wallets: React.FC<WalletProps> = ({ asset }) => {
     walletData?.data?.claimed?.find((item: any) => item.assetCode === assetCode)
       ?.amount || "0";
 
-  // Computing balances for each wallet
-  const issuingNGN = getBalance(issuingWalletData, "");
-  const issuingUSD = getBalance(issuingWalletData, "USDT");
-
-  const marketMakingNGN = getBalance(marketMakingWalletData, "");
-  const marketMakingUSD = getBalance(marketMakingWalletData, "USDT");
-
-  const holdingNGN = getBalance(holdingWalletData, "");
-  const holdingUSD = getBalance(holdingWalletData, "USDT");
-
-  const walletData = [
-    {
-      id: 1,
-      // walletType: "Minting Wallet",
-      walletType: "Issuing Wallet",
-      walletOwner: asset?.issuingWalletAlias,
-      balanceLabel: "Total Balance",
-      balanceNGN: issuingNGN + "NGN",
-      balanceUSD: issuingUSD + " USD",
-    },
-    {
-      id: 2,
-      // walletType: "Distribution Wallet",
-      walletType: "Distribution Wallet",
-      walletOwner: asset?.issuingWalletAlias
-        ? `${asset.issuingWalletAlias}-distribution`
-        : "",
-
-      balanceLabel: "Total Balance",
-      balanceNGN: marketMakingNGN + "NGN",
-      balanceUSD: marketMakingUSD + " USD",
-    },
-    {
-      id: 3,
-      walletType: "Holding Wallet",
-      walletOwner: asset?.issuingWalletAlias
-        ? `${asset.issuingWalletAlias}-holding`
-        : "",
-
-      balanceLabel: "Total Balance",
-      balanceNGN: holdingNGN + "NGN",
-      balanceUSD: holdingUSD + " USD",
-    },
-  ];
+  const onRegister = async () => {
+    if (!asset?.id) return;
+    if (!isAddress(contractInput)) {
+      showErrorToast("Enter the token contract's 0x-prefixed address.");
+      return;
+    }
+    try {
+      await registerTokenContract({
+        tokenizedAssetID: asset.id,
+        contractAddress: contractInput.trim(),
+      }).unwrap();
+      setContractInput("");
+      showSuccessToast("Token contract verified and registered.");
+    } catch (error: any) {
+      const message =
+        error?.data?.message ||
+        error?.data?.error ||
+        error?.message ||
+        "The token contract could not be registered.";
+      const match = String(message).match(/message:(.*?)(\]$|$)/);
+      showErrorToast(match?.[1]?.trim() || String(message));
+    }
+  };
 
   return (
     <Container>
       <Heading>Wallets</Heading>
       <WalletsContainer>
-        {walletData.map((wallet) => (
-          <WalletCard key={wallet.id}>
-            <WalletInfo>
-              <WalletType>{wallet.walletType}</WalletType>
-              <WalletOwner>{wallet.walletOwner}</WalletOwner>
-              <BalanceLabel>{wallet.balanceLabel}</BalanceLabel>
-              <Balance>{wallet.balanceNGN}</Balance>
-              <BalanceUsd>{wallet.balanceUSD}</BalanceUsd>
-            </WalletInfo>
-            <ImageWrapper>
-              <Image src={logo} alt="trovo-logo" />
-            </ImageWrapper>
-          </WalletCard>
-        ))}
+        <WalletCard>
+          <WalletInfo>
+            <WalletType>Issuing Safe (minter &amp; treasury)</WalletType>
+            <WalletOwner title={issuingSafe}>
+              {asset?.issuingWalletAlias || "Not assigned"}
+            </WalletOwner>
+            <Address>{issuingSafe || "—"}</Address>
+            <BalanceLabel>Total Balance</BalanceLabel>
+            <Balance>{getBalance(issuingSafeData, "")} NGN</Balance>
+            <BalanceUsd>{getBalance(issuingSafeData, "USDT")} USD</BalanceUsd>
+          </WalletInfo>
+          <ImageWrapper>
+            <Image src={logo} alt="trovo-logo" />
+          </ImageWrapper>
+        </WalletCard>
+
+        <WalletCard>
+          <WalletInfo>
+            <WalletType>Token Contract</WalletType>
+            <WalletOwner>
+              {tokenContract ? asset?.assetCode : "Not registered"}
+            </WalletOwner>
+            <Address>{tokenContract || "—"}</Address>
+            {canRegister && (
+              <>
+                <Hint>
+                  Deploy the {asset?.assetCode || "asset"} B20 token with the
+                  issuing Safe as its owner / MINTER_ROLE holder, symbol{" "}
+                  {asset?.assetCode || "= asset code"} and zero supply, then
+                  register it here. It is verified on-chain before minting can
+                  start.
+                </Hint>
+                <RegisterRow>
+                  <AddressInput
+                    placeholder="0x… token contract address"
+                    value={contractInput}
+                    onChange={(e) => setContractInput(e.target.value)}
+                  />
+                  <RegisterButton
+                    type="button"
+                    disabled={isRegistering || !contractInput}
+                    onClick={onRegister}
+                  >
+                    {isRegistering
+                      ? "Verifying…"
+                      : tokenContract
+                        ? "Replace"
+                        : "Register"}
+                  </RegisterButton>
+                </RegisterRow>
+              </>
+            )}
+          </WalletInfo>
+        </WalletCard>
       </WalletsContainer>
     </Container>
   );
@@ -206,6 +216,45 @@ const Balance = styled.p`
   text-align: left;
   color: #00225ab2;
   margin: 0px;
+`;
+const Address = styled.p`
+  font-size: 12px;
+  font-family: monospace;
+  color: #00225ab2;
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+`;
+const Hint = styled.p`
+  font-size: 12px;
+  line-height: 18px;
+  color: #00225ab2;
+  margin: 4px 0 8px;
+`;
+const RegisterRow = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+const AddressInput = styled.input`
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #007cdf;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 12px;
+`;
+const RegisterButton = styled.button`
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #007cdf;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 const BalanceUsd = styled.p`
   font-size: 14px;

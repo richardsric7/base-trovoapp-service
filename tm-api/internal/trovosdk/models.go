@@ -163,6 +163,7 @@ type TokenizedAssetJSON struct {
 	SecApprovalIdNumber                         string    `json:"secApprovalIdNumber"`
 	IssuingWalletAddress                        string    `gorm:"size:60" json:"issuingWalletAddress"`
 	IssuingWalletAlias                          string    `gorm:"size:60" json:"issuingWalletAlias"`
+	ContractAddress                             string    `gorm:"size:42" json:"contractAddress"` // the asset's B20 token contract; IssuingWalletAddress is the Safe that mints it
 	MarketMakingWallet                          string    `json:"marketMakingWallet"`
 	AssetDescription                            string    `json:"assetDescription"`
 	AssetCountryLocation                        string    `json:"assetCountryLocation"`

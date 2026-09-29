@@ -31,8 +31,11 @@ export interface TokenizationRecord {
   closedGroupInfo: ClosedGroupInfo;
   secApproval: number;
   secApprovalIdNumber: string;
+  // the issuing Safe: owns and mints the token, and holds unsold supply
   issuingWalletAddress: string;
   issuingWalletAlias: string;
+  // the asset's B20 token contract (its on-chain identity); set by registerTokenContract
+  contractAddress?: string;
   marketMakingWallet: string;
   assetDescription: string;
   assetCountryLocation: string;
@@ -468,6 +471,7 @@ export interface TokenizationDetailResponse {
   investorAccreditationRequired: number;
   issuingWalletAlias: string;
   issuingWalletAddress: string;
+  contractAddress?: string;
   lastUpdatedBy: string;
   legalAdvisor: string;
   marketMakingWallet: string;
@@ -659,6 +663,7 @@ export interface UpdateTokenizationPayload {
   initiatorUsername?: string;
   issuingWalletAlias?: string;
   issuingWalletAddress?: string;
+  contractAddress?: string;
   lastUpdatedBy?: string;
   maxNumberOfTokenAvailableForSale?: number;
   tokenizationFee?: TokenizationFee;
