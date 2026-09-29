@@ -227,6 +227,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		router.PUT("/v1/trovo-manager/tokenization/salesdate/:tid", middleware.JwtTokenAuthMiddleware(), putTrovoManagerTokenizationSalesdateTidHandler(callBackRetryChan, gc))
 
+		router.PUT("/v1/trovo-manager/tokenization/contract/:tid", middleware.JwtTokenAuthMiddleware(), putTrovoManagerTokenizationContractTidHandler(callBackRetryChan, gc))
+
 		router.PUT("/v1/trovo-manager/tokenization/vet/:tid", middleware.JwtTokenAuthMiddleware(), putTrovoManagerTokenizationVetTidHandler(callBackRetryChan, gc))
 
 		router.POST("/v1/trovo-manager/tokenization/faildd/:tid", middleware.JwtTokenAuthMiddleware(), postTrovoManagerTokenizationFailddTidHandler(callBackRetryChan, gc))

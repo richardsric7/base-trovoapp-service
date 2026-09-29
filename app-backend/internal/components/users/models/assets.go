@@ -191,7 +191,8 @@ func (i BantuAsset) IsTokenizedAsset(gc *sharedconfig.GlobalConfig) bool {
 
 	code, issuer := i.AssetCode, i.ContractAddress
 
-	e := gc.DB.Where("Asset_Tokenization_Status > 4 AND Asset_Code = upper(?) AND Issuing_Wallet_Public_Key = upper(?)", code, issuer).First(&TokenizedAsset{}).Error
+	// a tokenized asset is identified by its token contract, not its issuing Safe
+	e := gc.DB.Where("Asset_Tokenization_Status > 4 AND Asset_Code = upper(?) AND lower(contract_address) = lower(?)", code, issuer).First(&TokenizedAsset{}).Error
 
 	return e == nil
 }

@@ -34,34 +34,8 @@ func ApproveWalletAssetAuthorization(approverSigner string, req *userModels.Wall
 		return result, err
 	}
 
-	if !gc.IsValidTokenizedAsset(req.AssetCode) {
-		return result, &tErrors.CustomError{
-			Param:      "assetCode",
-			Err:        "error-not-a-regulated-asset",
-			ErrMessage: fmt.Sprintf("%v is not a market-ready tokenized/regulated asset - only those require wallet-level authorization.", req.AssetCode),
-			Code:       http.StatusBadRequest,
-		}
-	}
-
-	issuingWallet, _, err := usersDB.GetWallet(req.ContractAddress, gc.DB)
-	if err != nil {
+	if _, err := authorizeIssuerSigner(approverSigner, req.AssetCode, req.ContractAddress, "approve or revoke wallet authorization for it", gc); err != nil {
 		return result, err
-	}
-	if issuingWallet.WalletType != 1 {
-		return result, &tErrors.CustomError{
-			Param:      "contractAddress",
-			Err:        "error-not-an-issuing-wallet",
-			ErrMessage: fmt.Sprintf("%v is not an asset-issuing wallet.", req.ContractAddress),
-			Code:       http.StatusBadRequest,
-		}
-	}
-	if !strings.EqualFold(issuingWallet.Signer, approverSigner) {
-		return result, &tErrors.CustomError{
-			Param:      "contractAddress",
-			Err:        "error-not-authorized-issuer",
-			ErrMessage: "Only the asset's own issuing wallet may approve or revoke wallet authorization for it.",
-			Code:       http.StatusForbidden,
-		}
 	}
 
 	asset := basetxn.CreditAsset{Code: strings.ToUpper(req.AssetCode), Issuer: req.ContractAddress}
@@ -92,18 +66,39 @@ func GetWalletAssetAuthorizations(approverSigner, assetCode, contractAddress str
 		return nil, err
 	}
 
-	issuingWallet, _, err := usersDB.GetWallet(contractAddress, gc.DB)
-	if err != nil {
+	if _, err := authorizeIssuerSigner(approverSigner, assetCode, contractAddress, "view its wallet authorizations", gc); err != nil {
 		return nil, err
-	}
-	if !strings.EqualFold(issuingWallet.Signer, approverSigner) {
-		return nil, &tErrors.CustomError{
-			Param:      "contractAddress",
-			Err:        "error-not-authorized-issuer",
-			ErrMessage: "Only the asset's own issuing wallet may view its wallet authorizations.",
-			Code:       http.StatusForbidden,
-		}
 	}
 
 	return network.WalletAssetAuthorizations(strings.ToUpper(assetCode), contractAddress)
+}
+
+// authorizeIssuerSigner resolves the market-ready tokenized asset whose
+// token contract is contractAddress (authorizations are keyed by the token
+// contract, never the issuer) and checks approverSigner is the recorded
+// signer of that asset's issuing Safe wallet.
+func authorizeIssuerSigner(approverSigner, assetCode, contractAddress, action string, gc *sharedconfig.GlobalConfig) (userModels.TokenizedAsset, error) {
+	var ta userModels.TokenizedAsset
+	e := gc.DB.Where("Asset_Tokenization_Status > 3 AND Asset_Code = upper(?) AND lower(contract_address) = lower(?)", assetCode, contractAddress).First(&ta).Error
+	if e != nil || ta.IssuingWalletAddress == nil {
+		return ta, &tErrors.CustomError{
+			Param:      "contractAddress",
+			Err:        "error-not-a-regulated-asset",
+			ErrMessage: fmt.Sprintf("%v at %v is not a market-ready tokenized/regulated asset token contract - only those require wallet-level authorization.", assetCode, contractAddress),
+			Code:       http.StatusBadRequest,
+		}
+	}
+	issuingWallet, _, err := usersDB.GetWallet(*ta.IssuingWalletAddress, gc.DB)
+	if err != nil {
+		return ta, err
+	}
+	if !strings.EqualFold(issuingWallet.Signer, approverSigner) {
+		return ta, &tErrors.CustomError{
+			Param:      "contractAddress",
+			Err:        "error-not-authorized-issuer",
+			ErrMessage: fmt.Sprintf("Only the signer of the asset's issuing wallet may %v.", action),
+			Code:       http.StatusForbidden,
+		}
+	}
+	return ta, nil
 }

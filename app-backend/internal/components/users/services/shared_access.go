@@ -1,13 +1,16 @@
 package users
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"trovo-wallet-api/internal/basetxn"
+	"trovo-wallet-api/internal/evmkeypair"
 	bc "trovo-wallet-api/internal/blockchainalgofuncs"
 	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	usersDB "trovo-wallet-api/internal/components/users/db"
@@ -16,6 +19,7 @@ import (
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm/clause"
@@ -482,6 +486,15 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	}
 	accessInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
 
+	// On Base, shared access is app-layer only: the SetOptions signer/
+	// threshold ops are never broadcast (see basetxn.SetOptions), so there
+	// is usually no raw transaction at all. The wallet signer then signs a
+	// statement of exactly this change instead, which is verified below.
+	appLayerOnly := strings.TrimSpace(xdrBase64) == ""
+	if appLayerOnly {
+		xdrBase64 = sharedAccessAuthorizationPayload(wallet.ID, accessInfo.NumberOfApprovalsNeeded, accessInfo.Permissions)
+		accessInfo.SignatureRequired = 1
+	}
 	accessInfo.Transaction = xdrBase64
 
 	if len(accessInfo.TransactionSignature) == 0 {
@@ -496,13 +509,23 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 	// }
 	// txnHash, err := network.SubmitXdrWithSignature(gc.BantuExpansionClient, wallet.Signer, xdrBase64, accessInfo.TransactionSignature)
-	txnHash, err := network.SubmitXdrWithSignatures(gc.BantuExpansionClient, xdrBase64, signatures, gc.DB)
-	if err != nil {
-		log.Printf("Error submitting shared access txn [%+v] transaction: %s\n", accessInfo, err.Error())
-		// logDiscordFailedRecovery(fmt.Sprintf("Error submitting shared access txn [%+v] transaction: %s", accessInfo, err.Error()))
-		return returnedWallet, &tErrors.ErrorTemporaryServerError{}
+	if appLayerOnly {
+		// nothing to broadcast: the wallet signer's signature over the
+		// statement is the authorization
+		statement, _ := base64.StdEncoding.DecodeString(xdrBase64)
+		sig, e := base64.StdEncoding.DecodeString(accessInfo.TransactionSignature)
+		if e != nil || evmkeypair.VerifyPersonal(common.HexToAddress(wallet.Signer), statement, sig) != nil {
+			return returnedWallet, &tErrors.CustomError{Param: "transactionSignature", Err: "error-invalid-signature", ErrMessage: "The shared access authorization was not signed by the wallet's signer.", Code: http.StatusForbidden}
+		}
+	} else {
+		txnHash, err := network.SubmitXdrWithSignatures(gc.BantuExpansionClient, xdrBase64, signatures, gc.DB)
+		if err != nil {
+			log.Printf("Error submitting shared access txn [%+v] transaction: %s\n", accessInfo, err.Error())
+			// logDiscordFailedRecovery(fmt.Sprintf("Error submitting shared access txn [%+v] transaction: %s", accessInfo, err.Error()))
+			return returnedWallet, &tErrors.ErrorTemporaryServerError{}
+		}
+		accessInfo.TransactionID = txnHash
 	}
-	accessInfo.TransactionID = txnHash
 
 	dbTX.Commit()
 	// invalidate cache
@@ -2403,4 +2426,19 @@ func SignerHasInitiatorPermissionToAddress(signerOwner userModels.User, targetAd
 	}
 
 	return false
+}
+
+// sharedAccessAuthorizationPayload is the base64 statement a wallet signer
+// signs to authorize an app-layer-only shared access change (the apps'
+// signBase64Txn decodes and signs exactly these bytes). It names the
+// wallet, the approval threshold and every permission granted, in a
+// deterministic order, so a signature authorizes only this change.
+func sharedAccessAuthorizationPayload(walletID string, approvalsNeeded int, permissions []userModels.WalletPermissionInfo) string {
+	perms := make([]string, 0, len(permissions))
+	for _, p := range permissions {
+		perms = append(perms, strings.ToLower(p.TargetUsername)+"="+strings.ToUpper(p.Permission))
+	}
+	sort.Strings(perms)
+	statement := fmt.Sprintf("Shared access for wallet %s: %d approval(s) needed; permissions: %s", walletID, approvalsNeeded, strings.Join(perms, ", "))
+	return base64.StdEncoding.EncodeToString([]byte(statement))
 }

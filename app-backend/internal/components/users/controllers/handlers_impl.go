@@ -5866,6 +5866,62 @@ func putTrovoManagerTokenizationSalesdateTidHandler(callBackRetryChan chan userM
 	}
 }
 
+// putTrovoManagerTokenizationContractTidHandler godoc
+// @Summary PUT /v1/trovo-manager/tokenization/contract/:tid
+// @Description Registers a tokenized asset's deployed B20 token contract. The contract must already be deployed with the asset's issuing Safe as owner or MINTER_ROLE holder, have the asset code as its symbol and zero supply; this is verified on-chain. Only allowed before minting.
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param tid path string true "Tokenization ID"
+// @Param body body userModels.TokenizedAssetContractInput true "Token contract payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /v1/trovo-manager/tokenization/contract/{tid} [put]
+func putTrovoManagerTokenizationContractTidHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		respondError := func(err error) {
+			if ex, ok := err.(tErrors.GenericError); ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+				return
+			}
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+		}
+
+		au, err := middleware.ExtractTokenMetadata(c.Request)
+		if err != nil {
+			respondError(err)
+			return
+		}
+		initiator, err := userModels.Username(au.UserID).GetFullUser(gc.DB, gc)
+		if err != nil {
+			respondError(err)
+			return
+		}
+
+		tid := c.Param("tid")
+		if strings.EqualFold(tid, "null") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-tokenizationId", "message": "tokenizationID cannot be null"})
+			return
+		}
+
+		var input userModels.TokenizedAssetContractInput
+		data, _ := io.ReadAll(c.Request.Body)
+		if err := json.Unmarshal(data, &input); err != nil {
+			var invalidJSON tErrors.ErrorInvalidJSON
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		ta, err := userServices.RegisterTokenizedAssetContract(tid, &initiator, &input, gc)
+		if err != nil {
+			respondError(err)
+			return
+		}
+		c.JSON(http.StatusOK, ta.ToJSON(gc))
+	}
+}
+
 // putTrovoManagerTokenizationVetTidHandler godoc
 // @Summary PUT /v1/trovo-manager/tokenization/vet/:tid
 // @Tags users

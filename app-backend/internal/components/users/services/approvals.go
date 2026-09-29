@@ -18,7 +18,6 @@ import (
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
-	"github.com/ecnepsnai/discord"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-module/carbon/v2"
 	"github.com/google/uuid"
@@ -531,7 +530,14 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 		//process submission routine here
-		txnResult, err = network.SubmitApprovalsXdrWithSignaturesReturnsTrx(gc.BantuExpansionClient, p.ID, dbTX)
+		if p.TransactionType == "TOKENIZE ASSET" {
+			// minting is a call from the asset's issuing Safe to its token
+			// contract, executed by the platform's Safe signers now that the
+			// minting approvers have all approved exactly this plan
+			txnResult, err = executeTokenizationMint(&tkInput, p.TransactionXdr, gc)
+		} else {
+			txnResult, err = network.SubmitApprovalsXdrWithSignaturesReturnsTrx(gc.BantuExpansionClient, p.ID, dbTX)
+		}
 		if err != nil {
 			return err
 		}
@@ -1009,7 +1015,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 			cAsset := assetModels.CuratedAsset{
 				AssetCode:       *ta.AssetCode,
-				ContractAddress: *ta.IssuingWalletAddress,
+				ContractAddress: *ta.ContractAddress, // the token contract, never the issuing Safe
 				AssetName:       *ta.AssetName,
 				Description:     *ta.AssetDescription,
 				ImageURL:        ta.AssetLogo,
@@ -1313,83 +1319,32 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 				return &tErrors.ErrorTemporaryServerError{}
 			}
 
-			var issuingWallet, distroWallet userModels.UserWallet
-			//now remove the wallets from the trovo ecosystem.
-			issuingWallet, e = userModels.UserWalletID(tkInput.ContractAddress).GetWallet(dbTX, gc)
-			distroWallet, e = userModels.UserWalletID(tkInput.Destination).GetWallet(dbTX, gc)
-			// nullify it.
+			// The issuing Safe and the registered token contract are on-chain
+			// facts that survive a rejected mint (the contract names the Safe
+			// as its minter), so neither is discarded. Only the minting
+			// approval setup on the Safe's wallet record is reset, so the next
+			// mint request re-creates it with the asset's current approvers.
 			ta.TokenizationTransaction = nil
-			// set it to 3 so as to assign a new wallet.
 			ta.AssetTokenizationStatus = 3
-			// remove the issuing wallet and marketting wallet(distributor)
-			ta.IssuingWalletAlias = nil
-			ta.IssuingWalletAddress = nil
-			ta.MarketMakingWallet = nil
-			// get wallet Permisions
-			pl := distroWallet.GetPermissionList(dbTX)
-
-			for _, v := range pl {
-				e = dbTX.Omit(clause.Associations).Delete(&v).Error
-				if e != nil {
-					log.Printf("[RejectTransaction]error removing wallet permission: %v, %v", v, e)
+			issuingWallet, e := userModels.UserWalletID(tkInput.Destination).GetWallet(dbTX, gc)
+			if e == nil {
+				for _, v := range issuingWallet.GetPermissionList(dbTX) {
+					if e := dbTX.Omit(clause.Associations).Delete(&v).Error; e != nil {
+						log.Printf("[RejectTransaction]error removing wallet permission: %+v, %v", v, e)
+						return &tErrors.ErrorTemporaryServerError{}
+					}
+				}
+				if e := dbTX.Model(&userModels.UserWallet{}).Where("id = ?", issuingWallet.ID).Updates(map[string]interface{}{"shared_access_enabled": 0, "number_of_approvals_needed": 0}).Error; e != nil {
+					log.Printf("[RejectTransaction]error resetting shared access on issuing Safe %v: %v", issuingWallet.ID, e)
 					return &tErrors.ErrorTemporaryServerError{}
 				}
-			}
-			e = dbTX.Omit(clause.Associations).Delete(&distroWallet).Error
-			if e != nil {
-				log.Printf("[RejectTransaction]error removing distribution wallet: %+v, %v", distroWallet.Alias, e)
-				return &tErrors.ErrorTemporaryServerError{}
-			}
-			// get wallet Permisions
-			pl = issuingWallet.GetPermissionList(dbTX)
-
-			for _, v := range pl {
-				e = dbTX.Omit(clause.Associations).Delete(&v).Error
-				if e != nil {
-					log.Printf("[RejectTransaction]error removing wallet permission: %+v, %v", v, e)
-					return &tErrors.ErrorTemporaryServerError{}
-				}
+				issuingWallet.InvalidateUserCache(gc)
 			}
 			//delete expressed interest.
 			e = dbTX.Omit(clause.Associations).Where("tokenized_asset_id = ?", ta.ID).Delete(&userModels.ExpressionOfInterest{}).Error
 			if e != nil {
 				log.Printf("[RejectTransaction]error removing Expression Of Interest. error: %v", e)
 				return &tErrors.ErrorTemporaryServerError{}
-			}
-
-			e = dbTX.Omit(clause.Associations).Delete(&issuingWallet).Error
-			if e != nil {
-				log.Printf("[RejectTransaction]error removing issuing wallet: %v, %v", issuingWallet.Alias, e)
-				return &tErrors.ErrorTemporaryServerError{}
-			}
-
-			{
-				//remove it from payment engine also.
-				//send to monitoring service
-				trackAddress := userModels.TrackedAddress{
-					Address: issuingWallet.ID,
-				}
-				errTrack := gc.RoachDB.Delete(&trackAddress).Error
-				if errTrack != nil {
-					//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
-					discord.Say(fmt.Sprintf("[RejectTransaction] removing tracking wallet public key for payment history failed for:%v, with DB Error:%v\n\n\nFailedData:%+v", issuingWallet.Alias, errTrack, issuingWallet))
-
-				}
-				trackAddress = userModels.TrackedAddress{
-					Address: distroWallet.ID,
-				}
-				errTrack = gc.RoachDB.Delete(&trackAddress).Error
-				if errTrack != nil {
-					//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
-					discord.Say(fmt.Sprintf("[RejectTransaction] removing tracking wallet public key for payment history failed for:%v, with DB Error:%v\n\n\nFailedData:%+v", distroWallet.Alias, errTrack, distroWallet))
-
-				}
-			}
-
-			issuerOwner, _ := issuingWallet.GetWalletOwner(dbTX, gc)
-			if len(issuerOwner.ID) > 0 {
-
-				issuerOwner.InvalidateUserCache(gc)
 			}
 
 			e = dbTX.Omit(clause.Associations).Save(&ta).Error
