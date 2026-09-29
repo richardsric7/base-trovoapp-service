@@ -1,0 +1,19 @@
+{
+  "name": "trovo-paymaster-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ERC-4337 (EntryPoint v0.7) token paymaster: users pay gas in approved stablecoins at backend-signed quotes.",
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "node scripts/deploy.js",
+    "deploy:dry-run": "node scripts/deploy.js --dry-run"
+  },
+  "devDependencies": {
+    "@account-abstraction/contracts": "^0.7.0",
+    "@nomicfoundation/hardhat-toolbox": "^6.1.2",
+    "@openzeppelin/contracts": "^5.1.0",
+    "hardhat": "^2.29.1",
+    "solc": "^0.8.28"
+  }
+}
