@@ -860,6 +860,23 @@ func main() {
 	}
 
 	{
+		// Follow submitted wallet operations (Safe UserOperations) to
+		// inclusion - recording outcomes and wallet activations - and
+		// expire unsigned ones.
+		go func() {
+			for {
+				sharedconfig.WithSingletonLock(&globalConfig, "track-wallet-operations", 30*time.Second, func() {
+					ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+					defer cancel()
+					userServices.TrackWalletOperations(ctx, &globalConfig)
+					userServices.ExpireWalletOperations(&globalConfig)
+				})
+				time.Sleep(5 * time.Second)
+			}
+		}()
+	}
+
+	{
 		//Start processing payment streams
 		go func() {
 			for {

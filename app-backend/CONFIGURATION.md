@@ -254,6 +254,45 @@ perform specific categories of on-chain actions automatically.
 - What it does: Salt mixed into generated email/SMS verification codes.
 - How to get a real value: `openssl rand -hex 16`.
 
+## Wallets: Safe accounts, bundler and paymaster
+
+Every user wallet is a Safe (v1.4.1 with the ERC-4337 Safe4337Module)
+owned by the user's key, and every send is a UserOperation the backend
+builds, the user's app signs, and the backend submits to our bundler.
+The wallet pays its own gas - in the stablecoin the user chose on their
+profile (through the paymaster, see [`paymaster/`](../paymaster/README.md)),
+or in ETH. See `internal/aa` and `internal/components/users/services/wallet_operations.go`.
+
+**`BUNDLER_URL`**
+- Example: `http://bundler.internal:4337/rpc`
+- What it does: JSON-RPC endpoint of our self-hosted ERC-4337 bundler (EntryPoint v0.7). Every wallet operation is gas-estimated with and submitted to it. Without it, no sends can be prepared.
+- How to get a real value: the URL of the bundler you run (e.g. Rundler, Alto or Skandha) for the same chain as `BASE_RPC_URL`. Configure it for EntryPoint `0x0000000071727De22E5E9d8BAf0edAc6f37da032`.
+
+**`PAYMASTER_ADDRESS`**
+- Example: `0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9`
+- What it does: The deployed `TrovoTokenPaymaster`. Wallets paying gas in a stablecoin approve it to take the fee. Leave empty to disable stablecoin gas (everyone pays in ETH).
+- How to get a real value: printed by the paymaster deploy script and saved in `paymaster/contracts/deployments/<chainId>.json` (see `paymaster/DEPLOYMENT.md`).
+
+**`PAYMASTER_QUOTE_SERVICE_URL`** / **`PAYMASTER_QUOTE_SERVICE_API_KEY`**
+- Example: `http://paymaster-quotes.internal:8090` / `3f9c0a...e1` (64 hex)
+- What it does: Where the backend gets signed gas quotes in stablecoins, and the API key it sends (`X-API-Key`). If the quote service cannot price a user's chosen token, the operation falls back to ETH gas.
+- How to get a real value: the quote service's address, and one of the keys in its `API_KEYS` Vault setting (see `paymaster/CONFIGURATION.md`).
+
+**`WALLET_OPERATION_VALIDITY`** / **`SHARED_WALLET_OPERATION_VALIDITY`**
+- Example: `10m` / `24h`
+- What it does: How long the owners have to sign a prepared operation - a single-signer wallet (default 10 minutes) or a shared wallet waiting for approvers (default 24 hours, at most the quote service's `QUOTE_MAX_VALIDITY`). An operation not signed in time expires and must be started again.
+- How to get a real value: keep the defaults unless your approval process needs longer.
+
+**`WALLET_OPERATION_GAS_BUFFER_PERCENT`**
+- Example: `20`
+- What it does: Percentage added to the bundler's gas estimates (default 20). Unused gas is not charged (and a stablecoin pre-charge is refunded), so this only affects the maximum shown to the user.
+- How to get a real value: keep the default.
+
+**`ENTRYPOINT_ADDRESS`**, **`SAFE_MODULE_SETUP_ADDRESS`**, **`SAFE_4337_MODULE_ADDRESS`** (and the `SAFE_*` addresses under [Tokenization](#tokenization))
+- Example: leave empty for the defaults
+- What it does: Override the contracts wallets are built from, for local chains only. Defaults are the canonical Base / Base Sepolia deployments: EntryPoint v0.7 `0x0000000071727De22E5E9d8BAf0edAc6f37da032`, SafeProxyFactory v1.4.1, SafeL2 v1.4.1, SafeModuleSetup v0.3.0 `0x2dd68b007B46fBe91B9A7c3EDa5A7a1063cB5b47`, Safe4337Module v0.3.0 `0x75cf11467937ce3F2f357CE24ffc3DBF8fD5c226`, MultiSendCallOnly v1.4.1 `0x9641d764fc13c8B624c04430C7356C1C7C8102e2`. **Changing them in production changes every user's wallet address** - wallet-core computes addresses with the defaults.
+- How to get a real value: leave empty on Base / Base Sepolia.
+
 ---
 
 ## Channel accounts (transaction fee payers)

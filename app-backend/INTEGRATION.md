@@ -294,6 +294,50 @@ built and tested — you just need to open the connection and handle
 
 ---
 
+## Wallets and sending: Safe UserOperations
+
+Every user wallet is a **Safe** (v1.4.1 with the ERC-4337 Safe4337Module)
+owned by the user's key. Its address is fixed before it is deployed, so
+it receives funds from registration on; its first send deploys it
+("activates" it) in the same operation.
+
+**Registration.** The app computes the user's address with wallet-core's
+`primarySafeAddress(signer, "0")` and sends it as `X-TW-PUBLIC-KEY` (the
+signer as `X-TW-SIGNER`). `POST /v1/users` refuses an address that is not
+that Safe. Service-link onboarding may omit `publicKey`; it is derived.
+
+**Sending (two calls, unchanged shape).**
+
+1. The first call (e.g. `POST /v1/users/payment` without
+   `transactionSignature`) validates the request, builds the operation
+   and returns it as `transaction`: **base64 of the 32-byte SafeOp hash**,
+   plus `messages` (including the network fee, and a note when the send
+   also activates the wallet).
+2. The app signs it exactly as before - `signBase64Txn` base64-decodes
+   `transaction` and `personal_sign`s the bytes - and calls again with the
+   same `transaction` and the base64 `transactionSignature`. The backend
+   submits the stored operation (it is never rebuilt) to the bundler and
+   returns its `userOpHash` as `transactionId`.
+
+Operations expire (`WALLET_OPERATION_VALIDITY`, 10 minutes by default);
+an expired or already-submitted `transaction` is refused. Shared wallets
+with approvers get an approval request instead, and their operations
+stay signable for `SHARED_WALLET_OPERATION_VALIDITY`.
+
+**Gas.** The wallet pays its own gas: in the stablecoin its owner picked
+(`User.gasFeeAsset`, one of the curated assets with `gasFeeEligible`)
+through the paymaster when the wallet holds some, otherwise in ETH. A
+payment that would leave too little to pay the fee in the same asset is
+refused with `error-insufficient-for-network-fee`.
+
+**What app-backend calls.** The bundler (`BUNDLER_URL`:
+`eth_estimateUserOperationGas`, `eth_sendUserOperation`,
+`eth_getUserOperationReceipt`) and the paymaster quote service
+(`PAYMASTER_QUOTE_SERVICE_URL`, `POST /v1/quote` with `X-API-Key`; see
+[`paymaster/INTEGRATION.md`](../paymaster/INTEGRATION.md)). A background
+loop follows submitted operations to inclusion (`wallet_operations`
+table) and marks wallets activated.
+
 ## Tokenized assets: token contract vs issuing Safe
 
 On Base a tokenized asset has two different addresses, and nothing in the

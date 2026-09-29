@@ -389,6 +389,10 @@ func runSchemaMigration(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error migrating PendingAuth:", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.WalletOperation{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error migrating WalletOperation:", errMigrate)
+		}
 
 		errMigrate = gormDB.AutoMigrate(&users.PendingTransactionSignature{})
 		if errMigrate != nil {
