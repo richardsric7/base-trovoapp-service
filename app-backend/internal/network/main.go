@@ -418,7 +418,7 @@ func IsWalletAuthorizedForAsset(wallet string, asset basetxn.Asset) bool {
 	}
 	var row WalletAssetAuthorization
 	err := authDB.Where("wallet_address = ? AND asset_code = ? AND contract_address = ?",
-		strings.ToLower(wallet), asset.GetCode(), strings.ToLower(asset.GetIssuer())).First(&row).Error
+		strings.ToLower(wallet), strings.ToUpper(asset.GetCode()), strings.ToLower(asset.GetIssuer())).First(&row).Error
 	if err != nil {
 		return false
 	}
@@ -472,14 +472,16 @@ func isInternalBalanceAsset(assetCode string) bool {
 // SetTrustLineFlags/ChangeTrust operation on Stellar. approvedBy is the
 // address the compliance approval was authenticated against (the asset's
 // own issuing wallet - see the service-layer caller), reason an optional
-// free-text compliance note; both are recorded for audit purposes.
+// free-text compliance note; both are recorded for audit purposes. Asset
+// codes are stored uppercased (matching Tokenized_Assets/country_configs)
+// and addresses lowercased, so lookups are case-insensitive on both.
 func SetWalletAssetAuthorization(wallet string, asset basetxn.Asset, authorized bool, approvedBy, reason string) error {
 	if authDB == nil {
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 	row := WalletAssetAuthorization{
 		WalletAddress:   strings.ToLower(wallet),
-		AssetCode:       asset.GetCode(),
+		AssetCode:       strings.ToUpper(asset.GetCode()),
 		ContractAddress: strings.ToLower(asset.GetIssuer()),
 		Authorized:      authorized,
 		ApprovedBy:      strings.ToLower(approvedBy),
@@ -503,7 +505,7 @@ func WalletAssetAuthorizations(assetCode, contractAddress string) ([]WalletAsset
 	if authDB == nil {
 		return rows, &tErrors.ErrorTemporaryServerError{}
 	}
-	err := authDB.Where("asset_code = ? AND contract_address = ?", assetCode, strings.ToLower(contractAddress)).
+	err := authDB.Where("asset_code = ? AND contract_address = ?", strings.ToUpper(assetCode), strings.ToLower(contractAddress)).
 		Order("created_at desc").Find(&rows).Error
 	return rows, err
 }

@@ -3118,7 +3118,7 @@ func SubscribeToTokenizedAssetByFiat(subscriber *userModels.User, subscriberWall
 	return invoice, nil
 }
 
-func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.TokenizedAsset, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) (string, error) {
+func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.TokenizedAsset, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) (xdrOut string, retErr error) {
 	// baseReserve := network.GetBlockchainBaseReserve()
 	swapDestMin := network.GetBlockchainSwapDestinationMin()
 	client := gc.BantuExpansionClient
@@ -3199,47 +3199,11 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 		SourceAccount: wallet.ID,
 	})
 
-	// B20 tokens have no on-chain trustline/opt-in step; these used to
-	// build ChangeTrust/SetTrustLineFlags ops that never actually ran on
-	// Base (basetxn.Transaction only signs/submits Payment operations -
-	// see internal/basetxn's package doc). Grant real DB-backed
-	// authorization instead (see network.RequiresWalletAuthorization/
-	// SetWalletAssetAuthorization).
-	if !sourceAccountTrustsInternalBalanceAsset {
-		// 2/3. authorize the buyer's wallet to hold the internal balance
-		// token - transient (see the revoke a few steps below), but real
-		// for the duration of this purchase.
-		if e := network.SetWalletAssetAuthorization(wallet.ID, internalBalanceAsset, true, *countryConfig.InternalTokenIssuer, "tokenized-asset purchase: transit internal balance authorization"); e != nil {
-			log.Println("[generateAssetSubscriptionXdr] error authorizing buyer wallet for internal balance asset", e)
-			return "", &tErrors.ErrorTemporaryServerError{}
-		}
-	}
-
-	// 4. issue the internal balance token 1:1 to the buyer
-	ops = append(ops, &basetxn.Payment{
-		Destination:   wallet.ID,
-		Amount:        swapInfo.SwapAmount,
-		Asset:         internalBalanceAsset,
-		SourceAccount: *countryConfig.InternalTokenIssuer,
-	})
-
-	if !destinationAsset.IsNative() {
-
-		if !sourceAccountTrustsDestinationAsset {
-
-			// 5. authorize the buyer's wallet to hold the tokenized asset
-			// it's purchasing.
-			if e := network.SetWalletAssetAuthorization(wallet.ID, destinationAsset, true, swapInfo.DestinationContractAddress, "tokenized-asset purchase: destination asset authorization"); e != nil {
-				log.Println("[generateAssetSubscriptionXdr] error authorizing buyer wallet for destination asset", e)
-				return "", &tErrors.ErrorTemporaryServerError{}
-			}
-
-		}
-	}
-
 	//get sendPath from the internal balance token to the tokenized asset
 	//using DestinationAccount will get paths to all assets in the destination account.
 	//using destinationAssets gets path to only the asset
+	// Resolved before any authorization is written, so a purchase that
+	// can't be routed leaves no authorization rows behind.
 	destAsset := ""
 	if !destinationAsset.IsNative() {
 		destAsset = fmt.Sprintf("%s:%s", swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress)
@@ -3256,6 +3220,41 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 		return "", err
 	}
 
+	// B20 tokens have no on-chain trustline/opt-in step; these used to
+	// build ChangeTrust/SetTrustLineFlags ops that never actually ran on
+	// Base (basetxn.Transaction only signs/submits Payment operations -
+	// see internal/basetxn's package doc). Grant real DB-backed
+	// authorization instead (see network.RequiresWalletAuthorization/
+	// SetWalletAssetAuthorization).
+	if !sourceAccountTrustsInternalBalanceAsset {
+		// 2/3. authorize the buyer's wallet to hold the internal balance
+		// token for the duration of this purchase only.
+		if e := network.SetWalletAssetAuthorization(wallet.ID, internalBalanceAsset, true, *countryConfig.InternalTokenIssuer, "tokenized-asset purchase: transit internal balance authorization"); e != nil {
+			log.Println("[generateAssetSubscriptionXdr] error authorizing buyer wallet for internal balance asset", e)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+	// 7. revoke the buyer's internal balance authorization on every exit
+	// path, success or failure - internal balance is a transit asset only,
+	// minted and swapped away within the same purchase, never something a
+	// wallet holds on to independently.
+	defer func() {
+		if e := network.SetWalletAssetAuthorization(wallet.ID, internalBalanceAsset, false, *countryConfig.InternalTokenIssuer, "tokenized-asset purchase complete: internal balance is transit-only"); e != nil {
+			log.Println("[generateAssetSubscriptionXdr] error revoking buyer wallet's internal balance authorization", e)
+			if retErr == nil {
+				xdrOut, retErr = "", &tErrors.ErrorTemporaryServerError{}
+			}
+		}
+	}()
+
+	// 4. issue the internal balance token 1:1 to the buyer
+	ops = append(ops, &basetxn.Payment{
+		Destination:   wallet.ID,
+		Amount:        swapInfo.SwapAmount,
+		Asset:         internalBalanceAsset,
+		SourceAccount: *countryConfig.InternalTokenIssuer,
+	})
+
 	// 6. swap the internal balance token for the tokenized asset
 	ops = append(ops, &basetxn.PathPaymentStrictSend{
 		SendAsset:     internalBalanceAsset,
@@ -3266,15 +3265,6 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 		Path:          path,
 		SourceAccount: wallet.ID,
 	})
-
-	// 7. revoke the buyer's internal balance authorization so it never
-	// persists outside of this purchase - internal balance is a transit
-	// asset only, minted and swapped away within the same purchase, never
-	// something a wallet holds on to independently.
-	if e := network.SetWalletAssetAuthorization(wallet.ID, internalBalanceAsset, false, *countryConfig.InternalTokenIssuer, "tokenized-asset purchase complete: internal balance is transit-only"); e != nil {
-		log.Println("[generateAssetSubscriptionXdr] error revoking buyer wallet's internal balance authorization", e)
-		return "", &tErrors.ErrorTemporaryServerError{}
-	}
 
 	// Construct the transaction that holds the operations to execute on the network
 	var memoSAC, memoDAC string
@@ -3357,6 +3347,17 @@ func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.
 		log.Println("[generateAssetSubscriptionXdr] error getting txn base64", err)
 		return "", err
 	}
+
+	// 5. authorize the buyer's wallet to hold the tokenized asset it's
+	// purchasing - granted last, once nothing else can fail, so an
+	// aborted purchase never leaves a standing authorization.
+	if !destinationAsset.IsNative() && !sourceAccountTrustsDestinationAsset {
+		if e := network.SetWalletAssetAuthorization(wallet.ID, destinationAsset, true, swapInfo.DestinationContractAddress, "tokenized-asset purchase: destination asset authorization"); e != nil {
+			log.Println("[generateAssetSubscriptionXdr] error authorizing buyer wallet for destination asset", e)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+
 	swapInfo.Memo = memo
 	swapInfo.Messages = messages
 	swapInfo.SwappedEstimate = swappedEstimate
@@ -3415,41 +3416,9 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 
 	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 
-	// B20 tokens have no on-chain trustline/opt-in step; these used to
-	// build ChangeTrust/SetTrustLineFlags ops that never actually ran on
-	// Base (basetxn.Transaction only signs/submits Payment operations -
-	// see internal/basetxn's package doc). Grant real DB-backed
-	// authorization instead (see network.RequiresWalletAuthorization/
-	// SetWalletAssetAuthorization).
-	if !sourceAccountTrustsInternalBalanceAsset {
-		// 1/2. authorize the buyer's wallet to hold the internal balance
-		// token - transient (see the revoke a few steps below), but real
-		// for the duration of this purchase.
-		if e := network.SetWalletAssetAuthorization(wallet.ID, internalBalanceAsset, true, *countryConfig.InternalTokenIssuer, "tokenized-asset fiat purchase: transit internal balance authorization"); e != nil {
-			log.Println("[generateAssetSubscriptionFiatXdr] error authorizing buyer wallet for internal balance asset", e)
-			return "", "", &tErrors.ErrorTemporaryServerError{}
-		}
-	}
-
-	// 3. issue the internal balance token 1:1 to the buyer, in place of the on-chain stablecoin
-	// payment leg - the fiat payment confirmed later by the webhook is what authorizes this mint
-	ops = append(ops, &basetxn.Payment{
-		Destination:   wallet.ID,
-		Amount:        swapInfo.SwapAmount,
-		Asset:         internalBalanceAsset,
-		SourceAccount: *countryConfig.InternalTokenIssuer,
-	})
-
-	if !destinationAsset.IsNative() && !sourceAccountTrustsDestinationAsset {
-		// 4. authorize the buyer's wallet to hold the tokenized asset it's
-		// purchasing.
-		if e := network.SetWalletAssetAuthorization(wallet.ID, destinationAsset, true, swapInfo.DestinationContractAddress, "tokenized-asset fiat purchase: destination asset authorization"); e != nil {
-			log.Println("[generateAssetSubscriptionFiatXdr] error authorizing buyer wallet for destination asset", e)
-			return "", "", &tErrors.ErrorTemporaryServerError{}
-		}
-	}
-
-	//get sendPath from the internal balance token to the tokenized asset
+	//get sendPath from the internal balance token to the tokenized asset.
+	// Resolved before any authorization is written, so a purchase that
+	// can't be routed leaves no authorization rows behind.
 	destAsset := ""
 	if !destinationAsset.IsNative() {
 		destAsset = fmt.Sprintf("%s:%s", swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress)
@@ -3466,6 +3435,41 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 		return "", "", pathErr
 	}
 
+	// B20 tokens have no on-chain trustline/opt-in step; these used to
+	// build ChangeTrust/SetTrustLineFlags ops that never actually ran on
+	// Base (basetxn.Transaction only signs/submits Payment operations -
+	// see internal/basetxn's package doc). Grant real DB-backed
+	// authorization instead (see network.RequiresWalletAuthorization/
+	// SetWalletAssetAuthorization).
+	if !sourceAccountTrustsInternalBalanceAsset {
+		// 1/2. authorize the buyer's wallet to hold the internal balance
+		// token for the duration of this purchase only (revoked in step 6).
+		if e := network.SetWalletAssetAuthorization(wallet.ID, internalBalanceAsset, true, *countryConfig.InternalTokenIssuer, "tokenized-asset fiat purchase: transit internal balance authorization"); e != nil {
+			log.Println("[generateAssetSubscriptionFiatXdr] error authorizing buyer wallet for internal balance asset", e)
+			return "", "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+	// Best-effort revoke for any failure path below; the success path
+	// revokes explicitly (step 6) so a failed revoke can abort the purchase.
+	internalBalanceRevoked := false
+	defer func() {
+		if internalBalanceRevoked {
+			return
+		}
+		if e := network.SetWalletAssetAuthorization(wallet.ID, internalBalanceAsset, false, *countryConfig.InternalTokenIssuer, "tokenized-asset fiat purchase aborted: internal balance is transit-only"); e != nil {
+			log.Println("[generateAssetSubscriptionFiatXdr] error revoking buyer wallet's internal balance authorization after an aborted purchase", e)
+		}
+	}()
+
+	// 3. issue the internal balance token 1:1 to the buyer, in place of the on-chain stablecoin
+	// payment leg - the fiat payment confirmed later by the webhook is what authorizes this mint
+	ops = append(ops, &basetxn.Payment{
+		Destination:   wallet.ID,
+		Amount:        swapInfo.SwapAmount,
+		Asset:         internalBalanceAsset,
+		SourceAccount: *countryConfig.InternalTokenIssuer,
+	})
+
 	// 5. swap the internal balance token for the tokenized asset
 	ops = append(ops, &basetxn.PathPaymentStrictSend{
 		SendAsset:     internalBalanceAsset,
@@ -3476,15 +3480,6 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 		Path:          path,
 		SourceAccount: wallet.ID,
 	})
-
-	// 6. revoke the buyer's internal balance authorization so it never
-	// persists outside of this purchase - internal balance is a transit
-	// asset only, minted and swapped away within the same purchase, never
-	// something a wallet holds on to independently.
-	if e := network.SetWalletAssetAuthorization(wallet.ID, internalBalanceAsset, false, *countryConfig.InternalTokenIssuer, "tokenized-asset fiat purchase complete: internal balance is transit-only"); e != nil {
-		log.Println("[generateAssetSubscriptionFiatXdr] error revoking buyer wallet's internal balance authorization", e)
-		return "", "", &tErrors.ErrorTemporaryServerError{}
-	}
 
 	memo := fmt.Sprintf("FIAT>%v", swapInfo.DestinationAssetCode)
 	swapInfo.Memo = memo
@@ -3551,6 +3546,26 @@ func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userMod
 	if err != nil {
 		log.Println("[generateAssetSubscriptionFiatXdr] error getting txn base64", err)
 		return "", "", err
+	}
+
+	// 6. revoke the buyer's internal balance authorization so it never
+	// persists outside of this purchase - internal balance is a transit
+	// asset only, minted and swapped away within the same purchase, never
+	// something a wallet holds on to independently.
+	if e := network.SetWalletAssetAuthorization(wallet.ID, internalBalanceAsset, false, *countryConfig.InternalTokenIssuer, "tokenized-asset fiat purchase complete: internal balance is transit-only"); e != nil {
+		log.Println("[generateAssetSubscriptionFiatXdr] error revoking buyer wallet's internal balance authorization", e)
+		return "", "", &tErrors.ErrorTemporaryServerError{}
+	}
+	internalBalanceRevoked = true
+
+	// 4. authorize the buyer's wallet to hold the tokenized asset it's
+	// purchasing - granted last, once nothing else can fail, so an
+	// aborted purchase never leaves a standing authorization.
+	if !destinationAsset.IsNative() && !sourceAccountTrustsDestinationAsset {
+		if e := network.SetWalletAssetAuthorization(wallet.ID, destinationAsset, true, swapInfo.DestinationContractAddress, "tokenized-asset fiat purchase: destination asset authorization"); e != nil {
+			log.Println("[generateAssetSubscriptionFiatXdr] error authorizing buyer wallet for destination asset", e)
+			return "", "", &tErrors.ErrorTemporaryServerError{}
+		}
 	}
 
 	gc.StoreInUseChannelAccount(chanAccount)

@@ -14,9 +14,9 @@ import (
 // separate (rather than importing that package) for the same import-cycle
 // reason documented on isInternalBalanceAsset itself.
 type countryConfigRow struct {
-	CountryCode               string `gorm:"primaryKey;size:2"`
-	InternalBalanceTokenCode  string
-	InternalTokenIssuer       string
+	CountryCode              string `gorm:"primaryKey;size:2"`
+	InternalBalanceTokenCode string
+	InternalTokenIssuer      string
 }
 
 func (countryConfigRow) TableName() string { return "country_configs" }
@@ -24,9 +24,9 @@ func (countryConfigRow) TableName() string { return "country_configs" }
 // tokenizedAssetRow mirrors just the columns isTokenizedAsset's raw query
 // reads from Tokenized_Assets.
 type tokenizedAssetRow struct {
-	ID                     string `gorm:"primaryKey"`
+	ID                      string `gorm:"primaryKey"`
 	AssetTokenizationStatus int
-	AssetCode              string
+	AssetCode               string
 }
 
 func (tokenizedAssetRow) TableName() string { return "Tokenized_Assets" }
@@ -103,6 +103,26 @@ func TestSetAndIsWalletAuthorizedForAsset_InternalBalanceAsset(t *testing.T) {
 	}
 	if IsWalletAuthorizedForAsset(wallet, asset) {
 		t.Fatal("expected wallet to NOT be authorized after revoking")
+	}
+}
+
+func TestSetAndIsWalletAuthorizedForAsset_CaseInsensitive(t *testing.T) {
+	db := setupAuthTestDB(t)
+	if err := db.Create(&tokenizedAssetRow{ID: "ta-1", AssetCode: "REIT1", AssetTokenizationStatus: 5}).Error; err != nil {
+		t.Fatalf("seeding tokenized asset: %v", err)
+	}
+
+	// Granted with a lowercase code and mixed-case addresses...
+	if err := SetWalletAssetAuthorization("0xAbCdEf", basetxn.CreditAsset{Code: "reit1", Issuer: "0xIsSuEr"}, true, "0xIsSuEr", "mixed-case grant"); err != nil {
+		t.Fatalf("SetWalletAssetAuthorization(grant) failed: %v", err)
+	}
+	// ...must be found by the canonical (uppercase code) lookup.
+	if !IsWalletAuthorizedForAsset("0xabcdef", basetxn.CreditAsset{Code: "REIT1", Issuer: "0xissuer"}) {
+		t.Fatal("expected a mixed-case grant to match an uppercase-code lookup")
+	}
+	rows, err := WalletAssetAuthorizations("Reit1", "0xISSUER")
+	if err != nil || len(rows) != 1 {
+		t.Fatalf("expected exactly one authorization row for the asset, got %d (err %v)", len(rows), err)
 	}
 }
 
