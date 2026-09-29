@@ -903,39 +903,76 @@ func (u *UserWallet) GetBlockchainAccountDataKey(gc *sharedconfig.GlobalConfig, 
 	return make(map[string]string)
 }
 
-// SafeDeployment is how a wallet's Safe is (or was) deployed: its owner at
-// deployment and salt nonce fix its address (see internal/aa).
+// SafeDeployment is how a wallet's Safe is (or was) deployed: its owners
+// and threshold at deployment and its salt nonce fix its address (see
+// internal/aa).
 type SafeDeployment struct {
-	Address      string
-	InitialOwner string
-	SaltNonce    string
+	Address   string
+	Owners    []string
+	Threshold int
+	SaltNonce string
 }
 
 func normalizedAddress(a common.Address) string {
 	return strings.ToUpper(a.Hex())
 }
 
+// OwnerAddresses returns Owners as addresses.
+func (d SafeDeployment) OwnerAddresses() []common.Address {
+	out := make([]common.Address, 0, len(d.Owners))
+	for _, o := range d.Owners {
+		out = append(out, common.HexToAddress(o))
+	}
+	return out
+}
+
+// NewSafeDeployment derives the Safe owned by owners with threshold and
+// saltNonce.
+func NewSafeDeployment(owners []string, threshold int, saltNonce *big.Int) SafeDeployment {
+	d := SafeDeployment{Threshold: threshold, SaltNonce: saltNonce.String()}
+	for _, o := range owners {
+		d.Owners = append(d.Owners, normalizedAddress(common.HexToAddress(o)))
+	}
+	d.Address = normalizedAddress(network.AAConfig().SafeAddress(d.OwnerAddresses(), int64(threshold), saltNonce))
+	return d
+}
+
 // PrimarySafeDeployment is a user's primary wallet: the 1-of-1 Safe owned
 // by their signer with salt nonce 0 - the address wallet-core's
 // primarySafeAddress computes on the device at registration.
 func PrimarySafeDeployment(signer string) SafeDeployment {
-	owner := common.HexToAddress(signer)
-	addr := network.AAConfig().SafeAddress([]common.Address{owner}, 1, big.NewInt(0))
-	return SafeDeployment{Address: normalizedAddress(addr), InitialOwner: normalizedAddress(owner), SaltNonce: "0"}
+	return NewSafeDeployment([]string{signer}, 1, big.NewInt(0))
 }
 
-// NewSubWalletSafeDeployment is a new sub-wallet: a 1-of-1 Safe owned by
-// the user's signer, with a random salt nonce (so a user can have any
-// number of them).
-func NewSubWalletSafeDeployment(signer string) (SafeDeployment, error) {
+// RandomSaltNonce is a fresh salt nonce, so a user can have any number of
+// sub-wallets.
+func RandomSaltNonce() (*big.Int, error) {
 	var b [32]byte
 	if _, err := rand.Read(b[:]); err != nil {
+		return nil, err
+	}
+	return new(big.Int).SetBytes(b[:]), nil
+}
+
+// NewSubWalletSafeDeployment is a new sub-wallet owned by the user's
+// signer (1-of-1), with a random salt nonce.
+func NewSubWalletSafeDeployment(signer string) (SafeDeployment, error) {
+	salt, err := RandomSaltNonce()
+	if err != nil {
 		return SafeDeployment{}, err
 	}
-	salt := new(big.Int).SetBytes(b[:])
-	owner := common.HexToAddress(signer)
-	addr := network.AAConfig().SafeAddress([]common.Address{owner}, 1, salt)
-	return SafeDeployment{Address: normalizedAddress(addr), InitialOwner: normalizedAddress(owner), SaltNonce: salt.String()}, nil
+	return NewSafeDeployment([]string{signer}, 1, salt), nil
+}
+
+// InitialOwnerList splits InitialOwners.
+func (u *UserWallet) InitialOwnerList() []string {
+	var out []string
+	for _, o := range strings.Split(u.InitialOwners, ",") {
+		if o = strings.TrimSpace(o); o != "" {
+			out = append(out, o)
+		}
+	}
+	return out
 }
 
 // BuildPrimaryWallet adds the user's primary wallet: the Safe at
@@ -944,15 +981,16 @@ func NewSubWalletSafeDeployment(signer string) (SafeDeployment, error) {
 func (u *User) BuildPrimaryWallet() {
 	description := "Primary/Default wallet"
 	userWallet := UserWallet{
-		ID:            u.Address,
-		Description:   &description,
-		Alias:         u.Username,
-		Signer:        u.PrimarySigner,
-		UserID:        u.ID,
-		PrimaryWallet: 1,
-		InitialOwner:  u.PrimarySigner,
-		SafeSaltNonce: "0",
-		SafeVersion:   aa.SafeVersion,
+		ID:               u.Address,
+		Description:      &description,
+		Alias:            u.Username,
+		Signer:           u.PrimarySigner,
+		UserID:           u.ID,
+		PrimaryWallet:    1,
+		InitialOwners:    u.PrimarySigner,
+		InitialThreshold: 1,
+		SafeSaltNonce:    "0",
+		SafeVersion:      aa.SafeVersion,
 	}
 	u.UserWallets = append(u.UserWallets, userWallet)
 }
@@ -1070,16 +1108,17 @@ func (u *User) BuildNewSubWallet(d SafeDeployment, walletTag, walletDescription 
 	}
 	alias := fmt.Sprintf("%s_%s", u.Username, walletTag)
 	userSubWallet := UserWallet{
-		ID:            subWalletAddress,
-		Tag:           &walletTag,
-		Description:   &walletDescription,
-		Alias:         alias,
-		Signer:        u.PrimarySigner,
-		UserID:        u.ID,
-		WalletType:    walletType,
-		InitialOwner:  d.InitialOwner,
-		SafeSaltNonce: d.SaltNonce,
-		SafeVersion:   aa.SafeVersion,
+		ID:               subWalletAddress,
+		Tag:              &walletTag,
+		Description:      &walletDescription,
+		Alias:            alias,
+		Signer:           u.PrimarySigner,
+		UserID:           u.ID,
+		WalletType:       walletType,
+		InitialOwners:    strings.Join(d.Owners, ","),
+		InitialThreshold: d.Threshold,
+		SafeSaltNonce:    d.SaltNonce,
+		SafeVersion:      aa.SafeVersion,
 	}
 	if len(linkedWalletAddress) > 0 {
 		userSubWallet.LinkedWalletAddress = &linkedWalletAddress
@@ -1180,16 +1219,17 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(d SafeDeployment, owner *User, gc 
 	}
 	alias := fmt.Sprintf("%s_%s", owner.Username, walletTag)
 	userSubWallet := UserWallet{
-		ID:            *uw.LinkedWalletAddress,
-		Tag:           &walletTag,
-		Description:   &walletDescription,
-		Alias:         alias,
-		Signer:        owner.PrimarySigner,
-		UserID:        owner.ID,
-		WalletType:    0,
-		InitialOwner:  d.InitialOwner,
-		SafeSaltNonce: d.SaltNonce,
-		SafeVersion:   aa.SafeVersion,
+		ID:               *uw.LinkedWalletAddress,
+		Tag:              &walletTag,
+		Description:      &walletDescription,
+		Alias:            alias,
+		Signer:           owner.PrimarySigner,
+		UserID:           owner.ID,
+		WalletType:       0,
+		InitialOwners:    strings.Join(d.Owners, ","),
+		InitialThreshold: d.Threshold,
+		SafeSaltNonce:    d.SaltNonce,
+		SafeVersion:      aa.SafeVersion,
 	}
 	return userSubWallet, nil
 }

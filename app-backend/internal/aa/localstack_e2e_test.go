@@ -21,12 +21,13 @@ import (
 // Safe + Safe4337Module, mock USDC, TrovoTokenPaymaster and a dev bundler)
 // and a running paymaster quote service. It is skipped unless
 //
-//	AA_LOCAL_STACK=../paymaster/contracts/deployments/local-stack.json
+//	AA_LOCAL_STACK=$PWD/../paymaster/contracts/deployments/local-stack.json   (absolute; tests run in the package directory)
 //	AA_RPC_URL=http://127.0.0.1:8545          (default)
 //	AA_QUOTE_SERVICE_URL=http://127.0.0.1:8090 AA_QUOTE_SERVICE_API_KEY=...
 //
 // are set. An undeployed, funded Safe activates paying gas in USDC, sends
-// again (pre-charged), then pays gas in ETH.
+// again (pre-charged), pays gas in ETH, then deploys and seeds a sub-wallet
+// Safe (with a second, co-signing owner) the way sub-wallet creation does.
 func TestLocalStackEndToEnd(t *testing.T) {
 	stack := os.Getenv("AA_LOCAL_STACK")
 	if stack == "" {
@@ -145,6 +146,20 @@ func TestLocalStackEndToEnd(t *testing.T) {
 
 	send(safe, big.NewInt(1e17), nil)
 	run("ETH gas", Request{Wallet: w, Calls: []Call{NativeTransfer(recipient, big.NewInt(1e15))}})
+
+	// sub-wallet: the primary Safe deploys a 1-of-2 Safe and seeds it with ETH
+	coSigner, _ := evmkeypair.Random()
+	subOwners := []common.Address{ownerAddr, common.HexToAddress(coSigner.Address())}
+	subSalt := big.NewInt(424242)
+	sub := cfg.SafeAddress(subOwners, 1, subSalt)
+	seed := big.NewInt(1e15)
+	run("sub-wallet", Request{Wallet: w, Calls: []Call{cfg.DeploySafeCall(subOwners, 1, subSalt), NativeTransfer(sub, seed)}, GasToken: gasToken})
+	if owners, threshold, err := OnchainOwners(ctx, client, sub); err != nil || len(owners) != 2 || threshold != 1 {
+		t.Fatalf("sub-wallet owners %v/%d, %v", owners, threshold, err)
+	}
+	if bal, _ := client.BalanceAt(ctx, sub, nil); bal.Cmp(seed) != 0 {
+		t.Fatalf("sub-wallet holds %v wei, want %v", bal, seed)
+	}
 
 	after, _ := callView(ctx, client, usdc, "balanceOf", recipient)
 	if got := new(big.Int).Sub(after[0].(*big.Int), before[0].(*big.Int)); got.Int64() != 6_000000 {

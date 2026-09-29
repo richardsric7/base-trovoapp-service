@@ -76,9 +76,14 @@ func walletOwners(ctx context.Context, w *userModels.UserWallet, gc *sharedconfi
 	if !ok {
 		salt = big.NewInt(0)
 	}
-	aw := aa.Wallet{Address: addr, SaltNonce: salt, InitialThreshold: 1}
-	if common.IsHexAddress(w.InitialOwner) {
-		aw.InitialOwners = []common.Address{common.HexToAddress(w.InitialOwner)}
+	aw := aa.Wallet{Address: addr, SaltNonce: salt, InitialThreshold: int64(w.InitialThreshold)}
+	if aw.InitialThreshold < 1 {
+		aw.InitialThreshold = 1
+	}
+	for _, o := range w.InitialOwnerList() {
+		if common.IsHexAddress(o) {
+			aw.InitialOwners = append(aw.InitialOwners, common.HexToAddress(o))
+		}
 	}
 	deployed, err := aa.Deployed(ctx, gc.BantuExpansionClient, addr)
 	if err != nil {
@@ -92,7 +97,7 @@ func walletOwners(ctx context.Context, w *userModels.UserWallet, gc *sharedconfi
 		aw.Owners, aw.Threshold = owners, threshold
 		return aw, nil
 	}
-	aw.Owners, aw.Threshold = aw.InitialOwners, 1
+	aw.Owners, aw.Threshold = aw.InitialOwners, aw.InitialThreshold
 	return aw, nil
 }
 
@@ -314,13 +319,25 @@ func TrackWalletOperations(ctx context.Context, gc *sharedconfig.GlobalConfig) {
 		}
 		gc.DB.Model(&userModels.WalletOperation{}).Where("id = ?", op.ID).Updates(updates)
 		// the wallet was deployed by this operation, even if its calls reverted
+		now := time.Now()
 		if op.Activation {
-			now := time.Now()
-			gc.DB.Model(&userModels.UserWallet{}).Where("id = ? AND activated = ?", op.WalletAddress, false).Updates(map[string]interface{}{
-				"activated": true, "activated_at": &now, "activation_tx_hash": tx, "activated_by": op.WalletAddress,
-			})
+			markActivated(op.WalletAddress, op.WalletAddress, tx, now, gc)
+		}
+		// wallets it deploys exist only if its calls succeeded
+		if success {
+			for _, w := range strings.Split(op.Deploys, ",") {
+				if w = strings.TrimSpace(w); w != "" {
+					markActivated(w, op.WalletAddress, tx, now, gc)
+				}
+			}
 		}
 	}
+}
+
+func markActivated(wallet, by, tx string, at time.Time, gc *sharedconfig.GlobalConfig) {
+	gc.DB.Model(&userModels.UserWallet{}).Where("UPPER(id) = ? AND activated = ?", strings.ToUpper(wallet), false).Updates(map[string]interface{}{
+		"activated": true, "activated_at": &at, "activation_tx_hash": tx, "activated_by": by,
+	})
 }
 
 // ExpireWalletOperations marks pending operations past their validity.

@@ -160,6 +160,13 @@ func (c Config) InitCode(owners []common.Address, threshold int64, saltNonce *bi
 	return append(append([]byte{}, c.ProxyFactory.Bytes()...), data...)
 }
 
+// DeploySafeCall is a call to the proxy factory deploying the Safe owned by
+// owners/threshold with saltNonce - how a primary wallet deploys its
+// sub-wallets inside its own operation.
+func (c Config) DeploySafeCall(owners []common.Address, threshold int64, saltNonce *big.Int) Call {
+	return Call{To: c.ProxyFactory, Value: big.NewInt(0), Data: pack("createProxyWithNonce", c.Singleton, c.Initializer(owners, threshold), saltNonce)}
+}
+
 // Call is one call the wallet makes.
 type Call = gnosissafe.Call
 

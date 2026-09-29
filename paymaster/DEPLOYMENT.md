@@ -132,10 +132,12 @@ each operation alone with fixed gas estimates - never use it outside
 development.
 
 app-backend's `internal/aa` has an end-to-end test against this stack
-(activation paid in USDC, a second USDC-paid send, an ETH-paid send):
+(activation paid in USDC, a second USDC-paid send, an ETH-paid send, and
+a primary wallet deploying and seeding a 1-of-2 sub-wallet Safe). Run it
+from `app-backend/`:
 
 ```bash
-AA_LOCAL_STACK=../paymaster/contracts/deployments/local-stack.json \
+AA_LOCAL_STACK=$PWD/../paymaster/contracts/deployments/local-stack.json \
 AA_RPC_URL=http://127.0.0.1:8545 \
 AA_QUOTE_SERVICE_URL=http://127.0.0.1:8090 AA_QUOTE_SERVICE_API_KEY=<key> \
 go test ./internal/aa/ -run TestLocalStackEndToEnd -v

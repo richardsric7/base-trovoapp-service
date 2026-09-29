@@ -330,6 +330,29 @@ through the paymaster when the wallet holds some, otherwise in ETH. A
 payment that would leave too little to pay the fee in the same asset is
 refused with `error-insufficient-for-network-fee`.
 
+**Sub-wallets** (`POST /v1/users/subwallet`, and the service-link
+`POST /v1/trovo-api/users/subwallet`). Each sub-wallet is its own Safe,
+deployed by the **primary** wallet, so only the primary wallet signs:
+
+1. First call with `walletType` (0 normal, 1 issuing, 2 market making, 3
+   bulk payment), `walletTag`, `walletDescription`. The backend picks the
+   new Safe's address (the user's signer as owner, a random salt; types 2
+   and 3 also get the platform's co-signer as a second owner, threshold
+   1). An issuing wallet - or a request with any `linkedWalletAddress` -
+   also gets a linked distribution Safe. The response carries `publicKey`
+   (the new wallet), `linkedWalletAddress`, `transaction` (the primary
+   wallet's operation that deploys them, seeds them with ETH and pays the
+   creation fee), `messages` and `feeAmount`/`feeCode`. A `publicKey`
+   sent by the client is ignored.
+2. Second call with `transaction` and `primarySignature`. The wallets are
+   recorded and the operation submitted; they are marked activated when it
+   is mined. `subWalletSignature` / `linkedWalletSignature` /
+   `channelAccountSignature` are no longer used (`subWalletMustSign` and
+   `linkedWalletMustSign` are always 0).
+
+If the primary wallet is not activated yet, the same operation activates
+it too.
+
 **What app-backend calls.** The bundler (`BUNDLER_URL`:
 `eth_estimateUserOperationGas`, `eth_sendUserOperation`,
 `eth_getUserOperationReceipt`) and the paymaster quote service

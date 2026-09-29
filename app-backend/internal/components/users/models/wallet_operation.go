@@ -35,6 +35,10 @@ type WalletOperation struct {
 	ExpiresAt time.Time `gorm:"not null" json:"expiresAt"`
 	// Activation marks the wallet's first operation, which deploys it.
 	Activation bool `gorm:"not null;default:false" json:"activation"`
+	// Deploys lists (comma-separated) other wallets this operation deploys,
+	// e.g. the sub-wallets a primary wallet creates; they are marked
+	// activated when it is mined.
+	Deploys string `gorm:"size:600;not null;default:''" json:"deploys"`
 	// GasToken is the stablecoin paying for gas (empty = ETH).
 	GasToken string `gorm:"size:56;not null;default:''" json:"gasToken"`
 	// UserOpHash is the EntryPoint's hash, known once built; TxHash once mined.

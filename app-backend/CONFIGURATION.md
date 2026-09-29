@@ -406,6 +406,24 @@ per your network's economics (testnet values can be tiny).
 - What they do: each gates a specific wallet-creation or payment flow's minimum/activation amount (see the variable name for which flow).
 - How to get a real value: small positive decimals for testnet; sized appropriately for mainnet gas/dust economics in production.
 
+**Sub-wallet seeds.** `ISSUING_SUB_WALLET_ACTIVATION_AMOUNT`,
+`MM_SUB_WALLET_ACTIVATION_AMOUNT`, `BULKPAYMENT_SUB_WALLET_ACTIVATION_AMOUNT`
+and the fallback `SUB_WALLET_ACTIVATION_AMOUNT` are rows of the
+`activation_amounts` table (id = the name, `amount`, `inactive`), not
+environment variables. The amount is **ETH** the primary wallet sends to
+each new sub-wallet (and its linked distribution wallet) in the operation
+that deploys them, so the sub-wallet can pay its first network fees.
+Missing, inactive or `0` means no seed - the sub-wallet then pays gas in
+the owner's gas-fee stablecoin once it holds some. Example: `0.0002`.
+
+**Sub-wallet creation fee.** The `SUBWALLET_CREATION_FEE` row of the
+`service_fees` table (`fee_fixed`, `fee_asset_code`,
+`fee_contract_address` - empty for ETH - and `inactive`) is charged from
+the primary wallet in the same operation and sent to
+`SUBWALLET_CREATION_FEE_WALLET`. Creation is refused when the primary
+wallet cannot cover the fee, the seeds and (when gas is paid in ETH) the
+network fee.
+
 ---
 
 ## Memo requirements

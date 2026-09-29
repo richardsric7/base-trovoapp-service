@@ -93,12 +93,13 @@ type UserWallet struct {
 	FeeDisabled             int                `gorm:"type:integer; not null; default:0" json:"feeDisabled"`
 	LinkedWalletAddress     *string            `gorm:"index:idx_linked_wallet_pubk, unique" json:"linkedWalletAddress"`
 
-	// How the wallet's Safe was (or will be) deployed. InitialOwner and
-	// SafeSaltNonce fix its address; they are needed to deploy it on its
-	// first operation and never change afterwards.
-	InitialOwner  string `gorm:"size:56;not null;default:''" json:"initialOwner"`
-	SafeSaltNonce string `gorm:"size:80;not null;default:'0'" json:"safeSaltNonce"`
-	SafeVersion   string `gorm:"size:40;not null;default:''" json:"safeVersion"`
+	// How the wallet's Safe was (or will be) deployed. InitialOwners
+	// (comma-separated), InitialThreshold and SafeSaltNonce fix its
+	// address; they are needed to deploy it and never change afterwards.
+	InitialOwners    string `gorm:"size:600;not null;default:''" json:"initialOwners"`
+	InitialThreshold int    `gorm:"not null;default:1" json:"initialThreshold"`
+	SafeSaltNonce    string `gorm:"size:80;not null;default:'0'" json:"safeSaltNonce"`
+	SafeVersion      string `gorm:"size:40;not null;default:''" json:"safeVersion"`
 	// Activated is set once the Safe is deployed on-chain - by the wallet's
 	// own first operation (primary wallets) or by the primary wallet
 	// deploying it (sub-wallets). Funds can be received before that.
