@@ -44,6 +44,14 @@ export function keypairFromMnemonic(mnemonic: string, index: number): WcKeypair;
 export function keypairFromPrivateKey(private_key_hex: string): WcKeypair;
 
 /**
+ * The permanent address of the user's primary wallet: the 1-of-1 Safe
+ * (with the ERC-4337 module) owned by `owner` - the mnemonic key's
+ * address - with `saltNonce` "0". Funds can be received on it before it is
+ * deployed; app-backend re-derives and checks it at registration.
+ */
+export function primarySafeAddress(owner: string, salt_nonce: string): string;
+
+/**
  * Recovers the signer address from a base64 EIP-191 personal_sign
  * signature, without needing a claimed address to check against.
  */
@@ -82,6 +90,7 @@ export interface InitOutput {
     readonly generateMnemonic: () => [number, number, number, number];
     readonly keypairFromMnemonic: (a: number, b: number, c: number) => [number, number, number];
     readonly keypairFromPrivateKey: (a: number, b: number) => [number, number, number];
+    readonly primarySafeAddress: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly recoverPersonalSigner: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly signPersonal: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly signPersonalBytes: (a: number, b: number, c: number, d: number) => [number, number, number, number];

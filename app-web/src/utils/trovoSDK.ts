@@ -20,6 +20,7 @@ import init, {
   signPersonalBytes,
   generateMnemonic as wcGenerateMnemonic,
   keypairFromMnemonic,
+  primarySafeAddress,
 } from '../walletCore/wallet_core.js';
 
 await init();
@@ -87,6 +88,13 @@ const getCredsFromPassPhrase = (passphrase: string): Account | null => {
 
 const generateMnemonic = (): string => wcGenerateMnemonic();
 
+// primaryWalletAddress is the address of the user's primary wallet: a Safe
+// owned by their key (the signer), at a fixed address before it is
+// deployed. Registration sends it as X-TW-PUBLIC-KEY; the backend derives
+// the same address and refuses any other.
+const primaryWalletAddress = (signer: string): string =>
+  primarySafeAddress(signer, '0');
+
 export {
   createAccount,
   signHTTP,
@@ -95,4 +103,5 @@ export {
   parseSecretKey,
   getCredsFromPassPhrase,
   generateMnemonic,
+  primaryWalletAddress,
 };

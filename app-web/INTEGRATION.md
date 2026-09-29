@@ -124,6 +124,7 @@ import init, {
   signPersonalBytes,
   generateMnemonic as wcGenerateMnemonic,
   keypairFromMnemonic,
+  primarySafeAddress,
 } from '../walletCore/wallet_core.js';
 
 await init();
@@ -150,11 +151,34 @@ functions, all backed by `wallet-core`:
 | `getCredsFromPassPhrase(passphrase)` | `keypairFromMnemonic()` | Derive a keypair from a BIP39 mnemonic (BIP44 path `m/44'/60'/0'/0/0`) |
 | `signHTTP(toSign, secretKey)` | `signPersonal()` | EIP-191 `personal_sign` over a string — used for the API request-signing headers described in (a) |
 | `signBase64Txn(secretKey, transactionDigest, _networkPassphrase)` | `signPersonalBytes()` | EIP-191 `personal_sign` over raw bytes decoded from a base64 digest — used to sign transaction digests computed upstream by `app-backend`; the `_networkPassphrase` parameter is unused/vestigial (kept only so call sites don't need to change their argument count) |
+| `primaryWalletAddress(signer)` | `primarySafeAddress(signer, "0")` | The user's primary wallet address: a Safe owned by the key, at a fixed address before it is deployed. Registration sends it as `X-TW-PUBLIC-KEY` (the key's address is `X-TW-SIGNER`); the backend refuses any other |
 
 In short: all private-key material (creation, import, mnemonic
 derivation, and signing) is handled by the `wallet-core` WASM module
 in-browser; private keys are never sent to `app-backend` — only derived
 public addresses and signatures are.
+
+### Wallets are Safes: signer vs address
+
+Every wallet is a Safe smart account. The user's **key** (from the
+mnemonic) is its owner and signs everything; the **wallet address** is the
+Safe. So `X-TW-SIGNER` is always `appUser.primarySigner` and
+`X-TW-PUBLIC-KEY` is the wallet address (`appUser.address` for the primary
+wallet) - they are no longer the same value.
+
+- **Sends** keep their two-call shape: `transaction` in the first
+  response is the base64 hash of the wallet operation; `signBase64Txn`
+  signs it unchanged.
+- **Sub-wallets** are Safes owned by the same key: the "Add Subwallet"
+  form only takes a tag and description, the backend picks the address,
+  and only `primarySignature` is sent (there is no sub-wallet key to
+  generate, import or back up).
+- A wallet's `activated` is `false` until its first send deploys it; the
+  wallet card shows this. It can receive funds before that.
+- **Settings -> Network fees** (`/dashboard/settings`) lets the user pick
+  the stablecoin their wallets pay network fees in
+  (`GET /v1/users/settings/gas-fee-assets`,
+  `PUT /v1/users/settings/gas-fee-asset`; `src/store/api/settingsApis.ts`).
 
 ## (c) No relationship to `tm-api` / `tm-web`
 

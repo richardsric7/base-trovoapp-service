@@ -12,6 +12,7 @@ import {
   createAccount,
   getCredsFromPassPhrase,
   parseSecretKey,
+  primaryWalletAddress,
 } from '../../utils/trovoSDK';
 import { showNotification, toggleLoader } from '../../utils/showToaster';
 import {
@@ -250,8 +251,16 @@ export default function RegistrationForm() {
           ? getAccountFromExistingInfo()
           : createAccount();
 
+        // the key signs; the wallet is the Safe it owns
+        const walletAddress = primaryWalletAddress(account.address);
         setSecretKey(account.secretKey);
-        dispatch(setTempUser({ ...user, address: account.address }));
+        dispatch(
+          setTempUser({
+            ...user,
+            address: walletAddress,
+            primarySigner: account.address,
+          }),
+        );
         dispatch(
           setFormState({
             ...tempData,
@@ -265,7 +274,7 @@ export default function RegistrationForm() {
         toggleLoader();
         const res = await userRegister({
           signer: account.address,
-          address: account.address,
+          address: walletAddress,
           secretKey: account.secretKey,
           body: user,
         });

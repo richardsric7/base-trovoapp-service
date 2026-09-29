@@ -13,6 +13,8 @@ export type User = {
     mobile: string,
     address: string,
     primarySigner: string,
+    // stablecoin the user pays network fees in (null = ETH)
+    gasFeeAsset?: string | null,
     referrer: string,
     referralLink: string,
     referralQrCode: string,

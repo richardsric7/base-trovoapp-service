@@ -59,7 +59,7 @@ function AccountVerification() {
       toggleLoader();
 
       const res = await userRegister({
-        signer: appUser.address,
+        signer: appUser.primarySigner,
         address: appUser.address,
         secretKey: tempData.secretKey,
         body: { ...registrationUser, verificationCode },
@@ -69,7 +69,7 @@ function AccountVerification() {
 
       if ('data' in res) {
         const payload = {
-          signer: appUser.address,
+          signer: appUser.primarySigner,
           address: appUser.address,
           secretKey: tempData.secretKey,
           body: { userId: appUser.username, import: 1 },

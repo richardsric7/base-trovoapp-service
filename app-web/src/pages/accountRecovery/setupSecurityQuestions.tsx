@@ -66,7 +66,7 @@ function SetupSecurityQuestions() {
   const navigate = useNavigate();
 
   const { data, isLoading } = useFetchSecurityQuestionsQuery({
-    signer: user.address,
+    signer: user.primarySigner,
     address: user.address,
     secretKey,
     body: { username: user.username },

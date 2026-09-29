@@ -1443,7 +1443,7 @@ export default function SharedAccessLanding() {
         setDisablePassword('');
 
         const importedPayload = {
-          signer: appUser.address,
+          signer: appUser.primarySigner,
           address: appUser.address,
           secretKey: appUser.secretKeys[0],
           body: { userId: appUser.username, import: 1 },
