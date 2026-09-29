@@ -2273,7 +2273,9 @@ func postTrovoApiUsersOnboardHandler(gc *sharedconfig.GlobalConfig) gin.HandlerF
 
 		err = json.Unmarshal(data, &userRegistrationInfo)
 
-		if len(userRegistrationInfo.Address) != 42 {
+		// publicKey may be omitted: it is derived from primarySigner (the
+		// user's primary Safe) and checked when supplied
+		if len(userRegistrationInfo.Address) != 0 && len(userRegistrationInfo.Address) != 42 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "error-invalid-public-key", "data": "publicKey", "message": "Invalid Public key."})
 			return
 		}
@@ -2536,7 +2538,7 @@ func postTrovoApiTokensMintHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFun
 			return
 		}
 
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		wallet, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2678,7 +2680,7 @@ func getTrovoApiUsersBalanceWalletAddressHandler(gc *sharedconfig.GlobalConfig) 
 		}
 		walletAddress := c.Param("walletAddress")
 
-		wallet, _, err := usersDB.GetWallet(walletAddress, gc.DB)
+		wallet, err := usersDB.GetWallet(walletAddress, gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2814,7 +2816,7 @@ func getTrovoApiUsersPaymentHistoryWalletAddressHandler(gc *sharedconfig.GlobalC
 		}
 		walletAddress := c.Param("walletAddress")
 
-		wallet, temp, err := usersDB.GetWallet(walletAddress, gc.DB)
+		wallet, err := usersDB.GetWallet(walletAddress, gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2829,14 +2831,6 @@ func getTrovoApiUsersPaymentHistoryWalletAddressHandler(gc *sharedconfig.GlobalC
 			return
 		}
 
-		if temp {
-
-			statusCode := http.StatusBadRequest
-			response := gin.H{"error": "error only main wallets allowed", "message": "Only main wallets are allowed. The address you provided is not a main wallet."}
-
-			c.JSON(statusCode, response)
-			return
-		}
 		// check wallet owner to be sure of the oriviledge to access it.
 		walletOwner, err := wallet.GetWalletOwner(gc.DB, gc)
 
@@ -3044,7 +3038,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 			return
 		}
 		//get the wallet you are sending payment from
-		sourceWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		sourceWallet, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractAddress(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] %v error:%v\n", signerAccountAlias, getWalletError)
 		}
@@ -3068,18 +3062,6 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 			return
 		}
 
-		if temp {
-			errAccountIsTemp := &tErrors.CustomError{
-				Param:      "Username",
-				Err:        "error-account-not-primary-account-alias",
-				ErrMessage: "only primary/subwallets are allowed for payment requests",
-				Code:       http.StatusForbidden,
-			}
-
-			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-			return
-
-		}
 		if sourceWallet.WalletType != 0 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
@@ -3106,7 +3088,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 		publicKeyPayment := len(paymentInfo.Destination) == 42
 		if publicKeyPayment {
 			paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
-			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
+			destinationWallet, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
 				destinationUser, _ = destinationWallet.GetWalletOwner(gc.DB, gc)
 				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Address[%v] belongs to the wallet alias [%v] and has been used as destination", paymentInfo.Destination, destinationWallet.Alias))
@@ -3119,7 +3101,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 				//an email...replace the user info
 				destinationUser, err = usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
 				if err == nil {
-					destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(destinationUser.Username, gc.DB)
+					destinationWallet, getDestinationWalletError = usersDB.GetWallet(destinationUser.Username, gc.DB)
 					if getDestinationWalletError == nil {
 						paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Email [%v] belongs to the username [%v] and has been used as destination", paymentInfo.Destination, destinationUser.Username))
 						paymentInfo.Destination = destinationUser.Username
@@ -3130,7 +3112,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 				//a phone...replace the user info
 				destinationUser, err = usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
 				if err == nil {
-					destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(destinationUser.Username, gc.DB)
+					destinationWallet, getDestinationWalletError = usersDB.GetWallet(destinationUser.Username, gc.DB)
 					if getDestinationWalletError == nil {
 						paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Phone [%v] belongs to the username [%v] and has been used as destination", paymentInfo.Destination, destinationUser.Username))
 						paymentInfo.Destination = destinationUser.Username
@@ -3139,7 +3121,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 				}
 			} else {
 				//wallet alias...
-				destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
+				destinationWallet, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 				if getDestinationWalletError == nil {
 					//get destination user:
 					destinationUser, _ = destinationWallet.GetWalletOwner(gc.DB, gc)
@@ -3230,16 +3212,8 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 			}
 			if len(destinationWallet.ID) == 42 {
 				destinationWallet.InvalidateUserCache(gc)
-				if destinationWallet.TempAddress != nil {
-
-					receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempAddress)
-				}
 			}
 			if len(sourceWallet.ID) == 42 {
-				if sourceWallet.TempAddress != nil {
-
-					senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempAddress)
-				}
 
 			}
 
@@ -3281,7 +3255,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 					if paymentInfoReturned.ContractAddress == "" {
 						assetCode = os.Getenv("NATIVE_ASSET_CODE")
 					}
-					senderWallet, _, _ := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+					senderWallet, _ := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 					jsonPayload := payload{
 						Destination:     paymentInfoReturned.Destination,
 						Sender:          senderWallet.Alias,
@@ -4899,7 +4873,7 @@ func postTrovoApiAssetsMarketplacePrimaryHandler(gc *sharedconfig.GlobalConfig) 
 			return
 		}
 		//get the wallet you are sending payment from
-		destinationWallet, temp, getWalletError := usersDB.GetWallet(tInput.DestinationWalletAddress, gc.DB)
+		destinationWallet, getWalletError := usersDB.GetWallet(tInput.DestinationWalletAddress, gc.DB)
 
 		if getWalletError != nil {
 
@@ -4913,19 +4887,6 @@ func postTrovoApiAssetsMarketplacePrimaryHandler(gc *sharedconfig.GlobalConfig) 
 				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
 			}
 			return
-		}
-
-		if temp {
-			errAccountIsTemp := &tErrors.CustomError{
-				Param:      "Username",
-				Err:        "error-account-not-temporary-wallet",
-				ErrMessage: "Only normal/standard wallets are allowed for this request.",
-				Code:       http.StatusForbidden,
-			}
-
-			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-			return
-
 		}
 
 		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tInput.TokenizedAssetID, gc.DB)

@@ -9,22 +9,19 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"trovo-wallet-api/internal/aa"
 	"trovo-wallet-api/internal/basetxn"
 	tErrors "trovo-wallet-api/internal/errors"
-	"trovo-wallet-api/internal/evmkeypair"
 
 	"github.com/ecnepsnai/discord"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
-
-var kTempAccountSalt string = "j4rkTZQ2mLk3NAhK"
 
 // GetBlockchainNetworkPassPhrase is vestigial on Base (Stellar used a
 // network passphrase for signature domain separation; Base's chain ID,
@@ -85,21 +82,10 @@ func GetBlockchainClient() *ethclient.Client {
 	return client
 }
 
-func TempAccountKeypair(publicKey string) (*evmkeypair.Full, error) {
-
-	mnemonic := os.Getenv("MNEMONIC_TEMP_ACCOUNTS")
-
-	h := crypto.Keccak256(
-		[]byte(kTempAccountSalt),
-		[]byte(mnemonic),
-		[]byte(publicKey),
-	)
-
-	var rawSeed [32]byte
-	copy(rawSeed[:], h[0:32])
-
-	return evmkeypair.FromRawSeed(rawSeed)
-
+// AAConfig is the Safe / ERC-4337 configuration every wallet is built
+// from, for BASE_CHAIN_ID (see internal/aa).
+func AAConfig() aa.Config {
+	return aa.ConfigFromEnv(GetBlockchainChainID())
 }
 
 // AccountInfo is the Base equivalent of Stellar's *horizon.Account -

@@ -94,7 +94,7 @@ func GetUserNFTs(user *userModels.User, gc *sharedconfig.GlobalConfig) (userNFTs
 		go func(vg2 userModels.UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 			defer w.Done()
 			//get only the NFTs in the main wallet
-			nfts, errR1 := vg2.GetNFTs(false, gc)
+			nfts, errR1 := vg2.GetNFTs(gc)
 
 			if errR1 != nil {
 				//log server error
@@ -136,7 +136,7 @@ func GetUserWalletAssetBalances(user *userModels.User, gc *sharedconfig.GlobalCo
 		wg.Add(1)
 		go func(vg1 userModels.UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 			defer w.Done()
-			unclaimedBalance, errR1 := vg1.GetSortedUserBalance(true, gc)
+			unclaimedBalance, errR1 := vg1.GetSortedUserBalance(gc)
 
 			if errR1 == nil {
 				//Unclaimed Assets
@@ -149,7 +149,7 @@ func GetUserWalletAssetBalances(user *userModels.User, gc *sharedconfig.GlobalCo
 		wg.Add(1)
 		go func(vg2 userModels.UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 			defer w.Done()
-			claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(false, gc)
+			claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(gc)
 
 			if errR1 != nil {
 				//log server error
@@ -188,7 +188,7 @@ func GetWalletAssetBalances(wallet *userModels.UserWallet, gc *sharedconfig.Glob
 	wg.Add(1)
 	go func(vg1 *userModels.UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 		defer w.Done()
-		unclaimedBalance, errR1 := vg1.GetSortedUserBalance(true, gc)
+		unclaimedBalance, errR1 := vg1.GetSortedUserBalance(gc)
 
 		if errR1 == nil {
 			//Unclaimed Assets
@@ -201,7 +201,7 @@ func GetWalletAssetBalances(wallet *userModels.UserWallet, gc *sharedconfig.Glob
 	wg.Add(1)
 	go func(vg2 *userModels.UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 		defer w.Done()
-		claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(false, gc)
+		claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(gc)
 
 		if errR1 != nil {
 			//log server error

@@ -196,7 +196,7 @@ func getUsersPaymentsTargetAddressForHistoryHandler(callBackRetryChan chan userM
 			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
-		wallet, temp, err := usersDB.GetWallet(targetAddressForHistory, gc.DB)
+		wallet, err := usersDB.GetWallet(targetAddressForHistory, gc.DB)
 
 		if err != nil {
 			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetAddressForHistory, "error: ", err)
@@ -218,14 +218,6 @@ func getUsersPaymentsTargetAddressForHistoryHandler(callBackRetryChan chan userM
 
 			c.JSON(statusCode, response)
 			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
-			return
-		}
-		if temp {
-
-			statusCode := http.StatusBadRequest
-			response := gin.H{"error": "error only main wallets allowed", "message": "Only main wallets are allowed. The address you provided is not a main wallet."}
-
-			c.JSON(statusCode, response)
 			return
 		}
 
@@ -1329,7 +1321,7 @@ func postUsersStablerailOnrampcngnAmountHandler(callBackRetryChan chan userModel
 			}
 			return
 		}
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		wallet, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2197,7 +2189,7 @@ func postSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Retry
 			return
 		}
 
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		wallet, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2251,10 +2243,6 @@ func postSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Retry
 
 		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractAddress(c))
 		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractAddress(c))
-		if wallet.TempAddress != nil {
-
-			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempAddress)
-		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
 		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
@@ -2322,7 +2310,7 @@ func putSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.RetryC
 			return
 		}
 		walletOwner.InvalidateUserCache(gc)
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		wallet, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2394,10 +2382,6 @@ func putSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.RetryC
 
 		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractAddress(c))
 		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractAddress(c))
-		if wallet.TempAddress != nil {
-
-			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempAddress)
-		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
 		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
@@ -2406,7 +2390,7 @@ func putSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.RetryC
 		log.Printf("[MODIFY SHARED ACCESS] Transaction Signature: [%v]\n", sharedAccessInfo.TransactionSignature)
 		if len(sharedAccessInfo.TransactionID) > 0 {
 			if sharedAccessInfo.TransactionID == "PENDING_AUTH" {
-				wallet, _, _ := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+				wallet, _ := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 				//saved to pending auth table for disabling shared access
 				notificationList := make(map[string]string)
 				for _, v := range wallet.Permissions {
@@ -2506,7 +2490,7 @@ func deleteSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Ret
 			return
 		}
 
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		wallet, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2583,10 +2567,6 @@ func deleteSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Ret
 
 		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractAddress(c))
 		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractAddress(c))
-		if wallet.TempAddress != nil {
-
-			tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempAddress)
-		}
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
 		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractAddress(c))
@@ -3164,7 +3144,7 @@ func getSharedAccessWalletBalancesHandler(callBackRetryChan chan userModels.Retr
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permissions to access this wallet."})
 			return
 		}
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		wallet, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -3201,7 +3181,7 @@ func getSharedAccessWalletBalancesHandler(callBackRetryChan chan userModels.Retr
 			c.JSON(statusCode, response)
 			return
 		}
-		nfts, err := wallet.GetNFTs(false, gc)
+		nfts, err := wallet.GetNFTs(gc)
 		if err != nil {
 			log.Println("[GET Wallet Balances] error for signer:", signerUser.Username, "error: ", err)
 
@@ -3281,7 +3261,7 @@ func getTrovoManagerWalletBalancesWalletAddressHandler(callBackRetryChan chan us
 			c.JSON(statusCode, response)
 			return
 		}
-		wallet, _, err := usersDB.GetWallet(walletAddress, gc.DB)
+		wallet, err := usersDB.GetWallet(walletAddress, gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -3380,7 +3360,7 @@ func postUsersTradesHandler(callBackRetryChan chan userModels.RetryCallbacks, gc
 			}
 			return
 		}
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		wallet, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -3497,7 +3477,7 @@ func getCryptoWithdrawalHistoryCurrencyTargetAddressForHistoryHandler(callBackRe
 			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
-		wallet, temp, err := usersDB.GetWallet(targetAddressForHistory, gc.DB)
+		wallet, err := usersDB.GetWallet(targetAddressForHistory, gc.DB)
 
 		if err != nil {
 			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetAddressForHistory, "error: ", err)
@@ -3519,14 +3499,6 @@ func getCryptoWithdrawalHistoryCurrencyTargetAddressForHistoryHandler(callBackRe
 
 			c.JSON(statusCode, response)
 			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
-			return
-		}
-		if temp {
-
-			statusCode := http.StatusBadRequest
-			response := gin.H{"error": "error only main wallets allowed", "message": "Only main wallets are allowed. The address you provided is not a main wallet."}
-
-			c.JSON(statusCode, response)
 			return
 		}
 
@@ -3645,7 +3617,7 @@ func getCryptoDepositHistoryCurrencyTargetAddressForHistoryHandler(callBackRetry
 			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
-		wallet, temp, err := usersDB.GetWallet(targetAddressForHistory, gc.DB)
+		wallet, err := usersDB.GetWallet(targetAddressForHistory, gc.DB)
 
 		if err != nil {
 			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetAddressForHistory, "error: ", err)
@@ -3667,14 +3639,6 @@ func getCryptoDepositHistoryCurrencyTargetAddressForHistoryHandler(callBackRetry
 
 			c.JSON(statusCode, response)
 			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
-			return
-		}
-		if temp {
-
-			statusCode := http.StatusBadRequest
-			response := gin.H{"error": "error only main wallets allowed", "message": "Only main wallets are allowed. The address you provided is not a main wallet."}
-
-			c.JSON(statusCode, response)
 			return
 		}
 
@@ -3826,11 +3790,7 @@ func postCryptoWithdrawalsHandler(callBackRetryChan chan userModels.RetryCallbac
 			return
 		}
 		wdlInput.Currency = strings.ToUpper(wdlInput.Currency)
-		wallet, temp, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
-		if temp {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "error-wallet-forbidden", "message": "Wallet forbidden."})
-			return
-		}
+		wallet, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -3934,11 +3894,7 @@ func postSharedAccessCryptoWithdrawalsHandler(callBackRetryChan chan userModels.
 			return
 		}
 		wdlInput.Currency = strings.ToUpper(wdlInput.Currency)
-		wallet, temp, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
-		if temp {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "error-wallet-forbidden", "message": "Wallet forbidden."})
-			return
-		}
+		wallet, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -4038,7 +3994,7 @@ func postCryptoGenerateAddressesCurrencyHandler(callBackRetryChan chan userModel
 	return func(c *gin.Context) {
 		// var err error
 		currency := strings.ToUpper(c.Param("currency"))
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		wallet, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -4991,7 +4947,7 @@ func postTokenizationExpressedInterestsTokenizedAssetIDHandler(callBackRetryChan
 			return
 		}
 		// //get the wallet you are sending payment from
-		subscriberWallet, _, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		subscriberWallet, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -5114,7 +5070,7 @@ func postTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan chan
 			return
 		}
 		//get the wallet you are sending payment from
-		subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		subscriberWallet, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -5128,19 +5084,6 @@ func postTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan chan
 				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
 			}
 			return
-		}
-
-		if temp {
-			errAccountIsTemp := &tErrors.CustomError{
-				Param:      "Username",
-				Err:        "error-account-not-temporary-wallet",
-				ErrMessage: "Only normal/standard wallets are allowed for this request.",
-				Code:       http.StatusForbidden,
-			}
-
-			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-			return
-
 		}
 
 		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
@@ -5233,7 +5176,7 @@ func postTokenizationSubscriptionsFiatTokenizedAssetIDHandler(callBackRetryChan 
 			return
 		}
 		//get the wallet you are subscribing from
-		subscriberWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		subscriberWallet, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -5247,19 +5190,6 @@ func postTokenizationSubscriptionsFiatTokenizedAssetIDHandler(callBackRetryChan 
 				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
 			}
 			return
-		}
-
-		if temp {
-			errAccountIsTemp := &tErrors.CustomError{
-				Param:      "Username",
-				Err:        "error-account-not-temporary-wallet",
-				ErrMessage: "Only normal/standard wallets are allowed for this request.",
-				Code:       http.StatusForbidden,
-			}
-
-			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-			return
-
 		}
 
 		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
@@ -5348,7 +5278,7 @@ func postSharedAccessTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRe
 			return
 		}
 		//get the wallet you are sending payment from
-		subscriptionWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		subscriptionWallet, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -5362,19 +5292,6 @@ func postSharedAccessTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRe
 				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
 			}
 			return
-		}
-
-		if temp {
-			errAccountIsTemp := &tErrors.CustomError{
-				Param:      "Username",
-				Err:        "error-account-not-temporary-wallet",
-				ErrMessage: "Only normal/standard wallets are allowed for this request.",
-				Code:       http.StatusForbidden,
-			}
-
-			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-			return
-
 		}
 
 		walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)
@@ -6989,7 +6906,7 @@ func putTrovoManagerTokenizationDocumentHandler(callBackRetryChan chan userModel
 			return
 		}
 
-		issuingWallet, temp, getWalletError := usersDB.GetWallet(*t.IssuingWalletAddress, gc.DB)
+		issuingWallet, getWalletError := usersDB.GetWallet(*t.IssuingWalletAddress, gc.DB)
 
 		if getWalletError != nil {
 
@@ -7003,19 +6920,6 @@ func putTrovoManagerTokenizationDocumentHandler(callBackRetryChan chan userModel
 				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
 			}
 			return
-		}
-
-		if temp {
-			errAccountIsTemp := &tErrors.CustomError{
-				Param:      "Username",
-				Err:        "error-account-not-issuing-wallet-alias",
-				ErrMessage: "Only Issuing Wallets are allowed for tokenization requests.",
-				Code:       http.StatusForbidden,
-			}
-
-			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-			return
-
 		}
 
 		if issuingWallet.WalletType != 1 {
@@ -7691,7 +7595,7 @@ func postTokenizationEarlyExitTokenizedAssetIDHandler(gc *sharedconfig.GlobalCon
 			return
 		}
 		//get the wallet you are exiting from
-		exitingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		exitingWallet, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -7705,19 +7609,6 @@ func postTokenizationEarlyExitTokenizedAssetIDHandler(gc *sharedconfig.GlobalCon
 				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
 			}
 			return
-		}
-
-		if temp {
-			errAccountIsTemp := &tErrors.CustomError{
-				Param:      "Username",
-				Err:        "error-account-not-temporary-wallet",
-				ErrMessage: "Only normal/standard wallets are allowed for this request.",
-				Code:       http.StatusForbidden,
-			}
-
-			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-			return
-
 		}
 
 		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
@@ -7817,7 +7708,7 @@ func postSharedAccessTokenizationEarlyExitTokenizedAssetIDHandler(gc *sharedconf
 			return
 		}
 		//get the wallet you are exiting from
-		exitingWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		exitingWallet, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -7831,19 +7722,6 @@ func postSharedAccessTokenizationEarlyExitTokenizedAssetIDHandler(gc *sharedconf
 				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
 			}
 			return
-		}
-
-		if temp {
-			errAccountIsTemp := &tErrors.CustomError{
-				Param:      "Username",
-				Err:        "error-account-not-temporary-wallet",
-				ErrMessage: "Only normal/standard wallets are allowed for this request.",
-				Code:       http.StatusForbidden,
-			}
-
-			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-			return
-
 		}
 
 		walletOwner, err := usersDB.GetUser(middleware.ExtractAddress(c), gc.DB, gc)

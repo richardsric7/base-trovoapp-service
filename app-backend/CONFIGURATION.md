@@ -229,15 +229,10 @@ link) never does this lookup.
 These are BIP-39 mnemonics for internal signer wallets the app uses to
 perform specific categories of on-chain actions automatically.
 
-**`MNEMONIC_TEMP_ACCOUNTS`**
-- Example: `test test test test test test test test test test test junk`
-- What it does: Signer mnemonic used to create/manage temporary accounts (e.g. for onboarding flows). Required to boot.
-- How to get a real value: generate a fresh BIP-39 mnemonic with any standard wallet tool (e.g. `ethers.Wallet.createRandom().mnemonic.phrase` in a Node/ethers.js script) — **use a dedicated, funded-only-as-needed testnet wallet for local dev.**
-
 **`MNEMONIC_ACCOUNT_RECOVERY`** / **`ACCOUNT_RECOVERY_SALT`**
-- Example: mnemonic as above / `openssl rand -hex 16` output
+- Example: `test test test test test test test test test test test junk` / `openssl rand -hex 16` output
 - What it does: Signer mnemonic and salt used in the account-recovery flow's key derivation.
-- How to get a real value: generate the mnemonic as above; generate the salt with `openssl rand -hex 16`.
+- How to get a real value: generate a fresh BIP-39 mnemonic with any standard wallet tool (e.g. `ethers.Wallet.createRandom().mnemonic.phrase` in Node); generate the salt with `openssl rand -hex 16`.
 
 **`MNEMONIC_BULK_PAYMENT`** / **`BULK_PAYMENT_SALT`**
 - Example: mnemonic / `openssl rand -hex 16` output
@@ -276,7 +271,7 @@ perform specific categories of on-chain actions automatically.
 **`CHANNEL_ACCOUNTS`**
 - Example: `0xabc...priv1,0xdef...priv2,0x123...priv3`
 - What it does: A comma-separated list of signer keys ("channel accounts") the app round-robins through to pay gas/sign routine transactions, so a single hot wallet isn't bottlenecked by sequence numbers.
-- How to get a real value: generate N fresh testnet wallets (see `MNEMONIC_TEMP_ACCOUNTS` above for tooling), fund them lightly, and list their private keys here — never reuse mainnet keys with real funds for this in a non-production environment.
+- How to get a real value: generate N fresh testnet wallets (e.g. `cast wallet new`, or `ethers.Wallet.createRandom()` in Node), fund them lightly, and list their private keys here — never reuse mainnet keys with real funds for this in a non-production environment.
 
 **`CHANNEL_ACCOUNT_FUNDER`**
 - Example: a funded wallet's private key

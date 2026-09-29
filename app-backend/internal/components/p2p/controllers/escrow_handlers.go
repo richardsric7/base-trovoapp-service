@@ -55,13 +55,9 @@ func postEscrowDepositHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 			return
 		}
 
-		sourceWallet, temp, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		sourceWallet, err := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 		if err != nil {
 			writeError(c, err)
-			return
-		}
-		if temp {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-account-not-primary-account-alias", "message": "only primary/subwallets are allowed for escrow deposits"})
 			return
 		}
 		if sourceWallet.WalletType != 0 {

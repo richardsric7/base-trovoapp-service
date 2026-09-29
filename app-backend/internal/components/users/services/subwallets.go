@@ -234,7 +234,24 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 	}
 	{
 		//check if the sub-wallet passes the validation
-		subWalletObj, err = accountOwner.BuildNewSubWallet(subWalletInfo.Address, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.WalletType, subWalletInfo.LinkedWalletAddress, gc)
+		// sub-wallets (and an issuing wallet's linked distribution wallet)
+		// are new Safes owned by the user's signer; their addresses are
+		// derived here, not supplied by the app
+		subDeployment, dErr := userModels.NewSubWalletSafeDeployment(accountOwner.PrimarySigner)
+		if dErr != nil {
+			log.Printf("[generateSubWalletXdr] deriving sub-wallet Safe: %v\n", dErr)
+			return "", subWalletObj, linkedWallet, &tErrors.ErrorTemporaryServerError{}
+		}
+		subWalletInfo.Address = subDeployment.Address
+		var linkedDeployment userModels.SafeDeployment
+		if len(subWalletInfo.LinkedWalletAddress) > 0 {
+			linkedDeployment, dErr = userModels.NewSubWalletSafeDeployment(accountOwner.PrimarySigner)
+			if dErr != nil {
+				return "", subWalletObj, linkedWallet, &tErrors.ErrorTemporaryServerError{}
+			}
+			subWalletInfo.LinkedWalletAddress = linkedDeployment.Address
+		}
+		subWalletObj, err = accountOwner.BuildNewSubWallet(subDeployment, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.WalletType, subWalletInfo.LinkedWalletAddress, gc)
 		if err != nil {
 			log.Printf("[generateSubWalletXdr] by [%v] for [%v] BuildNewSubWallet error:[%v] \n", accountOwner.Username, subWalletInfo.Address, err)
 			return "", subWalletObj, linkedWallet, err
@@ -245,7 +262,7 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 
 		//build linked wallet. Linked wallet public key already validated in buildnewsubwallet function. so if it is not valid it won't get here. and if it is valid, then below procedure will execute.
 		if len(subWalletInfo.LinkedWalletAddress) > 0 {
-			linkedWallet, err = subWalletObj.BuildNewLinkedSubWallet(accountOwner, gc)
+			linkedWallet, err = subWalletObj.BuildNewLinkedSubWallet(linkedDeployment, accountOwner, gc)
 			if err != nil {
 				log.Printf("[generateSubWalletXdr] by [%v] for [%v] BuildNewLinkedSubWallet error:[%v] \n", accountOwner.Username, subWalletInfo.Address, err)
 				return "", subWalletObj, linkedWallet, err
@@ -716,7 +733,24 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 	}
 	{
 		//check if the sub-wallet passes the validation
-		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.Address, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.WalletType, subWalletInfo.LinkedWalletAddress, gc)
+		// sub-wallets (and an issuing wallet's linked distribution wallet)
+		// are new Safes owned by the user's signer; their addresses are
+		// derived here, not supplied by the app
+		subDeployment, dErr := userModels.NewSubWalletSafeDeployment(user.PrimarySigner)
+		if dErr != nil {
+			log.Printf("[generateSubWalletXdrWithChannelAccount] deriving sub-wallet Safe: %v\n", dErr)
+			return "", subWalletObj, linkedWallet, &tErrors.ErrorTemporaryServerError{}
+		}
+		subWalletInfo.Address = subDeployment.Address
+		var linkedDeployment userModels.SafeDeployment
+		if len(subWalletInfo.LinkedWalletAddress) > 0 {
+			linkedDeployment, dErr = userModels.NewSubWalletSafeDeployment(user.PrimarySigner)
+			if dErr != nil {
+				return "", subWalletObj, linkedWallet, &tErrors.ErrorTemporaryServerError{}
+			}
+			subWalletInfo.LinkedWalletAddress = linkedDeployment.Address
+		}
+		subWalletObj, err = user.BuildNewSubWallet(subDeployment, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.WalletType, subWalletInfo.LinkedWalletAddress, gc)
 		if err != nil {
 			log.Printf("[generateSubWalletXdrWithChannelAccount] by [%v] for [%v] BuildNewSubWallet error:[%v] \n", user.Username, subWalletInfo.Address, err)
 
@@ -727,7 +761,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 
 		//build linked wallet. Linked wallet public key already validated in buildnewsubwallet function. so if it is not valid it won't get here. and if it is valid, then below procedure will execute.
 		if len(subWalletInfo.LinkedWalletAddress) > 0 {
-			linkedWallet, err = subWalletObj.BuildNewLinkedSubWallet(user, gc)
+			linkedWallet, err = subWalletObj.BuildNewLinkedSubWallet(linkedDeployment, user, gc)
 			if err != nil {
 				log.Printf("[generateSubWalletXdr] by [%v] for [%v] BuildNewLinkedSubWallet error:[%v] \n", user.Username, subWalletInfo.Address, err)
 				return "", subWalletObj, linkedWallet, err

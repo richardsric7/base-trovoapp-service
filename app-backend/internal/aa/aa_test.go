@@ -432,3 +432,16 @@ func TestPrepareDeployedWithAllowanceSkipsApproval(t *testing.T) {
 		t.Fatalf("expected ErrPaymasterUnavailable, got %v", err)
 	}
 }
+
+// TestBaseAddressesMatchWalletCore pins the canonical-Base addresses
+// wallet-core's primarySafeAddress computes (src/safe.rs), so the app and
+// the backend always agree on a user's address.
+func TestBaseAddressesMatchWalletCore(t *testing.T) {
+	cfg := ConfigFromEnv(big.NewInt(8453))
+	owner := []common.Address{common.HexToAddress("0x70997970C51812dc3A010C7d01b50e0d17dc79C8")}
+	for salt, want := range map[int64]string{0: "0xe7a9D4D8a9633bea8f6f891C5D98744356A9259F", 1: "0x3A741746d076eCF518186E8644a70C0982Dd584E"} {
+		if got := cfg.SafeAddress(owner, 1, big.NewInt(salt)).Hex(); got != want {
+			t.Fatalf("salt %d: %s, wallet-core computes %s", salt, got, want)
+		}
+	}
+}

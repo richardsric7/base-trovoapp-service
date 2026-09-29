@@ -3,10 +3,12 @@ package users
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"math/big"
 	"net/http"
 	"os"
 	"sort"
@@ -14,6 +16,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"trovo-wallet-api/internal/aa"
 	"trovo-wallet-api/internal/basetxn"
 	blockchain "trovo-wallet-api/internal/components/assets/blockchain"
 	assetsDB "trovo-wallet-api/internal/components/assets/db"
@@ -24,6 +27,7 @@ import (
 	pns "trovo-wallet-api/internal/pns"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/mailgun/mailgun-go/v4"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
@@ -71,8 +75,8 @@ func selfSignerAccountDetail(address string) AccountDetail {
 }
 
 // GetSigners returns user signers
-func (u *UserWallet) GetSigners(temp bool, gc *sharedconfig.GlobalConfig) (signers map[string]Signer) {
-	account, _, err := u.GetBlockchainAccountDetail(temp, gc)
+func (u *UserWallet) GetSigners(gc *sharedconfig.GlobalConfig) (signers map[string]Signer) {
+	account, _, err := u.GetBlockchainAccountDetail(gc)
 	if err != nil {
 		return signers
 	}
@@ -121,33 +125,39 @@ func (u *UserWallet) SignerIsValidWA(signerKey string, account *AccountDetail) b
 	return true
 }
 
-// SignerIsValid checks if the signerKey is valid for this user public key
-func (u *UserWallet) SignerIsValid(signerKey string, temp bool, gc *sharedconfig.GlobalConfig) bool {
-	signer, ok := u.GetSigners(temp, gc)[signerKey]
-	if !ok || signer.Weight < 1 {
+// SignerIsValid reports whether signerKey may sign for this wallet: it is
+// the wallet's signer or, for a deployed Safe, one of its on-chain owners
+// (e.g. an approver of a shared wallet).
+func (u *UserWallet) SignerIsValid(signerKey string, gc *sharedconfig.GlobalConfig) bool {
+	if !common.IsHexAddress(signerKey) {
 		return false
 	}
-
-	return true
-}
-
-// SignerIsValid checks if the signerKey is valid for this user public key
-func (u *User) SignerIsValid(signerKey string, temp bool, gc *sharedconfig.GlobalConfig) bool {
-	for _, w := range u.UserWallets {
-		if w.ID == w.Signer {
-			signer, ok := w.GetSigners(temp, gc)[signerKey]
-			if !ok || signer.Weight < 1 {
-				return false
-			}
-
+	if strings.EqualFold(u.Signer, signerKey) {
+		return true
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	owners, _, err := aa.OnchainOwners(ctx, gc.BantuExpansionClient, common.HexToAddress(u.ID))
+	if err != nil {
+		return false
+	}
+	want := common.HexToAddress(signerKey)
+	for _, o := range owners {
+		if o == want {
 			return true
 		}
 	}
 	return false
 }
 
+// SignerIsValid reports whether signerKey is the user's current signer
+// (the key their wallets are owned by).
+func (u *User) SignerIsValid(signerKey string, gc *sharedconfig.GlobalConfig) bool {
+	return common.IsHexAddress(signerKey) && strings.EqualFold(u.PrimarySigner, signerKey)
+}
+
 // GetBalance gets user wallet blockchain balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
-func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balances map[string]Balance, err error) {
+func (u *UserWallet) GetBalance(gc *sharedconfig.GlobalConfig) (balances map[string]Balance, err error) {
 	balances = make(map[string]Balance, 0)
 	depositAddresses := make([]CryptoWalletDepositAddress, 0)
 	var nativeCode, nativeIssuer, nativeUsdPrice string
@@ -163,13 +173,6 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 	gasNativePrice := "1"
 	// log.Println("gasUsdPrice", gasUsdPrice)
 	cacheKey := fmt.Sprintf("GetBalance_%s", u.ID)
-	if temp {
-		if u.TempAddress != nil {
-
-			cacheKey = fmt.Sprintf("GetBalance_%s", *u.TempAddress)
-		}
-
-	}
 	{
 
 		// search cache for balance
@@ -184,10 +187,10 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 
 	}
 
-	account, _, err := u.GetBlockchainAccountDetail(temp, gc)
+	account, _, err := u.GetBlockchainAccountDetail(gc)
 	if err != nil {
 		qrCode := ""
-		if !temp {
+		{
 
 			p, e := dl.GeneratePaymentData(u.ID, "", "", "", "", gc)
 			if e == nil {
@@ -210,7 +213,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			CryptoWalletDepositAddresses: depositAddresses,
 		}
 
-		if !temp && err.Error() == "error-blockchain-account-not-activated" {
+		if err.Error() == "error-blockchain-account-not-activated" {
 
 			log.Printf("[GetBalance] get blockchain account detail error: %v\n", err)
 			//save to cache
@@ -219,10 +222,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 
 			return balances, nil
 		}
-		if !temp {
-			return balances, nil
-		}
-		return balances, err
+		return balances, nil
 	}
 	if len(nv) == 2 {
 		checkCacheFirst := false
@@ -254,11 +254,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 
 			assetNativePrice := "0"
 			assetUsdPrice := "0"
-			if (temp && (amount.IsZero())) || (bal.Code == "" && temp) {
-				//if nft or if it has NFT we skip
-				return
-			}
-			if !temp && (strings.HasSuffix(strings.ToLower(bal.Code), "nft")) {
+			if strings.HasSuffix(strings.ToLower(bal.Code), "nft") {
 				//if nft skip in balance
 				return
 			}
@@ -324,7 +320,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			}
 
 			qrCode := ""
-			if !temp {
+			{
 
 				p, e := dl.GeneratePaymentData(u.ID, bal.Code, bal.Issuer, "", "", gc)
 				if e == nil {
@@ -360,7 +356,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 					BuyingLiabilities:  bal.BuyingLiabilities,
 				},
 			}
-			if !temp {
+			{
 				balance.CryptoWalletDepositAddresses = BantuAsset{AssetCode: bal.Code, ContractAddress: bal.Issuer}.GetDepositAddresses(u.ID, gc)
 				//can deposit asset, now get the deposit addresses.
 			}
@@ -390,7 +386,7 @@ func (u *User) GetUserNFTs(gc *sharedconfig.GlobalConfig) (userNFTs map[string][
 		go func(vg2 UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 			defer w.Done()
 			//get only the NFTs in the main wallet
-			nfts, errR1 := vg2.GetNFTs(false, gc)
+			nfts, errR1 := vg2.GetNFTs(gc)
 
 			if errR1 != nil {
 				//log server error
@@ -428,16 +424,9 @@ func (u *User) HasSharedAccessInAnyWallet(gc *sharedconfig.GlobalConfig) (enable
 }
 
 // GetNFTs gets user wallet blockchain NFT balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
-func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []NFT, err error) {
+func (u *UserWallet) GetNFTs(gc *sharedconfig.GlobalConfig) (nfts []NFT, err error) {
 	nfts = make([]NFT, 0)
 	cacheKey := fmt.Sprintf("GetNFTs_%s", u.ID)
-	if temp {
-		if u.TempAddress != nil {
-			cacheKey = fmt.Sprintf("GetNFTs_%s", *u.TempAddress)
-
-		}
-
-	}
 	{
 
 		// search cache for balance
@@ -452,10 +441,10 @@ func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []N
 
 	}
 
-	account, _, err := u.GetBlockchainAccountDetail(temp, gc)
+	account, _, err := u.GetBlockchainAccountDetail(gc)
 	if err != nil {
 
-		if !temp && err.Error() == "error-blockchain-account-not-activated" {
+		if err.Error() == "error-blockchain-account-not-activated" {
 
 			//save to cache
 			gc.RedisCache.StoreResultToCacheRaw(cacheKey, nfts, 0)
@@ -500,10 +489,10 @@ func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []N
 }
 
 // GetSortedUserBalance gets user blockchain balance
-func (u *UserWallet) GetSortedUserBalance(temp bool, gc *sharedconfig.GlobalConfig) (balances []Balance, err error) {
+func (u *UserWallet) GetSortedUserBalance(gc *sharedconfig.GlobalConfig) (balances []Balance, err error) {
 	balances = make([]Balance, 0)
 	//GetBalance
-	unsortedBalances, err := u.GetBalance(temp, gc)
+	unsortedBalances, err := u.GetBalance(gc)
 	if err != nil {
 		// qrCode := ""
 		// if !temp {
@@ -589,7 +578,7 @@ func (u *UserWallet) GetWalletAssetBalances(gc *sharedconfig.GlobalConfig) (asse
 	wg.Add(1)
 	go func(vg1 *UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 		defer w.Done()
-		unclaimedBalance, errR1 := vg1.GetSortedUserBalance(true, gc)
+		unclaimedBalance, errR1 := vg1.GetSortedUserBalance(gc)
 
 		if errR1 == nil {
 			//Unclaimed Assets
@@ -609,7 +598,7 @@ func (u *UserWallet) GetWalletAssetBalances(gc *sharedconfig.GlobalConfig) (asse
 	wg.Add(1)
 	go func(vg2 *UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 		defer w.Done()
-		claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(false, gc)
+		claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(gc)
 
 		if errR1 != nil {
 			//log server error
@@ -646,7 +635,7 @@ func (u *User) GetUserWalletAssetBalances(gc *sharedconfig.GlobalConfig) (userWa
 		wg.Add(1)
 		go func(vg1 UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 			defer w.Done()
-			unclaimedBalance, errR1 := vg1.GetSortedUserBalance(true, gc)
+			unclaimedBalance, errR1 := vg1.GetSortedUserBalance(gc)
 
 			if errR1 == nil {
 				//Unclaimed Assets
@@ -667,7 +656,7 @@ func (u *User) GetUserWalletAssetBalances(gc *sharedconfig.GlobalConfig) (userWa
 		wg.Add(1)
 		go func(vg2 UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 			defer w.Done()
-			claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(false, gc)
+			claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(gc)
 
 			if errR1 != nil {
 				//log server error
@@ -710,7 +699,7 @@ func (id UserWalletID) GetWalletAssetBalances(gc *sharedconfig.GlobalConfig) (as
 	wg.Add(1)
 	go func(vg1 *UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 		defer w.Done()
-		unclaimedBalance, errR1 := vg1.GetSortedUserBalance(true, gc)
+		unclaimedBalance, errR1 := vg1.GetSortedUserBalance(gc)
 
 		if errR1 == nil {
 			//Unclaimed Assets
@@ -723,7 +712,7 @@ func (id UserWalletID) GetWalletAssetBalances(gc *sharedconfig.GlobalConfig) (as
 	wg.Add(1)
 	go func(vg2 *UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 		defer w.Done()
-		claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(false, gc)
+		claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(gc)
 
 		if errR1 != nil {
 			//log server error
@@ -742,8 +731,8 @@ func (id UserWalletID) GetWalletAssetBalances(gc *sharedconfig.GlobalConfig) (as
 }
 
 // GetAccountThresholds returns user signers
-func (u *UserWallet) GetAccountThresholds(temp bool, gc *sharedconfig.GlobalConfig) (thresholds Thresholds) {
-	account, _, err := u.GetBlockchainAccountDetail(temp, gc)
+func (u *UserWallet) GetAccountThresholds(gc *sharedconfig.GlobalConfig) (thresholds Thresholds) {
+	account, _, err := u.GetBlockchainAccountDetail(gc)
 	if err != nil {
 		return thresholds
 	}
@@ -798,18 +787,8 @@ func fetchAccountDetail(address string, gc *sharedconfig.GlobalConfig, cacheKey 
 }
 
 // GetBlockchainAccountDetail fetches the bantu account information using public key
-func (u *UserWallet) GetBlockchainAccountDetail(temp bool, gc *sharedconfig.GlobalConfig) (clientAccount AccountDetail, destinationAccountExists bool, err error) {
-	address := u.ID
-	cacheKey := fmt.Sprintf("bca_%v", u.ID)
-	if temp {
-		if u.TempAddress == nil {
-			err = &tErrors.ErrorBlockchainAccountNotActivated{}
-			return
-		}
-		address = *u.TempAddress
-		cacheKey = fmt.Sprintf("bca_%v", *u.TempAddress)
-	}
-	return fetchAccountDetail(address, gc, cacheKey)
+func (u *UserWallet) GetBlockchainAccountDetail(gc *sharedconfig.GlobalConfig) (clientAccount AccountDetail, destinationAccountExists bool, err error) {
+	return fetchAccountDetail(u.ID, gc, fmt.Sprintf("bca_%v", u.ID))
 }
 
 type MarketOfferWallet string
@@ -920,30 +899,68 @@ func (u *User) VerifyEmailOnMailgun() (validationResult mailgun.EmailVerificatio
 // on-chain manage_data store. Base/EVM accounts have no equivalent store
 // - see GetDataKey's doc in assets.go for the same simplification applied
 // there.
-func (u *UserWallet) GetBlockchainAccountDataKey(temp bool, gc *sharedconfig.GlobalConfig, keys ...string) (dataValues map[string]string) {
+func (u *UserWallet) GetBlockchainAccountDataKey(gc *sharedconfig.GlobalConfig, keys ...string) (dataValues map[string]string) {
 	return make(map[string]string)
 }
 
-func (u *User) BuildPrimaryWallet() {
-	tempKP, _ := network.TempAccountKeypair(u.Address)
-	var tempPK string
-	if tempKP != nil {
-		tempPK = tempKP.Address()
+// SafeDeployment is how a wallet's Safe is (or was) deployed: its owner at
+// deployment and salt nonce fix its address (see internal/aa).
+type SafeDeployment struct {
+	Address      string
+	InitialOwner string
+	SaltNonce    string
+}
+
+func normalizedAddress(a common.Address) string {
+	return strings.ToUpper(a.Hex())
+}
+
+// PrimarySafeDeployment is a user's primary wallet: the 1-of-1 Safe owned
+// by their signer with salt nonce 0 - the address wallet-core's
+// primarySafeAddress computes on the device at registration.
+func PrimarySafeDeployment(signer string) SafeDeployment {
+	owner := common.HexToAddress(signer)
+	addr := network.AAConfig().SafeAddress([]common.Address{owner}, 1, big.NewInt(0))
+	return SafeDeployment{Address: normalizedAddress(addr), InitialOwner: normalizedAddress(owner), SaltNonce: "0"}
+}
+
+// NewSubWalletSafeDeployment is a new sub-wallet: a 1-of-1 Safe owned by
+// the user's signer, with a random salt nonce (so a user can have any
+// number of them).
+func NewSubWalletSafeDeployment(signer string) (SafeDeployment, error) {
+	var b [32]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return SafeDeployment{}, err
 	}
+	salt := new(big.Int).SetBytes(b[:])
+	owner := common.HexToAddress(signer)
+	addr := network.AAConfig().SafeAddress([]common.Address{owner}, 1, salt)
+	return SafeDeployment{Address: normalizedAddress(addr), InitialOwner: normalizedAddress(owner), SaltNonce: salt.String()}, nil
+}
+
+// BuildPrimaryWallet adds the user's primary wallet: the Safe at
+// u.Address, owned by u.PrimarySigner. Registration has already checked
+// that u.Address is PrimarySafeDeployment(u.PrimarySigner).Address.
+func (u *User) BuildPrimaryWallet() {
 	description := "Primary/Default wallet"
 	userWallet := UserWallet{
 		ID:            u.Address,
-		TempAddress:   &tempPK,
 		Description:   &description,
 		Alias:         u.Username,
-		Signer:        u.Address,
+		Signer:        u.PrimarySigner,
 		UserID:        u.ID,
 		PrimaryWallet: 1,
+		InitialOwner:  u.PrimarySigner,
+		SafeSaltNonce: "0",
+		SafeVersion:   aa.SafeVersion,
 	}
 	u.UserWallets = append(u.UserWallets, userWallet)
 }
 
-func (u *User) BuildNewSubWallet(subWalletAddress, walletTag, walletDescription string, walletType int, linkedWalletAddress string, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+// BuildNewSubWallet builds (does not save) a sub-wallet record for the Safe
+// described by d.
+func (u *User) BuildNewSubWallet(d SafeDeployment, walletTag, walletDescription string, walletType int, linkedWalletAddress string, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+	subWalletAddress := d.Address
 	walletTag = strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(walletTag, "_", ""), ".", ""), " ", ""), "%", ""))
 	walletDescription = strings.TrimSpace(walletDescription)
 	hasMMSubwallet := false
@@ -1051,30 +1068,18 @@ func (u *User) BuildNewSubWallet(subWalletAddress, walletTag, walletDescription 
 			}
 		}
 	}
-	tempKP, pErr := network.TempAccountKeypair(subWalletAddress)
-	var tempPK string
-	if pErr != nil {
-		return userWallet, &tErrors.CustomError{
-			Param:      "id",
-			Err:        "error-sub-wallet-public-key-invalid",
-			ErrMessage: "Sub-wallet public key is invalid",
-			Code:       http.StatusBadRequest,
-		}
-	}
-	if tempKP != nil {
-		tempPK = tempKP.Address()
-	}
-
 	alias := fmt.Sprintf("%s_%s", u.Username, walletTag)
 	userSubWallet := UserWallet{
-		ID:          subWalletAddress,
-		TempAddress: &tempPK,
-		Tag:         &walletTag,
-		Description: &walletDescription,
-		Alias:       alias,
-		Signer:      u.PrimarySigner,
-		UserID:      u.ID,
-		WalletType:  walletType,
+		ID:            subWalletAddress,
+		Tag:           &walletTag,
+		Description:   &walletDescription,
+		Alias:         alias,
+		Signer:        u.PrimarySigner,
+		UserID:        u.ID,
+		WalletType:    walletType,
+		InitialOwner:  d.InitialOwner,
+		SafeSaltNonce: d.SaltNonce,
+		SafeVersion:   aa.SafeVersion,
 	}
 	if len(linkedWalletAddress) > 0 {
 		userSubWallet.LinkedWalletAddress = &linkedWalletAddress
@@ -1083,7 +1088,12 @@ func (u *User) BuildNewSubWallet(subWalletAddress, walletTag, walletDescription 
 	return userSubWallet, nil
 }
 
-func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+// BuildNewLinkedSubWallet builds the record of uw's linked wallet (e.g. an
+// issuing wallet's distribution wallet), the Safe described by d.
+func (uw *UserWallet) BuildNewLinkedSubWallet(d SafeDeployment, owner *User, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+	if uw.LinkedWalletAddress != nil && !strings.EqualFold(*uw.LinkedWalletAddress, d.Address) {
+		return userWallet, &tErrors.CustomError{Param: "linkedWalletAddress", Err: "error-linked-wallet-public-key-invalid", ErrMessage: "Linked wallet does not match its Safe deployment.", Code: http.StatusBadRequest}
+	}
 	if uw.LinkedWalletAddress == nil {
 		return userWallet, &tErrors.CustomError{
 			Param:      "id",
@@ -1168,30 +1178,18 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(owner *User, gc *sharedconfig.Glob
 			}
 		}
 	}
-	tempKP, pErr := network.TempAccountKeypair(*uw.LinkedWalletAddress)
-	var tempPK string
-	if pErr != nil {
-		return userWallet, &tErrors.CustomError{
-			Param:      "id",
-			Err:        "error-sub-wallet-public-key-invalid",
-			ErrMessage: "Sub-wallet public key is invalid",
-			Code:       http.StatusBadRequest,
-		}
-	}
-	if tempKP != nil {
-		tempPK = tempKP.Address()
-	}
-
 	alias := fmt.Sprintf("%s_%s", owner.Username, walletTag)
 	userSubWallet := UserWallet{
-		ID:          *uw.LinkedWalletAddress,
-		TempAddress: &tempPK,
-		Tag:         &walletTag,
-		Description: &walletDescription,
-		Alias:       alias,
-		Signer:      owner.PrimarySigner,
-		UserID:      owner.ID,
-		WalletType:  0,
+		ID:            *uw.LinkedWalletAddress,
+		Tag:           &walletTag,
+		Description:   &walletDescription,
+		Alias:         alias,
+		Signer:        owner.PrimarySigner,
+		UserID:        owner.ID,
+		WalletType:    0,
+		InitialOwner:  d.InitialOwner,
+		SafeSaltNonce: d.SaltNonce,
+		SafeVersion:   aa.SafeVersion,
 	}
 	return userSubWallet, nil
 }
@@ -1214,9 +1212,9 @@ func (u UserWallet) IsValidLinkedWallet(gc *sharedconfig.GlobalConfig) (w UserWa
 	return w, false
 }
 
-func (lw *LinkedWalletAddress) BuildNewLinkedSubWallet(owner *User, uw *UserWallet, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+func (lw *LinkedWalletAddress) BuildNewLinkedSubWallet(d SafeDeployment, owner *User, uw *UserWallet, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
 
-	return uw.BuildNewLinkedSubWallet(owner, gc)
+	return uw.BuildNewLinkedSubWallet(d, owner, gc)
 
 }
 
@@ -2779,12 +2777,6 @@ func (u *User) InvalidateUserWalletCache(gc *sharedconfig.GlobalConfig) {
 		cacheKeyWalletID := fmt.Sprintf("walletObj_%v", w.ID)
 		cacheKeyPShared := fmt.Sprintf("FetchWalletsPermissionsSharedWithUser_%s", w.UserID)
 		cacheKeybca1 := fmt.Sprintf("bca_%v", w.ID)
-		if w.TempAddress != nil {
-			cacheKeytempW := fmt.Sprintf("GetBalance_%s", *w.TempAddress)
-			cacheKeybca2 := fmt.Sprintf("bca_%v", *w.TempAddress)
-			gc.RedisCache.DeleteFromCache(cacheKeybca2, cacheKeytempW)
-
-		}
 
 		gc.RedisCache.DeleteFromCache(cacheKeyPShared, cacheKeyWalletAlias, cacheKeyWalletID, cacheKey1, cacheKey3, cacheKey4, cacheKeySigner, cacheKeyUserID, cacheKeybca1)
 

@@ -56,7 +56,7 @@ func postUsersSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 			}
 		}
 
-		wallet, temp, getWalletError := usersdb.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		wallet, getWalletError := usersdb.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -79,11 +79,6 @@ func postUsersSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 
 		if wallet.WalletType == 2 || wallet.WalletType == 3 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Market Making & Bulk Payment wallets are not allowed for this operation."})
-			return
-		}
-
-		if temp {
-			c.JSON(http.StatusBadRequest, (&tErrors.CustomError{Param: "publicKey", Err: "error-temporary-account-forbidden", ErrMessage: "temporary accounts are forbidden from making payment or swap requests", Code: http.StatusForbidden}).JSONError())
 			return
 		}
 
@@ -239,7 +234,7 @@ func postSharedAccessSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc 
 
 		}
 
-		wallet, temp, getWalletError := usersdb.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		wallet, getWalletError := usersdb.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -256,11 +251,6 @@ func postSharedAccessSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc 
 		}
 		if wallet.WalletType == 2 || wallet.WalletType == 3 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Market Making & Bulk Payment wallets are not allowed for this operation."})
-			return
-		}
-
-		if temp {
-			c.JSON(http.StatusBadRequest, (&tErrors.CustomError{Param: "publicKey", Err: "error-temporary-account-forbidden", ErrMessage: "temporary accounts are forbidden from making payment or swap requests", Code: http.StatusForbidden}).JSONError())
 			return
 		}
 

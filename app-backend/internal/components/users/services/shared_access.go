@@ -10,12 +10,12 @@ import (
 	"sort"
 	"strings"
 	"trovo-wallet-api/internal/basetxn"
-	"trovo-wallet-api/internal/evmkeypair"
 	bc "trovo-wallet-api/internal/blockchainalgofuncs"
 	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -2380,11 +2380,8 @@ func HasAccessToAddress(signerAddress, targetAddress string, gc *sharedconfig.Gl
 	if err != nil {
 		return false
 	}
-	wallet, temp, err := usersDB.GetWallet(targetAddress, gc.DB)
+	wallet, err := usersDB.GetWallet(targetAddress, gc.DB)
 	if err != nil {
-		return false
-	}
-	if temp {
 		return false
 	}
 	if wallet.SharedAccessEnabled == 0 {

@@ -88,7 +88,7 @@ func authorizeIssuerSigner(approverSigner, assetCode, contractAddress, action st
 			Code:       http.StatusBadRequest,
 		}
 	}
-	issuingWallet, _, err := usersDB.GetWallet(*ta.IssuingWalletAddress, gc.DB)
+	issuingWallet, err := usersDB.GetWallet(*ta.IssuingWalletAddress, gc.DB)
 	if err != nil {
 		return ta, err
 	}

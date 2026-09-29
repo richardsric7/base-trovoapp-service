@@ -158,7 +158,7 @@ func deployIssuingSafe(issuerProfile *userModels.User, ato *userModels.Tokenized
 		return existing, nil
 	}
 
-	row, err := issuerProfile.BuildNewSubWallet(safeAddress, *ato.AssetCode+"issuer", fmt.Sprintf("Issuing Safe for %v", *ato.AssetCode), 1, "", gc)
+	row, err := issuerProfile.BuildNewSubWallet(userModels.SafeDeployment{Address: safeAddress}, *ato.AssetCode+"issuer", fmt.Sprintf("Issuing Safe for %v", *ato.AssetCode), 1, "", gc)
 	if err != nil {
 		log.Printf("[deployIssuingSafe] building wallet record for issuing Safe %v: %v\n", safeAddress, err)
 		return userModels.UserWallet{}, err

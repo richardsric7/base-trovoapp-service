@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"strings"
 	"time"
 	users "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
@@ -13,6 +15,7 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/ecnepsnai/discord"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/nyaruka/phonenumbers"
 	"github.com/shopspring/decimal"
 )
@@ -26,6 +29,23 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 	// if banned, errBanned := users.AddressIsBanned(userInfo.Address, gc.DB); banned {
 	// 	return userInfo, false, errBanned
 	// }
+
+	// The user's address is their primary wallet: the Safe owned by their
+	// signer (their mnemonic key), which the app computes with wallet-core.
+	// Derive it when it is not supplied, and refuse one that does not
+	// belong to the signer - no one can register an address their key
+	// does not control.
+	if !common.IsHexAddress(userInfo.PrimarySigner) {
+		return userInfo, false, &tErrors.CustomError{Param: "primarySigner", Err: "error-invalid-primary-signer-public-key", ErrMessage: "Invalid signer address.", Code: http.StatusBadRequest}
+	}
+	primarySafe := userModels.PrimarySafeDeployment(userInfo.PrimarySigner)
+	if strings.TrimSpace(userInfo.Address) == "" {
+		userInfo.Address = primarySafe.Address
+	}
+	if !strings.EqualFold(strings.TrimSpace(userInfo.Address), primarySafe.Address) {
+		log.Printf("[RegisterUser] address %v is not the primary Safe of signer %v (expected %v)\n", userInfo.Address, userInfo.PrimarySigner, primarySafe.Address)
+		return userInfo, false, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-address-mismatch", ErrMessage: "This wallet address does not belong to your key. Please update the app and try again.", Code: http.StatusBadRequest}
+	}
 	keyExists, errExists := users.AddressAlreadyExists(userInfo.Address, gc.DB)
 	if errExists != nil && !keyExists {
 		//server error
@@ -35,7 +55,7 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 
 		return userInfo, false, errExists
 	}
-	exists, errExists := users.PrimarySignerAlreadyExists(userInfo.Address, gc.DB)
+	exists, errExists := users.PrimarySignerAlreadyExists(userInfo.PrimarySigner, gc.DB)
 	if errExists != nil && !exists {
 		//system error
 		return userInfo, false, errExists

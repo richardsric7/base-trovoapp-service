@@ -220,6 +220,9 @@ mod tests {
         assert_ne!(a, c);
         assert_eq!(a, primary_safe_address("0x70997970c51812dc3a010c7d01b50e0d17dc79c8", "0x0").unwrap());
         assert!(a.starts_with("0x") && a.len() == 42);
+        // pinned with app-backend's internal/aa (TestBaseAddressesMatchWalletCore)
+        assert_eq!(a, "0xe7a9D4D8a9633bea8f6f891C5D98744356A9259F");
+        assert_eq!(b, "0x3A741746d076eCF518186E8644a70C0982Dd584E");
     }
 }
 

@@ -412,7 +412,7 @@ func generatePaymentXdr(client *ethclient.Client, owner *userModels.User, source
 		paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: [%v] belongs to the wallet alias [%v] and will be used as the destination.", paymentInfo.Destination, destinationInfo.Username))
 		paymentInfo.Destination = destinationInfo.Username
 	}
-	destinationWallet, _, _ := usersDB.GetWallet(paymentInfo.Destination, db)
+	destinationWallet, _ := usersDB.GetWallet(paymentInfo.Destination, db)
 
 	if len(destinationWallet.ID) == 0 && !publicKeyPayment {
 		log.Printf("[generatePaymentXdr]Could not get destination wallet for payment destination: %v\n", paymentInfo.Destination)
@@ -930,7 +930,7 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 
 	}
 	destinationInfo, getDestinationError := usersDB.GetUser(mintingInfo.Destination, db, gc)
-	destinationWallet, _, destinationWalletError := usersDB.GetWallet(mintingInfo.Destination, db)
+	destinationWallet, destinationWalletError := usersDB.GetWallet(mintingInfo.Destination, db)
 
 	if (getDestinationError != nil || destinationWalletError != nil) && len(mintingInfo.Destination) != 42 {
 		return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
@@ -1151,7 +1151,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 		asset = basetxn.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.ContractAddress}
 	}
 	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
-	destinationWallet, _, _ := usersDB.GetWallet(paymentInfo.Destination, gc.DB)
+	destinationWallet, _ := usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	if getDestinationError != nil && len(paymentInfo.Destination) != 42 {
 		return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
