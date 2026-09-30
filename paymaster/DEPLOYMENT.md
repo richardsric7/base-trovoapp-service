@@ -132,8 +132,13 @@ each operation alone with fixed gas estimates - never use it outside
 development.
 
 app-backend's `internal/aa` has an end-to-end test against this stack
-(activation paid in USDC, a second USDC-paid send, an ETH-paid send, and
-a primary wallet deploying and seeding a 1-of-2 sub-wallet Safe). Run it
+(activation paid in USDC, a second USDC-paid send, an ETH-paid send, a
+primary wallet deploying and seeding a 1-of-2 sub-wallet Safe, a linked
+distribution Safe managed through a module, a 2-of-3 approved payment, and
+the gas-debt cycle: an activation that spends every token it holds leaves
+debt, the quote service refuses the wallet, an ETH-paid operation settles
+it, and stablecoin gas works again). Every stablecoin-paid step also
+checks the charge the backend reads from the receipt. Run it
 from `app-backend/`:
 
 ```bash

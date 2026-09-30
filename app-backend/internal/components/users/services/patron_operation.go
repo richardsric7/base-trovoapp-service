@@ -118,6 +118,6 @@ func submitPatronSubscription(owner *userModels.User, patronSubInput *userModels
 	}
 	patronSubInput.Transaction = op.Transaction
 	patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription. This is inclusive of VAT (%v %v)", total, asset.Code, owner.Username, vat, asset.Code))
-	patronSubInput.Messages = append(patronSubInput.Messages, operationMessages(op.Prepared)...)
+	patronSubInput.Messages = append(patronSubInput.Messages, op.Messages()...)
 	return nil
 }

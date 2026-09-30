@@ -154,7 +154,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 		return paymentInfo, nil, err
 	}
 	paymentInfo.Transaction = op.Transaction
-	paymentInfo.Messages = append(paymentInfo.Messages, operationMessages(op.Prepared)...)
+	paymentInfo.Messages = append(paymentInfo.Messages, op.Messages()...)
 	paymentInfo.SignatureRequired = 1
 	if paymentInfo.Multiparty == 1 && paymentInfo.Commit == 1 {
 		return paymentInfo, destinationUser, createPaymentApprovalRequest(signerUser, sourceWallet, paymentInfo, gc)

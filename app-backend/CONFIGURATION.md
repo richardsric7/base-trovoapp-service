@@ -262,6 +262,10 @@ builds, the user's app signs, and the backend submits to our bundler.
 The wallet pays its own gas - in the stablecoin the user chose on their
 profile (through the paymaster, see [`paymaster/`](../paymaster/README.md)),
 or in ETH. See `internal/aa` and `internal/components/users/services/wallet_operations.go`.
+Stablecoin gas the paymaster collects is recorded in `fee_collections`
+(type `GAS`); a wallet that owes the paymaster gas (see INTEGRATION.md,
+"Gas debt") pays in ETH and settles the debt automatically. Nothing
+needs configuring for either beyond `PAYMASTER_ADDRESS`.
 
 **`BUNDLER_URL`**
 - Example: `http://bundler.internal:4337/rpc`

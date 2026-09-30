@@ -139,6 +139,10 @@ type Caller interface {
 	CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error)
 }
 
+func callRaw(ctx context.Context, c Caller, to common.Address, data []byte) ([]byte, error) {
+	return c.CallContract(ctx, ethereum.CallMsg{To: &to, Data: data}, nil)
+}
+
 func callView(ctx context.Context, c Caller, to common.Address, method string, args ...interface{}) ([]interface{}, error) {
 	data := pack(method, args...)
 	out, err := c.CallContract(ctx, ethereum.CallMsg{To: &to, Data: data}, nil)

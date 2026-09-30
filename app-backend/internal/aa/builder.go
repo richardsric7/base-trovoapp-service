@@ -115,6 +115,10 @@ type Builder struct {
 var (
 	ErrInsufficientGasFunds = errors.New("aa: the wallet cannot pay for this operation's gas")
 	ErrPaymasterUnavailable = errors.New("aa: paying gas in this token is unavailable right now")
+	// ErrOutstandingDebt (with ErrPaymasterUnavailable): the wallet owes the
+	// paymaster gas from an earlier operation, so it must pay in ETH until
+	// the debt is settled.
+	ErrOutstandingDebt = errors.New("aa: the wallet owes the paymaster for earlier gas")
 )
 
 var maxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
@@ -273,6 +277,9 @@ func (b *Builder) Prepare(ctx context.Context, req Request) (*Prepared, error) {
 func (b *Builder) quoteErr(err error) error {
 	var qe *QuoteError
 	if errors.As(err, &qe) {
+		if qe.Code == "outstanding-debt" {
+			return fmt.Errorf("%w: %w: %s", ErrPaymasterUnavailable, ErrOutstandingDebt, qe.Message)
+		}
 		return fmt.Errorf("%w: %s", ErrPaymasterUnavailable, qe.Message)
 	}
 	return fmt.Errorf("%w: %v", ErrPaymasterUnavailable, err)

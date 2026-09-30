@@ -330,6 +330,26 @@ through the paymaster when the wallet holds some, otherwise in ETH. A
 payment that would leave too little to pay the fee in the same asset is
 refused with `error-insufficient-for-network-fee`.
 
+**Gas debt.** A new wallet's first operation cannot pre-pay its
+stablecoin fee (the wallet approves the paymaster inside that operation),
+so the paymaster takes it afterwards; if the operation spent the tokens
+first, the fee is recorded on-chain as the wallet's **debt** and the
+paymaster will not pay its gas again until it is settled. The backend
+handles this: the next operation pays its gas in ETH and, when the wallet
+holds enough of the token, also settles the debt (approve + `settleDebt`)
+in the same operation. `messages` then says so ("This also pays … of
+network fees this wallet still owed …"); when the wallet cannot settle
+it yet, `messages` explains that fees are paid in ETH until it holds
+enough.
+
+**Fee records.** Once an operation is mined, the stablecoin gas the
+paymaster collected (and any gas debt it settled) is recorded in
+`fee_collections` with `fee_type` `GAS`, the token, amount, transaction
+hash and the paymaster as `destination_wallet`. A charge the paymaster
+could not collect is not recorded as a fee; it is alerted to Discord and
+recorded once it is settled. ETH-paid gas goes to the bundler and is not
+a platform fee.
+
 **Sub-wallets** (`POST /v1/users/subwallet`, and the service-link
 `POST /v1/trovo-api/users/subwallet`). Each sub-wallet is its own Safe,
 deployed by the **primary** wallet, so only the primary wallet signs:

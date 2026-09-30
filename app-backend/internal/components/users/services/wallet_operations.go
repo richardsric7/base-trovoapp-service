@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"trovo-wallet-api/internal/aa"
+	"trovo-wallet-api/internal/basetxn"
 	assetModels "trovo-wallet-api/internal/components/assets/models"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -134,6 +135,62 @@ type PreparedWalletOperation struct {
 	Transaction string
 	Prepared    *aa.Prepared
 	Record      userModels.WalletOperation
+	// Notes explain choices made while building it (e.g. unpaid gas).
+	Notes []string
+}
+
+// Messages are what the app shows before the user signs: the notes, then
+// the network fee (and activation).
+func (op *PreparedWalletOperation) Messages() []string {
+	return append(append([]string{}, op.Notes...), operationMessages(op.Prepared)...)
+}
+
+// gasDebt is what a wallet owes the paymaster in one token.
+type gasDebt struct {
+	amount  decimal.Decimal
+	code    string
+	payable bool // the wallet holds enough to settle it
+	calls   []aa.Call
+}
+
+func (d gasDebt) note(settled bool) string {
+	if settled {
+		return fmt.Sprintf("This also pays %v %v of network fees this wallet still owed from an earlier transaction; this transaction's fee is paid in ETH.", d.amount, d.code)
+	}
+	return fmt.Sprintf("This wallet still owes %v %v of network fees from an earlier transaction, so its network fees are paid in ETH until that is paid. Hold at least that much %v in this wallet to settle it with your next transaction.", d.amount, d.code, d.code)
+}
+
+// gasDebts reads the wallet's gas debts with the paymaster, in each
+// gas-eligible stablecoin, with the calls that settle them. While a wallet
+// owes any, the paymaster will not pay its gas, so it pays in ETH.
+func gasDebts(ctx context.Context, wallet common.Address, gc *sharedconfig.GlobalConfig) []gasDebt {
+	b := operationBuilder(gc)
+	if b.Paymaster == (common.Address{}) {
+		return nil
+	}
+	var assets []assetModels.CuratedAsset
+	gc.DB.Where("gas_fee_eligible = ? AND inactive = ?", true, 0).Find(&assets)
+	var out []gasDebt
+	for _, a := range assets {
+		if !common.IsHexAddress(a.ContractAddress) {
+			continue
+		}
+		token := common.HexToAddress(a.ContractAddress)
+		owed, err := aa.PaymasterDebt(ctx, gc.BantuExpansionClient, b.Paymaster, wallet, token)
+		if err != nil || owed.Sign() == 0 {
+			continue
+		}
+		decimals, err := network.AssetDecimals(ctx, gc.BantuExpansionClient, basetxn.CreditAsset{Code: a.AssetCode, Issuer: a.ContractAddress})
+		if err != nil {
+			continue
+		}
+		d := gasDebt{amount: decimal.NewFromBigInt(owed, -int32(decimals)), code: a.AssetCode}
+		if bal, err := network.B20BalanceOf(gc.BantuExpansionClient, a.ContractAddress, wallet.Hex(), decimals); err == nil && !bal.LessThan(d.amount) {
+			d.payable, d.calls = true, aa.SettleDebtCalls(b.Paymaster, wallet, token)
+		}
+		out = append(out, d)
+	}
+	return out
 }
 
 // operationMessages describes the network fee (and activation) for the
@@ -175,11 +232,36 @@ func PrepareWalletOperation(ctx context.Context, kind string, initiator, payer *
 			return nil, &tErrors.ErrorTemporaryServerError{}
 		}
 	}
+	var notes []string
 	p, err := b.Prepare(ctx, aa.Request{Wallet: aw, Calls: calls, GasToken: gasToken(payer, wallet, gc), Validity: validity, NonceKey: nonceKey})
 	if err != nil && errors.Is(err, aa.ErrPaymasterUnavailable) {
-		// the stablecoin route is down: fall back to ETH
+		// the stablecoin route is unavailable: pay in ETH
 		log.Printf("[PrepareWalletOperation] %v; falling back to ETH gas for %v", err, wallet.ID)
-		p, err = b.Prepare(ctx, aa.Request{Wallet: aw, Calls: calls, Validity: validity, NonceKey: nonceKey})
+		p = nil
+		if errors.Is(err, aa.ErrOutstandingDebt) {
+			// the wallet owes the paymaster for an earlier operation's gas:
+			// settle what it can in this operation
+			debts := gasDebts(ctx, aw.Address, gc)
+			var settle []aa.Call
+			for _, d := range debts {
+				if d.payable {
+					settle = append(settle, d.calls...)
+				}
+			}
+			if len(settle) > 0 {
+				if sp, e := b.Prepare(ctx, aa.Request{Wallet: aw, Calls: append(settle, calls...), Validity: validity, NonceKey: nonceKey}); e == nil {
+					p = sp
+				}
+			}
+			for _, d := range debts {
+				notes = append(notes, d.note(p != nil && d.payable))
+			}
+		}
+		if p == nil {
+			p, err = b.Prepare(ctx, aa.Request{Wallet: aw, Calls: calls, Validity: validity, NonceKey: nonceKey})
+		} else {
+			err = nil
+		}
 	}
 	if err != nil {
 		if errors.Is(err, aa.ErrInsufficientGasFunds) {
@@ -218,7 +300,7 @@ func PrepareWalletOperation(ctx context.Context, kind string, initiator, payer *
 		log.Printf("[PrepareWalletOperation] saving %v: %v", rec.ID, err)
 		return nil, &tErrors.ErrorTemporaryServerError{}
 	}
-	return &PreparedWalletOperation{Transaction: base64.StdEncoding.EncodeToString(p.SafeOpHash.Bytes()), Prepared: p, Record: rec}, nil
+	return &PreparedWalletOperation{Transaction: base64.StdEncoding.EncodeToString(p.SafeOpHash.Bytes()), Prepared: p, Record: rec, Notes: notes}, nil
 }
 
 // LoadWalletOperation finds a pending operation by the "transaction" the
@@ -338,7 +420,13 @@ func applyReceipt(op userModels.WalletOperation, r *aa.Receipt, gc *sharedconfig
 	if !success {
 		updates["error"] = "the operation's calls reverted: " + r.Reason
 	}
-	gc.DB.Model(&userModels.WalletOperation{}).Where("id = ?", op.ID).Updates(updates)
+	// only the first to record the outcome applies its effects (the tracker
+	// and WalletOperationOutcome can both see the receipt)
+	res := gc.DB.Model(&userModels.WalletOperation{}).Where("id = ? AND status = ?", op.ID, userModels.WalletOperationSubmitted).Updates(updates)
+	if res.Error != nil || res.RowsAffected == 0 {
+		return
+	}
+	recordGasCharges(op, r.Receipt.TransactionHash, gc)
 	// the wallet was deployed by this operation, even if its calls reverted
 	now := time.Now()
 	if op.Activation {
@@ -395,4 +483,63 @@ func markActivated(wallet, by, tx string, at time.Time, gc *sharedconfig.GlobalC
 // ExpireWalletOperations marks pending operations past their validity.
 func ExpireWalletOperations(gc *sharedconfig.GlobalConfig) {
 	gc.DB.Model(&userModels.WalletOperation{}).Where("status = ? AND expires_at < ?", userModels.WalletOperationPending, time.Now()).Update("status", userModels.WalletOperationExpired)
+}
+
+// recordGasCharges records the stablecoin gas the paymaster collected for a
+// mined operation (and any earlier gas debt it settled) as GAS fee
+// collections; a charge the paymaster could not collect becomes the
+// wallet's debt and is alerted.
+func recordGasCharges(op userModels.WalletOperation, txHash common.Hash, gc *sharedconfig.GlobalConfig) {
+	paymaster := operationBuilder(gc).Paymaster
+	if paymaster == (common.Address{}) || gc.BantuExpansionClient == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	rcpt, err := gc.BantuExpansionClient.TransactionReceipt(ctx, txHash)
+	if err != nil {
+		log.Printf("[recordGasCharges] receipt of %v: %v", txHash.Hex(), err)
+		return
+	}
+	wallet := common.HexToAddress(op.WalletAddress)
+	record := func(token common.Address, amount *big.Int) {
+		var asset assetModels.CuratedAsset
+		gc.DB.Where("LOWER(contract_address) = ?", strings.ToLower(token.Hex())).First(&asset)
+		decimals, err := network.AssetDecimals(ctx, gc.BantuExpansionClient, basetxn.CreditAsset{Code: asset.AssetCode, Issuer: token.Hex()})
+		if err != nil {
+			log.Printf("[recordGasCharges] decimals of %v: %v", token.Hex(), err)
+			return
+		}
+		contract := token.Hex()
+		h := txHash.Hex()
+		f := sharedconfig.FeeCollection{
+			ID: gc.GenerateUUIDString(), FromWalletAddress: op.WalletAddress, FeeType: "GAS",
+			Amount: decimal.NewFromBigInt(amount, -int32(decimals)).InexactFloat64(), AssetCode: asset.AssetCode,
+			ContractAddress: &contract, DestinationWallet: paymaster.Hex(), TransactionHash: &h,
+		}
+		if w, err := userModels.UserWalletID(op.WalletAddress).GetWallet(gc.DB, gc); err == nil {
+			f.FromWalletAlias = w.Alias
+			if w.SharedAccessEnabled == 1 {
+				f.SharedAccessOperation = 1
+			}
+			if owner, err := w.GetWalletOwner(gc.DB, gc); err == nil {
+				f.FromUsername, f.BelongsToEnterpriseProfile = owner.Username, owner.CreatedByServiceLinkID
+			}
+		}
+		if err := gc.DB.Omit(clause.Associations).Create(&f).Error; err != nil {
+			log.Printf("[recordGasCharges] saving GAS fee for %v: %v", h, err)
+		}
+	}
+	if op.UserOpHash != nil {
+		if g := aa.ParseGasPayment(rcpt.Logs, paymaster, common.HexToHash(*op.UserOpHash)); g != nil {
+			if g.Failed {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[recordGasCharges] the paymaster could not collect %v (base units) of %v gas from %v for %v; it is recorded as the wallet's debt", g.TokenCost, g.Token.Hex(), op.WalletAddress, txHash.Hex()))
+			} else {
+				record(g.Token, g.TokenCost)
+			}
+		}
+	}
+	for _, d := range aa.ParseDebtSettlements(rcpt.Logs, paymaster, wallet) {
+		record(d.Token, d.Amount)
+	}
 }

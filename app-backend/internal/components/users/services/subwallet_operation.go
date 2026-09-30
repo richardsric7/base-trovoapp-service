@@ -243,7 +243,7 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 	gc.DB.Model(&userModels.WalletOperation{}).Where("id = ?", op.Record.ID).Update("deploys", strings.Join(deployed, ","))
 
 	subWalletInfo.Transaction = op.Transaction
-	subWalletInfo.Messages = append(subWalletInfo.Messages, operationMessages(op.Prepared)...)
+	subWalletInfo.Messages = append(subWalletInfo.Messages, op.Messages()...)
 	return subWalletInfo, nil
 }
 

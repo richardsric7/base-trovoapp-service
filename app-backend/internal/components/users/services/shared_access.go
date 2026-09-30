@@ -508,7 +508,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		if hasLinkedWallet {
 			accessInfo.Messages = append(accessInfo.Messages, fmt.Sprintf("The linked wallet %v gets the same co-signers.", linkedWallet.Alias))
 		}
-		accessInfo.Messages = append(accessInfo.Messages, operationMessages(op.Prepared)...)
+		accessInfo.Messages = append(accessInfo.Messages, op.Messages()...)
 		return returnedWallet, nil
 	default:
 		rec, p, err := loadSharedAccessOperation(accessInfo.Transaction, wallet, target, threshold, gc)
@@ -1351,7 +1351,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				return
 			}
 			accessInfo.Transaction = op.Transaction
-			accessInfo.Messages = append(coSigners(accessInfo.Messages), operationMessages(op.Prepared)...)
+			accessInfo.Messages = append(coSigners(accessInfo.Messages), op.Messages()...)
 			return
 		default:
 			rec, p, e := loadSharedAccessOperation(accessInfo.Transaction, wallet, target, threshold, gc)
@@ -1389,7 +1389,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			return
 		}
 		accessInfo.Transaction = op.Transaction
-		accessInfo.Messages = append(coSigners(accessInfo.Messages), operationMessages(op.Prepared)...)
+		accessInfo.Messages = append(coSigners(accessInfo.Messages), op.Messages()...)
 		return
 	}
 	if len(calls) == 0 {
@@ -1593,7 +1593,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 			}
 			accessInfo.Transaction = op.Transaction
 			accessInfo.Messages = append(accessInfo.Messages, "Once approved, the approvers stop being co-signers of this wallet.")
-			accessInfo.Messages = append(accessInfo.Messages, operationMessages(op.Prepared)...)
+			accessInfo.Messages = append(accessInfo.Messages, op.Messages()...)
 			return nil
 		}
 		if len(calls) == 0 {
@@ -1647,7 +1647,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 			return err
 		}
 		accessInfo.Transaction = op.Transaction
-		accessInfo.Messages = append(accessInfo.Messages, operationMessages(op.Prepared)...)
+		accessInfo.Messages = append(accessInfo.Messages, op.Messages()...)
 		return nil
 	}
 	dbTX := gc.DB.Begin()

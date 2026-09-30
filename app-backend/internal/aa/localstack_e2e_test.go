@@ -3,6 +3,7 @@ package aa
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"math/big"
 	"os"
 	"testing"
@@ -100,7 +101,8 @@ func TestLocalStackEndToEnd(t *testing.T) {
 	recipient := common.HexToAddress("0x000000000000000000000000000000000000bEEF")
 	before, _ := callView(ctx, client, usdc, "balanceOf", recipient)
 
-	runSigned := func(label string, req Request, signers ...*evmkeypair.Full) {
+	chargeFails := false // the next token-paid operation leaves nothing to charge
+	runSigned := func(label string, req Request, signers ...*evmkeypair.Full) common.Hash {
 		t.Helper()
 		p, err := b.Prepare(ctx, req)
 		if err != nil {
@@ -129,9 +131,25 @@ func TestLocalStackEndToEnd(t *testing.T) {
 		if !r.Success {
 			t.Fatalf("%s: operation reverted", label)
 		}
+		if p.GasToken != nil {
+			// the backend records the stablecoin gas from the mined receipt
+			rcpt, err := client.TransactionReceipt(ctx, r.Receipt.TransactionHash)
+			if err != nil {
+				t.Fatalf("%s: receipt: %v", label, err)
+			}
+			g := ParseGasPayment(rcpt.Logs, b.Paymaster, p.UserOpHash)
+			if g == nil || g.Failed != chargeFails || g.Token != *p.GasToken || g.TokenCost.Sign() <= 0 || g.TokenCost.Cmp(p.Quote.MaxTokenCost.ToInt()) > 0 {
+				t.Fatalf("%s: gas charge %+v (max %v)", label, g, p.Quote.MaxTokenCost)
+			}
+			debt, err := PaymasterDebt(ctx, client, b.Paymaster, req.Wallet.Address, *p.GasToken)
+			if err != nil || (debt.Sign() != 0) != chargeFails || (chargeFails && debt.Cmp(g.TokenCost) != 0) {
+				t.Fatalf("%s: debt %v %v", label, debt, err)
+			}
+		}
 		t.Logf("%s: activation=%v gas in token=%v gas=%s wei tx=%s", label, p.Activation, p.GasToken != nil, r.ActualGasCost.ToInt(), r.Receipt.TransactionHash.Hex())
+		return r.Receipt.TransactionHash
 	}
-	run := func(label string, req Request) { t.Helper(); runSigned(label, req, owner) }
+	run := func(label string, req Request) common.Hash { t.Helper(); return runSigned(label, req, owner) }
 
 	var gasToken *common.Address
 	if b.Quotes != nil {
@@ -215,4 +233,44 @@ func TestLocalStackEndToEnd(t *testing.T) {
 	if got := new(big.Int).Sub(after[0].(*big.Int), before[0].(*big.Int)); got.Int64() != 7_000000 {
 		t.Fatalf("recipient received %v USDC base units, want 7000000", got)
 	}
+
+	if b.Quotes == nil {
+		return
+	}
+
+	// gas debt: a new wallet's activation spends every USDC it holds, so
+	// the paymaster cannot collect its gas and records it as debt; until
+	// it is settled the wallet pays gas in ETH, and settles the debt in
+	// such an operation
+	debtor, _ := evmkeypair.Random()
+	debtorAddr := common.HexToAddress(debtor.Address())
+	dw := Wallet{Address: cfg.SafeAddress([]common.Address{debtorAddr}, 1, big.NewInt(0)), Owners: []common.Address{debtorAddr}, Threshold: 1,
+		InitialOwners: []common.Address{debtorAddr}, InitialThreshold: 1, SaltNonce: big.NewInt(0)}
+	sink := common.HexToAddress("0x000000000000000000000000000000000000dEaD")
+	data, _ = mint.Pack("mint", dw.Address, big.NewInt(10_000000))
+	send(usdc, big.NewInt(0), data)
+	send(dw.Address, big.NewInt(1e17), nil)
+	chargeFails = true
+	runSigned("activation spending everything", Request{Wallet: dw, Calls: []Call{ERC20Transfer(usdc, sink, big.NewInt(10_000000))}, GasToken: &usdc}, debtor)
+	chargeFails = false
+	owed, _ := PaymasterDebt(ctx, client, b.Paymaster, dw.Address, usdc)
+	dw.InitialOwners, dw.InitialThreshold = nil, 0 // deployed now
+	if _, err := b.Prepare(ctx, Request{Wallet: dw, Calls: []Call{ERC20Transfer(usdc, sink, big.NewInt(1))}, GasToken: &usdc}); !errors.Is(err, ErrOutstandingDebt) || !errors.Is(err, ErrPaymasterUnavailable) {
+		t.Fatalf("a wallet in debt must be refused a stablecoin quote, got %v", err)
+	}
+	data, _ = mint.Pack("mint", dw.Address, big.NewInt(10_000000))
+	send(usdc, big.NewInt(0), data)
+	tx := runSigned("settle debt paying ETH", Request{Wallet: dw, Calls: append(SettleDebtCalls(b.Paymaster, dw.Address, usdc), ERC20Transfer(usdc, sink, big.NewInt(1_000000)))}, debtor)
+	rcpt, err := client.TransactionReceipt(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s := ParseDebtSettlements(rcpt.Logs, b.Paymaster, dw.Address); len(s) != 1 || s[0].Token != usdc || s[0].Amount.Cmp(owed) != 0 {
+		t.Fatalf("settlements %+v, owed %v", s, owed)
+	}
+	if left, _ := PaymasterDebt(ctx, client, b.Paymaster, dw.Address, usdc); left.Sign() != 0 {
+		t.Fatalf("debt left after settling: %v", left)
+	}
+	run2 := func(label string, req Request) { t.Helper(); runSigned(label, req, debtor) }
+	run2("stablecoin gas again", Request{Wallet: dw, Calls: []Call{ERC20Transfer(usdc, sink, big.NewInt(1_000000))}, GasToken: &usdc})
 }

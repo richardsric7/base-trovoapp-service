@@ -109,7 +109,7 @@ func queueWithdrawalOperation(signerUser *userModels.User, wallet *userModels.Us
 	}
 	wdlInput.Transaction = op.Transaction
 	wdlInput.SignatureRequired = 1
-	wdlInput.Messages = append([]string{fmt.Sprintf("%v %v leaves this wallet; %v %v is sent to %v on %v.", amount, wdlInput.Currency, wdlInput.AmountToWithdraw, wdlInput.Currency, wdlInput.WithdrawalAddress, wdlInput.WithdrawalNetwork)}, operationMessages(op.Prepared)...)
+	wdlInput.Messages = append([]string{fmt.Sprintf("%v %v leaves this wallet; %v %v is sent to %v on %v.", amount, wdlInput.Currency, wdlInput.AmountToWithdraw, wdlInput.Currency, wdlInput.WithdrawalAddress, wdlInput.WithdrawalNetwork)}, op.Messages()...)
 	if wdlInput.Multiparty == 1 && wdlInput.Commit == 1 {
 		return createWithdrawalApprovalRequest(signerUser, wallet, wdlInput, serviceFee, gc)
 	}
