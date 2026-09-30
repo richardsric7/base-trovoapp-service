@@ -911,10 +911,21 @@ type SafeDeployment struct {
 	Owners    []string
 	Threshold int
 	SaltNonce string
+	// Modules are extra modules enabled at deployment.
+	Modules []string
 }
 
 func normalizedAddress(a common.Address) string {
 	return strings.ToUpper(a.Hex())
+}
+
+// ModuleAddresses returns Modules as addresses.
+func (d SafeDeployment) ModuleAddresses() []common.Address {
+	out := make([]common.Address, 0, len(d.Modules))
+	for _, m := range d.Modules {
+		out = append(out, common.HexToAddress(m))
+	}
+	return out
 }
 
 // OwnerAddresses returns Owners as addresses.
@@ -928,12 +939,15 @@ func (d SafeDeployment) OwnerAddresses() []common.Address {
 
 // NewSafeDeployment derives the Safe owned by owners with threshold and
 // saltNonce.
-func NewSafeDeployment(owners []string, threshold int, saltNonce *big.Int) SafeDeployment {
+func NewSafeDeployment(owners []string, threshold int, saltNonce *big.Int, modules ...string) SafeDeployment {
 	d := SafeDeployment{Threshold: threshold, SaltNonce: saltNonce.String()}
 	for _, o := range owners {
 		d.Owners = append(d.Owners, normalizedAddress(common.HexToAddress(o)))
 	}
-	d.Address = normalizedAddress(network.AAConfig().SafeAddress(d.OwnerAddresses(), int64(threshold), saltNonce))
+	for _, m := range modules {
+		d.Modules = append(d.Modules, normalizedAddress(common.HexToAddress(m)))
+	}
+	d.Address = normalizedAddress(network.AAConfig().SafeAddress(d.OwnerAddresses(), int64(threshold), saltNonce, d.ModuleAddresses()...))
 	return d
 }
 
@@ -962,6 +976,29 @@ func NewSubWalletSafeDeployment(signer string) (SafeDeployment, error) {
 		return SafeDeployment{}, err
 	}
 	return NewSafeDeployment([]string{signer}, 1, salt), nil
+}
+
+// NewLinkedSafeDeployment is an issuing wallet's linked distribution
+// wallet: owned by the user's signer (1-of-1), with the issuing wallet's
+// Safe enabled as a module so the issuing wallet's owners manage it (its
+// shared access mirrors the issuing wallet's in the same operations).
+func NewLinkedSafeDeployment(signer, issuingWallet string) (SafeDeployment, error) {
+	salt, err := RandomSaltNonce()
+	if err != nil {
+		return SafeDeployment{}, err
+	}
+	return NewSafeDeployment([]string{signer}, 1, salt, issuingWallet), nil
+}
+
+// InitialModuleList splits InitialModules.
+func (u *UserWallet) InitialModuleList() []string {
+	var out []string
+	for _, m := range strings.Split(u.InitialModules, ",") {
+		if m = strings.TrimSpace(m); m != "" {
+			out = append(out, m)
+		}
+	}
+	return out
 }
 
 // InitialOwnerList splits InitialOwners.
@@ -1118,6 +1155,7 @@ func (u *User) BuildNewSubWallet(d SafeDeployment, walletTag, walletDescription 
 		InitialOwners:    strings.Join(d.Owners, ","),
 		InitialThreshold: d.Threshold,
 		SafeSaltNonce:    d.SaltNonce,
+		InitialModules:   strings.Join(d.Modules, ","),
 		SafeVersion:      aa.SafeVersion,
 	}
 	if len(linkedWalletAddress) > 0 {
@@ -1229,6 +1267,7 @@ func (uw *UserWallet) BuildNewLinkedSubWallet(d SafeDeployment, owner *User, gc 
 		InitialOwners:    strings.Join(d.Owners, ","),
 		InitialThreshold: d.Threshold,
 		SafeSaltNonce:    d.SaltNonce,
+		InitialModules:   strings.Join(d.Modules, ","),
 		SafeVersion:      aa.SafeVersion,
 	}
 	return userSubWallet, nil

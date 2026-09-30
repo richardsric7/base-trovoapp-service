@@ -85,6 +85,11 @@ func walletOwners(ctx context.Context, w *userModels.UserWallet, gc *sharedconfi
 			aw.InitialOwners = append(aw.InitialOwners, common.HexToAddress(o))
 		}
 	}
+	for _, m := range w.InitialModuleList() {
+		if common.IsHexAddress(m) {
+			aw.InitialModules = append(aw.InitialModules, common.HexToAddress(m))
+		}
+	}
 	deployed, err := aa.Deployed(ctx, gc.BantuExpansionClient, addr)
 	if err != nil {
 		return aw, err
@@ -161,11 +166,20 @@ func PrepareWalletOperation(ctx context.Context, kind string, initiator, payer *
 		log.Printf("[PrepareWalletOperation] reading wallet %v: %v", wallet.ID, err)
 		return nil, &tErrors.ErrorTemporaryServerError{}
 	}
-	p, err := b.Prepare(ctx, aa.Request{Wallet: aw, Calls: calls, GasToken: gasToken(payer, wallet, gc), Validity: validity})
+	// an operation that waits for approvers (validity > 0) gets its own
+	// nonce sequence, so it neither blocks nor is invalidated by the
+	// wallet's other operations
+	var nonceKey *big.Int
+	if validity > 0 {
+		if nonceKey, err = aa.RandomNonceKey(); err != nil {
+			return nil, &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+	p, err := b.Prepare(ctx, aa.Request{Wallet: aw, Calls: calls, GasToken: gasToken(payer, wallet, gc), Validity: validity, NonceKey: nonceKey})
 	if err != nil && errors.Is(err, aa.ErrPaymasterUnavailable) {
 		// the stablecoin route is down: fall back to ETH
 		log.Printf("[PrepareWalletOperation] %v; falling back to ETH gas for %v", err, wallet.ID)
-		p, err = b.Prepare(ctx, aa.Request{Wallet: aw, Calls: calls, Validity: validity})
+		p, err = b.Prepare(ctx, aa.Request{Wallet: aw, Calls: calls, Validity: validity, NonceKey: nonceKey})
 	}
 	if err != nil {
 		if errors.Is(err, aa.ErrInsufficientGasFunds) {

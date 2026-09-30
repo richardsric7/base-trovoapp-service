@@ -2,6 +2,7 @@ package users
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -273,6 +274,18 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		}
 	}
 
+	// on Safe wallets the approvers sign the wallet operation itself (or, for
+	// database-only shared access changes, a statement of the change)
+	opRec, opPrep := approvalOperation(p, gc)
+	if opRec != nil {
+		if err := checkApprover(opPrep, signerUser.PrimarySigner); err != nil {
+			return err
+		}
+		// the Safe's threshold decides how many approvals it takes
+		p.ApprovalsNeeded = int(opPrep.Threshold)
+	}
+	signedStatement := opRec == nil && statementApproval(p)
+
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
 
@@ -287,6 +300,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		}
 
 		ts.Commit = 0
+		ts.DryRun = true
 
 		revokedList, modifiedList, addedList, linkedRevokedList, linkedModifiedList, linkedAddedList, e = ModifySharedWalletAccess(&initiatorUser, &walletOwner, &wallet, &ts, gc)
 		if e != nil {
@@ -478,6 +492,11 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		return
 	}
 	//signature exists
+	if opRec != nil || signedStatement {
+		if err := verifyStatementSignature(signerUser.PrimarySigner, p.TransactionXdr, approvalInfo.TransactionSignature); err != nil {
+			return err
+		}
+	}
 
 	pts = userModels.PendingTransactionSignature{
 		ID:                       uuid.NewString(),
@@ -535,6 +554,24 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			// contract, executed by the platform's Safe signers now that the
 			// minting approvers have all approved exactly this plan
 			txnResult, err = executeTokenizationMint(&tkInput, p.TransactionXdr, gc)
+		} else if opRec != nil {
+			// all approvals are in: submit the wallet operation with the
+			// approvers' signatures
+			sigs, e := approvalSignatures(p.ID, dbTX)
+			if e != nil {
+				return &tErrors.ErrorTemporaryServerError{}
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+			defer cancel()
+			hash, e := SubmitWalletOperation(ctx, opRec, opPrep, sigs, gc)
+			if e != nil {
+				return e
+			}
+			txnResult.Hash = hash
+			// fees computed when the operation was built
+			recordOperationFees(opRec, hash, gc)
+		} else if signedStatement {
+			// a database-only change: the approvals are the authorization
 		} else {
 			txnResult, err = network.SubmitApprovalsXdrWithSignaturesReturnsTrx(gc.BantuExpansionClient, p.ID, dbTX)
 		}
@@ -729,6 +766,11 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 			return nil
 
+		} else if p.TransactionType == "PAYMENT" && opRec != nil {
+			// fees were recorded from the operation (recordOperationFees)
+			dbTX.Commit()
+			notifyApprovalCompleted(signerUser, p, &wallet, gc)
+			return nil
 		} else if p.TransactionType == "PAYMENT" {
 			dbTX.SavePoint("PAYMENT")
 			//update fee paynment and vat
@@ -1360,6 +1402,10 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 	if e != nil {
 		log.Println("[ApproveTransaction]error saving approval state:", e)
 		return &tErrors.ErrorTemporaryServerError{}
+	}
+	// a rejected request's wallet operation can no longer be submitted
+	if rec, _ := approvalOperation(p, gc); rec != nil {
+		dbTX.Model(&userModels.WalletOperation{}).Where("id = ? AND status = ?", rec.ID, userModels.WalletOperationPending).Update("status", userModels.WalletOperationExpired)
 	}
 	dbTX.Commit()
 

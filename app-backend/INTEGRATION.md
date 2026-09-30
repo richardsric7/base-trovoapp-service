@@ -354,6 +354,34 @@ deployed by the **primary** wallet, so only the primary wallet signs:
 If the primary wallet is not activated yet, the same operation activates
 it too.
 
+**Shared wallets.** Shared access is enforced by the wallet's Safe:
+its owners are the wallet owner's key plus every APPROVER's key, and its
+threshold is `numberOfApprovalsNeeded` (1 - the owner alone - when there
+are no approvers). VIEW-ONLY and INITIATOR permissions stay in the
+database. An issuing wallet's linked distribution wallet is deployed with
+the issuing wallet's Safe enabled as a module, so the same operation that
+changes the issuing wallet's owners changes the distribution wallet's too
+(one set of signatures mirrors both).
+
+- *Enable / modify / disable* keep their request shapes. While the owner
+  alone controls the wallet, the owner signs the returned `transaction`
+  (a wallet operation when approvers change, or a statement of the change
+  when only view/initiator permissions change). Once the wallet has
+  approvers, the initiator previews (`commit: 0`), then submits the change
+  for approval (`commit: 1` with the same `transaction`).
+- *Approvals* (`POST /v1/shared-access/approval/:ID`; `DELETE` rejects):
+  the first call returns the
+  request's `transaction` (base64 of the operation hash or statement);
+  each approver signs it with `signBase64Txn`. A signature is checked
+  against the approver's key, which must be one of the Safe's owners, and
+  the Safe's current threshold decides how many approvals it takes. The
+  last approval submits the operation with the collected signatures.
+  Payments and crypto withdrawals from shared wallets work the same way.
+- Operations waiting for approvers use their own EntryPoint nonce key and
+  stay signable for `SHARED_WALLET_OPERATION_VALIDITY` (24h by default), so
+  several can be pending on one wallet. Rejecting a request retires its
+  operation.
+
 **Gas-fee asset.** `GET /v1/users/settings/gas-fee-assets` lists the
 curated assets users can pay network fees in (`gasFeeEligible`, set from
 tm-web) and the user's current choice; `PUT /v1/users/settings/gas-fee-asset`

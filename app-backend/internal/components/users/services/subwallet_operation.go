@@ -131,7 +131,7 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 	var linked userModels.SafeDeployment
 	subWalletInfo.LinkedWalletAddress = ""
 	if withLinked {
-		if linked, err = userModels.NewSubWalletSafeDeployment(accountOwner.PrimarySigner); err != nil {
+		if linked, err = userModels.NewLinkedSafeDeployment(accountOwner.PrimarySigner, sub.Address); err != nil {
 			return subWalletInfo, &tErrors.ErrorTemporaryServerError{}
 		}
 		subWalletInfo.LinkedWalletAddress = linked.Address
@@ -158,7 +158,7 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 	var calls []aa.Call
 	for _, d := range deploys {
 		salt, _ := new(big.Int).SetString(d.SaltNonce, 10)
-		calls = append(calls, cfg.DeploySafeCall(d.OwnerAddresses(), int64(d.Threshold), salt))
+		calls = append(calls, cfg.DeploySafeCall(d.OwnerAddresses(), int64(d.Threshold), salt, d.ModuleAddresses()...))
 	}
 	subWalletInfo.Messages = []string{fmt.Sprintf("Creates the sub-wallet %v (%v).", subWalletObj.Alias, sub.Address)}
 	if withLinked {

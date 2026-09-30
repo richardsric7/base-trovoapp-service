@@ -99,6 +99,10 @@ type UserWallet struct {
 	InitialOwners    string `gorm:"size:600;not null;default:''" json:"initialOwners"`
 	InitialThreshold int    `gorm:"not null;default:1" json:"initialThreshold"`
 	SafeSaltNonce    string `gorm:"size:80;not null;default:'0'" json:"safeSaltNonce"`
+	// InitialModules (comma-separated) are modules enabled at deployment
+	// besides the Safe4337Module: a linked distribution wallet enables its
+	// issuing wallet's Safe, whose owners manage it. Part of the address.
+	InitialModules string `gorm:"size:600;not null;default:''" json:"initialModules"`
 	SafeVersion      string `gorm:"size:40;not null;default:''" json:"safeVersion"`
 	// Activated is set once the Safe is deployed on-chain - by the wallet's
 	// own first operation (primary wallets) or by the primary wallet
@@ -197,6 +201,9 @@ type ModifySharedAccessInfo struct {
 	ModifiedPermissions     []WalletPermissionInfo `json:"modifiedPermissions"`
 	AddedPermissions        []WalletPermissionInfo `json:"addedPermissions"`
 	RevokedPermissions      []WalletPermissionInfo `json:"revokedPermissions"`
+	// DryRun computes the permission changes only (used when an approval
+	// completes); nothing is built, signed or saved.
+	DryRun bool `json:"-"`
 }
 type WalletPermissionInfo struct {
 	ID                    string  `json:"Id"`
