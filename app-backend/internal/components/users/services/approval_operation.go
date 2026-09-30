@@ -43,7 +43,19 @@ func approvalOperation(p *userModels.PendingAuth, gc *sharedconfig.GlobalConfig)
 // statementApproval reports whether an approval request is authorized by
 // signatures over a statement only (nothing to submit on-chain).
 func statementApproval(p *userModels.PendingAuth) bool {
-	return p.TransactionType == "MODIFY SHARED ACCESS" || p.TransactionType == "DISABLE SHARED ACCESS"
+	return p.TransactionType == "MODIFY SHARED ACCESS" || p.TransactionType == "DISABLE SHARED ACCESS" || p.TransactionType == "TOKENIZE ASSET"
+}
+
+// checkMintingApprover refuses a mint approval from anyone not holding
+// APPROVER permission on the issuing wallet (the minting approvers the
+// mint request set up), or signing with a key other than their current one.
+func checkMintingApprover(issuingWallet string, approver *userModels.User, gc *sharedconfig.GlobalConfig) error {
+	var n int64
+	gc.DB.Model(&userModels.WalletPermission{}).Where("wallet_address = ? AND target_username = ? AND permission = ?", issuingWallet, approver.Username, "APPROVER").Count(&n)
+	if n == 0 || !common.IsHexAddress(approver.PrimarySigner) {
+		return &tErrors.CustomError{Param: "id", Err: "error-not-minting-approver", ErrMessage: "You are not a minting approver of this asset.", Code: http.StatusForbidden}
+	}
+	return nil
 }
 
 // checkApprover refuses an approver whose key is not an owner of the Safe

@@ -261,7 +261,16 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 	}
-	{
+	// on Safe wallets the approvers sign the wallet operation itself (or, for
+	// database-only shared access changes, a statement of the change)
+	opRec, opPrep := approvalOperation(p, gc)
+	if opRec == nil && p.TransactionType == "TOKENIZE ASSET" {
+		// the minting approvers authorize the mint plan; the issuing Safe's
+		// platform signers execute it, so approvers need not be its owners
+		if err := checkMintingApprover(p.WalletAddress, signerUser, gc); err != nil {
+			return err
+		}
+	} else if opRec == nil {
 		//check if the signer has valid signature right to the wallet.
 		if !wallet.SignerIsValid(signerUser.PrimarySigner, gc) {
 			log.Printf("[ApproveTransaction] error %v account may have been recovered without permission re-instated. Please contact wallet approvers to re-instate your access.\n", signerUser.Username)
@@ -274,9 +283,6 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		}
 	}
 
-	// on Safe wallets the approvers sign the wallet operation itself (or, for
-	// database-only shared access changes, a statement of the change)
-	opRec, opPrep := approvalOperation(p, gc)
 	if opRec != nil {
 		if err := checkApprover(opPrep, signerUser.PrimarySigner); err != nil {
 			return err

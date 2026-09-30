@@ -107,7 +107,40 @@ func TestApprovalOperationAndSignatures(t *testing.T) {
 	if _, err := aa.AssembleSignature(hash, 0, 0, got.Owners, int(got.Threshold), sigs); err != nil {
 		t.Fatal(err)
 	}
-	if !statementApproval(&userModels.PendingAuth{TransactionType: "DISABLE SHARED ACCESS"}) || statementApproval(p) {
-		t.Fatal("statement approvals are shared access changes only")
+	if !statementApproval(&userModels.PendingAuth{TransactionType: "DISABLE SHARED ACCESS"}) || !statementApproval(&userModels.PendingAuth{TransactionType: "TOKENIZE ASSET"}) || statementApproval(p) {
+		t.Fatal("statement approvals are shared access changes and mint plans only")
+	}
+}
+
+// Minting approvers approve the mint plan without being owners of the
+// issuing Safe, as long as they hold APPROVER on it.
+func TestCheckMintingApprover(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open("file:"+t.Name()+"?mode=memory&cache=shared"), &gorm.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := db.AutoMigrate(&userModels.WalletPermission{}); err != nil {
+		t.Fatal(err)
+	}
+	gc := &sharedconfig.GlobalConfig{DB: db}
+	issuing := "0x00000000000000000000000000000000000000e1"
+	db.Create(&userModels.WalletPermission{ID: "p1", WalletAddress: issuing, TargetUsername: "minter", Permission: "APPROVER"})
+	db.Create(&userModels.WalletPermission{ID: "p2", WalletAddress: issuing, TargetUsername: "viewer", Permission: "VIEW-ONLY"})
+	key := "0x00000000000000000000000000000000000000a1"
+
+	if err := checkMintingApprover(issuing, &userModels.User{Username: "minter", PrimarySigner: key}, gc); err != nil {
+		t.Fatal(err)
+	}
+	for name, u := range map[string]*userModels.User{
+		"view-only":      {Username: "viewer", PrimarySigner: key},
+		"no permission":  {Username: "stranger", PrimarySigner: key},
+		"no current key": {Username: "minter"},
+	} {
+		if err := checkMintingApprover(issuing, u, gc); err == nil {
+			t.Fatalf("%s must not approve a mint", name)
+		}
+	}
+	if err := checkMintingApprover("0x00000000000000000000000000000000000000e2", &userModels.User{Username: "minter", PrimarySigner: key}, gc); err == nil {
+		t.Fatal("approver of another issuing wallet")
 	}
 }
