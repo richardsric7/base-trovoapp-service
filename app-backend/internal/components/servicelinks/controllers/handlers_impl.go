@@ -1,7 +1,6 @@
 package servicelinks
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -385,26 +384,8 @@ func postUsersServicelinksLoginApprovalTargetUserHandler(callBackRetryChan chan 
 			}
 			log.Printf("[LoginAuthCallback] JSON STRING: [%v]\n", string(body))
 
-			responseBody := bytes.NewBuffer(body)
-			//Leverage Go's HTTP Post function to make request
-			resp, err := http.Post(d, "application/json", responseBody)
-			//Handle Error
-			if err != nil {
-				log.Printf("[LoginAuthCallback] could not send callback message due to [%v]\n", err)
-				return
-			}
-			defer resp.Body.Close()
-			//Read the response body
-			body, err = io.ReadAll(resp.Body)
-			if err != nil {
-				//send to retry channel
-				log.Println("[LoginAuthCallback] callback failed:", err)
-				c := retryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
-				callBackRetryChan <- c
-			} else {
-				log.Printf("[LoginAuthCallback] Login authorization Callback successful to: [%v], Response:[%v]\n\n", d, string(body))
-
-			}
+			// recorded and retried until delivered (see sharedconfig.SendCallback)
+			gc.SendCallback(d, body)
 		}
 		cacheKey = fmt.Sprintf("GET /v1/servicelinks/login/verify/%v/%v/%v", mInfo.OwnerUsername, userInfo.Username, loginID)
 		gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
@@ -1228,26 +1209,8 @@ func postUsersServicelinksAuthorizeApprovalTargetUserHandler(callBackRetryChan c
 			}
 			log.Printf("[AuthCallback] JSON STRING: [%v]\n", string(body))
 
-			responseBody := bytes.NewBuffer(body)
-			//Leverage Go's HTTP Post function to make request
-			resp, err := http.Post(d, "application/json", responseBody)
-			//Handle Error
-			if err != nil {
-				log.Printf("[AuthCallback] could not send callback message due to [%v]\n", err)
-				return
-			}
-			defer resp.Body.Close()
-			//Read the response body
-			body, err = io.ReadAll(resp.Body)
-			if err != nil {
-				//send to retry channel
-				log.Println("[AuthCallback] callback failed:", err)
-				c := retryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
-				callBackRetryChan <- c
-			} else {
-				log.Printf("[AuthCallback] 2FA authorization Callback successful to: [%v], Response:[%v]\n\n", d, string(body))
-
-			}
+			// recorded and retried until delivered (see sharedconfig.SendCallback)
+			gc.SendCallback(d, body)
 
 		}
 
@@ -1396,26 +1359,8 @@ func postUsersServicelinksEventsApprovalTargetUserHandler(callBackRetryChan chan
 			}
 			log.Printf("[EVENT CALLBACK] JSON STRING: [%v]\n", string(body))
 
-			responseBody := bytes.NewBuffer(body)
-			//Leverage Go's HTTP Post function to make request
-			resp, err := http.Post(d, "application/json", responseBody)
-			//Handle Error
-			if err != nil {
-				log.Printf("[EVENT CALLBACK] could not send callback message due to [%v]\n", err)
-				return
-			}
-			defer resp.Body.Close()
-			//Read the response body
-			body, err = io.ReadAll(resp.Body)
-			if err != nil {
-				//send to retry channel
-				log.Println("[EVENT CALLBACK AuthCallback] callback failed:", err)
-				c := retryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
-				callBackRetryChan <- c
-			} else {
-				log.Printf("[EVENT CALLBACK] Event Callback successful to: [%v], Response:[%v]\n\n", d, string(body))
-
-			}
+			// recorded and retried until delivered (see sharedconfig.SendCallback)
+			gc.SendCallback(d, body)
 
 		}
 
@@ -3275,10 +3220,8 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 					}
 					log.Printf("[paymentNotification] JSON STRING: [%v]\n", string(body))
 
-					responseBody := bytes.NewBuffer(body)
-					//Leverage Go's HTTP Post function to make request
-					c := retryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
-					callBackRetryChan <- c
+					// recorded and retried until delivered (see sharedconfig.SendCallback)
+					gc.SendCallback(d, body)
 				}
 			}
 

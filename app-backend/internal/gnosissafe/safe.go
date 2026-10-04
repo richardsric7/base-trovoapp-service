@@ -14,6 +14,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"math/big"
 	"sort"
 	"strings"
@@ -275,6 +276,25 @@ func SignersForSafe(ctx context.Context, client *ethclient.Client, safe common.A
 // (delegatecall), so they all succeed or all revert together. signers must already satisfy the Safe's threshold
 // (see SignersForSafe); signers[0] broadcasts and pays gas.
 func ExecCalls(ctx context.Context, client *ethclient.Client, chainID *big.Int, safe common.Address, signers []*evmkeypair.Full, calls []Call, multiSendCallOnly common.Address) (string, error) {
+	// The Safe's nonce only moves once its transaction is mined, so the
+	// lock covers reading it through mining (callers' WaitSuccess then
+	// returns at once).
+	var hash string
+	err := withKeyLock(ctx, "safe:"+strings.ToLower(safe.Hex()), func() error {
+		var e error
+		hash, e = execCalls(ctx, client, chainID, safe, signers, calls, multiSendCallOnly)
+		if e != nil {
+			return e
+		}
+		if e := waitMined(ctx, client, common.HexToHash(hash)); e != nil {
+			log.Printf("[gnosissafe] %s on %s not mined before the lock was released: %v", hash, safe.Hex(), e)
+		}
+		return nil
+	})
+	return hash, err
+}
+
+func execCalls(ctx context.Context, client *ethclient.Client, chainID *big.Int, safe common.Address, signers []*evmkeypair.Full, calls []Call, multiSendCallOnly common.Address) (string, error) {
 	if len(calls) == 0 {
 		return "", errors.New("no calls to execute")
 	}
@@ -414,6 +434,18 @@ func DeploySafe(ctx context.Context, client *ethclient.Client, chainID *big.Int,
 // SendTransaction signs data as a call from `from` to `to` and broadcasts
 // it, returning the transaction hash. Gas is estimated with a 20% margin.
 func SendTransaction(ctx context.Context, client *ethclient.Client, chainID *big.Int, from *evmkeypair.Full, to common.Address, data []byte) (string, error) {
+	// the pending nonce counts a transaction once it is broadcast, so the
+	// lock covers reading it through broadcasting
+	var hash string
+	err := withKeyLock(ctx, "eoa:"+strings.ToLower(from.Address()), func() error {
+		var e error
+		hash, e = sendTransaction(ctx, client, chainID, from, to, data)
+		return e
+	})
+	return hash, err
+}
+
+func sendTransaction(ctx context.Context, client *ethclient.Client, chainID *big.Int, from *evmkeypair.Full, to common.Address, data []byte) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
@@ -441,6 +473,42 @@ func SendTransaction(ctx context.Context, client *ethclient.Client, chainID *big
 		return "", err
 	}
 	return signedTx.Hash().Hex(), nil
+}
+
+// KeyLock, when set, runs fn holding the named lock across every instance
+// of the service (app-backend sets it at startup; see
+// sharedconfig.WithKeyLock). ExecCalls takes "safe:<address>" and
+// SendTransaction "eoa:<address>", so two instances never use the same
+// Safe or signing key nonce at once. Unset (tests, tools), nothing is
+// locked.
+var KeyLock func(ctx context.Context, name string, fn func() error) error
+
+func withKeyLock(ctx context.Context, name string, fn func() error) error {
+	if KeyLock == nil {
+		return fn()
+	}
+	return KeyLock(ctx, name, fn)
+}
+
+// waitMined waits (up to 2 minutes) for hash to be mined, whatever its
+// outcome.
+func waitMined(ctx context.Context, client *ethclient.Client, hash common.Hash) error {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	defer cancel()
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	for {
+		if _, err := client.TransactionReceipt(ctx, hash); err == nil {
+			return nil
+		} else if !errors.Is(err, ethereum.NotFound) {
+			return err
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+		}
+	}
 }
 
 // WaitSuccess polls for hash's receipt (up to 2 minutes) and returns an

@@ -105,6 +105,9 @@ type TokenizedAsset struct {
 	// (OFFER_BOOK_ADDRESS), recorded once the mint operation that creates
 	// it is mined; the asset counts as minted from then on.
 	OfferBookOfferID                   *string                    `gorm:"size:80" json:"offerBookOfferId"`
+	// SalesNotificationPending is 1 once primary sales start, until the
+	// sale-start push notifications to interested users have been sent.
+	SalesNotificationPending int `gorm:"default:0;index" json:"-"`
 	MarketMakingWallet                 *string                    `json:"marketMakingWallet"`
 	AssetDescription                   *string                    `json:"assetDescription"`
 	AssetCountryLocation               *string                    `gorm:"not null;size:2;default'NG'" json:"assetCountryLocation"`

@@ -4,6 +4,7 @@ import (
 	_ "admin-panel-dashboard/docs" // very important
 	"admin-panel-dashboard/internal/cache"
 	auth "admin-panel-dashboard/internal/components/auth/controllers"
+	"admin-panel-dashboard/internal/gnosissafe"
 	"errors"
 	"strings"
 
@@ -38,8 +39,8 @@ import (
 
 	_ "github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -133,6 +134,10 @@ func main() {
 		Enabled: enableCaching,
 		Client:  redisCli,
 		Context: context.Background(),
+	}
+	// a vault-signer Safe is changed by one instance at a time
+	gnosissafe.KeyLock = func(ctx context.Context, name string, fn func() error) error {
+		return redisCache.WithLock(ctx, "lock:"+name, 3*time.Minute, 30*time.Second, fn)
 	}
 
 	// log.Println("p2p connected")

@@ -1429,12 +1429,11 @@ func ActivatePrimarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 						continue
 					}
 
-					// assets[i].AssetTokenizationStatus = 5
 					assets[i].AssetTokenizationStatus = 5
+					// SendPNToSuscribersForPrimarySales picks it up (on any instance)
+					assets[i].SalesNotificationPending = 1
 
 					log.Printf("[ActivatePrimarySalesRoutine][CHECK PRIMARY SALES DATES]UPDATE ASSET : %v, %v\n", *asset.AssetCode, asset.AssetTokenizationStatus)
-
-					gc.ChannelOfTokenizedAssetIDs <- asset.ID
 				}
 				e := tx.Omit(clause.Associations).Save(&assets).Error
 				if e != nil {
@@ -1455,9 +1454,6 @@ func ActivatePrimarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 		}
 
 	}
-
-	time.Sleep(15 * time.Minute)
-
 }
 
 // ActivateSecondarySalesRoutine used by automation routine to update tokenized assets to begin sales
@@ -1501,15 +1497,26 @@ func ActivateSecondarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 
 	}
 
-	time.Sleep(15 * time.Minute)
-
 }
 
-// SendPNToSuscribersForPrimarySales used by automation routine to send PN for tokenized assets to begin sales
+// SendPNToSuscribersForPrimarySales sends the sale-start push notifications
+// of every asset whose primary sales started (SalesNotificationPending),
+// each asset once: it is claimed before sending.
 func SendPNToSuscribersForPrimarySales(gc *sharedconfig.GlobalConfig) {
-	chant := <-gc.ChannelOfTokenizedAssetIDs
-	t := userModels.TokenizedAssetID(chant).GetTokenization(gc)
-	if t.ID != chant {
+	var ids []string
+	gc.DB.Model(&userModels.TokenizedAsset{}).Where("sales_notification_pending = ?", 1).Limit(20).Pluck("id", &ids)
+	for _, id := range ids {
+		claim := gc.DB.Model(&userModels.TokenizedAsset{}).Where("id = ? AND sales_notification_pending = ?", id, 1).Update("sales_notification_pending", 0)
+		if claim.Error != nil || claim.RowsAffected != 1 {
+			continue
+		}
+		sendPrimarySalesNotifications(id, gc)
+	}
+}
+
+func sendPrimarySalesNotifications(id string, gc *sharedconfig.GlobalConfig) {
+	t := userModels.TokenizedAssetID(id).GetTokenization(gc)
+	if t.ID != id {
 		return
 	}
 	batchSize := 100
@@ -1549,9 +1556,6 @@ func SendPNToSuscribersForPrimarySales(gc *sharedconfig.GlobalConfig) {
 		}
 
 	}
-
-	time.Sleep(5 * time.Minute)
-
 }
 
 // ConfirmTokenizationApplicationInfoByInitiator used by original owner/initiator to advance status to 1 and allow for vetting.

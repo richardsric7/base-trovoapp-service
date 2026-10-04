@@ -128,6 +128,23 @@ The pattern used everywhere this came up:
   disabled/unreachable, same graceful-degradation posture as caching and
   pub/sub. See `app-backend/internal/middleware/rate_limit_middleware.go`
   and `tm-api/internal/middleware/rate_limit_middleware.go`.
+- **Platform signing keys** (a platform Safe, or a key that sends
+  transactions) are used by one instance at a time: a named lock held from
+  reading the nonce until the transaction is mined (a Safe) or broadcast (a
+  key). app-backend uses the same `distributed_locks` table, renewed while
+  held (`sharedconfig.WithKeyLock`, wired into `internal/gnosissafe`);
+  tm-api, which has no lock table, uses a Redis lock (`cache.WithLock`) for
+  its vault-signer Safe changes, so running tm-api on more than one
+  instance needs Redis (`ENABLE_CACHING=1`).
+- **Background jobs** hold their lock for as long as they run (it is
+  renewed), and anything that must survive an instance stopping is in the
+  database rather than memory (partner callback deliveries, sale-start
+  notifications). app-backend shuts down gracefully on SIGTERM; tm-api and
+  the paymaster quote service already did.
+
+The paymaster quote service is stateless and scales freely (each instance
+does send its own "deposit low" alert). `payment-history-engine` has not been reviewed for
+running on more than one instance.
 
 **Going forward:** if you're adding a new project to this monorepo, or a
 new piece of shared, cross-instance coordination to an existing one,

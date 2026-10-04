@@ -1,7 +1,6 @@
 package users
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -861,10 +860,8 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 					}
 					log.Printf("[paymentNotification] JSON STRING: [%v]\n", string(body))
 
-					responseBody := bytes.NewBuffer(body)
-					//Leverage Go's HTTP Post function to make request
-					c := userModels.RetryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
-					retryCallbackChan <- c
+					// recorded and retried until delivered (see sharedconfig.SendCallback)
+					gc.SendCallback(d, body)
 				}
 			}
 

@@ -154,7 +154,22 @@ func GatherActiveSigners(ctx context.Context, vc *vaultapi.Client, secret vaults
 // signatures satisfy the Safe's threshold, and Vault-managed signer keys
 // are already expected to hold enough Base ETH to act as transaction
 // senders elsewhere in this system.
-func submitSafeOwnerChange(ctx context.Context, safe *gnosissafe.Safe, innerCalldata []byte, signers []*evmkeypair.Full) (gnosissafe.ExecResult, error) {
+//
+// The Safe's nonce only moves once the transaction is mined, so this holds
+// the Safe's lock from reading the nonce until then: two tm-api instances
+// (or two requests) never sign the same nonce.
+func submitSafeOwnerChange(ctx context.Context, safe *gnosissafe.Safe, innerCalldata []byte, signers []*evmkeypair.Full) (result gnosissafe.ExecResult, err error) {
+	lockErr := gnosissafe.WithSafeLock(ctx, safe.Address, func() error {
+		result, err = submitSafeOwnerChangeLocked(ctx, safe, innerCalldata, signers)
+		return nil
+	})
+	if lockErr != nil {
+		return gnosissafe.ExecResult{}, fmt.Errorf("waiting for the Safe's lock: %w", lockErr)
+	}
+	return result, err
+}
+
+func submitSafeOwnerChangeLocked(ctx context.Context, safe *gnosissafe.Safe, innerCalldata []byte, signers []*evmkeypair.Full) (gnosissafe.ExecResult, error) {
 	if len(signers) == 0 {
 		return gnosissafe.ExecResult{}, fmt.Errorf("no active signers available to co-sign or submit this change")
 	}

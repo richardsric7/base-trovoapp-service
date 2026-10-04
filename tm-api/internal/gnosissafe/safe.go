@@ -296,6 +296,19 @@ func (s *Safe) SubmitOwnerChange(ctx context.Context, senderKey *ecdsa.PrivateKe
 	}, nil
 }
 
+// KeyLock, when set, runs fn holding the named lock across every instance
+// of tm-api (main sets it to a Redis lock). Unset, nothing is locked.
+var KeyLock func(ctx context.Context, name string, fn func() error) error
+
+// WithSafeLock runs fn - from reading the Safe's nonce until its
+// transaction is mined - while no other instance uses the same Safe.
+func WithSafeLock(ctx context.Context, safe common.Address, fn func() error) error {
+	if KeyLock == nil {
+		return fn()
+	}
+	return KeyLock(ctx, "safe:"+strings.ToLower(safe.Hex()), fn)
+}
+
 // waitMined polls for txHash's receipt, the same way go-ethereum's own
 // accounts/abi/bind.WaitMined does - kept as a small local helper rather
 // than pulling in the bind package for this one call.

@@ -470,6 +470,15 @@ A tokenized asset's **token contract** is not configuration: it is registered pe
 
 ---
 
+## Shutdown
+
+**`SHUTDOWN_GRACE_PERIOD`**
+- Example: `90s` (default `60s`)
+- What it does: How long a stopping instance (SIGTERM/SIGINT) waits for in-flight requests, running background jobs and platform-key transactions before exiting. See DEPLOYMENT.md "Running two or more instances".
+- How to get a real value: a little less than your platform's stop timeout (e.g. Kubernetes `terminationGracePeriodSeconds`).
+
+---
+
 ## Account recovery
 
 Opt-in account recovery (see [INTEGRATION.md](INTEGRATION.md#account-recovery-opt-in-guardian)). Without `RECOVERY_MODULE_ADDRESS` and a guardian, the recovery endpoints answer `error-account-recovery-not-configured` (503); nothing else is affected.

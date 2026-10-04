@@ -127,6 +127,14 @@ database (simulating first boot plus two redeploys) and the existing
 SQLite migration test suite. If you're working from this repo, you
 already have the fix.
 
+With more than one instance, turn Redis on (`ENABLE_CACHING=1` and the
+`REDIS_*` settings): besides the login stream relay and rate limits, it
+holds the lock that makes vault-signer Safe owner changes run one at a
+time across instances - from reading the Safe's nonce until the change is
+mined (`internal/cache/lock.go`). Without Redis that lock is skipped,
+which is only safe on a single instance. tm-api already shuts down
+gracefully on SIGTERM.
+
 ## 4. Running via Docker
 
 ```bash

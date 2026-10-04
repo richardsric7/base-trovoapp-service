@@ -51,7 +51,6 @@ type GlobalConfig struct {
 	// only ever holds key material, never availability state.
 	ChannelAccountKeysByAddress map[string]*evmkeypair.Full
 	ChannelAccountKeysMutex     sync.RWMutex
-	ChannelOfTokenizedAssetIDs  chan string
 
 	// userStreamConnections/userStreamMutex/userStreamPubSub back the
 	// per-instance user event stream (see realtime.go) - username to the

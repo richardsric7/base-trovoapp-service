@@ -1,7 +1,6 @@
 package payments
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"time"
@@ -367,10 +366,8 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 					}
 					log.Printf("[paymentNotification] JSON STRING: [%v]\n", string(body))
 
-					responseBody := bytes.NewBuffer(body)
-					//Leverage Go's HTTP Post function to make request
-					c := userModels.RetryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
-					callBackRetryChan <- c
+					// recorded and retried until delivered (see sharedconfig.SendCallback)
+					gc.SendCallback(d, body)
 				}
 			}
 
