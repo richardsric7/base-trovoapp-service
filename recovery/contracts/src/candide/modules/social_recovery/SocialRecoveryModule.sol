@@ -1,0 +1,436 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity >=0.8.12 <0.9.0;
+
+import {GuardianStorage} from "./storage/GuardianStorage.sol";
+import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
+import {ISafe, IOwnerManager, Enum} from "./../../interfaces/ISafe.sol";
+
+/// @title Social Recovery Module
+/// @author CANDIDE Labs
+contract SocialRecoveryModule is GuardianStorage {
+    string public constant NAME = "Social Recovery Module";
+    string public constant VERSION = "0.2.0";
+
+    // keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
+    bytes32 private constant DOMAIN_SEPARATOR_TYPEHASH = 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
+
+    // keccak256("ExecuteRecovery(address wallet,address[] newOwners,uint256 newThreshold,uint256 nonce)");
+    bytes32 private constant EXECUTE_RECOVERY_TYPEHASH = 0x124b64921a7c7e677c6cc3b132eaaa57130bc6fc05ab157f35fe5264a7c198d5;
+
+    address internal constant SENTINEL_OWNERS = address(0x1);
+
+    struct SignatureData {
+        address signer;
+        bytes signature;
+    }
+
+    struct RecoveryRequest {
+        uint256 guardiansApprovalCount;
+        uint256 newThreshold;
+        uint256 nonce;
+        uint64 executableAt;
+        address[] newOwners;
+    }
+
+    mapping(address => RecoveryRequest) internal recoveryRequests;
+    mapping(bytes32 => mapping(address => bool)) internal confirmedHashes;
+    mapping(address => uint256) internal walletsNonces;
+
+    // Recovery period
+    uint256 internal immutable recoveryPeriod;
+
+    event RecoveryConfirmed(
+        address indexed wallet,
+        address indexed guardian,
+        bytes32 indexed recoveryHash,
+        address[] newOwners,
+        uint256 newThreshold,
+        uint256 nonce
+    );
+    event RecoveryExecuted(
+        address indexed wallet,
+        bytes32 indexed recoveryHash,
+        address[] newOwners,
+        uint256 newThreshold,
+        uint256 nonce,
+        uint64 executableAt,
+        uint256 guardiansApprovalCount
+    );
+    event RecoveryFinalized(address indexed wallet, bytes32 indexed recoveryHash, address[] newOwners, uint256 newThreshold, uint256 nonce);
+    event RecoveryCanceled(address indexed wallet, bytes32 indexed recoveryHash, uint256 nonce);
+    event NonceInvalidated(address indexed wallet, uint256 nonce);
+
+    /**
+     * @notice Throws if there is no ongoing recovery request.
+     */
+    modifier whenRecovery(address _wallet) {
+        require(recoveryRequests[_wallet].executableAt > 0, "SM: no ongoing recovery");
+        _;
+    }
+
+    constructor(uint256 _recoveryPeriod) {
+        recoveryPeriod = _recoveryPeriod;
+    }
+
+    ////////////////
+
+    /// @dev Returns the chain id used by this contract.
+    function getChainId() public view returns (uint256) {
+        uint256 id;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            id := chainid()
+        }
+        return id;
+    }
+
+    function domainSeparator() public view returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(
+                    DOMAIN_SEPARATOR_TYPEHASH,
+                    keccak256(abi.encodePacked(NAME)),
+                    keccak256(abi.encodePacked(VERSION)),
+                    getChainId(),
+                    this
+                )
+            );
+    }
+
+    /// @dev Returns the EIP-712 signable data of a recovery, i.e. 0x19 0x01 || domainSeparator || hashStruct(ExecuteRecovery).
+    /// Its keccak256 is the recovery hash signed by guardians, see `getRecoveryHash`.
+    function encodeRecoverySignableData(
+        address _wallet,
+        address[] memory _newOwners,
+        uint256 _newThreshold,
+        uint256 _nonce
+    ) public view returns (bytes memory) {
+        bytes32 structHash = keccak256(
+            abi.encode(EXECUTE_RECOVERY_TYPEHASH, _wallet, keccak256(abi.encodePacked(_newOwners)), _newThreshold, _nonce)
+        );
+        return abi.encodePacked(bytes1(0x19), bytes1(0x01), domainSeparator(), structHash);
+    }
+
+    /// @dev Generates the recovery hash that should be signed by the guardians to authorize a recovery.
+    function getRecoveryHash(
+        address _wallet,
+        address[] memory _newOwners,
+        uint256 _newThreshold,
+        uint256 _nonce
+    ) public view returns (bytes32) {
+        return keccak256(encodeRecoverySignableData(_wallet, _newOwners, _newThreshold, _nonce));
+    }
+
+    /// @dev Checks that the signature is valid for the provided signer and that the signer is a guardian, reverts otherwise.
+    function validateGuardianSignature(address _wallet, bytes32 _signHash, address _signer, bytes memory _signature) public view {
+        require(isGuardian(_wallet, _signer), "SM: Signer not a guardian");
+        require(SignatureChecker.isValidSignatureNow(_signer, _signHash, _signature), "SM: Invalid guardian signature");
+    }
+
+    /**
+     * @dev Validates a proposed owner set and threshold before a confirmation is recorded or a recovery
+     * request is scheduled. A request that `finalizeRecovery` would always reject must never be scheduled,
+     * as it could otherwise only be cleared by the (possibly unavailable) wallet owners.
+     * @param _wallet The target wallet.
+     * @param _newOwners The new owners' addresses.
+     * @param _newThreshold The new threshold for the safe.
+     */
+    function _validateNewOwners(address _wallet, address[] calldata _newOwners, uint256 _newThreshold) internal view {
+        require(_newOwners.length > 0, "SM: owners cannot be empty");
+        require(_newThreshold > 0 && _newOwners.length >= _newThreshold, "SM: invalid new threshold");
+        for (uint256 i = 0; i < _newOwners.length; i++) {
+            address newOwner = _newOwners[i];
+            require(newOwner != address(0) && newOwner != SENTINEL_OWNERS && newOwner != _wallet, "SM: invalid new owner");
+            require(!isGuardian(_wallet, newOwner), "SM: new owner cannot be guardian");
+            for (uint256 j = 0; j < i; j++) {
+                require(newOwner != _newOwners[j], "SM: duplicate new owner");
+            }
+        }
+    }
+
+    /**
+     * @notice Lets a single guardian confirm the execution of the recovery request.
+     * Can also trigger the start of the execution by passing true to the '_execute' parameter.
+     * Once triggered the recovery is pending for the recovery period before it can be finalized.
+     * Confirming a recovery hash the guardian already confirmed has no effect and does not emit `RecoveryConfirmed` again.
+     * @param _wallet The target wallet.
+     * @param _newOwners The new owners' addresses.
+     * @param _newThreshold The new threshold for the safe.
+     * @param _nonce The wallet nonce the confirmation is meant for. It must be the current nonce of the wallet, so that a
+     * confirmation cannot be recorded for a later round if the nonce changes before the transaction is included.
+     * @param _execute Whether to auto-start execution of recovery.
+     */
+    function confirmRecovery(
+        address _wallet,
+        address[] calldata _newOwners,
+        uint256 _newThreshold,
+        uint256 _nonce,
+        bool _execute
+    ) external {
+        require(isGuardian(_wallet, msg.sender), "SM: sender not a guardian");
+        _validateNewOwners(_wallet, _newOwners, _newThreshold);
+        require(_nonce == nonce(_wallet), "SM: invalid nonce");
+        //
+        bytes32 recoveryHash = getRecoveryHash(_wallet, _newOwners, _newThreshold, _nonce);
+        if (!confirmedHashes[recoveryHash][msg.sender]) {
+            confirmedHashes[recoveryHash][msg.sender] = true;
+            emit RecoveryConfirmed(_wallet, msg.sender, recoveryHash, _newOwners, _newThreshold, _nonce);
+        }
+        //
+        if (!_execute) return;
+        uint256 guardiansThreshold = threshold(_wallet);
+        uint256 _approvalCount = getRecoveryApprovals(_wallet, _newOwners, _newThreshold);
+        require(_approvalCount >= guardiansThreshold, "SM: confirmed signatures less than threshold");
+        _executeRecovery(_wallet, _newOwners, _newThreshold, _approvalCount);
+    }
+
+    /**
+     * @notice Lets multiple guardians confirm the execution of the recovery request.
+     * Can also trigger the start of the execution by passing true to the '_execute' parameter.
+     * Once triggered the recovery is pending for the recovery period before it can be finalized.
+     * Signers that already confirmed the recovery hash are still validated but do not emit `RecoveryConfirmed` again.
+     * @param _wallet The target wallet.
+     * @param _newOwners The new owners' addresses.
+     * @param _newThreshold The new threshold for the safe.
+     * @param _nonce The wallet nonce the confirmations are meant for. It must be the current nonce of the wallet.
+     * @param _signatures The guardian signatures, sorted by ascending signer address. Each entry is either an ECDSA
+     * signature, an EIP-1271 contract signature (which may be empty, e.g. for a hash pre-approved by a Safe guardian),
+     * or an empty signature whose signer is the sender, which counts as a direct confirmation by the sender.
+     * @param _execute Whether to auto-start execution of recovery.
+     */
+    function multiConfirmRecovery(
+        address _wallet,
+        address[] calldata _newOwners,
+        uint256 _newThreshold,
+        uint256 _nonce,
+        SignatureData[] memory _signatures,
+        bool _execute
+    ) external {
+        _validateNewOwners(_wallet, _newOwners, _newThreshold);
+        require(_nonce == nonce(_wallet), "SM: invalid nonce");
+        require(_signatures.length > 0, "SM: empty signatures");
+        uint256 guardiansThreshold = threshold(_wallet);
+        require(guardiansThreshold > 0, "SM: empty guardians");
+        //
+        bytes32 recoveryHash = getRecoveryHash(_wallet, _newOwners, _newThreshold, _nonce);
+        address lastSigner = address(0);
+        for (uint256 i = 0; i < _signatures.length; i++) {
+            SignatureData memory value = _signatures[i];
+            if (value.signer == msg.sender && value.signature.length == 0) {
+                require(isGuardian(_wallet, msg.sender), "SM: sender not a guardian");
+            } else {
+                validateGuardianSignature(_wallet, recoveryHash, value.signer, value.signature);
+            }
+            require(value.signer > lastSigner, "SM: duplicate signers/invalid ordering");
+            if (!confirmedHashes[recoveryHash][value.signer]) {
+                confirmedHashes[recoveryHash][value.signer] = true;
+                emit RecoveryConfirmed(_wallet, value.signer, recoveryHash, _newOwners, _newThreshold, _nonce);
+            }
+            lastSigner = value.signer;
+        }
+        //
+        if (!_execute) return;
+        uint256 _approvalCount = getRecoveryApprovals(_wallet, _newOwners, _newThreshold);
+        require(_approvalCount >= guardiansThreshold, "SM: confirmed signatures less than threshold");
+        _executeRecovery(_wallet, _newOwners, _newThreshold, _approvalCount);
+    }
+
+    /**
+     * @notice Lets the guardians start the execution of the recovery request.
+     * Once triggered the recovery is pending for the recovery period before it can be finalized.
+     * @param _wallet The target wallet.
+     * @param _newOwners The new owners' addresses.
+     * @param _newThreshold The new threshold for the safe.
+     */
+    function executeRecovery(address _wallet, address[] calldata _newOwners, uint256 _newThreshold) external {
+        _validateNewOwners(_wallet, _newOwners, _newThreshold);
+        uint256 guardiansThreshold = threshold(_wallet);
+        require(guardiansThreshold > 0, "SM: empty guardians");
+        //
+        uint256 _approvalCount = getRecoveryApprovals(_wallet, _newOwners, _newThreshold);
+        require(_approvalCount >= guardiansThreshold, "SM: confirmed signatures less than threshold");
+        _executeRecovery(_wallet, _newOwners, _newThreshold, _approvalCount);
+    }
+
+    function _executeRecovery(address _wallet, address[] calldata _newOwners, uint256 _newThreshold, uint256 _approvalCount) internal {
+        uint256 _nonce = nonce(_wallet);
+        // If an ongoing recovery exists, replace only if more guardians than the previous guardians have approved this replacement
+        RecoveryRequest storage request = recoveryRequests[_wallet];
+        if (request.executableAt > 0) {
+            require(_approvalCount > request.guardiansApprovalCount, "SM: not enough approvals for replacement");
+            _deleteRecoveryRequest(_wallet, request);
+        }
+        // Start recovery execution
+        uint64 executableAt = uint64(block.timestamp + recoveryPeriod);
+        recoveryRequests[_wallet] = RecoveryRequest(_approvalCount, _newThreshold, _nonce, executableAt, _newOwners);
+        walletsNonces[_wallet]++;
+        bytes32 recoveryHash = getRecoveryHash(_wallet, _newOwners, _newThreshold, _nonce);
+        emit RecoveryExecuted(_wallet, recoveryHash, _newOwners, _newThreshold, _nonce, executableAt, _approvalCount);
+    }
+
+    /**
+     * @notice Finalizes an ongoing recovery request if the recovery period is over.
+     * The method is public and callable by anyone to enable orchestration.
+     * @param _wallet The target wallet.
+     */
+    function finalizeRecovery(address _wallet) external whenRecovery(_wallet) {
+        RecoveryRequest storage request = recoveryRequests[_wallet];
+        require(uint64(block.timestamp) >= request.executableAt, "SM: recovery period still pending");
+        address[] memory newOwners = request.newOwners;
+        uint256 newThreshold = request.newThreshold;
+        uint256 requestNonce = request.nonce;
+        bytes32 recoveryHash = getRecoveryHash(_wallet, newOwners, newThreshold, requestNonce);
+        delete recoveryRequests[_wallet];
+
+        ISafe safe = ISafe(payable(_wallet));
+        address[] memory owners = safe.getOwners();
+
+        for (uint256 i = (owners.length - 1); i > 0; --i) {
+            bool success = safe.execTransactionFromModule({
+                to: _wallet,
+                value: 0,
+                data: abi.encodeCall(IOwnerManager.removeOwner, (owners[i - 1], owners[i], 1)),
+                operation: Enum.Operation.Call
+            });
+            if (!success) {
+                revert("SM: owner removal failed");
+            }
+        }
+
+        for (uint256 i = 0; i < newOwners.length; i++) {
+            require(!isGuardian(_wallet, newOwners[i]), "SM: new owner cannot be guardian");
+            bool success;
+            if (i == 0) {
+                if (newOwners[i] == owners[i]) continue;
+                success = safe.execTransactionFromModule({
+                    to: _wallet,
+                    value: 0,
+                    data: abi.encodeCall(IOwnerManager.swapOwner, (SENTINEL_OWNERS, owners[i], newOwners[i])),
+                    operation: Enum.Operation.Call
+                });
+                if (!success) {
+                    revert("SM: owner replacement failed");
+                }
+                continue;
+            }
+            success = safe.execTransactionFromModule({
+                to: _wallet,
+                value: 0,
+                data: abi.encodeCall(IOwnerManager.addOwnerWithThreshold, (newOwners[i], 1)),
+                operation: Enum.Operation.Call
+            });
+            if (!success) {
+                revert("SM: owner addition failed");
+            }
+        }
+
+        if (newThreshold > 1) {
+            bool success = safe.execTransactionFromModule({
+                to: _wallet,
+                value: 0,
+                data: abi.encodeCall(IOwnerManager.changeThreshold, (newThreshold)),
+                operation: Enum.Operation.Call
+            });
+            if (!success) {
+                revert("SM: change threshold failed");
+            }
+        }
+
+        emit RecoveryFinalized(_wallet, recoveryHash, newOwners, newThreshold, requestNonce);
+    }
+
+    /**
+     * @notice Lets the wallet stop all of its ongoing recovery activity: the ongoing recovery request, if any, is canceled
+     * and the wallet nonce is invalidated, so that guardian confirmations collected for the current nonce become unusable.
+     * @dev Can also be called without an ongoing request, e.g. to discard pending confirmations. Any guardian configuration
+     * change of the wallet has the same effect, see `_afterGuardianConfigChange`.
+     */
+    function cancelRecovery() external onlyCanonicalCalldata(0) {
+        _cancelRecovery(msg.sender);
+    }
+
+    function _cancelRecovery(address _wallet) internal {
+        RecoveryRequest storage request = recoveryRequests[_wallet];
+        if (request.executableAt > 0) {
+            _deleteRecoveryRequest(_wallet, request);
+        }
+        uint256 invalidatedNonce = walletsNonces[_wallet]++;
+        emit NonceInvalidated(_wallet, invalidatedNonce);
+    }
+
+    function _deleteRecoveryRequest(address _wallet, RecoveryRequest storage request) internal {
+        uint256 requestNonce = request.nonce;
+        bytes32 recoveryHash = getRecoveryHash(_wallet, request.newOwners, request.newThreshold, requestNonce);
+        delete recoveryRequests[_wallet];
+        emit RecoveryCanceled(_wallet, recoveryHash, requestNonce);
+    }
+
+    /**
+     * @dev Every guardian configuration change starts a new recovery authorization epoch: a recovery scheduled and the
+     * confirmations collected under the previous guardian set or threshold are no longer valid.
+     */
+    function _afterGuardianConfigChange(address _wallet) internal override {
+        _cancelRecovery(_wallet);
+    }
+
+    /**
+     * @notice Retrieves the wallet's current ongoing recovery request.
+     * @param _wallet The target wallet.
+     * @return request The wallet's current recovery request.
+     */
+    function getRecoveryRequest(address _wallet) public view returns (RecoveryRequest memory request) {
+        return recoveryRequests[_wallet];
+    }
+
+    /**
+     * @notice Retrieves the guardian approval count for a particular recovery request at the current nonce.
+     * @param _wallet The target wallet.
+     * @param _newOwners The new owners' addresses.
+     * @param _newThreshold The new threshold for the safe.
+     * @return approvalCount The number of current guardians that have approved this recovery request.
+     */
+    function getRecoveryApprovals(
+        address _wallet,
+        address[] calldata _newOwners,
+        uint256 _newThreshold
+    ) public view returns (uint256 approvalCount) {
+        uint256 _nonce = nonce(_wallet);
+        bytes32 recoveryHash = getRecoveryHash(_wallet, _newOwners, _newThreshold, _nonce);
+        address[] memory guardians = getGuardians(_wallet);
+        approvalCount = 0;
+        for (uint256 i = 0; i < guardians.length; i++) {
+            if (confirmedHashes[recoveryHash][guardians[i]]) {
+                approvalCount++;
+            }
+        }
+    }
+
+    /**
+     * @notice Retrieves whether a current guardian has approved a particular recovery request at the current nonce.
+     * Approvals recorded by addresses that are no longer guardians are not reported, consistently with `getRecoveryApprovals`.
+     * @param _wallet The target wallet.
+     * @param _guardian The guardian.
+     * @param _newOwners The new owners' addresses.
+     * @param _newThreshold The new threshold for the safe.
+     * @return true if `_guardian` is a guardian of `_wallet` and has approved this recovery request at the current nonce.
+     */
+    function hasGuardianApproved(
+        address _wallet,
+        address _guardian,
+        address[] calldata _newOwners,
+        uint256 _newThreshold
+    ) public view returns (bool) {
+        uint256 _nonce = nonce(_wallet);
+        bytes32 recoveryHash = getRecoveryHash(_wallet, _newOwners, _newThreshold, _nonce);
+        return isGuardian(_wallet, _guardian) && confirmedHashes[recoveryHash][_guardian];
+    }
+
+    /**
+     * @notice Get the module nonce for a wallet.
+     * @param _wallet The target wallet.
+     * @return _nonce The nonce of this wallet.
+     */
+    function nonce(address _wallet) public view returns (uint256 _nonce) {
+        return walletsNonces[_wallet];
+    }
+}
