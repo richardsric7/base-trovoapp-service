@@ -2,6 +2,7 @@ package sms
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -137,12 +138,19 @@ func SendSMSWithTermiiGateway(destNumber, messageBody string) error {
 		log.Println("[SendSMSWithTermiiGateway] sending sms with sender ID: ", senderID, " through channel: ", channel)
 	}
 
-	url := fmt.Sprintf("https://%s/api/sms/send?to=%s&from=%s&sms=%s&type=plain&channel=%s&api_key=%s", os.Getenv("TERMII_SMS_URL"), destNumber, senderID, url.QueryEscape(text), channel, os.Getenv("TERMII_SMS_API_KEY"))
-	log.Println("URL:", url)
+	// the API key goes in the query string: log the URL without it
+	urlFormat := "https://%s/api/sms/send?to=%s&from=%s&sms=%s&type=plain&channel=%s&api_key=%s"
+	reqURL := fmt.Sprintf(urlFormat, os.Getenv("TERMII_SMS_URL"), destNumber, senderID, url.QueryEscape(text), channel, os.Getenv("TERMII_SMS_API_KEY"))
+	log.Println("URL:", fmt.Sprintf(urlFormat, os.Getenv("TERMII_SMS_URL"), destNumber, senderID, url.QueryEscape(text), channel, "REDACTED"))
 
-	resp, err := outboundHTTP.Post(url, "application/json", nil)
+	resp, err := outboundHTTP.Post(reqURL, "application/json", nil)
 
 	if err != nil {
+		// a transport error repeats the request URL, key included
+		var urlErr *url.Error
+		if errors.As(err, &urlErr) {
+			err = urlErr.Err
+		}
 		log.Printf("[SendSMSWithTermiiGateway] send sms has error: %v\n", err)
 		return &tErrors.CustomError{
 			Param:      "mobile",
