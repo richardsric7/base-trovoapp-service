@@ -71,17 +71,6 @@ func GetBlockchainSwapDestinationMin() decimal.Decimal {
 
 }
 
-// GetBlockchainClient returns the Base JSON-RPC client, the Base
-// equivalent of Stellar's Horizon client.
-func GetBlockchainClient() *ethclient.Client {
-	url := os.Getenv("BASE_RPC_URL")
-	client, err := ethclient.Dial(url)
-	if err != nil {
-		log.Panicf("[GetBlockchainClient] invalid BASE_RPC_URL %q: %v", url, err)
-	}
-	return client
-}
-
 // AAConfig is the Safe / ERC-4337 configuration every wallet is built
 // from, for BASE_CHAIN_ID (see internal/aa).
 func AAConfig() aa.Config {

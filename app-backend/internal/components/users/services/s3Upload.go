@@ -6,6 +6,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"time"
 	userModels "trovo-wallet-api/internal/components/users/models"
 )
 
@@ -16,7 +17,7 @@ func UploadFileToS3(uploadedFile *multipart.FileHeader, uploadcred *userModels.U
 		log.Println("[UploadFileToS3]error generating upload request to s3", err)
 		return err
 	}
-	client := &http.Client{}
+	client := &http.Client{Timeout: 2 * time.Minute} // uploads can be large
 	resp, err := client.Do(request)
 	if err != nil {
 		log.Println("[UploadFileToS3] error uploaing file to s3", err)

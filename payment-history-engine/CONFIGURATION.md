@@ -113,6 +113,26 @@ immediately without serving anything.
   Infura (https://www.infura.io/), or run your own `base-node`
   (https://docs.base.org/tools/node-providers).
 
+### `RPC_TIMEOUT`
+- **Required**: no (defaults to `30s`)
+- **Example**: `30s`
+- **What it is**: the longest any single request to `BASE_RPC_URL` may
+  take. If the RPC stops answering, requests give up after this long, and
+  after 3 failures in a row the client refuses RPC calls at once for 10
+  seconds at a time until a request gets through again. A block whose
+  data could not be read is retried on the next poll, never skipped.
+- **How to get a real value**: leave unset unless your provider is slow
+  for large `eth_getLogs` ranges.
+
+### `TRACK_ADDRESS_CONCURRENCY`
+- **Required**: no (defaults to `8`)
+- **Example**: `8`
+- **What it is**: how many tracked addresses are back-filled from the
+  chain at the same time. Each back-fill holds RPC requests and memory, so
+  this caps both when many addresses are tracked at once.
+- **How to get a real value**: leave unset; raise it only if your RPC
+  plan allows more parallel requests.
+
 ### `BASE_CHAIN_ID`
 - **Required**: no (defaults to `84532`, Base Sepolia)
 - **Example**: `8453` (Base mainnet) or `84532` (Base Sepolia)

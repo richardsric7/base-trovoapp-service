@@ -9,12 +9,9 @@
 package network
 
 import (
-	"log"
 	"math/big"
 	"os"
 	"strings"
-
-	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 // GetBlockchainNetworkPassPhrase is vestigial on Base (Stellar used a
@@ -24,17 +21,6 @@ import (
 // still pass its result through don't need to change shape.
 func GetBlockchainNetworkPassPhrase() string {
 	return os.Getenv("BLOCKCHAIN_NETWORK_PASSPHRASE")
-}
-
-// GetBlockchainClient returns the Base JSON-RPC client, the Base
-// equivalent of Stellar's Horizon client.
-func GetBlockchainClient() *ethclient.Client {
-	url := os.Getenv("BASE_RPC_URL")
-	client, err := ethclient.Dial(url)
-	if err != nil {
-		log.Panicf("[GetBlockchainClient] invalid BASE_RPC_URL %q: %v", url, err)
-	}
-	return client
 }
 
 // GetBlockchainChainID returns the Base chain ID transactions are signed

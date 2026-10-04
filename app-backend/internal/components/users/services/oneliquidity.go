@@ -36,7 +36,7 @@ func GetCryptoSubwallet(wallet *userModels.UserWallet, currency string, gc *shar
 
 	var wdlResp userModels.CryptoSubwalletResponse
 
-	client := http.DefaultClient
+	client := outboundHTTP
 	url := fmt.Sprintf("%s/%s?currency=%s&uid=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/sub", currency, wallet.Alias+"@"+os.Getenv("WALLET_DOMAIN"))
 
 	request, err := http.NewRequest(http.MethodGet, url, nil)
@@ -80,7 +80,7 @@ func CreateCryptoSubwalletRequest(wallet *userModels.UserWallet, currency string
 
 	var wdlResp userModels.CryptoSubwalletResponse
 
-	client := http.DefaultClient
+	client := outboundHTTP
 	url := fmt.Sprintf("%s/%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/sub")
 	jbody, err := json.Marshal(userModels.OnliquiditySubWalletInput{
 		Currency: currency,
@@ -132,7 +132,7 @@ func GetCryptoSubwalletRequest(wallet *userModels.UserWallet, currency string, g
 
 	var wdlResp userModels.CryptoSubwalletResponse
 	uidParam := pUrl.QueryEscape(wallet.Alias + "@" + os.Getenv("WALLET_DOMAIN"))
-	client := http.DefaultClient
+	client := outboundHTTP
 	requestUrl := fmt.Sprintf("%s/%s", os.Getenv("ONELIQUIDITY_BASE_URL"), fmt.Sprintf("wallets/v1/sub?currency=%v&uid=%v", pUrl.QueryEscape(currency), uidParam))
 
 	if err != nil {
@@ -318,7 +318,7 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 
 	//
 
-	client := http.DefaultClient
+	client := outboundHTTP
 	cryptoWdlInput := userModels.CryptoWithdrawalRequestInput{
 		Currency:  wdlInput.Currency,
 		Amount:    wdlInput.AmountToWithdraw,
@@ -401,7 +401,7 @@ func GetAWithdrawalID(withdrawalID string, gc *sharedconfig.GlobalConfig) (wdlIt
 	}
 
 	var wdlResp WDLResp
-	client := http.DefaultClient
+	client := outboundHTTP
 
 	url := fmt.Sprintf("%s/%s?withdrawalId=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal", withdrawalID)
 
@@ -452,7 +452,7 @@ func GetADepositByID(depositID string, gc *sharedconfig.GlobalConfig) (depItem u
 	}
 
 	var depResp DEPResp
-	client := http.DefaultClient
+	client := outboundHTTP
 
 	url := fmt.Sprintf("%s/%s?depositId=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/deposit", depositID)
 
@@ -503,7 +503,7 @@ func GetAllDeposits(lek, limit string, gc *sharedconfig.GlobalConfig) (depItems 
 	}
 
 	var depResp DEPResp
-	client := http.DefaultClient
+	client := outboundHTTP
 
 	url := fmt.Sprintf("%s/%s?lek=%v&limit=%v", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/deposit", lek, limit)
 
@@ -548,7 +548,7 @@ func GetAllDeposits(lek, limit string, gc *sharedconfig.GlobalConfig) (depItems 
 
 func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlNetworks []userModels.WithdrawalNetwork, err error) {
 	var wdlNetworksResp userModels.CryptoWithdrawalNetworksResponse
-	client := http.DefaultClient
+	client := outboundHTTP
 	//get 'https://sandbox-api.oneliquidity.technology/wallets/v1/withdrawal/networks?currency=BTC'
 	// cacheKey := fmt.Sprintf("wallets/v1/withdrawal/networks?currency=%s", currency)
 	url := fmt.Sprintf("%s/%s?currency=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal/networks", currency)
@@ -641,7 +641,7 @@ func ComplianceStartNewVerification(firstName, lastName string) (verificationID 
 	if err != nil {
 		return "", err
 	}
-	client := http.DefaultClient
+	client := outboundHTTP
 	//get upload credentials
 	url := fmt.Sprintf("%s/%s?", os.Getenv("ONELIQUIDITY_BASE_URL"), "compliance/v1/verification")
 	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(jbody))
@@ -681,7 +681,7 @@ func GetProofOfresidencyCred(user *userModels.User) (fMCred userModels.ProofOfRe
 
 	url := fmt.Sprintf("%s/compliance/v1/kyc/verification/signed-url?verificationId=%s&uploadDocType=proof_of_residency", os.Getenv("ONELIQUIDITY_BASE_URL"), verificationID)
 
-	client := http.DefaultClient
+	client := outboundHTTP
 	//get upload credentials
 
 	request, err := http.NewRequest(http.MethodGet, url, nil)
@@ -720,7 +720,7 @@ func GetFacematchPassportCred(user *userModels.User) (fMCred userModels.FaceMatc
 
 	url := fmt.Sprintf("%s/compliance/v1/kyc/verification/signed-url?verificationId=%s&uploadDocType=facematch&sourceDocType=passport", os.Getenv("ONELIQUIDITY_BASE_URL"), verificationID)
 
-	client := http.DefaultClient
+	client := outboundHTTP
 	//get upload credentials
 
 	request, err := http.NewRequest(http.MethodGet, url, nil)
@@ -760,7 +760,7 @@ func GetFacematchNationalIDCred(user *userModels.User) (fMCred userModels.FaceMa
 
 	url := fmt.Sprintf("%s/compliance/v1/kyc/verification/signed-url?verificationId=%s&uploadDocType=facematch&sourceDocType=national_id", os.Getenv("ONELIQUIDITY_BASE_URL"), verificationID)
 
-	client := http.DefaultClient
+	client := outboundHTTP
 	//get upload credentials
 
 	request, err := http.NewRequest(http.MethodGet, url, nil)
@@ -800,7 +800,7 @@ func GetFacematchDrivingLicenseCred(user *userModels.User) (fMCred userModels.Fa
 
 	url := fmt.Sprintf("%s/compliance/v1/kyc/verification/signed-url?verificationId=%s&uploadDocType=facematch&sourceDocType=driving_license", os.Getenv("ONELIQUIDITY_BASE_URL"), verificationID)
 
-	client := http.DefaultClient
+	client := outboundHTTP
 	//get upload credentials
 
 	request, err := http.NewRequest(http.MethodGet, url, nil)
@@ -871,7 +871,7 @@ func StartFacematchForPassport(user *userModels.User, selfieVideo, documentPictu
 	}
 	url := fmt.Sprintf("%s/compliance/v1/kyc/facematch", os.Getenv("ONELIQUIDITY_BASE_URL"))
 
-	client := http.DefaultClient
+	client := outboundHTTP
 	// get upload credentials
 	fmrequest := userModels.StartDocumentRequest{
 		VerificationID: verificationID,
@@ -964,7 +964,7 @@ func StartFacematchForDrivingLicense(user *userModels.User, selfieVideo, documen
 	}
 	url := fmt.Sprintf("%s/compliance/v1/kyc/facematch", os.Getenv("ONELIQUIDITY_BASE_URL"))
 
-	client := http.DefaultClient
+	client := outboundHTTP
 	// get upload credentials
 	fmrequest := userModels.StartDocumentRequest{
 		VerificationID: verificationID,
@@ -1055,7 +1055,7 @@ func StartFacematchForNationalID(user *userModels.User, selfieVideo, documentPic
 	}
 	url := fmt.Sprintf("%s/compliance/v1/kyc/facematch", os.Getenv("ONELIQUIDITY_BASE_URL"))
 
-	client := http.DefaultClient
+	client := outboundHTTP
 	// get upload credentials
 	fmrequest := userModels.StartDocumentRequest{
 		VerificationID: verificationID,
@@ -1137,7 +1137,7 @@ func StartGovernmentIDCheckForProofOfResidency(user *userModels.User, documentPi
 	}
 	url := fmt.Sprintf("%s/compliance/v1/kyc/gov-id", os.Getenv("ONELIQUIDITY_BASE_URL"))
 
-	client := http.DefaultClient
+	client := outboundHTTP
 	// get upload credentials
 	fmrequest := userModels.StartDocumentRequest{
 		VerificationID: verificationID,

@@ -943,7 +943,10 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	srv := &http.Server{Addr: ":" + port, Handler: router}
+	// ReadHeaderTimeout/IdleTimeout: slow or idle clients cannot hold
+	// connections (and their memory) open; no Read/WriteTimeout, which would
+	// cut uploads, websockets and long requests
+	srv := &http.Server{Addr: ":" + port, Handler: router, ReadHeaderTimeout: 10 * time.Second, IdleTimeout: 2 * time.Minute}
 	go func() {
 		log.Println("##service started##")
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {

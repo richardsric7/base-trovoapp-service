@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 	tErrors "trovo-wallet-payment-history-engine/internal/errors"
 )
 
@@ -28,7 +29,7 @@ func GetGeoInfo(ip string) (fetchedGeoIP IPAPI, err error) {
 		return
 	}
 
-	resp, err := http.Get(os.Getenv("IPAPI_HOST") + "/" + ip + "?key=" + os.Getenv("IPAPI_KEY"))
+	resp, err := geoHTTP.Get(os.Getenv("IPAPI_HOST") + "/" + ip + "?key=" + os.Getenv("IPAPI_KEY"))
 
 	if err == nil {
 		defer resp.Body.Close()
@@ -58,3 +59,7 @@ func GetGeoInfo(ip string) (fetchedGeoIP IPAPI, err error) {
 
 	return IPAPI{}, &tErrors.ErrorTemporaryServerError{}
 }
+
+// geoHTTP calls the IP geolocation API, with a timeout (http.DefaultClient
+// has none).
+var geoHTTP = &http.Client{Timeout: 15 * time.Second}

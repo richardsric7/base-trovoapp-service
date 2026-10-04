@@ -2950,7 +2950,7 @@ func (w UserWallet) GetCryptoSubwallet(currency string, gc *sharedconfig.GlobalC
 
 	var wdlResp CryptoSubwalletResponse
 
-	client := http.DefaultClient
+	client := outboundHTTP
 	url := fmt.Sprintf("%s/%s?currency=%s&uid=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/sub", currency, w.Alias+"@"+os.Getenv("WALLET_DOMAIN"))
 
 	request, err := http.NewRequest(http.MethodGet, url, nil)
@@ -2982,7 +2982,7 @@ func (w UserWallet) CreateCryptoSubwalletRequest(currency string, gc *sharedconf
 
 	var wdlResp CryptoSubwalletResponse
 
-	client := http.DefaultClient
+	client := outboundHTTP
 	url := fmt.Sprintf("%s/%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/sub")
 	jbody, err := json.Marshal(OnliquiditySubWalletInput{
 		Currency: currency,

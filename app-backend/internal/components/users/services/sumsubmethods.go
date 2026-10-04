@@ -229,7 +229,7 @@ func _makeSumsubRequest(path, method, contentType string, body []byte, gc *share
 	request.Header.Add("X-App-Access-Ts", ts)
 	request.Header.Add("Accept", "application/json")
 	request.Header.Add("Content-Type", contentType)
-	response, err := http.DefaultClient.Do(request)
+	response, err := outboundHTTP.Do(request)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

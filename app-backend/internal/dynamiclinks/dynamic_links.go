@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/shopspring/decimal"
@@ -164,7 +165,7 @@ func GenerateDynamicLinkWithStaticServiceOld(link string, dynamicLinkServiceUrl 
 		return
 	}
 	jb := bytes.NewBuffer(jbody)
-	resp, err := http.Post(baseUrl, "application/json", jb)
+	resp, err := outboundHTTP.Post(baseUrl, "application/json", jb)
 	if err != nil {
 		log.Printf("[GenerateDynamicLinkWithStaticService] Error: %v\n", err)
 		return
@@ -279,7 +280,7 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 // 		return
 // 	}
 // 	jb := bytes.NewBuffer(jbody)
-// 	resp, err := http.Post(baseUrl, "application/json", jb)
+// 	resp, err := outboundHTTP.Post(baseUrl, "application/json", jb)
 // 	if err != nil {
 // 		log.Printf("[GenerateDynamicLink] Error: %v\n", err)
 // 		return
@@ -711,3 +712,7 @@ func GenerateRandomCode(codeLength int) string {
 func bigInt(n int) *big.Int {
 	return new(big.Int).SetInt64(int64(n))
 }
+
+// outboundHTTP calls the provider, with a timeout (http.DefaultClient has
+// none).
+var outboundHTTP = &http.Client{Timeout: 15 * time.Second}

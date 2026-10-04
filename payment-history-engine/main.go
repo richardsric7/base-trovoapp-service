@@ -329,12 +329,20 @@ func main() {
 					continue
 				}
 				var wg sync.WaitGroup
+				// at most backfillConcurrency() addresses at a time: one
+				// goroutine per address at once spikes memory and RPC load
+				// with many tracked addresses
+				slots := make(chan struct{}, backfillConcurrency())
 				result := roachDB.FindInBatches(&userAddresses, batchSize, func(tx *gorm.DB, batch int) error {
 					for _, u := range userAddresses {
 						wg.Add(1)
+						slots <- struct{}{}
 						log.Printf("[TRACKAddresses] processing user publicKey %v of %v\n", u.Address, batch)
 						//spin off worker to process the payment history of the public key
-						go MonitorAddressPaymentStream(u.Address, database, roachDB, &wg)
+						go func(address string) {
+							defer func() { <-slots }()
+							MonitorAddressPaymentStream(address, database, roachDB, &wg)
+						}(u.Address)
 					}
 
 					return nil
@@ -506,6 +514,7 @@ func getTokenMeta(client *ethclient.Client, contract string) tokenMeta {
 		return v.(tokenMeta)
 	}
 	meta := tokenMeta{symbol: contract, decimals: 18}
+	readSymbol, readDecimals := false, false
 	addr := common.HexToAddress(contract)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -516,6 +525,7 @@ func getTokenMeta(client *ethclient.Client, contract string) tokenMeta {
 				if s, ok := unpacked[0].(string); ok && s != "" {
 					meta.symbol = s
 				}
+				readSymbol = true
 			}
 		}
 	}
@@ -524,11 +534,16 @@ func getTokenMeta(client *ethclient.Client, contract string) tokenMeta {
 			if unpacked, err := tokenMetaABI.Unpack("decimals", out); err == nil && len(unpacked) > 0 {
 				if d, ok := unpacked[0].(uint8); ok {
 					meta.decimals = int32(d)
+					readDecimals = true
 				}
 			}
 		}
 	}
-	tokenMetaCache.Store(key, meta)
+	// only cache what was read: a fallback cached while the RPC was failing
+	// would record this token's amounts with the wrong decimals for good
+	if readSymbol && readDecimals {
+		tokenMetaCache.Store(key, meta)
+	}
 	return meta
 }
 
@@ -646,14 +661,25 @@ func processB20TransferLog(client *ethclient.Client, lg types.Log, blockTime uin
 // Base equivalent of Horizon's per-operation stream, replayed one block at
 // a time since Base has no account-agnostic operation feed to subscribe to
 // (see MonitorPaymentStream's doc comment).
-func ProcessBlock(client *ethclient.Client, blockNumber uint64, db, roachDB *gorm.DB) {
+//
+// It reads the block and its Transfer logs before recording anything, and
+// returns an error when either read fails, so the caller retries the block
+// instead of moving past it (which would lose its payments).
+func ProcessBlock(client *ethclient.Client, blockNumber uint64, db, roachDB *gorm.DB) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	block, err := client.BlockByNumber(ctx, new(big.Int).SetUint64(blockNumber))
 	if err != nil {
-		log.Printf("[ProcessBlock] error fetching block %d: %v\n", blockNumber, err)
-		return
+		return fmt.Errorf("fetching block %d: %w", blockNumber, err)
+	}
+	logs, err := client.FilterLogs(ctx, ethereum.FilterQuery{
+		FromBlock: new(big.Int).SetUint64(blockNumber),
+		ToBlock:   new(big.Int).SetUint64(blockNumber),
+		Topics:    [][]common.Hash{{transferEventSig}},
+	})
+	if err != nil {
+		return fmt.Errorf("fetching Transfer logs for block %d: %w", blockNumber, err)
 	}
 
 	signer := types.LatestSignerForChainID(network.GetBlockchainChainID())
@@ -668,18 +694,10 @@ func ProcessBlock(client *ethclient.Client, blockNumber uint64, db, roachDB *gor
 		processNativeTransfer(from.Hex(), tx.To().Hex(), tx.Value(), tx.Hash().Hex(), blockNumber, tx.Nonce(), block.Time(), db, roachDB)
 	}
 
-	logs, err := client.FilterLogs(ctx, ethereum.FilterQuery{
-		FromBlock: new(big.Int).SetUint64(blockNumber),
-		ToBlock:   new(big.Int).SetUint64(blockNumber),
-		Topics:    [][]common.Hash{{transferEventSig}},
-	})
-	if err != nil {
-		log.Printf("[ProcessBlock] error fetching Transfer logs for block %d: %v\n", blockNumber, err)
-		return
-	}
 	for _, lg := range logs {
 		processB20TransferLog(client, lg, block.Time(), db, roachDB)
 	}
+	return nil
 }
 
 // MonitorPaymentStream watches every new Base block for native transfers
@@ -720,7 +738,9 @@ func MonitorPaymentStream(db, roachDB *gorm.DB) {
 	}
 
 	for {
-		latest, err := client.BlockNumber(context.Background())
+		bctx, bcancel := context.WithTimeout(context.Background(), 30*time.Second)
+		latest, err := client.BlockNumber(bctx)
+		bcancel()
 		if err != nil {
 			log.Printf("[MonitorPaymentStream] error fetching latest block: %v\n", err)
 			time.Sleep(5 * time.Second)
@@ -732,16 +752,29 @@ func MonitorPaymentStream(db, roachDB *gorm.DB) {
 			startBlock = latest
 		}
 		for b := startBlock; b <= latest; b++ {
-			ProcessBlock(client, b, db, roachDB)
+			if err := ProcessBlock(client, b, db, roachDB); err != nil {
+				// retried on the next pass; the cursor stays before it
+				log.Printf("[MonitorPaymentStream] %v - retrying\n", err)
+				break
+			}
 			cursor := fmt.Sprintf("%d", b)
 			health.RecordOperation(cursor)
 			if e := SaveLastCursor(cursor, roachDB); e != nil {
 				log.Printf("[MonitorPaymentStream] unable to save last cursor: %v\n", e)
 			}
+			startBlock = b + 1
 		}
-		startBlock = latest + 1
 		time.Sleep(4 * time.Second)
 	}
+}
+
+// backfillConcurrency is how many tracked addresses are backfilled at once
+// (TRACK_ADDRESS_CONCURRENCY, default 8).
+func backfillConcurrency() int {
+	if n, err := strconv.Atoi(strings.TrimSpace(os.Getenv("TRACK_ADDRESS_CONCURRENCY"))); err == nil && n > 0 {
+		return n
+	}
+	return 8
 }
 
 // backfillChunkBlocks bounds each eth_getLogs range query - many public RPC
@@ -778,7 +811,9 @@ func MonitorAddressPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *syn
 	}
 	log.Printf("[MonitorAddressPaymentStream] Starting monitoring for %v from block[%v]\n", publicKey, startBlock)
 
-	latest, err := client.BlockNumber(context.Background())
+	bctx, bcancel := context.WithTimeout(context.Background(), 30*time.Second)
+	latest, err := client.BlockNumber(bctx)
+	bcancel()
 	if err != nil {
 		log.Printf("[MonitorAddressPaymentStream] error fetching latest block for %v: %v\n", publicKey, err)
 		return
@@ -809,6 +844,7 @@ func MonitorAddressPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *syn
 		}
 
 		seen := map[string]bool{}
+		blockTimes := map[uint64]uint64{}
 		for _, lg := range append(logsFrom, logsTo...) {
 			key := fmt.Sprintf("%s-%d", lg.TxHash.Hex(), lg.Index)
 			if seen[key] {
@@ -816,10 +852,19 @@ func MonitorAddressPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *syn
 			}
 			seen[key] = true
 
-			header, errH := client.HeaderByNumber(context.Background(), new(big.Int).SetUint64(lg.BlockNumber))
-			var ts uint64
-			if errH == nil {
+			ts, ok := blockTimes[lg.BlockNumber]
+			if !ok {
+				hctx, hcancel := context.WithTimeout(context.Background(), 15*time.Second)
+				header, errH := client.HeaderByNumber(hctx, new(big.Int).SetUint64(lg.BlockNumber))
+				hcancel()
+				if errH != nil {
+					// stop here: the cursor stays before this chunk, so the
+					// next pass retries it
+					log.Printf("[MonitorAddressPaymentStream] error fetching block %v header for %v: %v\n", lg.BlockNumber, publicKey, errH)
+					return
+				}
 				ts = header.Time
+				blockTimes[lg.BlockNumber] = ts
 			}
 			processB20TransferLog(client, lg, ts, db, roachDB)
 		}

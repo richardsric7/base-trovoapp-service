@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/sharedconfig"
 )
@@ -48,7 +49,7 @@ func GetCNGNOnrampVirtualAccount(requestID string, gc *sharedconfig.GlobalConfig
 	req.Header.Set("x-api-key", apiKey)
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 15 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

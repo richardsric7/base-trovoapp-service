@@ -177,6 +177,11 @@ link) never does this lookup.
 - What it does: The JSON-RPC endpoint used for all on-chain reads/writes (balances, transaction submission, event queries). Required to boot.
 - How to get a real value: for testnet development, use a public endpoint like `https://sepolia.base.org` (Base Sepolia testnet); for production, sign up with an RPC provider such as [Alchemy](https://www.alchemy.com/) or [Infura](https://www.infura.io/) and create a Base mainnet app to get a dedicated endpoint URL.
 
+**`RPC_TIMEOUT`**
+- Example: `30s` (the default)
+- What it does: The longest any single request to `BASE_RPC_URL` may take. The whole process shares one RPC client; if the RPC stops answering, requests give up after this long instead of waiting forever, and after 3 failures in a row the client refuses RPC calls at once ("blockchain RPC unavailable", for 10 seconds at a time, until a request gets through again) so a stalled RPC does not pile up waiting requests and memory. It recovers on its own.
+- How to get a real value: leave unset. Raise it only if your RPC provider is legitimately slow for some calls (e.g. large `eth_getLogs` ranges).
+
 **`BASE_CHAIN_ID`**
 - Example: `84532`
 - What it does: The numeric chain ID for the network `BASE_RPC_URL` points at (Base Sepolia testnet = `84532`, Base mainnet = `8453`). Used to sign transactions for the correct network.
