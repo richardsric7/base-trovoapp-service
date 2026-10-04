@@ -439,8 +439,15 @@ func applyReceipt(op userModels.WalletOperation, r *aa.Receipt, gc *sharedconfig
 				markActivated(w, op.WalletAddress, tx, now, gc)
 			}
 		}
+		if hook := minedHooks[op.Kind]; hook != nil {
+			hook(op, r.Receipt.TransactionHash, gc)
+		}
 	}
 }
+
+// minedHooks finish flows whose effects depend on a mined operation's
+// receipt, by operation kind (registered by the flows in init).
+var minedHooks = map[string]func(op userModels.WalletOperation, txHash common.Hash, gc *sharedconfig.GlobalConfig){}
 
 // WalletOperationOutcome reports what became of a submitted operation,
 // identified by its userOpHash, waiting for it until ctx ends. done is

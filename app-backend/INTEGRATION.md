@@ -437,52 +437,88 @@ creation had no endpoint; its unused transaction builder was removed.)
 loop follows submitted operations to inclusion (`wallet_operations`
 table) and marks wallets activated.
 
-## Tokenized assets: token contract vs issuing Safe
+## Tokenized assets: token, issuing and distribution wallets, sale offer
 
-On Base a tokenized asset has two different addresses, and nothing in the
-API treats one as the other:
+On Base a tokenized asset has these addresses, and nothing in the API
+treats one as another:
 
 | Field | What it is | Used for |
 |---|---|---|
-| `contractAddress` | The asset's deployed **B20 token contract** - the asset itself | Every balance, transfer, purchase, wallet authorization, curated-asset listing, subscription/interest record, payout and deep link (`?action=tokenizedAsset&assetCode=...&contractAddress=...`) |
-| `issuingWalletAddress` | The asset's **issuing Safe**: a Safe multisig that owns the token contract, is its only minter, and holds unsold supply (treasury). `marketMakingWallet` / `walletToHoldAssetsNotForSale` are the same Safe | Minting, and as the issuer that approves wallet authorizations |
+| `contractAddress` | The asset's **token contract** (`TokenizedAsset`, see [`market/`](../market/README.md)) - the asset itself | Every balance, transfer, purchase, wallet authorization, curated-asset listing, subscription record, payout and deep link (`?action=tokenizedAsset&assetCode=...&contractAddress=...`) |
+| `issuingWalletAddress` | The **issuing wallet**: a Safe sub-wallet of the issuing profile (`TOKENIZATION_ISSUING_PROFILE`), owned by the profile's key and the asset's minting approvers, with the minting threshold (approvers - 2). It owns the token contract, is its only minter, and is the seller of the sale offer | Minting, the sale offer, approving wallet authorizations |
+| `marketMakingWallet` / `walletToHoldAssetsNotForSale` | The **distribution wallet**: the issuing wallet's linked Safe, with the same owners and the issuing Safe as a module | Supply not offered for sale; tokens returned by early exits |
+| `offerBookOfferId` | The asset's sale offer on `TrovoOfferBook` (`OFFER_BOOK_ADDRESS`) | Every purchase; set once the mint is mined, which is when the asset counts as minted |
 
-Lifecycle, from the admin panel's point of view:
+No platform key owns or signs for either Safe: the minting approvers do.
 
-1. **Issuing Safe** - assigned automatically when the asset's details are
-   submitted/vetted: a Safe is deployed through the canonical SafeProxyFactory
-   with `TOKENIZATION_ISSUING_SAFE_SIGNERS` as owners (see
-   [CONFIGURATION.md](CONFIGURATION.md#tokenization)) and recorded as a
-   wallet of the `TOKENIZATION_ISSUING_PROFILE` user.
-2. **Token contract** - operations deploy the asset's B20 token with the
-   issuing Safe as owner (Ownable) or `MINTER_ROLE` holder (AccessControl),
-   the asset code as `symbol()` and zero supply, exposing
-   `mint(address,uint256)`. Then register it:
+Lifecycle:
 
-   ```
-   PUT /v1/trovo-manager/tokenization/contract/:tid
-   {"contractAddress": "0x..."}
-   ```
+1. **Issuing and distribution wallets** - assigned when the asset's
+   details are submitted: their addresses are computed from their owners
+   (the issuing profile's key and the minting approvers) and recorded as
+   sub-wallets of the issuing profile, with the approvers and initiators as
+   their shared access. Nothing is deployed yet. While the token contract
+   is not registered, changing the minting approvers moves the asset to new
+   wallets; afterwards they are fixed (`409 error-minting-approvers-fixed`).
+2. **Token contract** - operations deploy the asset's token with the
+   issuing wallet as owner (Ownable) or `MINTER_ROLE` holder, the asset code
+   as `symbol()` and zero supply, exposing `mint(address,uint256)`, then
+   register it with `PUT /v1/trovo-manager/tokenization/contract/:tid
+   {"contractAddress": "0x..."}` (minting initiators/approvers, until
+   minted). The backend checks on-chain that the contract exists, its
+   symbol is the asset code, `decimals()` works, `totalSupply()` is 0 and
+   the issuing wallet can mint (`400 error-invalid-token-contract`
+   otherwise). The offer book's owner must also list the token
+   (`setTradable`) before minting; see [market/INTEGRATION.md](../market/INTEGRATION.md).
+3. **Mint** - `POST /v1/trovo-manager/tokenization/mint/:tid` (status 3)
+   builds the issuing wallet's first operation and creates a `TOKENIZE
+   ASSET` approval request for it. The operation, which the minting
+   approvers sign like any shared-wallet operation (base64 SafeOp hash):
+   - deploys the issuing wallet (and, from it, the distribution wallet);
+   - mints `maxNumberOfTokenAvailableForSale` to the issuing wallet, the
+     rest less `feeInAsset` to the distribution wallet, and `feeInAsset`
+     to `TOKENIZATION_FEE_WALLET`;
+   - offers the amount for sale on the offer book at `pricePerToken`, in
+     each tokenization payment stablecoin and in the country's internal
+     balance token (all taken as 1:1 with the quote currency), with
+     proceeds paid to `fundsHoldingWalletAddress` (required before
+     minting).
 
-   Allowed for minting initiators/approvers until the asset is minted. The
-   backend verifies on-chain that the contract exists, its symbol equals the
-   asset code, `decimals()` works, `totalSupply()` is 0, and the issuing Safe
-   can mint - otherwise it answers `400 error-invalid-token-contract` with
-   the reason. (tm-api proxies this as `PUT /tokenization/contract/:id`;
-   tm-web's tokenization Wallets panel has the form.)
-3. **Mint** - `POST /v1/trovo-manager/tokenization/mint/:tid` creates a
-   `TOKENIZE ASSET` approval on the issuing Safe's wallet. Its
-   `transaction` is the base64 of a plain-text statement of the exact Safe
-   call (`Safe 0x.. on chain N executes 0xToken.mint(0xSafe, amount) and
-   0xToken.mint(0xFeeWallet, fee)`), which approvers sign in the app. On the
-   final approval the backend re-derives that statement - it must match
-   what was signed - checks the token still has zero supply, and has the
-   Safe execute both mints atomically. A retried approval can never mint
-   twice. Rejecting the approval keeps the Safe and contract and resets
-   the approvers for a new request.
+   The issuing wallet pays the operation's gas, so it must hold ETH (or a
+   stablecoin the issuing profile pays fees in) first:
+   `error-insufficient-network-fee` names the address to fund. The request
+   is refused once the token has supply (`error-already-minted`). When the
+   threshold of approvers has signed, the operation is submitted; once it
+   is mined, `offerBookOfferId` is recorded and the asset can go on sale
+   (status 5 from its sales start date).
+4. **Purchase with a stablecoin** - `SubscribeToTokenizedAsset` (the
+   subscription endpoints, unchanged requests): the first call prices it -
+   the most of the asset `amount` of `paymentAssetCode` (default CNGN)
+   buys at the offer's price - after the platform checks (KYC, sale status,
+   purchase cap), signs a fill authorization for exactly that purchase,
+   and returns the buyer wallet's operation as `transaction` (approve the
+   offer book for the payment, then fill). `messages` says what is paid
+   and received; `swappedEstimate` is the amount of the asset. The second
+   call with `transactionSignature` submits it; payment and delivery
+   happen in one transaction or not at all. Shared wallets with approvers
+   get an `ASSET SUBSCRIPTION` approval request. Sold out or too large:
+   `error-no-liquidity` / `error-low-liquidity` (with the maximum).
+5. **Purchase with fiat** - the first call creates the invoice and returns
+   a statement as `transaction` for the buyer to sign (consent; their
+   wallet sends nothing); the second stores the signature. When
+   Flutterwave confirms payment, the internal balance token's minting Safe
+   (`CountryConfig.internalTokenMinterSafe`, owned by
+   `INTERNAL_BALANCE_ISSUING_SIGNERS`) mints the amount to itself and fills
+   the offer with the buyer's wallet as recipient. If that fails (e.g. sold
+   out after payment) the invoice stays `PENDING` and Discord is alerted
+   for a manual delivery or refund.
+6. **Early exit** - one operation of the holder's wallet returns the tokens
+   to the distribution wallet; the payout is settled off-chain from the
+   recorded early exit. Shared wallets get an approval request.
 
 Purchases, early exits and payouts refuse assets whose token contract is
-not registered (`error-token-contract-not-registered`).
+not registered (`error-token-contract-not-registered`) or not on sale yet
+(`error-not-on-sale`).
 
 ---
 

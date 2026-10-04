@@ -1,3 +1,5 @@
+> **Superseded.** This is a plan from the Stellar version of tokenization. On Base, minting, sales (TrovoOfferBook) and fiat purchases work as described in [INTEGRATION.md](INTEGRATION.md#tokenized-assets-token-issuing-and-distribution-wallets-sale-offer); the keys and transactions below no longer exist.
+
 # Replace DEX 1:1 swap with on-demand InternalBalance issuance in tokenized-asset purchase
 
 ## Context

@@ -5,175 +5,246 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"net/http"
 	"os"
-	"strconv"
 	"strings"
+	"time"
 
+	"trovo-wallet-api/internal/aa"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
-	"trovo-wallet-api/internal/evmkeypair"
-	"trovo-wallet-api/internal/gnosissafe"
-	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-// A tokenized asset on Base has two distinct addresses:
+// A tokenized asset on Base has three addresses:
 //
-//   - its token contract (TokenizedAsset.ContractAddress): the deployed B20
-//     token itself - the asset's on-chain identity, holding every balance;
-//   - its issuing wallet (TokenizedAsset.IssuingWalletAddress): a Safe
-//     multisig that owns the token contract, is the only account allowed to
-//     mint it, and also holds the asset's unsold supply (its treasury).
+//   - its token contract (TokenizedAsset.ContractAddress): the deployed
+//     TokenizedAsset token, owned by the issuing Safe - the only account
+//     that can mint it;
+//   - its issuing wallet (IssuingWalletAddress): a Safe sub-wallet of the
+//     tokenization issuing profile (TOKENIZATION_ISSUING_PROFILE), owned
+//     by the profile's key and the asset's minting approvers, with the
+//     minting approval threshold;
+//   - its distribution wallet (MarketMakingWallet,
+//     WalletToHoldAssetsNotForSale): the issuing wallet's linked Safe, with
+//     the same owners and the issuing Safe as a module. It receives the
+//     minted supply and sells it through TrovoOfferBook.
 //
-// The issuing Safe is deployed here, per asset, owned by the configured
-// TOKENIZATION_ISSUING_SAFE_SIGNERS. The token contract is deployed by
-// operations with the Safe as its owner/minter and then registered with
-// RegisterTokenizedAssetContract, which verifies that on-chain.
+// Both Safes are counterfactual: their addresses are fixed from their
+// owners when the issuing wallet is assigned, and the mint operation - the
+// issuing Safe's first, signed by the minting approvers - deploys them. No
+// platform key owns or signs for either.
 
-// Canonical Safe v1.4.1 deployments (identical on Base and Base Sepolia).
-// Each is verified to have contract code before a Safe is deployed from it.
-const (
-	defaultSafeProxyFactoryAddress    = "0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67"
-	defaultSafeSingletonAddress       = "0x29fcB43b46531BcA003ddC8FCB67FFE91900C762" // SafeL2
-	defaultSafeFallbackHandlerAddress = "0xfd0732Dc9E303f09fCEf3a7388Ad10A83459Ec99" // CompatibilityFallbackHandler
-)
-
-// issuingProfileKeyConfigured reports whether TOKENIZATION_ISSUING_PROFILE_WALLET
-// holds a valid private key: the issuing profile's primary signer key, which
-// signs the minting approvers' shared-access setup on each issuing Safe.
-func issuingProfileKeyConfigured() bool {
-	_, err := evmkeypair.ParseFull(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
-	return err == nil
+// issuingProfile loads the tokenization issuing profile. When
+// TOKENIZATION_ISSUING_PROFILE_WALLET is set it must be that profile's
+// primary wallet address (a sanity check of the configuration).
+func issuingProfile(gc *sharedconfig.GlobalConfig) (userModels.User, error) {
+	name := strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))
+	if name == "" {
+		return userModels.User{}, &tErrors.CustomError{Param: "issuingWalletAddress", Err: "error-default-issuing-profile-not-set", ErrMessage: "Issuing profile not set."}
+	}
+	userModels.Username(name).InvalidateUserCache(gc)
+	profile, err := userModels.Username(name).GetFullUser(gc.DB, gc)
+	if err != nil || !common.IsHexAddress(profile.PrimarySigner) {
+		return userModels.User{}, &tErrors.CustomError{Param: "issuingWalletAddress", Err: "error-invallid-issuing-profile", ErrMessage: "Issuing profile not valid."}
+	}
+	if w := strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")); w != "" && !strings.EqualFold(w, profile.Address) {
+		log.Printf("[issuingProfile] TOKENIZATION_ISSUING_PROFILE_WALLET %v is not %v's wallet %v", w, name, profile.Address)
+		return userModels.User{}, &tErrors.CustomError{Param: "issuingWalletAddress", Err: "error-invallid-issuing-profile", ErrMessage: "Issuing profile wallet is misconfigured."}
+	}
+	return profile, nil
 }
 
-func envOrDefault(key, def string) string {
-	if v := strings.TrimSpace(os.Getenv(key)); v != "" {
-		return v
-	}
-	return def
-}
-
-func safeDeployConfig() gnosissafe.DeployConfig {
-	return gnosissafe.DeployConfig{
-		ProxyFactory:    common.HexToAddress(envOrDefault("SAFE_PROXY_FACTORY_ADDRESS", defaultSafeProxyFactoryAddress)),
-		Singleton:       common.HexToAddress(envOrDefault("SAFE_SINGLETON_ADDRESS", defaultSafeSingletonAddress)),
-		FallbackHandler: common.HexToAddress(envOrDefault("SAFE_FALLBACK_HANDLER_ADDRESS", defaultSafeFallbackHandlerAddress)),
-	}
-}
-
-func multiSendCallOnlyAddress() common.Address {
-	return common.HexToAddress(envOrDefault("SAFE_MULTISEND_CALL_ONLY_ADDRESS", gnosissafe.DefaultMultiSendCallOnlyAddress))
-}
-
-// issuingSafeSigners parses TOKENIZATION_ISSUING_SAFE_SIGNERS: the private
-// keys of the issuing Safes' owners, ";"-separated ("," also accepted).
-// The first key also broadcasts (and pays gas for) Safe deployments and
-// mint transactions, so it must hold native balance.
-func issuingSafeSigners() ([]*evmkeypair.Full, error) {
-	raw := strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_SAFE_SIGNERS"))
-	if raw == "" {
-		return nil, fmt.Errorf("TOKENIZATION_ISSUING_SAFE_SIGNERS is not configured")
-	}
-	sep := ";"
-	if !strings.Contains(raw, ";") {
-		sep = ","
-	}
-	signers := make([]*evmkeypair.Full, 0)
-	for i, part := range strings.Split(raw, sep) {
-		part = strings.TrimSpace(part)
-		if part == "" {
+// mintingUsers resolves a CSV of usernames.
+func mintingUsers(csv string, gc *sharedconfig.GlobalConfig) ([]*userModels.User, error) {
+	var out []*userModels.User
+	seen := map[string]bool{}
+	for _, name := range strings.Split(strings.NewReplacer("\r", "", "\n", "", " ", "").Replace(csv), ",") {
+		if name == "" || seen[strings.ToLower(name)] {
 			continue
 		}
-		kp, err := evmkeypair.ParseFull(part)
+		seen[strings.ToLower(name)] = true
+		u, err := userModels.Username(name).GetSimpleUser(gc.DB, gc)
 		if err != nil {
-			return nil, fmt.Errorf("TOKENIZATION_ISSUING_SAFE_SIGNERS entry %d is invalid: %w", i, err)
+			return nil, &tErrors.CustomError{Param: "mintingApprovers", Err: "error-invalid-minting-approver", ErrMessage: fmt.Sprintf("%v is not a valid username.", name)}
 		}
-		signers = append(signers, kp)
+		out = append(out, &u)
 	}
-	if len(signers) == 0 {
-		return nil, fmt.Errorf("TOKENIZATION_ISSUING_SAFE_SIGNERS has no keys")
-	}
-	return signers, nil
+	return out, nil
 }
 
-// issuingSafeThreshold is TOKENIZATION_ISSUING_SAFE_THRESHOLD, defaulting
-// to 3 (or every owner, when fewer than 3 are configured).
-func issuingSafeThreshold(owners int) (int64, error) {
-	def := int64(3)
-	if int64(owners) < def {
-		def = int64(owners)
+// mintingApprovalsNeeded is how many minting approvers must approve a mint.
+func mintingApprovalsNeeded(approvers int) int {
+	if n := approvers - 2; n > 1 {
+		return n
 	}
-	raw := strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_SAFE_THRESHOLD"))
-	if raw == "" {
-		return def, nil
-	}
-	t, err := strconv.ParseInt(raw, 10, 64)
-	if err != nil || t < 1 || t > int64(owners) {
-		return 0, fmt.Errorf("TOKENIZATION_ISSUING_SAFE_THRESHOLD must be between 1 and the %d configured signer(s)", owners)
-	}
-	return t, nil
+	return 1
 }
 
-// issuingSafeSaltNonce makes each asset's Safe address deterministic, so a
-// retried assignment reuses the Safe an earlier attempt deployed.
-func issuingSafeSaltNonce(tokenizationID string) *big.Int {
-	return new(big.Int).SetBytes(crypto.Keccak256([]byte("trovo-tokenization-issuing-safe:" + tokenizationID)))
+// issuingSafeDeployments are the asset's issuing and distribution Safes for
+// this owner set.
+func issuingSafeDeployments(profile *userModels.User, approvers []*userModels.User, tokenizationID string) (issuing, distribution userModels.SafeDeployment) {
+	owners, threshold := sharedAccessTarget(profile, approvers, mintingApprovalsNeeded(len(approvers)))
+	hexOwners := make([]string, len(owners))
+	for i, o := range owners {
+		hexOwners[i] = o.Hex()
+	}
+	salt := func(role string) *big.Int {
+		return new(big.Int).SetBytes(crypto.Keccak256([]byte("trovo-tokenization-" + role + ":" + tokenizationID)))
+	}
+	issuing = userModels.NewSafeDeployment(hexOwners, int(threshold), salt("issuing"))
+	distribution = userModels.NewSafeDeployment(hexOwners, int(threshold), salt("distribution"), issuing.Address)
+	return issuing, distribution
 }
 
-// deployIssuingSafe deploys (or finds, on retry) the tokenized asset's
-// issuing Safe and records it as a wallet of the tokenization issuing
-// profile, so the existing minting-approver permissions and approval flow
-// attach to it like any other wallet.
-func deployIssuingSafe(issuerProfile *userModels.User, ato *userModels.TokenizedAsset, gc *sharedconfig.GlobalConfig) (userModels.UserWallet, error) {
-	signers, err := issuingSafeSigners()
+// AssignIssuingWallet gives the tokenization its issuing and distribution
+// Safes (recorded as sub-wallets of the issuing profile, with the minting
+// approvers and initiators as their shared access), or returns the ones it
+// has. While the token contract is not registered yet, a change of minting
+// approvers moves the asset to new Safes; afterwards the owners are fixed.
+func AssignIssuingWallet(tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, issuingWallet userModels.UserWallet, err error) {
+	ato, _, err = GetTokenizedAssetByID(tokenizationID, gc.DB)
 	if err != nil {
-		log.Printf("[deployIssuingSafe] %v\n", err)
-		return userModels.UserWallet{}, &tErrors.CustomError{Param: "issuingWalletAddress", Err: "error-issuing-safe-signers-not-set", ErrMessage: "Issuing Safe signers are not configured."}
+		return
 	}
-	threshold, err := issuingSafeThreshold(len(signers))
+	if ato.AssetCode == nil || strings.TrimSpace(*ato.AssetCode) == "" {
+		err = &tErrors.CustomError{Param: "assetCode", Err: "error-asset-code-not-set", ErrMessage: "Asset code not set."}
+		return
+	}
+	code := strings.ToUpper(strings.NewReplacer("\r", "", "\n", "", " ", "").Replace(*ato.AssetCode))
+	ato.AssetCode = &code
+	profile, err := issuingProfile(gc)
 	if err != nil {
-		log.Printf("[deployIssuingSafe] %v\n", err)
-		return userModels.UserWallet{}, &tErrors.CustomError{Param: "issuingWalletAddress", Err: "error-issuing-safe-threshold-invalid", ErrMessage: err.Error()}
+		return
 	}
-	owners := make([]common.Address, 0, len(signers))
-	for _, s := range signers {
-		owners = append(owners, common.HexToAddress(s.Address()))
+	if ato.MintingApprovers == nil || strings.TrimSpace(*ato.MintingApprovers) == "" {
+		csv := ato.GetMintingApproversInCSV(gc)
+		ato.MintingApprovers = &csv
+	}
+	if ato.MintingInitators == nil || strings.TrimSpace(*ato.MintingInitators) == "" {
+		csv := ato.GetMintingInitiatorsInCSV(gc)
+		ato.MintingInitators = &csv
+	}
+	approvers, err := mintingUsers(*ato.MintingApprovers, gc)
+	if err != nil {
+		return
+	}
+	initiators, err := mintingUsers(*ato.MintingInitators, gc)
+	if err != nil {
+		return
+	}
+	if len(approvers) == 0 {
+		err = &tErrors.CustomError{Param: "mintingApprovers", Err: "error-no-approver-or-initiator-specified", ErrMessage: "No minting approvers specified."}
+		return
+	}
+	issuing, distribution := issuingSafeDeployments(&profile, approvers, ato.ID)
+
+	if ato.IssuingWalletAddress != nil && *ato.IssuingWalletAddress != "" {
+		if strings.EqualFold(*ato.IssuingWalletAddress, issuing.Address) {
+			issuingWallet, err = userModels.UserWalletID(*ato.IssuingWalletAddress).GetWallet(gc.DB, gc)
+			return
+		}
+		// the minting approvers changed
+		if ato.ContractAddress != nil {
+			err = &tErrors.CustomError{Param: "mintingApprovers", Err: "error-minting-approvers-fixed", ErrMessage: "The token contract is already registered to this asset's issuing wallet, so its minting approvers can no longer change.", Code: http.StatusConflict}
+			return
+		}
+		if err = retireIssuingWallets(*ato.IssuingWalletAddress, gc); err != nil {
+			return
+		}
 	}
 
-	safe, err := gnosissafe.DeploySafe(context.Background(), gc.BantuExpansionClient, network.GetBlockchainChainID(), signers[0], safeDeployConfig(), owners, threshold, issuingSafeSaltNonce(ato.ID))
+	tag := strings.ToLower(code) + "issuer"
+	iw, err := profile.BuildNewSubWallet(issuing, tag, fmt.Sprintf("Issuing wallet for %v", code), 1, distribution.Address, gc)
 	if err != nil {
-		log.Printf("[deployIssuingSafe] deploying issuing Safe for tokenization %v: %v\n", ato.ID, err)
-		gc.LogDiscordFailedRequest(fmt.Sprintf("[deployIssuingSafe] deploying issuing Safe for tokenization %v failed: %v", ato.ID, err))
-		return userModels.UserWallet{}, &tErrors.CustomError{Param: "issuingWalletAddress", Err: "error-issuing-safe-deployment-failed", ErrMessage: "Could not deploy the issuing Safe for this asset. Please try again later."}
+		return
 	}
-	safeAddress := safe.Hex()
-	log.Printf("[deployIssuingSafe] issuing Safe for tokenization %v (%v): %v, %d-of-%d\n", ato.ID, *ato.AssetCode, safeAddress, threshold, len(owners))
-
-	// A retry after a failed DB write finds the Safe already recorded.
-	if existing, e := userModels.UserWalletID(safeAddress).GetWallet(gc.DB, gc); e == nil {
-		return existing, nil
-	}
-
-	row, err := issuerProfile.BuildNewSubWallet(userModels.SafeDeployment{Address: safeAddress}, *ato.AssetCode+"issuer", fmt.Sprintf("Issuing Safe for %v", *ato.AssetCode), 1, "", gc)
+	dw, err := iw.BuildNewLinkedSubWallet(distribution, &profile, gc)
 	if err != nil {
-		log.Printf("[deployIssuingSafe] building wallet record for issuing Safe %v: %v\n", safeAddress, err)
-		return userModels.UserWallet{}, err
+		return
 	}
-	if e := gc.DB.Omit(clause.Associations).Create(&row).Error; e != nil {
-		log.Printf("[deployIssuingSafe] saving wallet record for issuing Safe %v: %v\n", safeAddress, e)
-		return userModels.UserWallet{}, &tErrors.ErrorTemporaryServerError{}
+	needed := mintingApprovalsNeeded(len(approvers))
+	var perms []userModels.WalletPermission
+	for _, w := range []*userModels.UserWallet{&iw, &dw} {
+		w.SharedAccessEnabled = 1
+		w.NumberOfApprovalsNeeded = needed
+		for _, set := range []struct {
+			users      []*userModels.User
+			permission string
+		}{{approvers, "APPROVER"}, {initiators, "INITIATOR"}} {
+			for _, u := range set.users {
+				perms = append(perms, userModels.WalletPermission{ID: uuid.NewString(), WalletAddress: w.ID, TargetUsername: u.Username, Permission: set.permission})
+			}
+		}
 	}
-	if e := gc.RoachDB.Create(&userModels.TrackedAddress{Address: safeAddress}).Error; e != nil {
-		// payment-history-engine also discovers untracked wallets on its own
-		log.Printf("[deployIssuingSafe] tracking issuing Safe %v for payment history: %v\n", safeAddress, e)
-	}
-	issuerProfile.InvalidateUserCache(gc)
 
-	return userModels.UserWalletID(safeAddress).GetWallet(gc.DB, gc)
+	ato.IssuingWalletAddress = &iw.ID
+	ato.IssuingWalletAlias = &iw.Alias
+	ato.MarketMakingWallet = &dw.ID
+	ato.WalletToHoldAssetsNotForSale = &dw.ID
+	err = gc.DB.Transaction(func(tx *gorm.DB) error {
+		for _, w := range []*userModels.UserWallet{&iw, &dw} {
+			if e := tx.Omit(clause.Associations).Create(w).Error; e != nil {
+				return e
+			}
+		}
+		if e := tx.Omit(clause.Associations).Create(&perms).Error; e != nil {
+			return e
+		}
+		return tx.Omit(clause.Associations).Save(&ato).Error
+	})
+	if err != nil {
+		log.Printf("[AssignIssuingWallet] saving issuing wallets of %v: %v", tokenizationID, err)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+	for _, w := range []string{iw.ID, dw.ID} {
+		if e := gc.RoachDB.Create(&userModels.TrackedAddress{Address: w}).Error; e != nil {
+			// payment-history-engine also discovers untracked wallets on its own
+			log.Printf("[AssignIssuingWallet] tracking %v for payment history: %v", w, e)
+		}
+	}
+	profile.InvalidateUserCache(gc)
+	for _, u := range append(approvers, initiators...) {
+		u.InvalidateUserWalletCache(gc)
+	}
+	log.Printf("[AssignIssuingWallet] %v: issuing %v, distribution %v, %d-of-%d", code, iw.ID, dw.ID, issuing.Threshold, len(issuing.Owners))
+	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
+	issuingWallet, err = userModels.UserWalletID(iw.ID).GetWallet(gc.DB, gc)
+	return
+}
+
+// retireIssuingWallets removes the records of an issuing wallet (and its
+// distribution wallet) that was never deployed, when the asset moves to
+// new Safes.
+func retireIssuingWallets(issuingAddress string, gc *sharedconfig.GlobalConfig) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	w, err := userModels.UserWalletID(issuingAddress).GetWallet(gc.DB, gc)
+	if err != nil {
+		return nil
+	}
+	ids := []string{w.ID}
+	if w.LinkedWalletAddress != nil {
+		ids = append(ids, *w.LinkedWalletAddress)
+	}
+	for _, id := range ids {
+		if deployed, e := aa.Deployed(ctx, gc.BantuExpansionClient, common.HexToAddress(id)); e != nil || deployed {
+			return &tErrors.CustomError{Param: "mintingApprovers", Err: "error-minting-approvers-fixed", ErrMessage: "This asset's issuing wallet is already active, so its minting approvers can no longer change.", Code: http.StatusConflict}
+		}
+	}
+	return gc.DB.Transaction(func(tx *gorm.DB) error {
+		if e := tx.Where("wallet_address IN ?", ids).Delete(&userModels.WalletPermission{}).Error; e != nil {
+			return e
+		}
+		return tx.Where("id IN ?", ids).Delete(&userModels.UserWallet{}).Error
+	})
 }
 
 // tokenizedAssetContract returns the asset's registered B20 token contract

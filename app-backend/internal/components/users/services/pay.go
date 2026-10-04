@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"trovo-wallet-api/internal/basetxn"
 	tPayErrors "trovo-wallet-api/internal/components/payments/errors"
 	usersDB "trovo-wallet-api/internal/components/users/db"
@@ -23,8 +22,6 @@ import (
 )
 
 func generateMintingXdr(client *ethclient.Client, owner *userModels.User, sourceWallet *userModels.UserWallet, mintingInfo *userModels.MintingInfo, db *gorm.DB, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
-	var tokenizedContractAddressMustSign bool
-
 	var err error
 	mintingInfo, err = ValidateMintingInfo(mintingInfo)
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
@@ -196,24 +193,6 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 
 		if err != nil {
 			log.Println("[generateMintingXdr] error signing transaction with temporary key ", err)
-			return "", nil, &tErrors.ErrorTemporaryServerError{}
-		}
-	}
-
-	if tokenizedContractAddressMustSign {
-		log.Println("[generateMintingXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>")
-		//get atprofile
-		var tokenizationIssuerProfileWallet string
-
-		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
-			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
-		}
-
-		tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
-
-		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
-		if err != nil {
-			log.Println("[generateMintingXdr] error signing transaction with issuer key to authorize trustline", err)
 			return "", nil, &tErrors.ErrorTemporaryServerError{}
 		}
 	}

@@ -5,6 +5,7 @@ package users
 import (
 	"log"
 	"os"
+	"strings"
 	"time"
 	"trovo-wallet-api/internal/evmkeypair"
 
@@ -12,6 +13,7 @@ import (
 	"trovo-wallet-api/internal/middleware"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/gin-gonic/gin"
 )
 
@@ -157,10 +159,13 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	if os.Getenv("ENABLE_ASSET_TOKENIZATION") == "1" {
 		log.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ASSET TOKENIZATION is enabled!")
-		// the issuing profile's primary signer private key (hex) - not an address
-		if _, err := evmkeypair.ParseFull(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")); err != nil {
-			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV TOKENIZATION_ISSUING_PROFILE_WALLET must be the issuing profile's hex private key!")
-
+		// tokenized assets are sold through TrovoOfferBook; the authorizer
+		// key signs each purchase's fill authorization
+		if !common.IsHexAddress(strings.TrimSpace(os.Getenv("OFFER_BOOK_ADDRESS"))) {
+			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV OFFER_BOOK_ADDRESS must be the TrovoOfferBook address!")
+		}
+		if _, err := evmkeypair.ParseFull(os.Getenv("OFFER_AUTHORIZER_PRIVATE_KEY")); err != nil {
+			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV OFFER_AUTHORIZER_PRIVATE_KEY must be a hex private key!")
 		}
 		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) == 0 {
 			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV TOKENIZATION_ISSUING_PROFILE is missing!")

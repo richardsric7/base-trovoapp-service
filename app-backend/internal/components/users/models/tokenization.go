@@ -6,14 +6,18 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
+	"math/big"
+	"os"
 	"strings"
 	"time"
+	"trovo-wallet-api/internal/aa"
 	"trovo-wallet-api/internal/basetxn"
 	"trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"golang.org/x/text/cases"
@@ -96,7 +100,11 @@ type TokenizedAsset struct {
 	// on-chain identity (what transfers, balances, authorizations, curated
 	// assets and deep links refer to). IssuingWalletAddress is NOT the token:
 	// it is the issuer (a Safe) that owns the contract and mints through it.
-	ContractAddress                    *string                    `gorm:"size:42;index" json:"contractAddress"`
+	ContractAddress *string `gorm:"size:42;index" json:"contractAddress"`
+	// OfferBookOfferID is the asset's primary-sale offer on TrovoOfferBook
+	// (OFFER_BOOK_ADDRESS), recorded once the mint operation that creates
+	// it is mined; the asset counts as minted from then on.
+	OfferBookOfferID                   *string                    `gorm:"size:80" json:"offerBookOfferId"`
 	MarketMakingWallet                 *string                    `json:"marketMakingWallet"`
 	AssetDescription                   *string                    `json:"assetDescription"`
 	AssetCountryLocation               *string                    `gorm:"not null;size:2;default'NG'" json:"assetCountryLocation"`
@@ -6716,28 +6724,36 @@ type MarketOffersPage struct {
 	}
 }
 
-// GetMarketOffers fetches the market maker's available liquidity for this
-// tokenized asset. See MarketOffersPage's doc for the Base simplification.
+// GetMarketOffers reports the asset's primary-sale offer on TrovoOfferBook:
+// the amount of the asset still for sale and its price per token in the
+// quote currency. Empty before the mint's offer is recorded.
 func (t *TokenizedAsset) GetMarketOffers(gc *sharedconfig.GlobalConfig) (marketOffers MarketOffersPage, err error) {
-	if t.MarketMakingWallet == nil || t.AssetCode == nil || t.ContractAddress == nil {
+	book := strings.TrimSpace(os.Getenv("OFFER_BOOK_ADDRESS"))
+	if t.OfferBookOfferID == nil || t.AssetCode == nil || t.ContractAddress == nil || !common.IsHexAddress(book) {
 		return
 	}
-	seller := *t.MarketMakingWallet
-	tokenContract := *t.ContractAddress
+	id, ok := new(big.Int).SetString(*t.OfferBookOfferID, 10)
+	if !ok {
+		return
+	}
 	client := network.GetBlockchainClient()
-
-	decimals, e := network.AssetDecimals(context.Background(), client, basetxn.CreditAsset{Issuer: tokenContract})
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	o, e := aa.ReadOffer(ctx, client, common.HexToAddress(book), id)
 	if e != nil {
 		log.Printf("[GetMarketOffers Network Failure]: %v\n", e)
 		return marketOffers, &tErrors.ErrorTemporaryServerError{}
 	}
-	balance, e := network.B20BalanceOf(client, tokenContract, seller, decimals)
+	decimals, e := network.AssetDecimals(ctx, client, basetxn.CreditAsset{Issuer: *t.ContractAddress})
 	if e != nil {
 		log.Printf("[GetMarketOffers Network Failure]: %v\n", e)
 		return marketOffers, &tErrors.ErrorTemporaryServerError{}
 	}
-
-	marketOffers.Embedded.Records = []MarketOfferRecord{{Amount: balance.String(), Price: "1"}}
+	remaining := decimal.Zero
+	if o.Open {
+		remaining = decimal.NewFromBigInt(o.Remaining, -int32(decimals))
+	}
+	marketOffers.Embedded.Records = []MarketOfferRecord{{Amount: remaining.String(), Price: decimal.NewFromFloat(t.PricePerToken).String()}}
 	return marketOffers, nil
 }
 

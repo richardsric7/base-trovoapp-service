@@ -455,19 +455,24 @@ network fee.
 - How to get a real value: `0` or `1` per your deployment.
 
 **`TOKENIZATION_ISSUING_PROFILE`** / **`TOKENIZATION_ISSUING_PROFILE_WALLET`**
-- Example: `atprofile` / `0x4c0883a69102937d6231471b5dbb6204fe512961708279f2e4f8d0a9e5c1a0b1`
-- What it does: The platform user that owns every tokenized asset's issuing Safe (as a wallet record, so minting approvers attach to it), and that user's primary signer **private key** (hex, not an address) - used to sign the minting approvers' shared-access setup on each issuing Safe. Startup fails if tokenization is enabled and this is not a valid key.
-- How to get a real value: create the issuing profile user, and take its primary signer key from your secrets manager.
+- Example: `atprofile` / `0x1234...abcd` (optional)
+- What it does: The platform user whose sub-wallets are every tokenized asset's issuing and distribution wallets. Each pair is owned by this user's key and the asset's minting approvers (see [INTEGRATION.md](INTEGRATION.md#tokenized-assets-token-issuing-and-distribution-wallets-sale-offer)); the backend holds no key for them. `TOKENIZATION_ISSUING_PROFILE_WALLET`, if set, must be that user's primary wallet address - a configuration check; leave it empty otherwise. It is no longer a private key.
+- How to get a real value: the username of the issuing profile you register.
 
-**`TOKENIZATION_ISSUING_SAFE_SIGNERS`** / **`TOKENIZATION_ISSUING_SAFE_THRESHOLD`**
-- Example: `0xkey1;0xkey2;0xkey3` / `3`
-- What it does: Each tokenized asset gets its own **issuing Safe** - a Safe multisig that owns the asset's token contract, is the only account allowed to mint it, and holds its unsold supply. It is deployed automatically (deterministically per tokenization, so retries reuse it) with the addresses of these keys as owners and `TOKENIZATION_ISSUING_SAFE_THRESHOLD` (default 3, or every owner when fewer are configured) as its threshold. After the minting approvers approve in the app, the backend signs the Safe mint with these keys. The **first** key also sends (and pays gas for) Safe deployments and mint transactions, so it must hold native balance.
-- How to get a real value: `;`-separated hex private keys of the platform's issuing signers, from your secrets manager. For testnet, any funded test keys.
+**`OFFER_BOOK_ADDRESS`**
+- Example: `0x5FbDB2315678afecb367f032d93F642f64180aa3`
+- What it does: The `TrovoOfferBook` contract tokenized assets are sold through. Required when `ENABLE_ASSET_TOKENIZATION=1` (startup fails otherwise).
+- How to get a real value: printed by `market/contracts/scripts/deploy.js` and saved in `market/contracts/deployments/<chainId>.json` (see [market/DEPLOYMENT.md](../market/DEPLOYMENT.md)).
 
-**`SAFE_PROXY_FACTORY_ADDRESS`** / **`SAFE_SINGLETON_ADDRESS`** / **`SAFE_FALLBACK_HANDLER_ADDRESS`** / **`SAFE_MULTISEND_CALL_ONLY_ADDRESS`**
+**`OFFER_AUTHORIZER_PRIVATE_KEY`**
+- Example: `0x59c6995e...` (hex private key)
+- What it does: Signs the fill authorization of each purchase the platform has checked (KYC, cap, sale window). Its address must be an authorizer on the offer book. A leaked key lets someone buy at the seller's price without those checks; it cannot move anyone's tokens. Required when tokenization is enabled.
+- How to get a real value: a dedicated key from your secrets manager; give its address to the offer book (`AUTHORIZER_ADDRESSES` at deploy, or `setAuthorizer` by the owner Safe).
+
+**`SAFE_PROXY_FACTORY_ADDRESS`** / **`SAFE_SINGLETON_ADDRESS`** / **`SAFE_MULTISEND_CALL_ONLY_ADDRESS`** (and `SAFE_FALLBACK_HANDLER_ADDRESS`)
 - Example: leave empty for the defaults
-- What it does: The Safe contracts issuing Safes are created from and batch mints through. Defaults are Safe's canonical deployments on Base and Base Sepolia: SafeProxyFactory v1.4.1 `0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67`, SafeL2 v1.4.1 `0x29fcB43b46531BcA003ddC8FCB67FFE91900C762`, CompatibilityFallbackHandler v1.4.1 `0xfd0732Dc9E303f09fCEf3a7388Ad10A83459Ec99`, MultiSendCallOnly v1.3.0 `0x40A2aCCbd92BCA938b02010E17A5b8929b49130D`. Each is checked for deployed code before use, so a wrong address fails clearly instead of deploying a broken Safe.
-- How to get a real value: leave empty unless you deploy on a network where Safe's contracts live elsewhere (see Safe's `safe-deployments` repository).
+- What it does: The Safe contracts wallets are created from (see "Wallets: Safe accounts, bundler and paymaster"); MultiSendCallOnly also batches the internal balance minting Safe's fiat deliveries. Defaults are Safe's canonical deployments on Base and Base Sepolia.
+- How to get a real value: leave empty unless Safe's contracts live elsewhere on your network.
 
 A tokenized asset's **token contract** is not configuration: it is registered per asset through `PUT /v1/trovo-manager/tokenization/contract/:tid` (see [INTEGRATION.md](INTEGRATION.md#tokenized-assets-token-contract-vs-issuing-safe)).
 
@@ -492,10 +497,10 @@ A tokenized asset's **token contract** is not configuration: it is registered pe
 
 ## Internal balance authorization / compliance
 
-**`INTERNAL_BALANCE_AUTHORIZER_WALLET`** / **`INTERNAL_BALANCE_ISSUING_SIGNERS`**
-- Example: `0x1111...` / `0xkey1,0xkey2`
-- What it does: The wallet that authorizes internal-balance operations and the signer key(s) permitted to issue them.
-- How to get a real value: operational wallets managed by whoever administers this feature.
+**`INTERNAL_BALANCE_ISSUING_SIGNERS`**
+- Example: `0xkey1,0xkey2`
+- What it does: Owner keys of each country's internal balance minting Safe (`CountryConfig.internalTokenMinterSafe`, which owns the internal balance token `internalTokenIssuer`). For a fiat purchase of a tokenized asset whose payment is confirmed, enough of them sign one Safe transaction that mints the purchase amount to the Safe and buys from the asset's sale offer for the buyer; the first key pays its gas, so it must hold ETH. (`INTERNAL_BALANCE_AUTHORIZER_WALLET` is no longer used.)
+- How to get a real value: the keys of that Safe's owners, from your secrets manager.
 
 **`COMPLIANCE_ACCOUNT_ID`**
 - Example: `acct_test_123`
