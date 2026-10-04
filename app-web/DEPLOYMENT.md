@@ -8,10 +8,8 @@ provided Docker image serves it. All commands are run from inside the
 ## 1. Prerequisites
 
 - **Node.js 20.x**. This isn't pinned via a `.nvmrc` or an `engines` field
-  in `package.json` in this project, but the repository's own CI
-  (`.github/workflows/pr-checks.yml`) builds it with Node 20, and the
-  Dockerfile's builder stage uses `node:20-alpine`. Use Node 20 to match
-  both. Install it from [nodejs.org](https://nodejs.org/en/download) or,
+  in `package.json` in this project, but the Dockerfile's builder stage
+  uses `node:20-alpine`. Use Node 20 to match it. Install it from [nodejs.org](https://nodejs.org/en/download) or,
   if you use `nvm`:
   ```bash
   nvm install 20
@@ -34,8 +32,8 @@ npm ci
 `npm ci` is used (not `npm install`) because a `package-lock.json` is
 committed to the repo. `npm ci` installs the exact versions from the
 lockfile and fails fast if `package.json` and the lockfile have drifted
-apart — this is what both CI (`pr-checks.yml`) and the Dockerfile's
-builder stage do, so use it locally too for a build that matches what
+apart — this is what the Dockerfile's builder stage does, so use it
+locally too for a build that matches what
 actually ships.
 
 ## 3. Build for production
@@ -52,9 +50,7 @@ Confirmed from `package.json`:
 So `npm run build` **type-checks the whole project with `tsc` first**,
 then runs `vite build`. If there are any TypeScript errors, the build
 fails before Vite ever runs — type-checking is part of the build gate,
-not a separate optional step. This matches the comment in this repo's own
-CI (`.github/workflows/pr-checks.yml`): *"`build` runs `tsc && vite
-build`, so typecheck is part of the gate."*
+not a separate optional step.
 
 ## 4. Build output
 
@@ -188,25 +184,9 @@ Practical implications:
 - See [`CONFIGURATION.md`](./CONFIGURATION.md) for the full variable
   list.
 
-## 6. A note on this repo's CI workflows
+## 6. CI/CD
 
-`/home/user/src-monorepo/.github/workflows/deploy.yml` and
-`pr-checks.yml` both filter their "web" jobs on the path prefix
-**`web/**`** (e.g. `working-directory: web`, `paths: - 'web/**'`).
-
-This project's actual directory in the monorepo is **`app-web/`**, not
-`web/`. As written, those path filters will **not** match changes made
-under `app-web/`, so pushes/PRs touching this project may silently skip
-the CI jobs and the build-and-push step that (per `deploy.yml`'s own
-comments) builds this Dockerfile and pushes it to DigitalOcean Container
-Registry, from where Portainer redeploys it.
-
-This strongly suggests those workflow files were copied from, or written
-for, a differently-laid-out sibling repository (one where the frontend
-lives at `web/`) and haven't been updated for this monorepo's actual
-`app-web/` naming. **Treat `deploy.yml` / `pr-checks.yml` as unreliable
-for this project until that path mismatch is fixed** — don't assume CI is
-actually building or deploying `app-web` on every change just because
-these files exist. The build and Docker steps described above were
-verified directly against this project's own `package.json` and
-`Dockerfile`, not against those workflow files.
+There is **no CI/CD pipeline** in this repository (the inherited GitHub
+Actions workflows were removed - see the root `ARCHITECTURE.md`). Build
+and deploy with the `package.json` scripts and the Dockerfile described
+above.

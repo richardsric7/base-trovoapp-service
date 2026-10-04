@@ -41,7 +41,12 @@ type CountryConfig struct {
 	FiatActivationAmount                     float64   `gorm:"default:1000" json:"fiatActivationAmount"`
 	TrovTokenActivationPercent               float64   `gorm:"default:50" json:"trovTokenActivationPercent"` //the rest is for gas/nativetoken
 	InternalBalanceTokenCode                 *string   `gorm:"size:12;default:null" json:"internalBalanceTokenCode"`
-	InternalTokenIssuer                      *string   `gorm:"size:68;default:null" json:"internalTokenIssuer"`
+	// InternalTokenIssuer is the internal balance token's contract address.
+	InternalTokenIssuer *string `gorm:"size:68;default:null" json:"internalTokenIssuer"`
+	// InternalTokenMinterSafe is the Safe that owns (mints) the internal
+	// balance token; INTERNAL_BALANCE_ISSUING_SIGNERS are its owners. It
+	// pays for fiat purchases of tokenized assets on the buyer's behalf.
+	InternalTokenMinterSafe *string `gorm:"size:42;default:null" json:"internalTokenMinterSafe"`
 }
 
 type CountryCode string

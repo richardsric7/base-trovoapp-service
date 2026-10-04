@@ -135,25 +135,11 @@ environment variable passed to `docker run` — they're already compiled into
 the JavaScript bundle. To change any `NEXT_PUBLIC_*` value you must rebuild
 the image with new `--build-arg`s.
 
-### 5.2 CI workflows — flagged as likely stale for this project
+### 5.2 CI/CD
 
-`/home/user/src-monorepo/.github/workflows/deploy.yml` and `pr-checks.yml`
-exist at the monorepo root, but their path filters reference `backend/`,
-`web/`, and `mobile/` (e.g. `paths: ["backend/**", "web/**"]`,
-`dockerfile: web/Dockerfile`, `cache-dependency-path: web/package-lock.json`).
-**None of those directory names exist in this monorepo** — the actual
-top-level projects are `tm-web/`, `tm-api/`, `app-web/`, `app-backend/`,
-`app-mobile/`, `payment-history-engine/`, and `wallet-core/`. `pr-checks.yml`
-also references a `web/package-lock.json`, but this project has no
-`package-lock.json` at all (it's Yarn-based, per §2 above).
-
-This strongly suggests those two workflow files were copied in from a
-differently-laid-out sibling repository and never adapted to this monorepo's
-actual directory names — they likely do not currently run against `tm-web`
-on push/PR. Treat the Dockerfile and `package.json` scripts described above
-(verified directly from this project's own files) as the source of truth for
-how to build and deploy `tm-web`, not those workflow files, until/unless
-someone updates their path filters to match.
+There is **no CI/CD pipeline** in this repository (the inherited GitHub
+Actions workflows were removed - see the root `ARCHITECTURE.md`). Build
+and deploy with the Dockerfile and `package.json` scripts above.
 
 ## 6. Error reporting (Sentry / GlitchTip)
 

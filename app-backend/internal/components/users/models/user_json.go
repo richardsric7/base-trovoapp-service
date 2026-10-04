@@ -7,9 +7,11 @@ import (
 )
 
 type UserJSON struct {
-	ID                     string                    `json:"-"`
-	Username               string                    `json:"username"`
-	Email                  string                    `json:"email"`
+	ID       string `json:"-"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	// GasFeeAsset is the stablecoin the user pays network fees in (null = ETH).
+	GasFeeAsset            *string                   `json:"gasFeeAsset"`
 	ImageThumbnailURL      string                    `json:"imageThumbnailURL"`
 	FirstName              string                    `json:"firstName"`
 	LastName               string                    `json:"lastName"`
@@ -50,17 +52,19 @@ type UserJSON struct {
 }
 
 type UserWalletJSON struct {
-	CreatedAt               time.Time              `json:"createdAt"`
-	ID                      string                 `json:"publicKey"`
-	TempAddress             string                 `json:"-"`
-	Tag                     string                 `json:"tag"`
-	Description             string                 `json:"description"`
-	Alias                   string                 `json:"alias"`  //primaryUsername_tag for sub wallets
-	Signer                  string                 `json:"signer"` //if ID is same as signer, then it is a primary wallet
-	UserID                  string                 `json:"userId"`
-	SharedAccessEnabled     int                    `json:"sharedAccessEnabled"`
-	PrimaryWallet           int                    `json:"primaryWallet"`
-	WalletType              int                    `json:"walletType"`      //0=normal, 1= assetIssuing, 2= MarketMaking, 3 = bulkPayment
+	CreatedAt           time.Time `json:"createdAt"`
+	ID                  string    `json:"publicKey"`
+	Tag                 string    `json:"tag"`
+	Description         string    `json:"description"`
+	Alias               string    `json:"alias"`  //primaryUsername_tag for sub wallets
+	Signer              string    `json:"signer"` //if ID is same as signer, then it is a primary wallet
+	UserID              string    `json:"userId"`
+	SharedAccessEnabled int       `json:"sharedAccessEnabled"`
+	PrimaryWallet       int       `json:"primaryWallet"`
+	WalletType          int       `json:"walletType"` //0=normal, 1= assetIssuing, 2= MarketMaking, 3 = bulkPayment
+	// Activated is false until the wallet's Safe is deployed (its first
+	// send). It can already receive funds.
+	Activated               bool                   `json:"activated"`
 	WalletThreshold         int                    `json:"walletThreshold"` //0=no shared access, 1 = view-Only shared access, 2 = approver is present
 	NumberOfApprovalsNeeded int                    `json:"numberOfApprovalsNeeded"`
 	Permissions             []WalletPermissionJSON `json:"permissions"`

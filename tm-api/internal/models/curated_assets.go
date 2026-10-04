@@ -38,6 +38,11 @@ type CuratedAsset struct {
 	// existing offer for it drops out of marketplace search. See
 	// app-backend's CuratedAsset.P2PEnabled doc for the full contract.
 	P2PEnabled bool `gorm:"column:p2p_enabled" json:"p2pEnabled"`
+	// GasFeeEligible lets app users pick this asset to pay network fees in
+	// (through the paymaster). The asset must also be enabled on the
+	// paymaster contract and priced by the paymaster quote service - see
+	// paymaster/CONFIGURATION.md (GAS_TOKENS).
+	GasFeeEligible bool `gorm:"column:gas_fee_eligible" json:"gasFeeEligible"`
 }
 
 func (CuratedAsset) TableName() string { return "curated_assets" }
@@ -81,6 +86,7 @@ type CuratedAssetRequest struct {
 	Inactive                              bool    `json:"inactive"`
 	ClosedGroup                           string  `json:"closedGroup"`
 	P2PEnabled                            bool    `json:"p2pEnabled"`
+	GasFeeEligible                        bool    `json:"gasFeeEligible"`
 }
 
 // CuratedAssetListRequest filters the paginated curated-assets admin table.
@@ -89,6 +95,7 @@ type CuratedAssetListRequest struct {
 	PageSize     int
 	AssetCode    string
 	AssetClassID uint64
-	P2PEnabled   *bool
-	Inactive     *bool
+	P2PEnabled     *bool
+	GasFeeEligible *bool
+	Inactive       *bool
 }

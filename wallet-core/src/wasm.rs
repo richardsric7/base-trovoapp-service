@@ -94,3 +94,12 @@ pub fn keypair_from_mnemonic(mnemonic: &str, index: u32) -> Result<WcKeypair, Js
         .map(Into::into)
         .map_err(to_js_err)
 }
+
+/// The permanent address of the user's primary wallet: the 1-of-1 Safe
+/// (with the ERC-4337 module) owned by `owner` - the mnemonic key's
+/// address - with `saltNonce` "0". Funds can be received on it before it is
+/// deployed; app-backend re-derives and checks it at registration.
+#[wasm_bindgen(js_name = primarySafeAddress)]
+pub fn primary_safe_address(owner: &str, salt_nonce: &str) -> Result<String, JsValue> {
+    crate::safe::primary_safe_address(owner, salt_nonce).map_err(to_js_err)
+}

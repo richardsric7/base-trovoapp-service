@@ -14,6 +14,7 @@ import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+import 'recovery_operations.dart';
 
 class DisableAccountRecoveryInfo extends StatefulWidget {
   const DisableAccountRecoveryInfo({Key? key}) : super(key: key);
@@ -139,6 +140,35 @@ class _DisableAccountRecoveryInfoState
                   page: DisableAccountRecoveryViewPageConfig,
                 ),
               ),
+              SizedBox(height: height / 30),
+              // a recovery someone else started must be canceled with this
+              // device's key before the recovery period ends
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Text(
+                  "cancelaccountrecoverydescription".tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                  ),
+                ),
+              ),
+              SizedBox(height: height / 60),
+              Button(
+                "cancelaccountrecovery".tr(),
+                notifier.getaddsubwalletgrey,
+                notifier.getbluewhitecolor,
+                onTap: () => cancelAccountRecovery(
+                  context,
+                  appState,
+                  signer: primaryWallet.signer!,
+                  address: primaryWallet.address!,
+                  secretKey: appState.secretKeys[0],
+                ),
+              ),
+              SizedBox(height: height / 20),
             ],
           ),
         ),

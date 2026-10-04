@@ -222,6 +222,13 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
+        // the recovery has started: it takes effect at executeAfter unless
+        // the account owner cancels it
+        appState.viewData = {
+          AccountRecoverySuccessViewPageConfig.key: {
+            'executeAfter': responseData['data']['executeAfter'],
+          },
+        };
         appState.currentAction = PageAction(
           state: PageState.addPage,
           page: AccountRecoverySuccessViewPageConfig,

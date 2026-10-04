@@ -58,6 +58,7 @@ import P2PMyOffers from '../pages/dashboard/p2p/myOffers';
 import P2PMyRefunds from '../pages/dashboard/p2p/myRefunds';
 import P2PPaymentMethods from '../pages/dashboard/p2p/paymentMethods';
 import PayLanding from '../pages/pay/payLanding';
+import Settings from '../pages/dashboard/settings/settings';
 
 export default function AppRouter() {
   return (
@@ -111,6 +112,7 @@ export default function AppRouter() {
               element={<TokenizedAssetsListView />}
             />
             <Route path="wallet" element={<WalletView />} />
+            <Route path="settings" element={<Settings />} />
             <Route path="history" element={<History />} />
             <Route path="p2p" element={<P2PMarketplace />} />
             <Route path="p2p/offer/:offerId" element={<P2POfferDetail />} />

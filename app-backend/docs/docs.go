@@ -6084,6 +6084,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/trovo-manager/tokenization/contract/{tid}": {
+            "put": {
+                "description": "Registers a tokenized asset's deployed B20 token contract. The contract must already be deployed with the asset's issuing Safe as owner or MINTER_ROLE holder, have the asset code as its symbol and zero supply; this is verified on-chain. Only allowed before minting.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "PUT /v1/trovo-manager/tokenization/contract/:tid",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tokenization ID",
+                        "name": "tid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Token contract payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.TokenizedAssetContractInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/trovo-manager/tokenization/detail/{tid}": {
             "get": {
                 "produces": [
@@ -7566,6 +7622,76 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/settings/gas-fee-asset": {
+            "put": {
+                "description": "Sets the stablecoin the user's wallets pay network fees in (through the paymaster), or clears it with an empty assetCode. A wallet that holds too little of it pays in ETH.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "PUT /v1/users/settings/gas-fee-asset",
+                "parameters": [
+                    {
+                        "description": "Gas fee asset",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.GasFeeAssetInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/settings/gas-fee-assets": {
+            "get": {
+                "description": "The stablecoins the user can pay network fees in, and the one currently chosen (gasFeeAsset; null = ETH).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "GET /v1/users/settings/gas-fee-assets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -9246,6 +9372,16 @@ const docTemplate = `{
                 }
             }
         },
+        "users.GasFeeAssetInput": {
+            "type": "object",
+            "properties": {
+                "assetCode": {
+                    "description": "AssetCode is a curated asset with gasFeeEligible; empty = pay in ETH.",
+                    "type": "string",
+                    "example": "USDC"
+                }
+            }
+        },
         "users.InactiveAccountRecoveryRequest": {
             "type": "object",
             "properties": {
@@ -9672,6 +9808,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "users.TokenizedAssetContractInput": {
+            "type": "object",
+            "properties": {
+                "contractAddress": {
                     "type": "string"
                 }
             }
@@ -11611,6 +11755,13 @@ const docTemplate = `{
                 },
                 "currency": {
                     "type": "string"
+                },
+                "messages": {
+                    "description": "Messages describe the withdrawal and its network fee before signing.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "networkPassPhrase": {
                     "type": "string"

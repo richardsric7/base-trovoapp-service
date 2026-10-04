@@ -50,14 +50,16 @@ const Payment: React.FC<PaymentProps> = ({ asset }) => {
     },
     {
       id: 2,
-      title: "Wallet Address",
+      title: "Issuing Safe",
       subTitle: asset?.issuingWalletAddress || "N/A",
     },
 
     {
       id: 3,
       title: "Amount",
-      subTitle: asset?.issuingWalletAddress || "N/A",
+      subTitle: asset?.tokenizationApplicationFee
+        ? `${asset.tokenizationApplicationFee} ${(asset.tokenizationApplicationFeeAsset || "").split(":")[0]}`
+        : "N/A",
     },
     {
       id: 4,

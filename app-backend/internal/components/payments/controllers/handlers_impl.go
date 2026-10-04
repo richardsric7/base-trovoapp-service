@@ -1,7 +1,6 @@
 package payments
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"time"
@@ -130,7 +129,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 			return
 		}
 		//get the wallet you are sending payment from
-		sourceWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		sourceWallet, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractAddress(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] %v error:%v\n", signerAccountAlias, getWalletError)
 		}
@@ -154,18 +153,6 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 			return
 		}
 
-		if temp {
-			errAccountIsTemp := &tErrors.CustomError{
-				Param:      "Username",
-				Err:        "error-account-not-primary-account-alias",
-				ErrMessage: "only primary/subwallets are allowed for payment requests",
-				Code:       http.StatusForbidden,
-			}
-
-			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-			return
-
-		}
 		if sourceWallet.WalletType != 0 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
@@ -192,7 +179,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 		publicKeyPayment := len(paymentInfo.Destination) == 42
 		if publicKeyPayment {
 			paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
-			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
+			destinationWallet, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
 				destinationUser, _ = destinationWallet.GetWalletOwner(gc.DB, gc)
 				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Address[%v] belongs to the wallet alias [%v] and has been used as destination", paymentInfo.Destination, destinationWallet.Alias))
@@ -205,7 +192,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 				//an email...replace the user info
 				destinationUser, err = usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
 				if err == nil {
-					destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(destinationUser.Username, gc.DB)
+					destinationWallet, getDestinationWalletError = usersDB.GetWallet(destinationUser.Username, gc.DB)
 					if getDestinationWalletError == nil {
 						paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Email [%v] belongs to the username [%v] and has been used as destination", paymentInfo.Destination, destinationUser.Username))
 						paymentInfo.Destination = destinationUser.Username
@@ -216,7 +203,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 				//a phone...replace the user info
 				destinationUser, err = usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
 				if err == nil {
-					destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(destinationUser.Username, gc.DB)
+					destinationWallet, getDestinationWalletError = usersDB.GetWallet(destinationUser.Username, gc.DB)
 					if getDestinationWalletError == nil {
 						paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Phone [%v] belongs to the username [%v] and has been used as destination", paymentInfo.Destination, destinationUser.Username))
 						paymentInfo.Destination = destinationUser.Username
@@ -225,7 +212,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 				}
 			} else {
 				//wallet alias...
-				destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
+				destinationWallet, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 				if getDestinationWalletError == nil {
 					//get destination user:
 					destinationUser, _ = destinationWallet.GetWalletOwner(gc.DB, gc)
@@ -316,16 +303,8 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 			}
 			if len(destinationWallet.ID) == 42 {
 				destinationWallet.InvalidateUserCache(gc)
-				if destinationWallet.TempAddress != nil {
-
-					receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempAddress)
-				}
 			}
 			if len(sourceWallet.ID) == 42 {
-				if sourceWallet.TempAddress != nil {
-
-					senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempAddress)
-				}
 
 			}
 
@@ -367,7 +346,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 					if paymentInfoReturned.ContractAddress == "" {
 						assetCode = os.Getenv("NATIVE_ASSET_CODE")
 					}
-					senderWallet, _, _ := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+					senderWallet, _ := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 					jsonPayload := payload{
 						Destination:     paymentInfoReturned.Destination,
 						Sender:          senderWallet.Alias,
@@ -387,10 +366,8 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 					}
 					log.Printf("[paymentNotification] JSON STRING: [%v]\n", string(body))
 
-					responseBody := bytes.NewBuffer(body)
-					//Leverage Go's HTTP Post function to make request
-					c := userModels.RetryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
-					callBackRetryChan <- c
+					// recorded and retried until delivered (see sharedconfig.SendCallback)
+					gc.SendCallback(d, body)
 				}
 			}
 
@@ -506,7 +483,7 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 			return
 		}
 		//get the wallet you are sending payment from
-		sourceWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
+		sourceWallet, getWalletError := usersDB.GetWallet(middleware.ExtractAddress(c), gc.DB)
 
 		if getWalletError != nil {
 
@@ -527,18 +504,6 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 			return
 		}
 
-		if temp {
-			errAccountIsTemp := &tErrors.CustomError{
-				Param:      "Username",
-				Err:        "error-account-not-primary-account-alias",
-				ErrMessage: "only primary/subwallets are allowed for payment requests",
-				Code:       http.StatusForbidden,
-			}
-
-			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-			return
-
-		}
 		if sourceWallet.WalletType != 0 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
@@ -638,7 +603,7 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 
 		if publicKeyPayment {
 			paymentInfo.Destination = strings.ToUpper(paymentInfo.Destination)
-			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
+			destinationWallet, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
 				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Address[%v] belongs to the wallet alias [%v] and has been used as destination", paymentInfo.Destination, destinationWallet.Alias))
 				paymentInfo.Destination = destinationWallet.Alias
@@ -726,16 +691,8 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 
 			}
 			if len(destinationWallet.ID) == 42 {
-				if destinationWallet.TempAddress != nil {
-
-					receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempAddress)
-				}
 			}
 			if len(sourceWallet.ID) == 42 {
-				if sourceWallet.TempAddress != nil {
-
-					senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempAddress)
-				}
 
 			}
 

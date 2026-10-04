@@ -357,7 +357,7 @@ func runSchemaMigration(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetPayoutEngineTask: ", errMigrate)
 		}
 
-		errMigrate = gormDB.AutoMigrate(&users.UserAccountRecoveryLog{})
+		errMigrate = gormDB.AutoMigrate(&users.UserAccountRecoveryLog{}, &users.RecoveryWatchCursor{}, &sharedConfig.CallbackDelivery{}, &sharedConfig.NonceReservation{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserAccountRecoveryLog: ", errMigrate)
 		}
@@ -388,6 +388,10 @@ func runSchemaMigration(gormDB *gorm.DB) {
 		errMigrate = gormDB.AutoMigrate(&users.PendingAuth{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error migrating PendingAuth:", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.WalletOperation{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error migrating WalletOperation:", errMigrate)
 		}
 
 		errMigrate = gormDB.AutoMigrate(&users.PendingTransactionSignature{})

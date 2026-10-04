@@ -1,7 +1,7 @@
 package users
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -18,7 +18,6 @@ import (
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
-	"github.com/ecnepsnai/discord"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-module/carbon/v2"
 	"github.com/google/uuid"
@@ -261,9 +260,12 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 	}
-	{
+	// on Safe wallets the approvers sign the wallet operation itself (or, for
+	// database-only shared access changes, a statement of the change)
+	opRec, opPrep := approvalOperation(p, gc)
+	if opRec == nil {
 		//check if the signer has valid signature right to the wallet.
-		if !wallet.SignerIsValid(signerUser.PrimarySigner, false, gc) {
+		if !wallet.SignerIsValid(signerUser.PrimarySigner, gc) {
 			log.Printf("[ApproveTransaction] error %v account may have been recovered without permission re-instated. Please contact wallet approvers to re-instate your access.\n", signerUser.Username)
 			return &tErrors.CustomError{
 				Param:      "id",
@@ -273,6 +275,15 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 		}
 	}
+
+	if opRec != nil {
+		if err := checkApprover(opPrep, signerUser.PrimarySigner); err != nil {
+			return err
+		}
+		// the Safe's threshold decides how many approvals it takes
+		p.ApprovalsNeeded = int(opPrep.Threshold)
+	}
+	signedStatement := opRec == nil && statementApproval(p)
 
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
@@ -288,6 +299,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		}
 
 		ts.Commit = 0
+		ts.DryRun = true
 
 		revokedList, modifiedList, addedList, linkedRevokedList, linkedModifiedList, linkedAddedList, e = ModifySharedWalletAccess(&initiatorUser, &walletOwner, &wallet, &ts, gc)
 		if e != nil {
@@ -479,6 +491,11 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		return
 	}
 	//signature exists
+	if opRec != nil || signedStatement {
+		if err := verifyStatementSignature(signerUser.PrimarySigner, p.TransactionXdr, approvalInfo.TransactionSignature); err != nil {
+			return err
+		}
+	}
 
 	pts = userModels.PendingTransactionSignature{
 		ID:                       uuid.NewString(),
@@ -531,7 +548,27 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 		//process submission routine here
-		txnResult, err = network.SubmitApprovalsXdrWithSignaturesReturnsTrx(gc.BantuExpansionClient, p.ID, dbTX)
+		if opRec != nil {
+			// all approvals are in: submit the wallet operation with the
+			// approvers' signatures
+			sigs, e := approvalSignatures(p.ID, dbTX)
+			if e != nil {
+				return &tErrors.ErrorTemporaryServerError{}
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+			defer cancel()
+			hash, e := SubmitWalletOperation(ctx, opRec, opPrep, sigs, gc)
+			if e != nil {
+				return e
+			}
+			txnResult.Hash = hash
+			// fees computed when the operation was built
+			recordOperationFees(opRec, hash, gc)
+		} else if signedStatement {
+			// a database-only change: the approvals are the authorization
+		} else {
+			txnResult, err = network.SubmitApprovalsXdrWithSignaturesReturnsTrx(gc.BantuExpansionClient, p.ID, dbTX)
+		}
 		if err != nil {
 			return err
 		}
@@ -723,6 +760,11 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 			return nil
 
+		} else if p.TransactionType == "PAYMENT" && opRec != nil {
+			// fees were recorded from the operation (recordOperationFees)
+			dbTX.Commit()
+			notifyApprovalCompleted(signerUser, p, &wallet, gc)
+			return nil
 		} else if p.TransactionType == "PAYMENT" {
 			dbTX.SavePoint("PAYMENT")
 			//update fee paynment and vat
@@ -818,10 +860,8 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 					}
 					log.Printf("[paymentNotification] JSON STRING: [%v]\n", string(body))
 
-					responseBody := bytes.NewBuffer(body)
-					//Leverage Go's HTTP Post function to make request
-					c := userModels.RetryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
-					retryCallbackChan <- c
+					// recorded and retried until delivered (see sharedconfig.SendCallback)
+					gc.SendCallback(d, body)
 				}
 			}
 
@@ -1009,7 +1049,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 			cAsset := assetModels.CuratedAsset{
 				AssetCode:       *ta.AssetCode,
-				ContractAddress: *ta.IssuingWalletAddress,
+				ContractAddress: *ta.ContractAddress, // the token contract, never the issuing Safe
 				AssetName:       *ta.AssetName,
 				Description:     *ta.AssetDescription,
 				ImageURL:        ta.AssetLogo,
@@ -1313,83 +1353,32 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 				return &tErrors.ErrorTemporaryServerError{}
 			}
 
-			var issuingWallet, distroWallet userModels.UserWallet
-			//now remove the wallets from the trovo ecosystem.
-			issuingWallet, e = userModels.UserWalletID(tkInput.ContractAddress).GetWallet(dbTX, gc)
-			distroWallet, e = userModels.UserWalletID(tkInput.Destination).GetWallet(dbTX, gc)
-			// nullify it.
+			// The issuing Safe and the registered token contract are on-chain
+			// facts that survive a rejected mint (the contract names the Safe
+			// as its minter), so neither is discarded. Only the minting
+			// approval setup on the Safe's wallet record is reset, so the next
+			// mint request re-creates it with the asset's current approvers.
 			ta.TokenizationTransaction = nil
-			// set it to 3 so as to assign a new wallet.
 			ta.AssetTokenizationStatus = 3
-			// remove the issuing wallet and marketting wallet(distributor)
-			ta.IssuingWalletAlias = nil
-			ta.IssuingWalletAddress = nil
-			ta.MarketMakingWallet = nil
-			// get wallet Permisions
-			pl := distroWallet.GetPermissionList(dbTX)
-
-			for _, v := range pl {
-				e = dbTX.Omit(clause.Associations).Delete(&v).Error
-				if e != nil {
-					log.Printf("[RejectTransaction]error removing wallet permission: %v, %v", v, e)
+			issuingWallet, e := userModels.UserWalletID(tkInput.Destination).GetWallet(dbTX, gc)
+			if e == nil {
+				for _, v := range issuingWallet.GetPermissionList(dbTX) {
+					if e := dbTX.Omit(clause.Associations).Delete(&v).Error; e != nil {
+						log.Printf("[RejectTransaction]error removing wallet permission: %+v, %v", v, e)
+						return &tErrors.ErrorTemporaryServerError{}
+					}
+				}
+				if e := dbTX.Model(&userModels.UserWallet{}).Where("id = ?", issuingWallet.ID).Updates(map[string]interface{}{"shared_access_enabled": 0, "number_of_approvals_needed": 0}).Error; e != nil {
+					log.Printf("[RejectTransaction]error resetting shared access on issuing Safe %v: %v", issuingWallet.ID, e)
 					return &tErrors.ErrorTemporaryServerError{}
 				}
-			}
-			e = dbTX.Omit(clause.Associations).Delete(&distroWallet).Error
-			if e != nil {
-				log.Printf("[RejectTransaction]error removing distribution wallet: %+v, %v", distroWallet.Alias, e)
-				return &tErrors.ErrorTemporaryServerError{}
-			}
-			// get wallet Permisions
-			pl = issuingWallet.GetPermissionList(dbTX)
-
-			for _, v := range pl {
-				e = dbTX.Omit(clause.Associations).Delete(&v).Error
-				if e != nil {
-					log.Printf("[RejectTransaction]error removing wallet permission: %+v, %v", v, e)
-					return &tErrors.ErrorTemporaryServerError{}
-				}
+				issuingWallet.InvalidateUserCache(gc)
 			}
 			//delete expressed interest.
 			e = dbTX.Omit(clause.Associations).Where("tokenized_asset_id = ?", ta.ID).Delete(&userModels.ExpressionOfInterest{}).Error
 			if e != nil {
 				log.Printf("[RejectTransaction]error removing Expression Of Interest. error: %v", e)
 				return &tErrors.ErrorTemporaryServerError{}
-			}
-
-			e = dbTX.Omit(clause.Associations).Delete(&issuingWallet).Error
-			if e != nil {
-				log.Printf("[RejectTransaction]error removing issuing wallet: %v, %v", issuingWallet.Alias, e)
-				return &tErrors.ErrorTemporaryServerError{}
-			}
-
-			{
-				//remove it from payment engine also.
-				//send to monitoring service
-				trackAddress := userModels.TrackedAddress{
-					Address: issuingWallet.ID,
-				}
-				errTrack := gc.RoachDB.Delete(&trackAddress).Error
-				if errTrack != nil {
-					//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
-					discord.Say(fmt.Sprintf("[RejectTransaction] removing tracking wallet public key for payment history failed for:%v, with DB Error:%v\n\n\nFailedData:%+v", issuingWallet.Alias, errTrack, issuingWallet))
-
-				}
-				trackAddress = userModels.TrackedAddress{
-					Address: distroWallet.ID,
-				}
-				errTrack = gc.RoachDB.Delete(&trackAddress).Error
-				if errTrack != nil {
-					//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
-					discord.Say(fmt.Sprintf("[RejectTransaction] removing tracking wallet public key for payment history failed for:%v, with DB Error:%v\n\n\nFailedData:%+v", distroWallet.Alias, errTrack, distroWallet))
-
-				}
-			}
-
-			issuerOwner, _ := issuingWallet.GetWalletOwner(dbTX, gc)
-			if len(issuerOwner.ID) > 0 {
-
-				issuerOwner.InvalidateUserCache(gc)
 			}
 
 			e = dbTX.Omit(clause.Associations).Save(&ta).Error
@@ -1405,6 +1394,10 @@ func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, r
 	if e != nil {
 		log.Println("[ApproveTransaction]error saving approval state:", e)
 		return &tErrors.ErrorTemporaryServerError{}
+	}
+	// a rejected request's wallet operation can no longer be submitted
+	if rec, _ := approvalOperation(p, gc); rec != nil {
+		dbTX.Model(&userModels.WalletOperation{}).Where("id = ? AND status = ?", rec.ID, userModels.WalletOperationPending).Update("status", userModels.WalletOperationExpired)
 	}
 	dbTX.Commit()
 

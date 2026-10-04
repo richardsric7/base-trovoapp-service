@@ -6,14 +6,18 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
+	"math/big"
+	"os"
 	"strings"
 	"time"
+	"trovo-wallet-api/internal/aa"
 	"trovo-wallet-api/internal/basetxn"
 	"trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"golang.org/x/text/cases"
@@ -72,26 +76,38 @@ type ExistingAssetValidationAssetDocument struct {
 }
 
 type TokenizedAsset struct {
-	ID                                 string                     `json:"id"`
-	CreatedAt                          time.Time                  `json:"createdAt"`
-	UpdatedAt                          time.Time                  `json:"updatedAt"`
-	DateSubmitted                      time.Time                  `json:"dateSubmitted"`
-	DateOfApproval                     time.Time                  `json:"dateOfApproval"`
-	MintingDate                        time.Time                  `json:"mintingDate"`
-	InitiatorUsername                  string                     `gorm:"size:50;not null" json:"initiatorUsername"`
-	AssetSector                        *string                    `json:"assetSector"`
-	AssetSubSector                     *string                    `json:"assetSubSector"`
-	AssetType                          *string                    `json:"assetType"`
-	AssetName                          *string                    `json:"assetName"`
-	ApprovedAssetCustodianID           uint64                     `gorm:"not null;default:0" json:"approvedAssetCustodianId"`
-	ApprovedAssetCustodian             ApprovedAssetCustodian     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"approvedAssetCustodianInfo"`
-	OfferingType                       *string                    `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
-	ClosedGroupID                      *string                    `gorm:"null" json:"closedGroupId"`
-	ClosedGroup                        ClosedGroup                `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"closedGroupInfo"`
-	SecApproval                        int                        `gorm:"default:0" json:"secApproval"`
-	SecApprovalIdNumber                *string                    `json:"secApprovalIdNumber"`
-	IssuingWalletAddress               *string                    `gorm:"size:60" json:"issuingWalletAddress"`
-	IssuingWalletAlias                 *string                    `gorm:"size:60" json:"issuingWalletAlias"`
+	ID                       string                 `json:"id"`
+	CreatedAt                time.Time              `json:"createdAt"`
+	UpdatedAt                time.Time              `json:"updatedAt"`
+	DateSubmitted            time.Time              `json:"dateSubmitted"`
+	DateOfApproval           time.Time              `json:"dateOfApproval"`
+	MintingDate              time.Time              `json:"mintingDate"`
+	InitiatorUsername        string                 `gorm:"size:50;not null" json:"initiatorUsername"`
+	AssetSector              *string                `json:"assetSector"`
+	AssetSubSector           *string                `json:"assetSubSector"`
+	AssetType                *string                `json:"assetType"`
+	AssetName                *string                `json:"assetName"`
+	ApprovedAssetCustodianID uint64                 `gorm:"not null;default:0" json:"approvedAssetCustodianId"`
+	ApprovedAssetCustodian   ApprovedAssetCustodian `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"approvedAssetCustodianInfo"`
+	OfferingType             *string                `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
+	ClosedGroupID            *string                `gorm:"null" json:"closedGroupId"`
+	ClosedGroup              ClosedGroup            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"closedGroupInfo"`
+	SecApproval              int                    `gorm:"default:0" json:"secApproval"`
+	SecApprovalIdNumber      *string                `json:"secApprovalIdNumber"`
+	IssuingWalletAddress     *string                `gorm:"size:60" json:"issuingWalletAddress"`
+	IssuingWalletAlias       *string                `gorm:"size:60" json:"issuingWalletAlias"`
+	// ContractAddress is the tokenized asset's deployed B20 token contract - its
+	// on-chain identity (what transfers, balances, authorizations, curated
+	// assets and deep links refer to). IssuingWalletAddress is NOT the token:
+	// it is the issuer (a Safe) that owns the contract and mints through it.
+	ContractAddress *string `gorm:"size:42;index" json:"contractAddress"`
+	// OfferBookOfferID is the asset's primary-sale offer on TrovoOfferBook
+	// (OFFER_BOOK_ADDRESS), recorded once the mint operation that creates
+	// it is mined; the asset counts as minted from then on.
+	OfferBookOfferID                   *string                    `gorm:"size:80" json:"offerBookOfferId"`
+	// SalesNotificationPending is 1 once primary sales start, until the
+	// sale-start push notifications to interested users have been sent.
+	SalesNotificationPending int `gorm:"default:0;index" json:"-"`
 	MarketMakingWallet                 *string                    `json:"marketMakingWallet"`
 	AssetDescription                   *string                    `json:"assetDescription"`
 	AssetCountryLocation               *string                    `gorm:"not null;size:2;default'NG'" json:"assetCountryLocation"`
@@ -1185,6 +1201,7 @@ type TokenizedAssetJSON struct {
 	SecApprovalIdNumber                          string                          `json:"secApprovalIdNumber"`
 	IssuingWalletAddress                         string                          `gorm:"size:60" json:"issuingWalletAddress"`
 	IssuingWalletAlias                           string                          `gorm:"size:60" json:"issuingWalletAlias"`
+	ContractAddress                              string                          `gorm:"size:42" json:"contractAddress"`
 	MarketMakingWallet                           string                          `json:"marketMakingWallet"`
 	AssetDescription                             string                          `json:"assetDescription"`
 	AssetCountryLocation                         string                          `json:"assetCountryLocation"`
@@ -2086,6 +2103,12 @@ type TokenizedAssetSalesDatesInput struct {
 	SalesEnd   string `json:"salesEnd"`
 }
 
+// TokenizedAssetContractInput registers a tokenized asset's deployed B20
+// token contract (see users/services.RegisterTokenizedAssetContract).
+type TokenizedAssetContractInput struct {
+	ContractAddress string `json:"contractAddress"`
+}
+
 type NonExistingAssetValidationAssetDocument struct {
 	ID uint64 `gorm:"" json:"-" form:"-"`
 }
@@ -2229,11 +2252,11 @@ func (t *TokenizedAsset) GetExpressedInterestByUsername(subscriber string, gc *s
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
-	var issuerWalletAddress string
-	if t.IssuingWalletAddress != nil {
-		issuerWalletAddress = *t.IssuingWalletAddress
+	var tokenContract string
+	if t.ContractAddress != nil {
+		tokenContract = *t.ContractAddress
 	}
-	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ? AND Subscriber_Username = ?", t.ID, issuerWalletAddress, subscriber).First(&exp).Error
+	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND contract_address = ? AND Subscriber_Username = ?", t.ID, tokenContract, subscriber).First(&exp).Error
 
 	return
 }
@@ -2244,11 +2267,11 @@ func (t *TokenizedAsset) SumExpressedInterest(gc *sharedconfig.GlobalConfig) (su
 		log.Println("[TokenizedAsset::SumExpressedInterest] Error tokenized asset is nil")
 		return
 	}
-	var issuerWalletAddress string
-	if t.IssuingWalletAddress != nil {
-		issuerWalletAddress = *t.IssuingWalletAddress
+	var tokenContract string
+	if t.ContractAddress != nil {
+		tokenContract = *t.ContractAddress
 	}
-	gc.DB.Model(&ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletAddress).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	gc.DB.Model(&ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ? AND contract_address = ?", t.ID, tokenContract).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
@@ -2258,11 +2281,11 @@ func (t *TokenizedAsset) CountExpressedInterests(gc *sharedconfig.GlobalConfig) 
 		log.Println("[TokenizedAsset::CountExpressedInterests] Error tokenized asset is nil")
 		return
 	}
-	var issuerWalletAddress string
-	if t.IssuingWalletAddress != nil {
-		issuerWalletAddress = *t.IssuingWalletAddress
+	var tokenContract string
+	if t.ContractAddress != nil {
+		tokenContract = *t.ContractAddress
 	}
-	gc.DB.Model(ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletAddress).Count(&count)
+	gc.DB.Model(ExpressionOfInterest{}).Where("Tokenized_Asset_ID = ? AND contract_address = ?", t.ID, tokenContract).Count(&count)
 
 	return
 }
@@ -2272,11 +2295,11 @@ func (t *TokenizedAsset) CountNumberOfSubscribers(gc *sharedconfig.GlobalConfig)
 		log.Println("[TokenizedAsset::CountNumberOfSubscribers] Error tokenized asset is nil")
 		return
 	}
-	var issuerWalletAddress string
-	if t.IssuingWalletAddress != nil {
-		issuerWalletAddress = *t.IssuingWalletAddress
+	var tokenContract string
+	if t.ContractAddress != nil {
+		tokenContract = *t.ContractAddress
 	}
-	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletAddress).Count(&count)
+	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND contract_address = ?", t.ID, tokenContract).Count(&count)
 
 	return
 }
@@ -2287,11 +2310,11 @@ func (t *TokenizedAsset) SumAmountSoldInFiat(gc *sharedconfig.GlobalConfig) (sum
 		log.Println("[TokenizedAsset::SumAmountSoldInFiat] Error tokenized asset is nil")
 		return
 	}
-	var issuerWalletAddress string
-	if t.IssuingWalletAddress != nil {
-		issuerWalletAddress = *t.IssuingWalletAddress
+	var tokenContract string
+	if t.ContractAddress != nil {
+		tokenContract = *t.ContractAddress
 	}
-	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ?", t.ID, issuerWalletAddress).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	gc.DB.Model(TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND contract_address = ?", t.ID, tokenContract).Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
@@ -2303,11 +2326,11 @@ func (t *TokenizedAsset) SumAmountBoughtByWalletOwner(walletAlias string, gc *sh
 		return
 	}
 	ownerUsername := strings.Split(walletAlias, "_")[0]
-	var issuerWalletAddress string
-	if t.IssuingWalletAddress != nil {
-		issuerWalletAddress = *t.IssuingWalletAddress
+	var tokenContract string
+	if t.ContractAddress != nil {
+		tokenContract = *t.ContractAddress
 	}
-	gc.DB.Model(&TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND contract_address = ? AND Wallet_Alias LIKE ?", t.ID, issuerWalletAddress, strings.ToLower(ownerUsername)+"%").Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
+	gc.DB.Model(&TokenizedAssetSubscription{}).Where("Tokenized_Asset_ID = ? AND contract_address = ? AND Wallet_Alias LIKE ?", t.ID, tokenContract, strings.ToLower(ownerUsername)+"%").Select("case when sum(Amount) is not null then sum(Amount) else 0 end").Row().Scan(&sum)
 
 	return
 }
@@ -2318,11 +2341,11 @@ func (t *TokenizedAsset) GetTokenizedAssetSubscriptionByWalletAddress(subscriber
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
-	var issuerWalletAddress string
-	if t.IssuingWalletAddress != nil {
-		issuerWalletAddress = *t.IssuingWalletAddress
+	var tokenContract string
+	if t.ContractAddress != nil {
+		tokenContract = *t.ContractAddress
 	}
-	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND Asset_Issuer = ? AND Wallet_Public_Key = ?", t.ID, issuerWalletAddress, subscriberWalletAddress).First(&sub).Error
+	err = gc.DB.Preload(clause.Associations).Where("Tokenized_Asset_ID = ? AND contract_address = ? AND wallet_address = ?", t.ID, tokenContract, subscriberWalletAddress).First(&sub).Error
 
 	return
 }
@@ -2966,9 +2989,9 @@ func (t *TokenizedAsset) UpdateTokenizedAssetFromInput(ti *TokenizedAssetJSONInp
 	if ne(ti.ProjectIdentifiedOtherRelevantRisks) {
 		t.ProjectIdentifiedOtherRelevantRisks = &ti.ProjectIdentifiedOtherRelevantRisks
 	}
-	if t.DeepLink == nil && t.AssetCode != nil && t.IssuingWalletAddress != nil {
-		//set deep link
-		p, _ := dynamiclinks.GenerateTokenizedAssetDeeplink(*t.AssetCode, *t.IssuingWalletAddress, gc)
+	if t.DeepLink == nil && t.AssetCode != nil && t.ContractAddress != nil {
+		//set deep link (identifies the asset by its token contract)
+		p, _ := dynamiclinks.GenerateTokenizedAssetDeeplink(*t.AssetCode, *t.ContractAddress, gc)
 		if len(p.DynamicLink) > 0 {
 			t.DeepLink = &p.DynamicLink
 		}
@@ -5164,6 +5187,9 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 	if ti.IssuingWalletAlias != nil {
 		t.IssuingWalletAlias = *ti.IssuingWalletAlias
 	}
+	if ti.ContractAddress != nil {
+		t.ContractAddress = *ti.ContractAddress
+	}
 	if ti.MarketMakingWallet != nil {
 		t.MarketMakingWallet = *ti.MarketMakingWallet
 	}
@@ -5428,9 +5454,9 @@ func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAsse
 		t.QuantityOfTokensSold = decimal.NewFromFloat(t.QuantityOfTokensSoldInFiat / t.PricePerToken).Truncate(7).InexactFloat64()
 	}
 	t.PurchaseCommitments = ti.SumExpressedInterest(gc)
-	if ti.DeepLink == nil && ti.AssetCode != nil && ti.IssuingWalletAddress != nil {
-		//set deep link
-		p, _ := dynamiclinks.GenerateTokenizedAssetDeeplink(*ti.AssetCode, *ti.IssuingWalletAddress, gc)
+	if ti.DeepLink == nil && ti.AssetCode != nil && ti.ContractAddress != nil {
+		//set deep link (identifies the asset by its token contract)
+		p, _ := dynamiclinks.GenerateTokenizedAssetDeeplink(*ti.AssetCode, *ti.ContractAddress, gc)
 		if len(p.DynamicLink) > 0 {
 			ti.DeepLink = &p.DynamicLink
 			//save the tokenized asset information
@@ -6498,13 +6524,13 @@ func (tas *TokenizedAssetSubscription) UpdateTokenizedAssetSubscriptionFromInput
 		return
 	}
 
-	if ta.AssetTokenizationStatus < 4 {
+	if ta.AssetTokenizationStatus < 4 || ta.ContractAddress == nil {
 		return
 	}
 	tas.ID = uuid.NewString()
 	tas.TokenizedAssetID = ta.ID
 	tas.AssetCode = *ta.AssetCode
-	tas.ContractAddress = *ta.IssuingWalletAddress
+	tas.ContractAddress = *ta.ContractAddress
 	tas.WalletAlias = subscriberWallet.Alias
 	tas.WalletAddress = subscriberWallet.ID
 	tas.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
@@ -6520,12 +6546,12 @@ func (e *ExpressionOfInterest) UpdateExpressionOfInterestFromInput(subscriberUse
 		return
 	}
 
-	if ta.AssetTokenizationStatus < 4 {
+	if ta.AssetTokenizationStatus < 4 || ta.ContractAddress == nil {
 		return
 	}
 	e.TokenizedAssetID = ta.ID
 	e.AssetCode = *ta.AssetCode
-	e.ContractAddress = *ta.IssuingWalletAddress
+	e.ContractAddress = *ta.ContractAddress
 	e.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
 	e.Price = ta.PricePerToken
 	e.SubscriberUsername = subscriberUsername
@@ -6701,28 +6727,36 @@ type MarketOffersPage struct {
 	}
 }
 
-// GetMarketOffers fetches the market maker's available liquidity for this
-// tokenized asset. See MarketOffersPage's doc for the Base simplification.
+// GetMarketOffers reports the asset's primary-sale offer on TrovoOfferBook:
+// the amount of the asset still for sale and its price per token in the
+// quote currency. Empty before the mint's offer is recorded.
 func (t *TokenizedAsset) GetMarketOffers(gc *sharedconfig.GlobalConfig) (marketOffers MarketOffersPage, err error) {
-	if t.MarketMakingWallet == nil || t.AssetCode == nil || t.IssuingWalletAddress == nil {
+	book := strings.TrimSpace(os.Getenv("OFFER_BOOK_ADDRESS"))
+	if t.OfferBookOfferID == nil || t.AssetCode == nil || t.ContractAddress == nil || !common.IsHexAddress(book) {
 		return
 	}
-	seller := *t.MarketMakingWallet
-	tokenContract := *t.IssuingWalletAddress
+	id, ok := new(big.Int).SetString(*t.OfferBookOfferID, 10)
+	if !ok {
+		return
+	}
 	client := network.GetBlockchainClient()
-
-	decimals, e := network.AssetDecimals(context.Background(), client, basetxn.CreditAsset{Issuer: tokenContract})
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	o, e := aa.ReadOffer(ctx, client, common.HexToAddress(book), id)
 	if e != nil {
 		log.Printf("[GetMarketOffers Network Failure]: %v\n", e)
 		return marketOffers, &tErrors.ErrorTemporaryServerError{}
 	}
-	balance, e := network.B20BalanceOf(client, tokenContract, seller, decimals)
+	decimals, e := network.AssetDecimals(ctx, client, basetxn.CreditAsset{Issuer: *t.ContractAddress})
 	if e != nil {
 		log.Printf("[GetMarketOffers Network Failure]: %v\n", e)
 		return marketOffers, &tErrors.ErrorTemporaryServerError{}
 	}
-
-	marketOffers.Embedded.Records = []MarketOfferRecord{{Amount: balance.String(), Price: "1"}}
+	remaining := decimal.Zero
+	if o.Open {
+		remaining = decimal.NewFromBigInt(o.Remaining, -int32(decimals))
+	}
+	marketOffers.Embedded.Records = []MarketOfferRecord{{Amount: remaining.String(), Price: decimal.NewFromFloat(t.PricePerToken).String()}}
 	return marketOffers, nil
 }
 

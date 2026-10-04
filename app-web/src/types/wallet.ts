@@ -11,6 +11,9 @@ export type Wallet = {
     userId: string,
     sharedAccessEnabled: boolean, 
     primaryWallet: boolean,
+    // false until the wallet's Safe is deployed, which its first send does
+    // (it can receive funds before that)
+    activated?: boolean,
     walletType?: number,
     walletThreshold?: number,
     numberOfApprovalsNeeded?: number, 

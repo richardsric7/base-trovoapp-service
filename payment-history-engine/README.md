@@ -173,7 +173,7 @@ swag init
 
 ## Further reading
 
-- [DEPLOYMENT.md](./DEPLOYMENT.md) — prerequisites, building, running via Docker, CI/CD status
+- [DEPLOYMENT.md](./DEPLOYMENT.md) — prerequisites, building, running via Docker (there is no CI/CD pipeline)
 - [CONFIGURATION.md](./CONFIGURATION.md) — every environment variable, explained
 - [INTEGRATION.md](./INTEGRATION.md) — how this service fits with app-backend and tm-api
 

@@ -173,19 +173,19 @@ function SideBar({ mobileMode = false }: Props) {
             setActiveItem(12);
           }}
         /> */}
-          {/* <SideBarItem
-          label="Settings"
-          icon={
-            activeItem === 13
-              ? '/images/settingsWhite.svg'
-              : '/images/settings.svg'
-          }
-          url="/dashboard/settings"
-          isActive={activeItem === 13}
-          onSidebarClicked={() => {
-            setActiveItem(13);
-          }}
-        /> */}
+          <SideBarItem
+            label="Settings"
+            icon={
+              activeItem === 13
+                ? '/images/settingsWhite.svg'
+                : '/images/settings.svg'
+            }
+            url="/dashboard/settings"
+            isActive={activeItem === 13}
+            onSidebarClicked={() => {
+              setActiveItem(13);
+            }}
+          />
         </div>
         <div className="mx-3 2xl:mx-7 space-y-4">
           <SideBarItem

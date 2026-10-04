@@ -205,10 +205,14 @@ export default function TokenizedAssetDetailsView() {
 
     appUser.userWallets.forEach((wallet) => {
       wallet.claimedAssets?.forEach((a) => {
-        if (
-          asset?.assetCode != null &&
-          a.assetCode?.toLowerCase() == asset.assetCode?.toLowerCase()
-        ) {
+        // a tokenized asset is identified by its token contract; the asset
+        // code alone could match an unrelated token with the same symbol
+        const isThisAsset = asset?.contractAddress
+          ? a.contractAddress?.toLowerCase() ===
+            asset.contractAddress.toLowerCase()
+          : asset?.assetCode != null &&
+            a.assetCode?.toLowerCase() == asset.assetCode?.toLowerCase();
+        if (isThisAsset) {
           assetBalance += a.amount;
         }
       });
@@ -465,6 +469,10 @@ export default function TokenizedAssetDetailsView() {
                     value: asset?.assetSubSector ?? '',
                   },
                   { name: 'Type', value: assetType ?? '' },
+                  {
+                    name: 'Token Contract',
+                    value: asset?.contractAddress || 'Not yet minted',
+                  },
                   {
                     name: 'Asset Country',
                     value: asset?.assetCountryLocation ?? '',

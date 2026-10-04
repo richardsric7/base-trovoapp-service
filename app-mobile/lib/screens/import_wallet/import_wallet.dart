@@ -529,7 +529,11 @@ class _ImportWalletState extends State<ImportWallet> {
         // to get userinfo from the server. This way we can use these stored data
         // to create new user account if the provided user account does not exist
         appState.setTempPassword = password;
-        appState.setTempAddress = creds.address;
+        // the key signs; the primary wallet is the Safe it owns
+        appState.setTempAddress = TrovoWalletSDK().primaryWalletAddress(
+          creds.address,
+        );
+        appState.setTempSigner = creds.address;
         appState.setTempSecretKey = creds.secretKey;
         String result = await FCM().getPushNotificationToken();
         var token = result.split('|').first;
@@ -537,7 +541,7 @@ class _ImportWalletState extends State<ImportWallet> {
         Map responseData = await makeGetRequest(
           uri: '/v1/users/${username}?type=import&pnt=$token',
           signer: creds.address,
-          address: creds.address,
+          address: appState.tempAddress,
           secretKey: creds.secretKey,
         );
 

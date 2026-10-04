@@ -294,6 +294,323 @@ built and tested — you just need to open the connection and handle
 
 ---
 
+## Wallets and sending: Safe UserOperations
+
+Every user wallet is a **Safe** (v1.4.1 with the ERC-4337 Safe4337Module)
+owned by the user's key. Its address is fixed before it is deployed, so
+it receives funds from registration on; its first send deploys it
+("activates" it) in the same operation.
+
+**Registration.** The app computes the user's address with wallet-core's
+`primarySafeAddress(signer, "0")` and sends it as `X-TW-PUBLIC-KEY` (the
+signer as `X-TW-SIGNER`). `POST /v1/users` refuses an address that is not
+that Safe. Service-link onboarding may omit `publicKey`; it is derived.
+
+**Sending (two calls, unchanged shape).**
+
+1. The first call (e.g. `POST /v1/users/payment` without
+   `transactionSignature`) validates the request, builds the operation
+   and returns it as `transaction`: **base64 of the 32-byte SafeOp hash**,
+   plus `messages` (including the network fee, and a note when the send
+   also activates the wallet).
+2. The app signs it exactly as before - `signBase64Txn` base64-decodes
+   `transaction` and `personal_sign`s the bytes - and calls again with the
+   same `transaction` and the base64 `transactionSignature`. The backend
+   submits the stored operation (it is never rebuilt) to the bundler and
+   returns its `userOpHash` as `transactionId`.
+
+Operations expire (`WALLET_OPERATION_VALIDITY`, 10 minutes by default);
+an expired or already-submitted `transaction` is refused. Shared wallets
+with approvers get an approval request instead, and their operations
+stay signable for `SHARED_WALLET_OPERATION_VALIDITY`.
+
+**Gas.** The wallet pays its own gas: in the stablecoin its owner picked
+(`User.gasFeeAsset`, one of the curated assets with `gasFeeEligible`)
+through the paymaster when the wallet holds some, otherwise in ETH. A
+payment that would leave too little to pay the fee in the same asset is
+refused with `error-insufficient-for-network-fee`.
+
+**Gas debt.** A new wallet's first operation cannot pre-pay its
+stablecoin fee (the wallet approves the paymaster inside that operation),
+so the paymaster takes it afterwards; if the operation spent the tokens
+first, the fee is recorded on-chain as the wallet's **debt** and the
+paymaster will not pay its gas again until it is settled. The backend
+handles this: the next operation pays its gas in ETH and, when the wallet
+holds enough of the token, also settles the debt (approve + `settleDebt`)
+in the same operation. `messages` then says so ("This also pays … of
+network fees this wallet still owed …"); when the wallet cannot settle
+it yet, `messages` explains that fees are paid in ETH until it holds
+enough.
+
+**Fee records.** Once an operation is mined, the stablecoin gas the
+paymaster collected (and any gas debt it settled) is recorded in
+`fee_collections` with `fee_type` `GAS`, the token, amount, transaction
+hash and the paymaster as `destination_wallet`. A charge the paymaster
+could not collect is not recorded as a fee; it is alerted to Discord and
+recorded once it is settled. ETH-paid gas goes to the bundler and is not
+a platform fee.
+
+**Sub-wallets** (`POST /v1/users/subwallet`, and the service-link
+`POST /v1/trovo-api/users/subwallet`). Each sub-wallet is its own Safe,
+deployed by the **primary** wallet, so only the primary wallet signs:
+
+1. First call with `walletType` (0 normal, 1 issuing, 2 market making, 3
+   bulk payment), `walletTag`, `walletDescription`. The backend picks the
+   new Safe's address (the user's signer as owner, a random salt; types 2
+   and 3 also get the platform's co-signer as a second owner, threshold
+   1). An issuing wallet - or a request with any `linkedWalletAddress` -
+   also gets a linked distribution Safe. The response carries `publicKey`
+   (the new wallet), `linkedWalletAddress`, `transaction` (the primary
+   wallet's operation that deploys them, seeds them with ETH and pays the
+   creation fee - set in USD, charged in its stablecoin), `messages` and
+   `feeAmount`/`feeCode` (the fee in that stablecoin). A `publicKey`
+   sent by the client is ignored.
+2. Second call with `transaction` and `primarySignature`. The wallets are
+   recorded and the operation submitted; they are marked activated when it
+   is mined. `subWalletSignature` / `linkedWalletSignature` /
+   `channelAccountSignature` are no longer used (`subWalletMustSign` and
+   `linkedWalletMustSign` are always 0).
+
+If the primary wallet is not activated yet, the same operation activates
+it too.
+
+**Shared wallets.** Shared access is enforced by the wallet's Safe:
+its owners are the wallet owner's key plus every APPROVER's key, and its
+threshold is `numberOfApprovalsNeeded` (1 - the owner alone - when there
+are no approvers). VIEW-ONLY and INITIATOR permissions stay in the
+database. An issuing wallet's linked distribution wallet is deployed with
+the issuing wallet's Safe enabled as a module, so the same operation that
+changes the issuing wallet's owners changes the distribution wallet's too
+(one set of signatures mirrors both).
+
+- *Enable / modify / disable* keep their request shapes. While the owner
+  alone controls the wallet, the owner signs the returned `transaction`
+  (a wallet operation when approvers change, or a statement of the change
+  when only view/initiator permissions change). Once the wallet has
+  approvers, the initiator previews (`commit: 0`), then submits the change
+  for approval (`commit: 1` with the same `transaction`).
+- *Approvals* (`POST /v1/shared-access/approval/:ID`; `DELETE` rejects):
+  the first call returns the
+  request's `transaction` (base64 of the operation hash or statement);
+  each approver signs it with `signBase64Txn`. A signature is checked
+  against the approver's key, which must be one of the Safe's owners, and
+  the Safe's current threshold decides how many approvals it takes. The
+  last approval submits the operation with the collected signatures.
+  Payments and crypto withdrawals from shared wallets work the same way.
+- Operations waiting for approvers use their own EntryPoint nonce key and
+  stay signable for `SHARED_WALLET_OPERATION_VALIDITY` (24h by default), so
+  several can be pending on one wallet. Rejecting a request retires its
+  operation.
+
+**Gas-fee asset.** `GET /v1/users/settings/gas-fee-assets` lists the
+curated assets users can pay network fees in (`gasFeeEligible`, set from
+tm-web) and the user's current choice; `PUT /v1/users/settings/gas-fee-asset`
+with `{"assetCode": "USDC"}` sets it (`""` clears it - fees in ETH). The
+user profile carries it as `gasFeeAsset`.
+
+**Other sends built the same way** (two calls, base64 SafeOp hash to sign):
+
+- *Crypto withdrawal* (`POST /v1/crypto/withdrawals` and the
+  shared-access variant): crypto deposits are minted as Trovo tokens, so
+  a withdrawal **burns** `amountSubmitted` from the wallet (`burn(uint256)`
+  of an OpenZeppelin `ERC20Burnable` token contract) and records the
+  withdrawal request for payout. The first response carries `messages`.
+- *Patron subscription*: paid from the primary wallet to the patron fee
+  wallet (price + VAT). Payable in the dollar (`DOLLAR_ASSET`) or naira
+  (`NAIRA_ASSET`, converted with the USD/cNGN rate) stablecoin; other
+  payment assets need a DEX and are refused with
+  `error-payment-asset-not-supported`.
+- *P2P escrow deposit from the depositor's own wallet* goes through the
+  payment flow; the deposit is recorded as pending under the operation's
+  `userOpHash` and applied to the order only once it is mined, under the
+  mined transaction's hash (the reconciliation sweep finishes deposits
+  that take longer than the request).
+
+Swaps still need a DEX route and are not available yet. (Closed-group
+creation had no endpoint; its unused transaction builder was removed.)
+
+**What app-backend calls.** The bundler (`BUNDLER_URL`:
+`eth_estimateUserOperationGas`, `eth_sendUserOperation`,
+`eth_getUserOperationReceipt`) and the paymaster quote service
+(`PAYMASTER_QUOTE_SERVICE_URL`, `POST /v1/quote` with `X-API-Key`; see
+[`paymaster/INTEGRATION.md`](../paymaster/INTEGRATION.md)). A background
+loop follows submitted operations to inclusion (`wallet_operations`
+table) and marks wallets activated.
+
+## Tokenized assets: token, issuing and distribution wallets, sale offer
+
+On Base a tokenized asset has these addresses, and nothing in the API
+treats one as another:
+
+| Field | What it is | Used for |
+|---|---|---|
+| `contractAddress` | The asset's **token contract** (`TokenizedAsset`, see [`market/`](../market/README.md)) - the asset itself | Every balance, transfer, purchase, wallet authorization, curated-asset listing, subscription record, payout and deep link (`?action=tokenizedAsset&assetCode=...&contractAddress=...`) |
+| `issuingWalletAddress` | The **issuing wallet**: a Safe sub-wallet of the issuing profile (`TOKENIZATION_ISSUING_PROFILE`), owned by the profile's key and the asset's minting approvers, with the minting threshold (approvers - 2). It owns the token contract, is its only minter, and is the seller of the sale offer | Minting, the sale offer, approving wallet authorizations |
+| `marketMakingWallet` / `walletToHoldAssetsNotForSale` | The **distribution wallet**: the issuing wallet's linked Safe, with the same owners and the issuing Safe as a module | Supply not offered for sale; tokens returned by early exits |
+| `offerBookOfferId` | The asset's sale offer on `TrovoOfferBook` (`OFFER_BOOK_ADDRESS`) | Every purchase; set once the mint is mined, which is when the asset counts as minted |
+
+No platform key owns or signs for either Safe: the minting approvers do.
+
+Lifecycle:
+
+1. **Issuing and distribution wallets** - assigned when the asset's
+   details are submitted: their addresses are computed from their owners
+   (the issuing profile's key and the minting approvers) and recorded as
+   sub-wallets of the issuing profile, with the approvers and initiators as
+   their shared access. Nothing is deployed yet. While the token contract
+   is not registered, changing the minting approvers moves the asset to new
+   wallets; afterwards they are fixed (`409 error-minting-approvers-fixed`).
+2. **Token contract** - operations deploy the asset's token with the
+   issuing wallet as owner (Ownable) or `MINTER_ROLE` holder, the asset code
+   as `symbol()` and zero supply, exposing `mint(address,uint256)`, then
+   register it with `PUT /v1/trovo-manager/tokenization/contract/:tid
+   {"contractAddress": "0x..."}` (minting initiators/approvers, until
+   minted). The backend checks on-chain that the contract exists, its
+   symbol is the asset code, `decimals()` works, `totalSupply()` is 0 and
+   the issuing wallet can mint (`400 error-invalid-token-contract`
+   otherwise). The offer book's owner must also list the token
+   (`setTradable`) before minting; see [market/INTEGRATION.md](../market/INTEGRATION.md).
+3. **Mint** - `POST /v1/trovo-manager/tokenization/mint/:tid` (status 3)
+   builds the issuing wallet's first operation and creates a `TOKENIZE
+   ASSET` approval request for it. The operation, which the minting
+   approvers sign like any shared-wallet operation (base64 SafeOp hash):
+   - deploys the issuing wallet (and, from it, the distribution wallet);
+   - mints `maxNumberOfTokenAvailableForSale` to the issuing wallet, the
+     rest less `feeInAsset` to the distribution wallet, and `feeInAsset`
+     to `TOKENIZATION_FEE_WALLET`;
+   - offers the amount for sale on the offer book at `pricePerToken`, in
+     each tokenization payment stablecoin and in the country's internal
+     balance token (all taken as 1:1 with the quote currency), with
+     proceeds paid to `fundsHoldingWalletAddress` (required before
+     minting).
+
+   The issuing wallet pays the operation's gas, so it must hold ETH (or a
+   stablecoin the issuing profile pays fees in) first:
+   `error-insufficient-network-fee` names the address to fund. The request
+   is refused once the token has supply (`error-already-minted`). When the
+   threshold of approvers has signed, the operation is submitted; once it
+   is mined, `offerBookOfferId` is recorded and the asset can go on sale
+   (status 5 from its sales start date).
+4. **Purchase with a stablecoin** - `SubscribeToTokenizedAsset` (the
+   subscription endpoints, unchanged requests): the first call prices it -
+   the most of the asset `amount` of `paymentAssetCode` (default CNGN)
+   buys at the offer's price - after the platform checks (KYC, sale status,
+   purchase cap), signs a fill authorization for exactly that purchase,
+   and returns the buyer wallet's operation as `transaction` (approve the
+   offer book for the payment, then fill). `messages` says what is paid
+   and received; `swappedEstimate` is the amount of the asset. The second
+   call with `transactionSignature` submits it; payment and delivery
+   happen in one transaction or not at all. Shared wallets with approvers
+   get an `ASSET SUBSCRIPTION` approval request. Sold out or too large:
+   `error-no-liquidity` / `error-low-liquidity` (with the maximum).
+5. **Purchase with fiat** - the first call creates the invoice and returns
+   a statement as `transaction` for the buyer to sign (consent; their
+   wallet sends nothing); the second stores the signature. When
+   Flutterwave confirms payment, the internal balance token's minting Safe
+   (`CountryConfig.internalTokenMinterSafe`, owned by
+   `INTERNAL_BALANCE_ISSUING_SIGNERS`) mints the amount to itself and fills
+   the offer with the buyer's wallet as recipient. If that fails (e.g. sold
+   out after payment) the invoice stays `PENDING` and Discord is alerted
+   for a manual delivery or refund.
+6. **Early exit** - one operation of the holder's wallet returns the tokens
+   to the distribution wallet; the payout is settled off-chain from the
+   recorded early exit. Shared wallets get an approval request.
+
+Purchases, early exits and payouts refuse assets whose token contract is
+not registered (`error-token-contract-not-registered`) or not on sale yet
+(`error-not-on-sale`).
+
+---
+
+## Account recovery: opt-in guardian
+
+Trovo is non-custodial: users keep their secret key, and the platform holds
+no key that controls their wallets. Account recovery is an **opt-in**
+exception with a narrow power. It uses Candide's Social Recovery Module
+(`RECOVERY_MODULE_ADDRESS`, deployed from [recovery/](../recovery/README.md)):
+a user who turns it on makes the platform's recovery guardian
+(`ACCOUNT_RECOVERY_GUARDIAN_SAFE` / `_SIGNERS`) the only guardian of their
+wallets. The guardian can only *start* replacing a wallet's key; the
+replacement takes effect after the module's recovery period, during which
+the user is notified and can cancel it with their current key. It can never
+transfer funds or execute anything else on the wallet.
+
+**Covered wallets**: the user's primary wallet and their own sub-wallets
+without approvers, once activated (deployed). Wallets with co-signers are
+recovered by their co-signers instead (below), and adding approvers to a
+covered wallet removes the guardian in the same operation.
+
+### Turning it on and off (two steps, one signature per wallet)
+
+`POST /v1/users/account/recovery` (on) and `DELETE /v1/users/account/recovery`
+(off), signed with the user's key:
+
+1. Without signatures the backend answers **202** with `transactions` (one
+   operation per wallet, base64 hashes to sign), `wallets` (their aliases,
+   same order) and `messages` to show. Turning it on enables the module and
+   adds the guardian on each wallet not yet covered; the primary wallet's
+   operation also pays the fee (`ACCOUNT_RECOVERY_FEE`, first time only).
+   The primary wallet must be activated (`error primary account not yet
+   activated`).
+2. The app signs every transaction and sends the same body back with
+   `transactionSignatures` (same order). **200** with `transactionId` (the
+   operations' hashes, comma separated) when submitted. Turning it on again
+   later covers wallets created since, without a fee.
+
+`transaction` / `transactionSignature` (single) still work for one wallet.
+`DELETE` answers 200 directly when no wallet still has the guardian.
+
+### Recovering (the device with the new key)
+
+1. Email OTP (`/v1/account/recovery/request-email-otp/:username`,
+   `/v1/account/recovery/verify-email-otp/...`) and security answers, as before.
+2. `POST /v1/users/account/recover` signed with the **new** key, with
+   `newSignerAddress`, `emailOtp`, `securityAnswers` and `commit`:
+   `commit: 0` checks and returns `messages` and the covered `wallets`
+   (202); `commit: 1` has the guardian start replacing the old key with the
+   new one on every covered wallet and answers **200** with `executeAfter`
+   (when it takes effect) and `transactionId` (the guardian's transactions).
+   The user is notified by push and email straight away.
+3. `GET /v1/account/recovery/status/:username`, signed with the new key,
+   returns `{status, executeAfter, completedAt}` for the recovery onto that
+   key: `PENDING`, then `COMPLETED` (import the account with the new key),
+   or `CANCELED` / `FAILED`.
+
+After the period a background job (every 30 s, `process-account-recoveries`
+lock) finalizes the recovery on each wallet, then switches the user's
+signer to the new key. Wallets the user shares with approvers - their own
+and those they approve on - each get a `REPLACE SIGNER` approval request
+(an operation swapping the old key for the new one) that the other
+co-signers approve like any other request. When the remaining co-signers
+cannot reach the wallet's threshold, the request says so and Discord is
+alerted.
+
+### Cancelling (the device with the current key)
+
+`POST /v1/users/account/recovery/cancel`, signed with the current key, in
+the same two steps as turning recovery on: **202** with one `transactions`
+entry per wallet being recovered, then **200** once the signed operations
+are submitted. **404** `error-no-recovery-pending` when there is none. The
+apps show it on the account recovery page, which recovery push
+notifications (`route: accountRecovery`) open.
+
+### Monitoring
+
+The same job watches the module's `RecoveryExecuted` events: a recovery the
+backend did not start (e.g. a misused guardian key) raises a Discord alert
+and an urgent notification asking the owner to cancel it. A recovery the
+guardian's transaction never confirmed is marked `FAILED` after 15 minutes
+with an alert.
+
+### Never-activated accounts
+
+`POST /v1/users/inactive-account/recover` (users who never turned recovery
+on) only works while none of the account's wallets is deployed or holds
+any balance: it rebuilds the primary wallet for the new key, which changes
+its address.
+
+---
+
 ## Swagger UI: the per-endpoint reference
 
 Once the server is running, every documented endpoint — request

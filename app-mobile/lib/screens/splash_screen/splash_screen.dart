@@ -311,7 +311,9 @@ class _SplashScreenState extends State<SplashScreen>
         onCreateNewAccount: () {
           var account = TrovoWalletSDK().createAccount();
           appState.setTempPassword = appState.password;
-          appState.setTempAddress = account.address;
+          appState.setTempAddress = TrovoWalletSDK().primaryWalletAddress(
+            account.address,
+          );
           appState.setTempSecretKey = account.secretKey;
           appState.setTempSigner = account.address;
           appState.currentAction = PageAction(
@@ -342,7 +344,9 @@ class _SplashScreenState extends State<SplashScreen>
         onCreateNewAccount: () {
           var account = TrovoWalletSDK().createAccount();
           appState.setTempPassword = appState.password;
-          appState.setTempAddress = account.address;
+          appState.setTempAddress = TrovoWalletSDK().primaryWalletAddress(
+            account.address,
+          );
           appState.setTempSecretKey = account.secretKey;
           appState.setTempSigner = account.address;
           appState.currentAction = PageAction(

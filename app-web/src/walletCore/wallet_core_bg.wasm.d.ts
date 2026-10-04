@@ -11,6 +11,7 @@ export const generateKeypair: () => number;
 export const generateMnemonic: () => [number, number, number, number];
 export const keypairFromMnemonic: (a: number, b: number, c: number) => [number, number, number];
 export const keypairFromPrivateKey: (a: number, b: number) => [number, number, number];
+export const primarySafeAddress: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const recoverPersonalSigner: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const signPersonal: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const signPersonalBytes: (a: number, b: number, c: number, d: number) => [number, number, number, number];

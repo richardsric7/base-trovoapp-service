@@ -136,8 +136,11 @@ export interface TokenizedAsset {
   closedGroupInfo: ClosedGroupInfo;
   secApproval: number;
   secApprovalIdNumber: string;
+  // the issuing Safe: owns and mints the token, and holds unsold supply
   issuingWalletAddress: string;
   issuingWalletAlias: string;
+  // the asset's B20 token contract - its on-chain identity (null until registered)
+  contractAddress?: string | null;
   marketMakingWallet: string;
   assetDescription: string;
   assetCountryLocation: string;

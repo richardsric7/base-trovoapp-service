@@ -18,6 +18,7 @@ pub enum WalletCoreError {
     InvalidMnemonic,
     InvalidDerivationPath,
     Base64Decode,
+    InvalidNumber,
 }
 
 impl fmt::Display for WalletCoreError {
@@ -29,6 +30,7 @@ impl fmt::Display for WalletCoreError {
             WalletCoreError::InvalidMnemonic => "invalid mnemonic",
             WalletCoreError::InvalidDerivationPath => "invalid derivation path",
             WalletCoreError::Base64Decode => "invalid base64",
+            WalletCoreError::InvalidNumber => "invalid number",
         };
         write!(f, "{}", msg)
     }
@@ -73,7 +75,7 @@ fn address_from_verifying_key(vk: &VerifyingKey) -> String {
 }
 
 /// EIP-55 mixed-case checksum encoding of a 20-byte address.
-fn checksum_address(addr_bytes: &[u8]) -> String {
+pub(crate) fn checksum_address(addr_bytes: &[u8]) -> String {
     let addr_hex = hex::encode(addr_bytes);
     let hash = Keccak256::digest(addr_hex.as_bytes());
     let mut out = String::with_capacity(42);

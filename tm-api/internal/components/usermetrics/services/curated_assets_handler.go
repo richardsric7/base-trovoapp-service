@@ -27,6 +27,7 @@ import (
 // @Param assetCode query string false "Filter by asset code (partial match)"
 // @Param assetClassId query int false "Filter by asset class"
 // @Param p2pEnabled query string false "Filter by P2P-enabled (true/false)"
+// @Param gasFeeEligible query string false "Filter by gas-fee eligibility (true/false)"
 // @Param inactive query string false "Filter by active status (true/false)"
 // @Success 200 {object} response.Data
 // @Failure 401,500 {object} object
@@ -57,6 +58,10 @@ func GetCuratedAssetsHandler(walletDB *gorm.DB) gin.HandlerFunc {
 		if v := c.Query("p2pEnabled"); v != "" {
 			enabled := v == "true"
 			req.P2PEnabled = &enabled
+		}
+		if v := c.Query("gasFeeEligible"); v != "" {
+			eligible := v == "true"
+			req.GasFeeEligible = &eligible
 		}
 		if v := c.Query("inactive"); v != "" {
 			inactive := v == "true"
@@ -179,6 +184,46 @@ func SetCuratedAssetP2PEnabledHandler(walletDB *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		serverResponse.JSON(c, http.StatusOK, "P2P-enabled flag updated successfully", asset, nil)
+	}
+}
+
+type setGasFeeEligibleRequest struct {
+	GasFeeEligible bool `json:"gasFeeEligible"`
+}
+
+// @Summary Set whether users can pay network fees in a curated asset
+// @Description Lets app users pick this asset (a stablecoin) to pay network fees in, through the paymaster. The asset must also be enabled on the paymaster contract and priced by the paymaster quote service; otherwise users fall back to ETH.
+// @Tags CuratedAssets
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "JWT Token" default(Bearer <your-token>)
+// @Param id path int true "Curated asset ID"
+// @Param data body setGasFeeEligibleRequest true "Gas-fee eligibility flag"
+// @Success 200 {object} response.Data
+// @Failure 400,401,404,500 {object} object
+// @Router /assets/curated/{id}/gas-fee-eligible [put]
+func SetCuratedAssetGasFeeEligibleHandler(walletDB *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if !checkAdminAuth(c, walletDB) {
+			return
+		}
+		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+			return
+		}
+		var req setGasFeeEligibleRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		asset, err := usermetricsDB.SetCuratedAssetGasFeeEligible(walletDB, id, req.GasFeeEligible)
+		if err != nil {
+			log.Println("[CURATED_ASSETS] error setting gasFeeEligible:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		serverResponse.JSON(c, http.StatusOK, "Gas-fee eligibility updated successfully", asset, nil)
 	}
 }
 

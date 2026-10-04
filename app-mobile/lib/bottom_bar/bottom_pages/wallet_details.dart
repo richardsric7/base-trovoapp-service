@@ -160,6 +160,18 @@ class _WalletDetailsState extends State<WalletDetails>
                   },
                 ),
               ),
+              if (wallet.activated == false)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15.0,
+                    vertical: 6.0,
+                  ),
+                  child: Text(
+                    "notactivatedyet".tr(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: notifier.getgrey),
+                  ),
+                ),
               SizedBox(height: height / 80),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),

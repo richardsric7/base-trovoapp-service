@@ -113,8 +113,11 @@ export interface IStakeholderAssetAssignedStakeholder {
 }
 
 export interface IStakeholderAssetWallets {
+  // the issuing Safe: owns and mints the token, and holds unsold supply
   issuing_wallet_address?: string;
   issuing_wallet_alias?: string;
+  // the asset's B20 token contract (its on-chain identity)
+  token_contract_address?: string;
   market_making_wallet?: string;
   wallet_to_hold_assets_not_for_sale?: string;
 }

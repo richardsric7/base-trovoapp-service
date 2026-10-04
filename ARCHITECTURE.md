@@ -11,7 +11,7 @@ an admin surface that manages its data (`tm-api` / `tm-web`), or a supporting
 library it or its clients depend on (`wallet-core`). `payment-history-engine` is
 a separate, narrower service with its own database.
 
-## The seven projects
+## The eight projects
 
 | Project | What it is | Talks to | Docs |
 |---|---|---|---|
@@ -22,6 +22,9 @@ a separate, narrower service with its own database.
 | `app-mobile` | Flutter (Dart). The end-user mobile wallet (iOS + Android). | Calls `app-backend`'s REST API. Uses `wallet-core` as a native library via Dart FFI. | [app-mobile/README.md](app-mobile/README.md) |
 | `tm-web` | Next.js + TypeScript. The internal admin dashboard staff use to manage the platform. | Calls `tm-api`'s REST API only — never talks to `app-backend` directly. | [tm-web/README.md](tm-web/README.md) |
 | `wallet-core` | Rust crate. Shared cryptographic/wallet primitives (key derivation, signing) compiled two ways: to WebAssembly for web frontends, and to a native library (cdylib/staticlib) that `app-mobile` links via Dart FFI. | Consumed by `app-web`/`tm-web` (as wasm) and `app-mobile` (as a native lib) — verify actual current usage in its own docs, since a library can exist without every consumer having wired it up yet. | [wallet-core/README.md](wallet-core/README.md) |
+| `paymaster` | Two parts: `contracts/` — `TrovoTokenPaymaster`, an ERC-4337 (EntryPoint v0.7) paymaster that lets wallets pay gas in curated stablecoins; `quote-service/` — Go service that discovers exchange rates from pluggable sources (Chainlink, DEX pool TWAP for cNGN, JSON APIs), adds Trovo's spread and signs per-operation quotes. Configured from Vault. | `app-backend` calls the quote service when building a stablecoin-paid UserOperation; the quote service reads Base (paymaster, EntryPoint deposit, feeds, pools) and external rate APIs; the bundler submits operations to the EntryPoint, which calls the paymaster. | [paymaster/README.md](paymaster/README.md) |
+| `market` | `contracts/` — `TrovoOfferBook`, fixed-price offers between curated tokens where every fill needs a platform-signed authorization (how tokenized assets are sold), and `TokenizedAsset`, the per-asset token owned by its issuing Safe. Hardhat project with tests and a Vault-configured deploy script. | `app-backend` builds the mint (issuing Safe opens the sale offer), signs fill authorizations for checked purchases and builds buyer operations; the fiat path has the internal balance minting Safe fill for the buyer. | [market/README.md](market/README.md) |
+| `recovery` | `contracts/` — Candide's Social Recovery Module v0.2.0, vendored unmodified and deployed by Trovo, for opt-in account recovery: the platform's recovery guardian can replace a covered wallet's key after a waiting period the user can cancel, never move funds. Hardhat project with tests against real Safe wallets and a Vault-configured deploy script. | `app-backend` builds the users' operations that turn recovery on/off or cancel a recovery, has the guardian start and finalize recoveries, and watches the module for recoveries it did not start. | [recovery/README.md](recovery/README.md) |
 
 ## How a request actually flows
 
@@ -76,22 +79,15 @@ of struct-based `Save()`/`Updates()` to avoid GORM silently dropping a field
 being set back to a zero value, and a dedicated single-field toggle endpoint
 for anything with an active/inactive-style flag).
 
-## A known gap: the CI workflows don't match this repo's layout
+## CI/CD
 
-`.github/workflows/deploy.yml` and `.github/workflows/pr-checks.yml` reference
-directories named `backend/`, `web/`, `mobile/`, `trovotech-io/`, and
-`trovo-app-website/`. **None of those directories exist in this repo** — the
-actual project directories are `app-backend/`, `app-web/`, `app-mobile/`,
-`tm-api/`, `tm-web/`, `payment-history-engine/`, `wallet-core/`. These
-workflow files appear to have been inherited from a differently-laid-out
-sibling repository and, as written, their path filters will never match a
-change made in this repo, so the jobs they gate (build/push images, trigger
-Portainer redeploys, PR build/lint/test checks) will not actually run here.
-Each project's own `DEPLOYMENT.md` describes what can be verified from that
-project's own `Dockerfile`/`Makefile`/CI config instead of trusting these
-workflow files. If/when this repo's actual CI is wired up (either by fixing
-these paths or replacing them), update this note and each project's
-`DEPLOYMENT.md` accordingly.
+There is **no CI/CD pipeline** in this repository. The GitHub Actions
+workflows and iOS fastlane setup that came in with the copied projects
+targeted other repositories' layouts and infrastructure, so they were
+removed. Each project's `DEPLOYMENT.md` describes how to build, test and
+run it by hand (Dockerfiles, `Makefile` targets such as `make ci`). When a
+pipeline is set up for this repo, document it here and in each project's
+`DEPLOYMENT.md`.
 
 ## Running more than one instance of a service
 
@@ -132,6 +128,24 @@ The pattern used everywhere this came up:
   disabled/unreachable, same graceful-degradation posture as caching and
   pub/sub. See `app-backend/internal/middleware/rate_limit_middleware.go`
   and `tm-api/internal/middleware/rate_limit_middleware.go`.
+- **Platform signing keys** (a platform Safe, or a key that sends
+  transactions) are used by one instance at a time: a named lock held from
+  reading the nonce until the transaction is mined (a Safe) or broadcast (a
+  key); a transaction signed now and sent later reserves its key's nonce
+  under the same lock instead (`sharedconfig.ReserveNonce`). app-backend uses the same `distributed_locks` table, renewed while
+  held (`sharedconfig.WithKeyLock`, wired into `internal/gnosissafe`);
+  tm-api, which has no lock table, uses a Redis lock (`cache.WithLock`) for
+  its vault-signer Safe changes, so running tm-api on more than one
+  instance needs Redis (`ENABLE_CACHING=1`).
+- **Background jobs** hold their lock for as long as they run (it is
+  renewed), and anything that must survive an instance stopping is in the
+  database rather than memory (partner callback deliveries, sale-start
+  notifications). app-backend shuts down gracefully on SIGTERM; tm-api and
+  the paymaster quote service already did.
+
+The paymaster quote service is stateless and scales freely (each instance
+does send its own "deposit low" alert). `payment-history-engine` has not been reviewed for
+running on more than one instance.
 
 **Going forward:** if you're adding a new project to this monorepo, or a
 new piece of shared, cross-instance coordination to an existing one,

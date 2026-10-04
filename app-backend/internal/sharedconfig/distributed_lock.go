@@ -72,7 +72,20 @@ func ReleaseLock(db *gorm.DB, name, holder string) error {
 	).Error
 }
 
-// WaitAcquireLock polls TryAcquireLock (500ms backoff) until it succeeds
+// RenewLock refreshes a lock this holder still owns; false when it no
+// longer does (another holder took it over as stale).
+func RenewLock(db *gorm.DB, name, holder string) (bool, error) {
+	result := db.Exec(
+		`UPDATE distributed_locks SET locked_at = ? WHERE name = ? AND locked_by = ?`,
+		time.Now(), name, holder,
+	)
+	if result.Error != nil {
+		return false, result.Error
+	}
+	return result.RowsAffected == 1, nil
+}
+
+// WaitAcquireLock polls TryAcquireLock (200ms backoff) until it succeeds
 // or timeout elapses. Use this for a one-shot operation like a schema
 // migration, where the caller should block briefly rather than skip the
 // tick - contrast with WithSingletonLock (used by the periodic background
@@ -87,6 +100,6 @@ func WaitAcquireLock(db *gorm.DB, name, holder string, staleAfter, timeout time.
 		if time.Now().After(deadline) {
 			return false, nil
 		}
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 	}
 }

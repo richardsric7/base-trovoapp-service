@@ -72,7 +72,7 @@ wallets.
 
 A separate database, referred to throughout both repos as "RoachDB" — this
 engine's own coordination store, kept apart from the main app's business
-data (see the `deploy.yml` comment quoted above).
+data.
 
 - **`tracked_wallets`**, **`tracked_addresses`** — written by `app-backend`
   when a user's wallet is created/approved for monitoring

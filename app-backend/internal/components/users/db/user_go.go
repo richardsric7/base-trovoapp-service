@@ -83,22 +83,16 @@ func GetUser(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user 
 
 }
 
-// GetWallet gets user wallet data by alias or public key or temp public key
-func GetWallet(identifier string, db *gorm.DB) (userWallet userModels.UserWallet, temp bool, err error) {
+// GetWallet gets user wallet data by alias or address
+func GetWallet(identifier string, db *gorm.DB) (userWallet userModels.UserWallet, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
 
 	//e returns execution errors
 	var e error
 	if len(identifier) == 42 {
 		//56 char public key is supplied
-		e = db.Preload(clause.Associations).Where("id = ?", identifier).Or("temp_address = ?", &identifier).First(&userWallet).Error
+		e = db.Preload(clause.Associations).Where("UPPER(id) = ?", strings.ToUpper(identifier)).First(&userWallet).Error
 		if e == nil {
-			if userWallet.TempAddress != nil {
-				if identifier == *userWallet.TempAddress {
-					temp = true
-				}
-			}
-
 			return
 		}
 	} else {
@@ -120,7 +114,7 @@ func GetWallet(identifier string, db *gorm.DB) (userWallet userModels.UserWallet
 	}
 
 	// log.Printf("user for %v is %v\n", userInfo, user)
-	return userWallet, temp, nil
+	return userWallet, nil
 
 }
 func GetPermissionList(publicKey string, db *gorm.DB) (accessList []userModels.WalletPermission) {
@@ -218,13 +212,6 @@ func InvalidateUserWalletCache(userAccount *userModels.User, gc *sharedconfig.Gl
 	}
 	for _, w := range userAccount.UserWallets {
 		cacheKey1 := fmt.Sprintf("GetBalance_%s", w.ID)
-		cacheKey2 := fmt.Sprintf("GetBalance_%s", func() string {
-			if w.TempAddress != nil {
-				return *w.TempAddress
-			} else {
-				return "nil"
-			}
-		}())
 
 		cacheKey3 := fmt.Sprintf("userObj %v", w.Alias)
 		cacheKey4 := fmt.Sprintf("userObj %v", w.ID)
@@ -232,7 +219,7 @@ func InvalidateUserWalletCache(userAccount *userModels.User, gc *sharedconfig.Gl
 		cacheKeyUserID := fmt.Sprintf("userObj %v", w.UserID)
 		cacheKeyWalletAlias := fmt.Sprintf("walletObj_%v", w.Alias)
 		cacheKeyWalletID := fmt.Sprintf("walletObj_%v", w.ID)
-		gc.RedisCache.DeleteFromCache(cacheKeyWalletAlias, cacheKeyWalletID, cacheKey1, cacheKey2, cacheKey3, cacheKey4, cacheKeySigner, cacheKeyUserID)
+		gc.RedisCache.DeleteFromCache(cacheKeyWalletAlias, cacheKeyWalletID, cacheKey1, cacheKey3, cacheKey4, cacheKeySigner, cacheKeyUserID)
 
 	}
 

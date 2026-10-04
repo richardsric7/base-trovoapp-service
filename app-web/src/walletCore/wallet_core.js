@@ -165,6 +165,38 @@ export function keypairFromPrivateKey(private_key_hex) {
 }
 
 /**
+ * The permanent address of the user's primary wallet: the 1-of-1 Safe
+ * (with the ERC-4337 module) owned by `owner` - the mnemonic key's
+ * address - with `saltNonce` "0". Funds can be received on it before it is
+ * deployed; app-backend re-derives and checks it at registration.
+ * @param {string} owner
+ * @param {string} salt_nonce
+ * @returns {string}
+ */
+export function primarySafeAddress(owner, salt_nonce) {
+    let deferred4_0;
+    let deferred4_1;
+    try {
+        const ptr0 = passStringToWasm0(owner, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(salt_nonce, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len1 = WASM_VECTOR_LEN;
+        const ret = wasm.primarySafeAddress(ptr0, len0, ptr1, len1);
+        var ptr3 = ret[0];
+        var len3 = ret[1];
+        if (ret[3]) {
+            ptr3 = 0; len3 = 0;
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        deferred4_0 = ptr3;
+        deferred4_1 = len3;
+        return getStringFromWasm0(ptr3, len3);
+    } finally {
+        wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
+    }
+}
+
+/**
  * Recovers the signer address from a base64 EIP-191 personal_sign
  * signature, without needing a claimed address to check against.
  * @param {string} message

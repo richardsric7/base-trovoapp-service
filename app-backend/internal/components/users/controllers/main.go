@@ -5,12 +5,15 @@ package users
 import (
 	"log"
 	"os"
+	"strings"
 	"time"
+	"trovo-wallet-api/internal/evmkeypair"
 
 	userModels "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/middleware"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/gin-gonic/gin"
 )
 
@@ -60,6 +63,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	router.PUT("/v1/users/upload-picture", middleware.AuthenticationMiddlewareUsingTimestamp(), putUsersUploadPictureHandler(callBackRetryChan, gc))
 
+	router.GET("/v1/users/settings/gas-fee-assets", middleware.AuthenticationMiddlewareUsingTimestamp(), getUsersGasFeeAssetsHandler(gc))
+	router.PUT("/v1/users/settings/gas-fee-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), middleware.RateLimitMiddleware(gc, "gas-fee-asset", 20, time.Minute), putUsersGasFeeAssetHandler(gc))
+
 	// get config
 	var config userModels.StablerailConfig
 	gc.DB.First(&config)
@@ -91,6 +97,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	router.POST("/v1/users/account/recovery", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersAccountRecoveryHandler(callBackRetryChan, gc))
 
 	router.DELETE("/v1/users/account/recovery", middleware.AuthenticationMiddlewareUsingTimestamp(), deleteUsersAccountRecoveryHandler(callBackRetryChan, gc))
+
+	router.POST("/v1/users/account/recovery/cancel", middleware.RateLimitMiddleware(gc, "account-recovery-cancel", 20, time.Minute), middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersAccountRecoveryCancelHandler(callBackRetryChan, gc))
+
+	router.GET("/v1/account/recovery/status/:targetUser", middleware.RateLimitMiddleware(gc, "account-recovery-status", 60, time.Minute), middleware.AuthenticationMiddlewareUsingTimestamp(), getAccountRecoveryStatusTargetUserHandler(callBackRetryChan, gc))
 
 	router.POST("/v1/users/account/recover", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersAccountRecoverHandler(callBackRetryChan, gc))
 
@@ -153,9 +163,13 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	if os.Getenv("ENABLE_ASSET_TOKENIZATION") == "1" {
 		log.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ASSET TOKENIZATION is enabled!")
-		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) != 42 {
-			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV TOKENIZATION_ISSUING_PROFILE_WALLET is missing!")
-
+		// tokenized assets are sold through TrovoOfferBook; the authorizer
+		// key signs each purchase's fill authorization
+		if !common.IsHexAddress(strings.TrimSpace(os.Getenv("OFFER_BOOK_ADDRESS"))) {
+			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV OFFER_BOOK_ADDRESS must be the TrovoOfferBook address!")
+		}
+		if _, err := evmkeypair.ParseFull(os.Getenv("OFFER_AUTHORIZER_PRIVATE_KEY")); err != nil {
+			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV OFFER_AUTHORIZER_PRIVATE_KEY must be a hex private key!")
 		}
 		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) == 0 {
 			log.Fatalln(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ENV TOKENIZATION_ISSUING_PROFILE is missing!")
@@ -226,6 +240,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		router.PUT("/v1/trovo-manager/tokenization/update/:tid", middleware.JwtTokenAuthMiddleware(), putTrovoManagerTokenizationUpdateTidHandler(callBackRetryChan, gc))
 
 		router.PUT("/v1/trovo-manager/tokenization/salesdate/:tid", middleware.JwtTokenAuthMiddleware(), putTrovoManagerTokenizationSalesdateTidHandler(callBackRetryChan, gc))
+
+		router.PUT("/v1/trovo-manager/tokenization/contract/:tid", middleware.JwtTokenAuthMiddleware(), putTrovoManagerTokenizationContractTidHandler(callBackRetryChan, gc))
 
 		router.PUT("/v1/trovo-manager/tokenization/vet/:tid", middleware.JwtTokenAuthMiddleware(), putTrovoManagerTokenizationVetTidHandler(callBackRetryChan, gc))
 

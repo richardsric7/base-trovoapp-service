@@ -212,6 +212,7 @@ func (s *AssetService) GetAssetDetails(ctx context.Context, auth AuthContext, id
 		Wallets: models.AssetWalletDetails{
 			IssuingWalletAddress:               asset.IssuingWalletAddress,
 			IssuingWalletAlias:                 asset.IssuingWalletAlias,
+			TokenContractAddress:               asset.ContractAddress,
 			MarketMakingWallet:                 asset.MarketMakingWallet,
 			InitialOwnerPreferredWalletAddress: asset.InitialOwnerPreferredWalletAddress,
 			WalletToHoldAssetsNotForSale:       asset.WalletToHoldAssetsNotForSale,

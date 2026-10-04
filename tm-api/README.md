@@ -13,7 +13,7 @@ Go module name: `admin-panel-dashboard` (the historical name predates the
 If you are new to this codebase, read this file, then:
 
 - **[CONFIGURATION.md](./CONFIGURATION.md)** — every environment variable, what it does, and how to get a real value for it.
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** — prerequisites, building, running locally, Docker, and CI/CD.
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** — prerequisites, building, running locally, Docker, and deploying (there is no CI/CD pipeline).
 - **[INTEGRATION.md](./INTEGRATION.md)** — how tm-api fits with `tm-web` and `app-backend`, the auth flow, and the RBAC/audit-log model.
 - **Swagger UI** — the live, per-endpoint API reference (see below).
 

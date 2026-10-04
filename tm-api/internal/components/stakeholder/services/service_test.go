@@ -323,7 +323,8 @@ func TestAssetServiceReturnsLifecycleStatisticsAndRichDetails(t *testing.T) {
 		AssetManagerID: managerID, ApprovedAssetCustodianID: custodianID, TrusteeID: trusteeID,
 		AssetTokenizationStatus: models.AssetTokenizationStatusPrimarySale,
 		VettingStatus:           1, TokenHolderCount: 4, InitiatorUsername: "tokenizer",
-		IssuingWalletAddress: "GISSUING", IssuingWalletAlias: "issuer_wallet",
+		IssuingWalletAddress: "0x2000000000000000000000000000000000000002", IssuingWalletAlias: "issuer_wallet",
+		ContractAddress:   "0x1000000000000000000000000000000000000001",
 		ExemptedCountries: "US, CA", AssetDescription: "Rich details", AssetLogo: "https://example.com/rich.png",
 		OfferingType: "PRIVATE", AssetCountryLocation: "NG", AssetPhysicalAddress: "Lagos",
 		OwnershipType: "DIRECT", OwnershipKind: "CORPORATE", AssetOwnerName: "Rich Owner",
@@ -383,7 +384,7 @@ func TestAssetServiceReturnsLifecycleStatisticsAndRichDetails(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get asset details: %v", err)
 	}
-	if detail.TokenizerUsername != "tokenizer" || detail.Wallets.IssuingWalletAddress != "GISSUING" || len(detail.ExemptedCountries) != 2 {
+	if detail.TokenizerUsername != "tokenizer" || detail.Wallets.IssuingWalletAddress != "0x2000000000000000000000000000000000000002" || detail.Wallets.TokenContractAddress != "0x1000000000000000000000000000000000000001" || len(detail.ExemptedCountries) != 2 {
 		t.Fatalf("detail = %+v", detail)
 	}
 	if len(detail.AssignedStakeholders) != 3 || len(detail.Documents) != 1 || detail.Documents[0].ID != "rich-doc" {

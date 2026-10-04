@@ -70,4 +70,7 @@ class WalletCoreFFI {
     String mnemonic,
     int index,
   ) => _unsupported('keypairFromMnemonic');
+
+  String primarySafeAddress(String owner, String saltNonce) =>
+      _unsupported('primarySafeAddress');
 }

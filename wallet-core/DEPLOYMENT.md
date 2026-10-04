@@ -254,23 +254,7 @@ they reach a platform-specific binding layer.
 
 ## 5. CI / build pipeline
 
-**There is no CI pipeline for `wallet-core` today.** Both workflow files
-in `/home/user/src-monorepo/.github/workflows/` were checked directly:
-
-- **`deploy.yml`** ("Build & Push") builds and pushes Docker images for
-  `backend`, `web`, `trovotech-io`, and `trovo-app-website` on pushes to
-  `dev`/`staging`/`main`. It never mentions `wallet-core`, Rust, `cargo`,
-  or `wasm-pack`/`wasm-bindgen`.
-- **`pr-checks.yml`** runs lint/build/test jobs for `backend` (Go),
-  `web` (Vite/React), and `mobile` (Flutter) on every PR. Again, no job
-  installs a Rust toolchain, runs `cargo test`, or builds this crate in
-  any form.
-
-Neither workflow's `paths-filter` patterns (`backend/**`, `web/**`,
-`mobile/**`, etc.) match this repo's actual top-level directory names
-(`wallet-core/`, `app-web/`, `app-mobile/`, `tm-web/`, `tm-api/`,
-`app-backend/`) — so even a change *inside* `wallet-core/` wouldn't be
-detected as relevant to any existing job as currently configured. In
-short: there is no automated build, test, or artifact-publishing step
-for this crate — `cargo test`, building `pkg-web/`, and copying it into
-`app-web` are all manual, local steps today.
+There is **no CI pipeline** in this repository (the inherited GitHub
+Actions workflows were removed - see the root `ARCHITECTURE.md`).
+`cargo test`, building `pkg-web/`, and copying it into `app-web` are
+manual, local steps.

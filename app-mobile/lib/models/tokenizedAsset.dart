@@ -14,6 +14,9 @@ class TokenizedAsset {
   int? hasAllRequiredDocuments;
   int? hasCustodianAgreement;
   String? marketMakingWallet;
+  // the asset's B20 token contract - its on-chain identity (null until the
+  // asset is minted). Not the issuing wallet, which is the Safe minting it.
+  String? contractAddress;
   int? assetAlreadyExists;
   String? ownershipType; // DIRECT | THIRD-PARTY
   String? ownershipKind; // INDIVIDUAL | CORPORATE
@@ -187,6 +190,7 @@ class TokenizedAsset {
     this.hasAllRequiredDocuments,
     this.hasCustodianAgreement,
     this.marketMakingWallet,
+    this.contractAddress,
     this.assetAlreadyExists,
     this.ownershipType,
     this.ownershipKind,
@@ -357,6 +361,7 @@ class TokenizedAsset {
       hasAllRequiredDocuments: m["hasAllRequiredDocuments"],
       hasCustodianAgreement: m["hasCustodianAgreement"],
       marketMakingWallet: m["marketMakingWallet"],
+      contractAddress: m["contractAddress"],
       assetAlreadyExists: m["assetAlreadyExists"],
       ownershipType: m["ownershipType"],
       ownershipKind: m["ownershipKind"],

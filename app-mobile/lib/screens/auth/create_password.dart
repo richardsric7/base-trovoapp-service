@@ -199,7 +199,10 @@ class _CreatePassword extends State<CreatePassword> {
         showLoader(context);
         var account = TrovoWalletSDK().createAccount();
         appState.setTempPassword = password;
-        appState.setTempAddress = account.address;
+        // the key signs; the wallet is the Safe it owns
+        appState.setTempAddress = TrovoWalletSDK().primaryWalletAddress(
+          account.address,
+        );
         appState.setTempSecretKey = account.secretKey;
         appState.setTempSigner = account.address;
 

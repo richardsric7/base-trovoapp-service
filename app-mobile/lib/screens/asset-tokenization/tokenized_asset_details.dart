@@ -125,9 +125,15 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
 
     wallets.forEach((wallet) {
       wallet.claimedAssets?.forEach((asset) {
-        if (asset.assetCode != null &&
-            asset.assetCode?.toLowerCase() ==
-                tokenizedAsset.assetCode!.toLowerCase()) {
+        // a tokenized asset is identified by its token contract; the asset
+        // code alone could match an unrelated token with the same symbol
+        final isThisAsset = tokenizedAsset.contractAddress != null
+            ? asset.contractAddress?.toLowerCase() ==
+                  tokenizedAsset.contractAddress!.toLowerCase()
+            : asset.assetCode != null &&
+                  asset.assetCode?.toLowerCase() ==
+                      tokenizedAsset.assetCode!.toLowerCase();
+        if (isThisAsset) {
           assetBalance += asset.amount!;
         }
       });
@@ -1151,6 +1157,9 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                               tokenizedAsset.assetSubSector ??
                                               '',
                                           'Type': assetType,
+                                          'Token Contract':
+                                              tokenizedAsset.contractAddress ??
+                                              'Not yet minted',
                                           'Asset Country':
                                               iso2Countries[tokenizedAsset
                                                   .assetCountryLocation] ??

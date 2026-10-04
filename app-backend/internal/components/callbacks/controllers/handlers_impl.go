@@ -17,7 +17,6 @@ import (
 	"trovo-wallet-api/internal/middleware"
 
 	tErrors "trovo-wallet-api/internal/errors"
-	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	evmkeypair "trovo-wallet-api/internal/evmkeypair"
@@ -783,8 +782,8 @@ func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.H
 			}
 
 			if invoice.Transaction == nil || invoice.TransactionSignature == nil {
-				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] asset purchase invoice [%v] has no signed transaction to submit\n", invoice.ID))
-				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] asset purchase invoice [%v] has no signed transaction to submit\n", invoice.ID)
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] asset purchase invoice [%v] was paid but the buyer never signed it\n", invoice.ID))
+				log.Printf("[FLUTTERWAVE WEBHOOK ERROR] asset purchase invoice [%v] was paid but the buyer never signed it\n", invoice.ID)
 				c.JSON(http.StatusOK, "success")
 				return
 			}
@@ -811,12 +810,14 @@ func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.H
 
 			if len(subscription.TransactionID) == 0 {
 
-				txnHash, submitErr := network.SubmitXdrWithSignature(gc.BantuExpansionClient, subscriber.PrimarySigner, *invoice.Transaction, *invoice.TransactionSignature)
+				// the internal balance token's minting Safe pays for the
+				// purchase on the buyer's behalf, delivering to their wallet
+				txnHash, submitErr := userServices.DeliverFiatAssetPurchase(&invoice, gc)
 				if submitErr != nil {
-					gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] error submitting asset purchase invoice [%v] to blockchain: %v\n", invoice.ID, submitErr))
-					log.Printf("[FLUTTERWAVE WEBHOOK ERROR] error submitting asset purchase invoice [%v] to blockchain: %v\n", invoice.ID, submitErr)
-					// leave the invoice PENDING - it may still be resubmitted (a duplicated webhook
-					// delivery, or a manual retry); recovery otherwise relies on the 2-day expiry sweep
+					gc.LogDiscordFailedRequest(fmt.Sprintf("[FLUTTERWAVE WEBHOOK ERROR] paid asset purchase invoice [%v] could not be delivered (tx %v): %v - deliver or refund manually\n", invoice.ID, txnHash, submitErr))
+					log.Printf("[FLUTTERWAVE WEBHOOK ERROR] paid asset purchase invoice [%v] could not be delivered (tx %v): %v\n", invoice.ID, txnHash, submitErr)
+					// leave the invoice PENDING - a duplicated webhook delivery or a
+					// manual retry delivers it; a sold-out offer needs a refund
 					c.JSON(http.StatusOK, "success")
 					return
 				}
@@ -831,10 +832,6 @@ func postCallbacksFlutterwaveWebhookHandler(gc *sharedconfig.GlobalConfig) gin.H
 				}
 
 				gc.DB.Model(&userModels.FiatPaymentInvoice{}).Where("id = ?", invoice.ID).Update("status", "COMPLETED")
-
-				if invoice.TransactionSource != nil {
-					gc.ReleaseInUseChannelAccount(*invoice.TransactionSource)
-				}
 
 				subscriber.InvalidateUserCache(gc)
 

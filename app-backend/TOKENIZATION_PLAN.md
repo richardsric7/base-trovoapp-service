@@ -1,3 +1,5 @@
+> **Superseded.** This is a plan from the Stellar version of tokenization. On Base, minting, sales (TrovoOfferBook) and fiat purchases work as described in [INTEGRATION.md](INTEGRATION.md#tokenized-assets-token-issuing-and-distribution-wallets-sale-offer); the keys and transactions below no longer exist.
+
 # Plan: Country Internal Balance Token replacing CNGN as tokenized-asset quote currency
 
 *(quote currency resolved directly from `CountryConfig`; purchase and dividend-payout flows default to CNGN so existing clients keep working unchanged; distribution-wallet trustline auto-created/authorized at mint time via a dedicated co-signer; already-minted CNGN-quoted assets grandfathered)*

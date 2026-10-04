@@ -21,8 +21,8 @@ import (
 	"firebase.google.com/go/storage"
 	"github.com/ecnepsnai/discord"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/redis/go-redis/v9"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	"github.com/shopspring/decimal"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -51,7 +51,6 @@ type GlobalConfig struct {
 	// only ever holds key material, never availability state.
 	ChannelAccountKeysByAddress map[string]*evmkeypair.Full
 	ChannelAccountKeysMutex     sync.RWMutex
-	ChannelOfTokenizedAssetIDs  chan string
 
 	// userStreamConnections/userStreamMutex/userStreamPubSub back the
 	// per-instance user event stream (see realtime.go) - username to the
@@ -298,21 +297,26 @@ func (gc *GlobalConfig) IsTokenizedAssetInPrimarySales(assetCode string) bool {
 }
 
 type TokenizedAsset struct {
-	ID                                           string     `json:"id"`
-	CreatedAt                                    time.Time  `json:"createdAt"`
-	UpdatedAt                                    time.Time  `json:"updatedAt"`
-	InitiatorUsername                            string     `gorm:"size:50;not null" json:"initiatorUsername"`
-	AssetSector                                  *string    `json:"assetSector"`
-	AssetSubSector                               *string    `json:"assetSubSector"`
-	AssetType                                    *string    `json:"assetType"`
-	AssetName                                    *string    `json:"assetName"`
-	ApprovedAssetCustodianID                     uint64     `gorm:"not null;default:0" json:"approvedAssetCustodianId"`
-	OfferingType                                 *string    `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
-	ClosedGroupID                                *string    `gorm:"null" json:"closedGroupId"`
-	SecApproval                                  int        `gorm:"default:0" json:"secApproval"`
-	SecApprovalIdNumber                          *string    `json:"secApprovalIdNumber"`
-	IssuingWalletAddress                         *string    `gorm:"size:60" json:"issuingWalletAddress"`
-	IssuingWalletAlias                           *string    `gorm:"size:60" json:"issuingWalletAlias"`
+	ID                       string    `json:"id"`
+	CreatedAt                time.Time `json:"createdAt"`
+	UpdatedAt                time.Time `json:"updatedAt"`
+	InitiatorUsername        string    `gorm:"size:50;not null" json:"initiatorUsername"`
+	AssetSector              *string   `json:"assetSector"`
+	AssetSubSector           *string   `json:"assetSubSector"`
+	AssetType                *string   `json:"assetType"`
+	AssetName                *string   `json:"assetName"`
+	ApprovedAssetCustodianID uint64    `gorm:"not null;default:0" json:"approvedAssetCustodianId"`
+	OfferingType             *string   `gorm:"default:'PRIVATE'" json:"offeringType"` //PRIVATE, PUBLIC
+	ClosedGroupID            *string   `gorm:"null" json:"closedGroupId"`
+	SecApproval              int       `gorm:"default:0" json:"secApproval"`
+	SecApprovalIdNumber      *string   `json:"secApprovalIdNumber"`
+	IssuingWalletAddress     *string   `gorm:"size:60" json:"issuingWalletAddress"`
+	IssuingWalletAlias       *string   `gorm:"size:60" json:"issuingWalletAlias"`
+	// ContractAddress is the tokenized asset's deployed B20 token contract - its
+	// on-chain identity (what transfers, balances, authorizations, curated
+	// assets and deep links refer to). IssuingWalletAddress is NOT the token:
+	// it is the issuer (a Safe) that owns the contract and mints through it.
+	ContractAddress                              *string    `gorm:"size:42;index" json:"contractAddress"`
 	MarketMakingWallet                           *string    `json:"marketMakingWallet"`
 	AssetDescription                             *string    `json:"assetDescription"`
 	AssetCountryLocation                         *string    `gorm:"not null;size:2;default'NG'" json:"assetCountryLocation"`
@@ -774,6 +778,7 @@ type TokenizedAssetJSON struct {
 	SecApprovalIdNumber                         string    `json:"secApprovalIdNumber"`
 	IssuingWalletAddress                        string    `gorm:"size:60" json:"issuingWalletAddress"`
 	IssuingWalletAlias                          string    `gorm:"size:60" json:"issuingWalletAlias"`
+	ContractAddress                             string    `gorm:"size:42" json:"contractAddress"`
 	MarketMakingWallet                          string    `json:"marketMakingWallet"`
 	AssetDescription                            string    `json:"assetDescription"`
 	AssetCountryLocation                        string    `json:"assetCountryLocation"`
@@ -1105,6 +1110,9 @@ func (ti *TokenizedAsset) ToJSON() (t TokenizedAssetJSON) {
 	}
 	if ti.IssuingWalletAlias != nil {
 		t.IssuingWalletAlias = *ti.IssuingWalletAlias
+	}
+	if ti.ContractAddress != nil {
+		t.ContractAddress = *ti.ContractAddress
 	}
 	if ti.MarketMakingWallet != nil {
 		t.MarketMakingWallet = *ti.MarketMakingWallet

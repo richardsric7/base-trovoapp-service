@@ -39,6 +39,7 @@ and `keypairFromMnemonic` below.
 | `recoverPersonalSigner` | `(message: string, signature_b64: string): string` | Recovers the signer's address from a signature, without needing a claimed address to check against. |
 | `generateMnemonic` | `(): string` | Generates a fresh 12-word BIP39 mnemonic. |
 | `keypairFromMnemonic` | `(mnemonic: string, index: number): WcKeypair` | Derives a keypair from a BIP39 mnemonic at BIP44 path `m/44'/60'/0'/0/{index}`. |
+| `primarySafeAddress` | `(owner: string, saltNonce: string): string` | The user's permanent wallet address: the counterfactual 1-of-1 Safe v1.4.1 (with the ERC-4337 module) owned by `owner` (the mnemonic key's address). The primary wallet uses `saltNonce` `"0"`. Computed offline; app-backend re-derives and checks it at registration. |
 
 Fallible functions throw a JS exception (a `JsValue` wrapping the Rust
 error's `Display` string, e.g. `"invalid private key"`) rather than
@@ -100,6 +101,7 @@ must be released via `wc_free_string` after use.
 | `wc_recover_personal_signer(message, signature_b64)` | `{"address"}` or `{"error"}` | Recovers the signer's address from a signature. |
 | `wc_generate_mnemonic()` | `{"mnemonic"}` | Generates a fresh 12-word BIP39 mnemonic. |
 | `wc_keypair_from_mnemonic(mnemonic, index)` | `{"privateKeyHex","address"}` or `{"error"}` | Derives a keypair from a mnemonic at BIP44 path `m/44'/60'/0'/0/{index}`. |
+| `wc_primary_safe_address(owner, salt_nonce)` | `{"address"}` or `{"error"}` | The user's permanent wallet address: the counterfactual 1-of-1 Safe owned by `owner`, salt nonce `"0"` for the primary wallet (see `primarySafeAddress`). |
 | `wc_free_string(ptr)` | `void` | Frees a string returned by any of the above. **Must** be called on every returned pointer to avoid leaking the Rust-allocated buffer. |
 
 `app-mobile/lib/functions/wallet_core_ffi.dart`'s `WalletCoreFFI` class

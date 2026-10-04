@@ -27,6 +27,9 @@ func ListCuratedAssets(db *gorm.DB, req models.CuratedAssetListRequest) ([]model
 	if req.P2PEnabled != nil {
 		query = query.Where("p2p_enabled = ?", *req.P2PEnabled)
 	}
+	if req.GasFeeEligible != nil {
+		query = query.Where("gas_fee_eligible = ?", *req.GasFeeEligible)
+	}
 	if req.Inactive != nil {
 		query = query.Where("inactive = ?", boolToInt(*req.Inactive))
 	}
@@ -81,6 +84,7 @@ func SaveCuratedAsset(db *gorm.DB, req models.CuratedAssetRequest) (models.Curat
 			DecimalPlaces:               req.DecimalPlaces,
 			Inactive:                    boolToInt(req.Inactive),
 			P2PEnabled:                  req.P2PEnabled,
+			GasFeeEligible:              req.GasFeeEligible,
 		}
 		if req.ImageURL != "" {
 			asset.ImageURL = &req.ImageURL
@@ -125,6 +129,7 @@ func SaveCuratedAsset(db *gorm.DB, req models.CuratedAssetRequest) (models.Curat
 			"inactive":                       boolToInt(req.Inactive),
 			"closed_group":                   nullableString(req.ClosedGroup),
 			"p2p_enabled":                    req.P2PEnabled,
+			"gas_fee_eligible":               req.GasFeeEligible,
 		}
 		if err := db.Model(&models.CuratedAsset{}).Where("id = ?", req.ID).Updates(updates).Error; err != nil {
 			return existing, err
@@ -150,6 +155,18 @@ func SetCuratedAssetP2PEnabled(db *gorm.DB, id uint64, enabled bool) (models.Cur
 		return models.CuratedAsset{}, err
 	}
 	if err := db.Model(&models.CuratedAsset{}).Where("id = ?", id).Update("p2p_enabled", enabled).Error; err != nil {
+		return models.CuratedAsset{}, err
+	}
+	return GetCuratedAssetByID(db, id)
+}
+
+// SetCuratedAssetGasFeeEligible is the dedicated toggle for whether users
+// can pay network fees in this asset.
+func SetCuratedAssetGasFeeEligible(db *gorm.DB, id uint64, eligible bool) (models.CuratedAsset, error) {
+	if _, err := GetCuratedAssetByID(db, id); err != nil {
+		return models.CuratedAsset{}, err
+	}
+	if err := db.Model(&models.CuratedAsset{}).Where("id = ?", id).Update("gas_fee_eligible", eligible).Error; err != nil {
 		return models.CuratedAsset{}, err
 	}
 	return GetCuratedAssetByID(db, id)

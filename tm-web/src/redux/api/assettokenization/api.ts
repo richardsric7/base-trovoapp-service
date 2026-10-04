@@ -8,6 +8,7 @@ import {
   UpdateTokenizationPayload,
   TokenizationParamsResponse,
   TokenizedAssetStatisticsResponse,
+  TokenizationRecord,
 } from "./interface";
 
 export const assetTokenization = baseApi.injectEndpoints({
@@ -122,6 +123,21 @@ export const assetTokenization = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["tokenization"],
     }),
+    // Registers the asset's deployed B20 token contract. It must already be
+    // deployed with the issuing Safe as owner/MINTER_ROLE holder, with the
+    // asset code as its symbol and zero supply - app-backend verifies this
+    // on-chain before accepting it.
+    registerTokenContract: builder.mutation<
+      TokenizationRecord,
+      { tokenizedAssetID: string; contractAddress: string }
+    >({
+      query: ({ tokenizedAssetID, contractAddress }) => ({
+        url: `/tokenization/contract/${tokenizedAssetID}`,
+        method: "PUT",
+        data: { contractAddress },
+      }),
+      invalidatesTags: ["tokenization"],
+    }),
     updateLogo: builder.mutation<
       void,
       { tokenizedAssetID: string; documentFile: File }
@@ -194,6 +210,7 @@ export const {
   useFailDueDiligenceMutation,
   useUpdateTokenizationInfoMutation,
   useUpdateTokenizationSalesDatesMutation,
+  useRegisterTokenContractMutation,
   useUpdateLogoMutation,
   useUploadTokenizationDocumentMutation,
   useGetTokenizationParamsQuery,

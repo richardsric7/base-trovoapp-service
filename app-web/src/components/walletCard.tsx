@@ -11,6 +11,8 @@ type Props = {
   isSharedAccess: boolean;
   walletType: number;
   isWalletDetailsPage?: boolean;
+  // false shows that the wallet activates with its first send
+  activated?: boolean;
 };
 
 const WalletCard = forwardRef<HTMLDivElement, Props>(
@@ -23,6 +25,7 @@ const WalletCard = forwardRef<HTMLDivElement, Props>(
       isSharedAccess,
       walletType,
       isWalletDetailsPage = false,
+      activated = true,
     }: Props,
     ref,
   ) => {
@@ -52,6 +55,14 @@ const WalletCard = forwardRef<HTMLDivElement, Props>(
               <img src="/images/copy.svg" alt="copy" />
             </button>
           </div>
+          {!activated && (
+            <p
+              className="text-xs bg-white/20 rounded px-2 py-1 w-fit"
+              title="This wallet can already receive funds. Its first send also activates it on the network; that network fee is paid from the wallet."
+            >
+              Not yet activated - activates with its first send
+            </p>
+          )}
           <div className="flex space-x-10 items-center">
             <p>Total Balance</p>
             <button onClick={() => setHideBalance(!hideBalance)}>

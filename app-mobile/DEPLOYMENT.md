@@ -2,7 +2,7 @@
 
 This guide assumes you have **never built or released a Flutter app
 before**. It covers: installing the tools, running the app in debug mode,
-running the same checks CI runs, and producing signed release builds for
+running static analysis and tests, and producing signed release builds for
 Android and iOS.
 
 All commands below are run from the `app-mobile/` directory unless said
@@ -10,25 +10,16 @@ otherwise.
 
 ## 1. Install the Flutter SDK
 
-The monorepo's CI (`.github/workflows/pr-checks.yml`, the "Mobile
-(Flutter)" job) pins:
-
-```yaml
-flutter-version: '3.32.x'
-channel: stable
-```
-
-with the comment that this is kept in sync with developers'
-[FVM](https://fvm.app/)-pinned version, and that `pubspec.yaml` requires
-Dart `>=3.8.0`, which ships with Flutter 3.32+. **Install Flutter 3.32 on
-the `stable` channel** to match CI as closely as possible.
+`pubspec.yaml` requires Dart `>=3.8.0`, which ships with Flutter 3.32+.
+**Install a current Flutter release on the `stable` channel** (3.32 or
+newer); developers pin the exact version with [FVM](https://fvm.app/).
 
 1. Install Flutter following the official instructions for your OS:
    https://docs.flutter.dev/get-started/install
    - Pick the **stable** channel.
    - If the installer gives you the latest stable release and it's newer
      than 3.32.x, that's usually fine for day-to-day work, but if you hit
-     analyzer/build differences from CI, switch to 3.32 specifically
+     analyzer/build differences from other developers, pin the team's version
      (e.g. via [FVM](https://fvm.app/), which lets you pin an exact
      Flutter version per project: `fvm install 3.32.0 && fvm use 3.32.0`).
 2. Add Flutter to your `PATH` (the installer's instructions cover this
@@ -55,9 +46,8 @@ both platforms.
    platform and the Android SDK command-line tools (`flutter doctor` will
    tell you if anything's missing, including license acceptance —
    `flutter doctor --android-licenses`).
-3. Install a JDK if you don't already have one. The project's release CI
-   (`.github/workflows/main.yml`) uses **Temurin/OpenJDK 17** — match
-   that locally if you can.
+3. Install a JDK if you don't already have one — **Temurin/OpenJDK 17**
+   is the version the Android build is set up for.
 4. Create an emulator via Android Studio's **Device Manager**, or plug in
    a physical Android device with USB debugging enabled.
 
@@ -111,13 +101,14 @@ packages. Re-run it any time you pull changes that touch `pubspec.yaml`.
    original README already documented this shortcut). In Android Studio:
    use the Run ▶ button with your device selected.
 
-## 5. Static analysis and tests (what CI runs)
+## 5. Static analysis and tests
 
-The `mobile` job in `.github/workflows/pr-checks.yml` runs exactly this,
-after `flutter pub get`:
+There is no CI pipeline in this repository (the inherited workflows were
+removed - see the root `ARCHITECTURE.md`); run these yourself after
+`flutter pub get`:
 
 ```bash
-# Analyze — CI only fails on errors, not warnings/infos
+# Analyze — fail only on errors, not warnings/infos
 # (there's a known backlog of MaterialState*->WidgetState* and
 # Share->SharePlus deprecation infos that don't block PRs today)
 flutter analyze --no-fatal-warnings --no-fatal-infos
@@ -127,8 +118,7 @@ flutter test
 ```
 
 Run both before opening a PR. Plain `flutter analyze` (no flags) is
-stricter and worth running locally too, but CI itself only gates on the
-flagged version above.
+stricter and worth running too.
 
 ## 6. Build a release Android APK/AppBundle
 
@@ -136,10 +126,8 @@ flagged version above.
 
 There is no `key.properties.example` or checked-in keystore in this repo
 — `android/key.properties` and `android/**/local.properties` are
-git-ignored (see `.gitignore`), and CI generates its `key.properties` at
-build time from GitHub secrets (`.github/workflows/main.yml`). For local
-release builds, generate your own keystore once with the JDK's
-`keytool`:
+git-ignored (see `.gitignore`). For release builds, generate your own
+keystore once with the JDK's `keytool`:
 
 ```bash
 keytool -genkey -v -keystore ~/trovo-release-key.jks \
@@ -164,11 +152,7 @@ storeFile=<path to your .jks file, e.g. /Users/you/trovo-release-key.jks>
 ```
 
 This file is already covered by `.gitignore` — do not remove that entry,
-and never commit real passwords. (This is the same shape of file CI
-writes on the fly from secrets `SIGNING_STORE_PASSWORD`,
-`SIGNING_KEY_PASSWORD`, `SIGNING_KEY_ALIAS`, and a base64-encoded
-`KEYSTORE` secret — see `.github/workflows/main.yml` if you want to see
-exactly how the CI release pipeline assembles it.)
+and never commit real passwords.
 
 Without a `key.properties` file, `flutter build apk`/`appbundle` will
 still produce a build, but Gradle's `signingConfig` block
@@ -178,7 +162,7 @@ still produce a build, but Gradle's `signingConfig` block
 ### 6.3 Build
 
 ```bash
-# Android App Bundle — what CI produces, and what Google Play expects
+# Android App Bundle — what Google Play expects
 flutter build appbundle
 
 # or, a plain installable APK
@@ -217,13 +201,8 @@ unverified menu paths:
    `xcrun altool` / `xcrun notarytool`, per Apple's current upload
    instructions.
 
-This repo also has a CI pipeline for this
-(`.github/workflows/deploy-ios.yml`) that automates the same build and
-ships it to TestFlight using **Fastlane** (`ios/fastlane/Fastfile`,
-`fastlane match` for code signing, an App Store Connect API key). It's a
-useful reference for how the team automates the process end to end, but
-it depends on repo secrets (`APP_STORE_CONNECT_KEY_ID`, `MATCH_PASSWORD`,
-etc.) that aren't meant for a first local build.
+There is no automated iOS release pipeline in this repository (the
+inherited GitHub Actions workflow and fastlane setup were removed).
 
 ## 8. Switching Flutter versions / stale build artifacts
 

@@ -1,0 +1,18 @@
+{
+  "name": "trovo-market-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fixed-price offer book for Trovo's curated regulated assets, and the tokenized asset token contract.",
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "node scripts/deploy.js",
+    "deploy:dry-run": "node scripts/deploy.js --dry-run"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "6.1.2",
+    "@openzeppelin/contracts": "5.1.0",
+    "hardhat": "2.29.1",
+    "solc": "0.8.28"
+  }
+}

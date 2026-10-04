@@ -1587,6 +1587,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "Filter by gas-fee eligibility (true/false)",
+                        "name": "gasFeeEligible",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Filter by active status (true/false)",
                         "name": "inactive",
                         "in": "query"
@@ -1696,6 +1702,79 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/assets/curated/{id}/gas-fee-eligible": {
+            "put": {
+                "description": "Lets app users pick this asset (a stablecoin) to pay network fees in, through the paymaster. The asset must also be enabled on the paymaster contract and priced by the paymaster quote service; otherwise users fall back to ETH.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CuratedAssets"
+                ],
+                "summary": "Set whether users can pay network fees in a curated asset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Curated asset ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Gas-fee eligibility flag",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/usermetrics.setGasFeeEligibleRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -6849,14 +6928,26 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Filter by asset issuer",
-                        "name": "contractAddress",
+                        "description": "Filter by destination asset issuer",
+                        "name": "destinationContractAddress",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by asset code",
-                        "name": "assetCode",
+                        "description": "Filter by destination asset code",
+                        "name": "destinationAssetCode",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by source asset issuer",
+                        "name": "sourceContractAddress",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by source asset code",
+                        "name": "sourceAssetCode",
                         "in": "query"
                     },
                     {
@@ -12412,6 +12503,79 @@ const docTemplate = `{
                 }
             }
         },
+        "/tokenization/contract/{tokenizedAssetID}": {
+            "put": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Records the deployed B20 token contract of a tokenized asset that has not been minted yet. app-backend verifies on-chain that the contract's symbol is the asset code, its supply is zero, and the asset's issuing Safe (issuingWalletAddress) holds MINTER_ROLE or is the owner. The issuing Safe is not the token: deploy the token with the issuing Safe as its owner/minter, then register it here.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tokenization"
+                ],
+                "summary": "Register a tokenized asset's token contract (Trovo Manager)",
+                "operationId": "RegisterTrovoManagerTokenizationContractWithRaw",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tokenized Asset ID",
+                        "name": "tokenizedAssetID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Token contract address",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/usermetrics.RegisterTokenizedAssetContractRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/usermetrics.TokenizedAsset"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/tokenization/detail/{tokenizedAssetID}": {
             "get": {
                 "security": [
@@ -15248,6 +15412,10 @@ const docTemplate = `{
                 "market_making_wallet": {
                     "type": "string"
                 },
+                "token_contract_address": {
+                    "description": "TokenContractAddress is the asset's B20 token contract (its on-chain\nidentity); IssuingWalletAddress is the Safe that owns and mints it.",
+                    "type": "string"
+                },
                 "wallet_to_hold_assets_not_for_sale": {
                     "type": "string"
                 }
@@ -16294,6 +16462,9 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "gasFeeEligible": {
+                    "type": "boolean"
                 },
                 "generateDepositAddress": {
                     "type": "boolean"
@@ -18201,6 +18372,10 @@ const docTemplate = `{
                 },
                 "pushNotificationPermission": {
                     "type": "boolean"
+                },
+                "rateLimitPerMinute": {
+                    "description": "RateLimitPerMinute: 0/omitted keeps the route's default limit in\napp-backend; a positive value overrides it for this service link.",
+                    "type": "integer"
                 },
                 "shortName": {
                     "type": "string"
@@ -20170,6 +20345,15 @@ const docTemplate = `{
                 }
             }
         },
+        "usermetrics.RegisterTokenizedAssetContractRequest": {
+            "type": "object",
+            "properties": {
+                "contractAddress": {
+                    "type": "string",
+                    "example": "0x1234567890abcdef1234567890abcdef12345678"
+                }
+            }
+        },
         "usermetrics.SaveServiceLinkServiceFeeRequest": {
             "type": "object",
             "required": [
@@ -20703,6 +20887,10 @@ const docTemplate = `{
                 "complianceNoViolation": {
                     "type": "integer"
                 },
+                "contractAddress": {
+                    "description": "the asset's B20 token contract; IssuingWalletAddress is the Safe that mints it",
+                    "type": "string"
+                },
                 "contractualProtectionPerfBond": {
                     "type": "integer"
                 },
@@ -20977,6 +21165,14 @@ const docTemplate = `{
                 },
                 "salesStart": {
                     "type": "string"
+                }
+            }
+        },
+        "usermetrics.setGasFeeEligibleRequest": {
+            "type": "object",
+            "properties": {
+                "gasFeeEligible": {
+                    "type": "boolean"
                 }
             }
         },

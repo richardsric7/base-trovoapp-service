@@ -10,6 +10,7 @@ func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
 	jsonObj.ID = u.ID
 	jsonObj.Username = u.Username
 	jsonObj.Email = u.Email
+	jsonObj.GasFeeAsset = u.GasFeeAsset
 	jsonObj.FirstName = u.FirstName
 	jsonObj.Address = u.Address
 	jsonObj.PrimarySigner = u.PrimarySigner
@@ -110,6 +111,7 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 	jsonObj.UserID = uw.UserID
 	jsonObj.SharedAccessEnabled = uw.SharedAccessEnabled
 	jsonObj.WalletType = uw.WalletType
+	jsonObj.Activated = uw.Activated
 	viewOnlyAccess := true
 	hasApprover := false
 
@@ -143,9 +145,6 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 
 	//nullable
 	{
-		if uw.TempAddress != nil {
-			jsonObj.TempAddress = *uw.TempAddress
-		}
 		if uw.Tag != nil {
 			jsonObj.Tag = *uw.Tag
 		}

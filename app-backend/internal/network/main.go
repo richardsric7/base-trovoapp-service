@@ -9,22 +9,19 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"trovo-wallet-api/internal/aa"
 	"trovo-wallet-api/internal/basetxn"
 	tErrors "trovo-wallet-api/internal/errors"
-	"trovo-wallet-api/internal/evmkeypair"
 
 	"github.com/ecnepsnai/discord"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
-
-var kTempAccountSalt string = "j4rkTZQ2mLk3NAhK"
 
 // GetBlockchainNetworkPassPhrase is vestigial on Base (Stellar used a
 // network passphrase for signature domain separation; Base's chain ID,
@@ -85,21 +82,10 @@ func GetBlockchainClient() *ethclient.Client {
 	return client
 }
 
-func TempAccountKeypair(publicKey string) (*evmkeypair.Full, error) {
-
-	mnemonic := os.Getenv("MNEMONIC_TEMP_ACCOUNTS")
-
-	h := crypto.Keccak256(
-		[]byte(kTempAccountSalt),
-		[]byte(mnemonic),
-		[]byte(publicKey),
-	)
-
-	var rawSeed [32]byte
-	copy(rawSeed[:], h[0:32])
-
-	return evmkeypair.FromRawSeed(rawSeed)
-
+// AAConfig is the Safe / ERC-4337 configuration every wallet is built
+// from, for BASE_CHAIN_ID (see internal/aa).
+func AAConfig() aa.Config {
+	return aa.ConfigFromEnv(GetBlockchainChainID())
 }
 
 // AccountInfo is the Base equivalent of Stellar's *horizon.Account -
@@ -289,9 +275,21 @@ func NewTxBuilder(client *ethclient.Client) *TxBuilder {
 	return &TxBuilder{Client: client}
 }
 
+// ReserveNonce, when set, hands out from's next nonce for a transaction
+// signed now and sent later, so concurrent signatures with the same key -
+// on this instance or another - never share a nonce (app-backend sets
+// sharedconfig.ReserveNonce). Unset, it is the chain's pending nonce.
+var ReserveNonce func(ctx context.Context, from common.Address) (uint64, error)
+
 func (b *TxBuilder) BuildPaymentTx(ctx context.Context, from common.Address, op basetxn.Payment) (*types.Transaction, error) {
 	to := common.HexToAddress(op.Destination)
-	nonce, err := b.Client.PendingNonceAt(ctx, from)
+	var nonce uint64
+	var err error
+	if ReserveNonce != nil {
+		nonce, err = ReserveNonce(ctx, from)
+	} else {
+		nonce, err = b.Client.PendingNonceAt(ctx, from)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -409,26 +407,39 @@ type WalletAssetAuthorization struct {
 
 // IsWalletAuthorizedForAsset reports whether wallet may hold/send asset.
 // The native asset, and any B20 asset that doesn't require authorization,
-// is always authorized - only market-ready tokenized/regulated assets
-// (isTokenizedAsset) are gated behind an explicit authorization row.
+// is always authorized - only regulated B20 assets (RequiresWalletAuthorization:
+// market-ready tokenized assets, and internal balance tokens) are gated
+// behind an explicit authorization row.
 func IsWalletAuthorizedForAsset(wallet string, asset basetxn.Asset) bool {
-	if asset.IsNative() || authDB == nil || !isTokenizedAsset(asset.GetCode()) {
+	if asset.IsNative() || authDB == nil || !RequiresWalletAuthorization(asset.GetCode()) {
 		return true
 	}
 	var row WalletAssetAuthorization
 	err := authDB.Where("wallet_address = ? AND asset_code = ? AND contract_address = ?",
-		strings.ToLower(wallet), asset.GetCode(), strings.ToLower(asset.GetIssuer())).First(&row).Error
+		strings.ToLower(wallet), strings.ToUpper(asset.GetCode()), strings.ToLower(asset.GetIssuer())).First(&row).Error
 	if err != nil {
 		return false
 	}
 	return row.Authorized
 }
 
+// RequiresWalletAuthorization reports whether assetCode is a regulated B20
+// asset - a market-ready tokenized asset, or a country's internal balance
+// token (also a B20 asset the platform itself issues and controls) - that
+// a wallet must be explicitly authorized for (see SetWalletAssetAuthorization)
+// before it may hold/send it. Every other B20 asset needs no such opt-in on
+// Base. Exported so service-layer callers (e.g.
+// internal/components/users/services) can decide whether to call
+// SetWalletAssetAuthorization themselves; IsWalletAuthorizedForAsset uses
+// the same check internally.
+func RequiresWalletAuthorization(assetCode string) bool {
+	return isTokenizedAsset(assetCode) || isInternalBalanceAsset(assetCode)
+}
+
 // isTokenizedAsset mirrors sharedconfig.GlobalConfig.IsValidTokenizedAsset's
 // query (duplicated rather than imported, to avoid a sharedconfig<->network
-// import cycle): an asset only requires wallet-level authorization once
-// it's a market-ready tokenized/regulated asset (Asset_Tokenization_Status
-// > 3). Every other B20 asset needs no opt-in on Base.
+// import cycle): true once assetCode is a market-ready tokenized/regulated
+// asset (Asset_Tokenization_Status > 3).
 func isTokenizedAsset(assetCode string) bool {
 	type Result struct {
 		ID string
@@ -438,19 +449,37 @@ func isTokenizedAsset(assetCode string) bool {
 	return len(result.ID) > 0
 }
 
+// isInternalBalanceAsset mirrors
+// internal/components/users/models.IsInternalBalanceAssetCode's query
+// (duplicated rather than imported, for the same sharedconfig<->network
+// import-cycle reason as isTokenizedAsset above): true when assetCode is
+// any country's internal balance token - a B20 asset the platform itself
+// issues and controls, and, like a tokenized asset, requires wallet-level
+// authorization before a wallet may hold/send it.
+func isInternalBalanceAsset(assetCode string) bool {
+	type Result struct {
+		CountryCode string
+	}
+	var result Result
+	authDB.Raw("SELECT country_code FROM country_configs WHERE internal_balance_token_code = upper(?)", assetCode).Scan(&result)
+	return len(result.CountryCode) > 0
+}
+
 // SetWalletAssetAuthorization grants or revokes wallet's authorization to
 // hold/send asset - the Base equivalent of submitting a
 // SetTrustLineFlags/ChangeTrust operation on Stellar. approvedBy is the
 // address the compliance approval was authenticated against (the asset's
 // own issuing wallet - see the service-layer caller), reason an optional
-// free-text compliance note; both are recorded for audit purposes.
+// free-text compliance note; both are recorded for audit purposes. Asset
+// codes are stored uppercased (matching Tokenized_Assets/country_configs)
+// and addresses lowercased, so lookups are case-insensitive on both.
 func SetWalletAssetAuthorization(wallet string, asset basetxn.Asset, authorized bool, approvedBy, reason string) error {
 	if authDB == nil {
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 	row := WalletAssetAuthorization{
 		WalletAddress:   strings.ToLower(wallet),
-		AssetCode:       asset.GetCode(),
+		AssetCode:       strings.ToUpper(asset.GetCode()),
 		ContractAddress: strings.ToLower(asset.GetIssuer()),
 		Authorized:      authorized,
 		ApprovedBy:      strings.ToLower(approvedBy),
@@ -474,7 +503,7 @@ func WalletAssetAuthorizations(assetCode, contractAddress string) ([]WalletAsset
 	if authDB == nil {
 		return rows, &tErrors.ErrorTemporaryServerError{}
 	}
-	err := authDB.Where("asset_code = ? AND contract_address = ?", assetCode, strings.ToLower(contractAddress)).
+	err := authDB.Where("asset_code = ? AND contract_address = ?", strings.ToUpper(assetCode), strings.ToLower(contractAddress)).
 		Order("created_at desc").Find(&rows).Error
 	return rows, err
 }

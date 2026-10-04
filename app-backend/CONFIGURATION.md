@@ -229,16 +229,6 @@ link) never does this lookup.
 These are BIP-39 mnemonics for internal signer wallets the app uses to
 perform specific categories of on-chain actions automatically.
 
-**`MNEMONIC_TEMP_ACCOUNTS`**
-- Example: `test test test test test test test test test test test junk`
-- What it does: Signer mnemonic used to create/manage temporary accounts (e.g. for onboarding flows). Required to boot.
-- How to get a real value: generate a fresh BIP-39 mnemonic with any standard wallet tool (e.g. `ethers.Wallet.createRandom().mnemonic.phrase` in a Node/ethers.js script) — **use a dedicated, funded-only-as-needed testnet wallet for local dev.**
-
-**`MNEMONIC_ACCOUNT_RECOVERY`** / **`ACCOUNT_RECOVERY_SALT`**
-- Example: mnemonic as above / `openssl rand -hex 16` output
-- What it does: Signer mnemonic and salt used in the account-recovery flow's key derivation.
-- How to get a real value: generate the mnemonic as above; generate the salt with `openssl rand -hex 16`.
-
 **`MNEMONIC_BULK_PAYMENT`** / **`BULK_PAYMENT_SALT`**
 - Example: mnemonic / `openssl rand -hex 16` output
 - What it does: Signer mnemonic and salt for the bulk-payment feature's derived sub-wallets.
@@ -259,6 +249,49 @@ perform specific categories of on-chain actions automatically.
 - What it does: Salt mixed into generated email/SMS verification codes.
 - How to get a real value: `openssl rand -hex 16`.
 
+## Wallets: Safe accounts, bundler and paymaster
+
+Every user wallet is a Safe (v1.4.1 with the ERC-4337 Safe4337Module)
+owned by the user's key, and every send is a UserOperation the backend
+builds, the user's app signs, and the backend submits to our bundler.
+The wallet pays its own gas - in the stablecoin the user chose on their
+profile (through the paymaster, see [`paymaster/`](../paymaster/README.md)),
+or in ETH. See `internal/aa` and `internal/components/users/services/wallet_operations.go`.
+Stablecoin gas the paymaster collects is recorded in `fee_collections`
+(type `GAS`); a wallet that owes the paymaster gas (see INTEGRATION.md,
+"Gas debt") pays in ETH and settles the debt automatically. Nothing
+needs configuring for either beyond `PAYMASTER_ADDRESS`.
+
+**`BUNDLER_URL`**
+- Example: `http://bundler.internal:4337/rpc`
+- What it does: JSON-RPC endpoint of our self-hosted ERC-4337 bundler (EntryPoint v0.7). Every wallet operation is gas-estimated with and submitted to it. Without it, no sends can be prepared.
+- How to get a real value: the URL of the bundler you run (e.g. Rundler, Alto or Skandha) for the same chain as `BASE_RPC_URL`. Configure it for EntryPoint `0x0000000071727De22E5E9d8BAf0edAc6f37da032`.
+
+**`PAYMASTER_ADDRESS`**
+- Example: `0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9`
+- What it does: The deployed `TrovoTokenPaymaster`. Wallets paying gas in a stablecoin approve it to take the fee. Leave empty to disable stablecoin gas (everyone pays in ETH).
+- How to get a real value: printed by the paymaster deploy script and saved in `paymaster/contracts/deployments/<chainId>.json` (see `paymaster/DEPLOYMENT.md`).
+
+**`PAYMASTER_QUOTE_SERVICE_URL`** / **`PAYMASTER_QUOTE_SERVICE_API_KEY`**
+- Example: `http://paymaster-quotes.internal:8090` / `3f9c0a...e1` (64 hex)
+- What it does: Where the backend gets signed gas quotes in stablecoins, and the API key it sends (`X-API-Key`). If the quote service cannot price a user's chosen token, the operation falls back to ETH gas.
+- How to get a real value: the quote service's address, and one of the keys in its `API_KEYS` Vault setting (see `paymaster/CONFIGURATION.md`).
+
+**`WALLET_OPERATION_VALIDITY`** / **`SHARED_WALLET_OPERATION_VALIDITY`**
+- Example: `10m` / `24h`
+- What it does: How long the owners have to sign a prepared operation - a single-signer wallet (default 10 minutes) or a shared wallet waiting for approvers (default 24 hours, at most the quote service's `QUOTE_MAX_VALIDITY`). An operation not signed in time expires and must be started again.
+- How to get a real value: keep the defaults unless your approval process needs longer.
+
+**`WALLET_OPERATION_GAS_BUFFER_PERCENT`**
+- Example: `20`
+- What it does: Percentage added to the bundler's gas estimates (default 20). Unused gas is not charged (and a stablecoin pre-charge is refunded), so this only affects the maximum shown to the user.
+- How to get a real value: keep the default.
+
+**`ENTRYPOINT_ADDRESS`**, **`SAFE_MODULE_SETUP_ADDRESS`**, **`SAFE_4337_MODULE_ADDRESS`** (and the `SAFE_*` addresses under [Tokenization](#tokenization))
+- Example: leave empty for the defaults
+- What it does: Override the contracts wallets are built from, for local chains only. Defaults are the canonical Base / Base Sepolia deployments: EntryPoint v0.7 `0x0000000071727De22E5E9d8BAf0edAc6f37da032`, SafeProxyFactory v1.4.1, SafeL2 v1.4.1, SafeModuleSetup v0.3.0 `0x2dd68b007B46fBe91B9A7c3EDa5A7a1063cB5b47`, Safe4337Module v0.3.0 `0x75cf11467937ce3F2f357CE24ffc3DBF8fD5c226`, MultiSendCallOnly v1.4.1 `0x9641d764fc13c8B624c04430C7356C1C7C8102e2`. **Changing them in production changes every user's wallet address** - wallet-core computes addresses with the defaults.
+- How to get a real value: leave empty on Base / Base Sepolia.
+
 ---
 
 ## Channel accounts (transaction fee payers)
@@ -276,7 +309,7 @@ perform specific categories of on-chain actions automatically.
 **`CHANNEL_ACCOUNTS`**
 - Example: `0xabc...priv1,0xdef...priv2,0x123...priv3`
 - What it does: A comma-separated list of signer keys ("channel accounts") the app round-robins through to pay gas/sign routine transactions, so a single hot wallet isn't bottlenecked by sequence numbers.
-- How to get a real value: generate N fresh testnet wallets (see `MNEMONIC_TEMP_ACCOUNTS` above for tooling), fund them lightly, and list their private keys here — never reuse mainnet keys with real funds for this in a non-production environment.
+- How to get a real value: generate N fresh testnet wallets (e.g. `cast wallet new`, or `ethers.Wallet.createRandom()` in Node), fund them lightly, and list their private keys here — never reuse mainnet keys with real funds for this in a non-production environment.
 
 **`CHANNEL_ACCOUNT_FUNDER`**
 - Example: a funded wallet's private key
@@ -302,9 +335,12 @@ perform specific categories of on-chain actions automatically.
 
 ## Fee wallets & amounts
 
-Each `*_FEE_WALLET` below is the wallet address (or, for a couple, the
-private key) that platform fees for that specific flow are collected into.
-For local development these can all point at the same test wallet.
+Each `*_FEE_WALLET` below is the wallet address that platform fees for
+that specific flow are collected into. Set the **address**: the fees are
+sent there by the user's own wallet, so app-backend never needs the key.
+(A private key is still accepted for backward compatibility, and only its
+address is used - prefer the address.) For local development these can
+all point at the same test wallet.
 
 | Variable | Fee for |
 | --- | --- |
@@ -333,10 +369,8 @@ For local development these can all point at the same test wallet.
 - What it does: The fee amount (in whatever unit the market-making flow expects) charged per market-making trade.
 - How to get a real value: set per your fee schedule.
 
-**`ACCOUNT_RECOVERY_FEE_AMOUNT_USD`** / **`ACCOUNT_RECOVERY_FEE_ASSET_CODE`**
-- Example: `1.00` / `USDB`
-- What it does: The USD-denominated fee charged for account recovery, and which asset it's actually collected in.
-- How to get a real value: set per your fee schedule; asset code must be one your platform supports.
+**Account recovery fee** (not an environment variable)
+- The fee charged when a user turns account recovery on is the `service_fees` row `ACCOUNT_RECOVERY_FEE`: `fee_fixed` is the amount in USD, `fee_asset_code` / `fee_contract_address` the stablecoin it is paid in (converted at the current rate). It is paid from the user's primary wallet in the same operation that turns recovery on, to `ACCOUNT_RECOVERY_FEE_WALLET`. An inactive row (or a fee of 0) charges nothing.
 
 **`SHARED_ACCESS_FEE_ADDRESS`** / **`SHARED_ACCESS_FEE_AMOUNT`** / **`SHARED_ACCESS_FEE_ASSET_CODE`** / **`SHARED_ACCESS_FEE_ASSET_CONTRACT_ADDRESS`**
 - Example: `0x1111...` / `0.5` / `USDB` / `0x0000...`
@@ -365,12 +399,34 @@ per your network's economics (testnet values can be tiny).
 `WALLET_SIGNER_ACTIVATION_AMOUNT`, `SUB_WALLET_ACTIVATION_AMOUNT`,
 `BULKPAYMENT_SUB_WALLET_ACTIVATION_AMOUNT`,
 `MM_SUB_WALLET_ACTIVATION_AMOUNT`, `ISSUING_SUB_WALLET_ACTIVATION_AMOUNT`,
-`RECOVERY_SIGNER_ACTIVATION_AMOUNT`, `ACCOUNT_RECOVERY_MINIMUM_BALANCE`,
 `MIN_SENDABLE_AMOUNT`
 
 - Example value (any of the above): `0.001`
 - What they do: each gates a specific wallet-creation or payment flow's minimum/activation amount (see the variable name for which flow).
 - How to get a real value: small positive decimals for testnet; sized appropriately for mainnet gas/dust economics in production.
+
+**Sub-wallet seeds.** `ISSUING_SUB_WALLET_ACTIVATION_AMOUNT`,
+`MM_SUB_WALLET_ACTIVATION_AMOUNT`, `BULKPAYMENT_SUB_WALLET_ACTIVATION_AMOUNT`
+and the fallback `SUB_WALLET_ACTIVATION_AMOUNT` are rows of the
+`activation_amounts` table (id = the name, `amount`, `inactive`), not
+environment variables. The amount is **ETH** the primary wallet sends to
+each new sub-wallet (and its linked distribution wallet) in the operation
+that deploys them, so the sub-wallet can pay its first network fees.
+Missing, inactive or `0` means no seed - the sub-wallet then pays gas in
+the owner's gas-fee stablecoin once it holds some. Example: `0.0002`.
+
+**Sub-wallet creation fee.** The `SUBWALLET_CREATION_FEE` row of the
+`service_fees` table sets it: `fee_fixed` is the fee **in USD**, paid in
+the stablecoin `fee_asset_code` / `fee_contract_address` (the dollar
+asset, a USD-named stablecoin such as USDC at 1:1, or the naira asset at
+the USD/cNGN rate - other assets need a DEX and are refused), and
+`inactive = 1` turns it off. It is charged from the primary wallet in the
+same operation, sent to `SUBWALLET_CREATION_FEE_WALLET`, and recorded in
+`fee_collections` (type `SUBWALLET_CREATION`). The platform's tokenization
+issuing profile (`TOKENIZATION_ISSUING_PROFILE`, default `atprofile`) is
+exempt. Creation is refused when the primary
+wallet cannot cover the fee, the seeds and (when gas is paid in ETH) the
+network fee.
 
 ---
 
@@ -391,9 +447,56 @@ per your network's economics (testnet values can be tiny).
 - How to get a real value: `0` or `1` per your deployment.
 
 **`TOKENIZATION_ISSUING_PROFILE`** / **`TOKENIZATION_ISSUING_PROFILE_WALLET`**
-- Example: `default` / `0x1111111111111111111111111111111111111`
-- What it does: Identifies the issuing profile/wallet used when minting tokenized assets. `TOKENIZATION_ISSUING_PROFILE_WALLET` must be a 42-character `0x...` address.
-- How to get a real value: the address of the wallet designated to issue tokenized assets on your platform.
+- Example: `atprofile` / `0x1234...abcd` (optional)
+- What it does: The platform user whose sub-wallets are every tokenized asset's issuing and distribution wallets. Each pair is owned by this user's key and the asset's minting approvers (see [INTEGRATION.md](INTEGRATION.md#tokenized-assets-token-issuing-and-distribution-wallets-sale-offer)); the backend holds no key for them. `TOKENIZATION_ISSUING_PROFILE_WALLET`, if set, must be that user's primary wallet address - a configuration check; leave it empty otherwise. It is no longer a private key.
+- How to get a real value: the username of the issuing profile you register.
+
+**`OFFER_BOOK_ADDRESS`**
+- Example: `0x5FbDB2315678afecb367f032d93F642f64180aa3`
+- What it does: The `TrovoOfferBook` contract tokenized assets are sold through. Required when `ENABLE_ASSET_TOKENIZATION=1` (startup fails otherwise).
+- How to get a real value: printed by `market/contracts/scripts/deploy.js` and saved in `market/contracts/deployments/<chainId>.json` (see [market/DEPLOYMENT.md](../market/DEPLOYMENT.md)).
+
+**`OFFER_AUTHORIZER_PRIVATE_KEY`**
+- Example: `0x59c6995e...` (hex private key)
+- What it does: Signs the fill authorization of each purchase the platform has checked (KYC, cap, sale window). Its address must be an authorizer on the offer book. A leaked key lets someone buy at the seller's price without those checks; it cannot move anyone's tokens. Required when tokenization is enabled.
+- How to get a real value: a dedicated key from your secrets manager; give its address to the offer book (`AUTHORIZER_ADDRESSES` at deploy, or `setAuthorizer` by the owner Safe).
+
+**`SAFE_PROXY_FACTORY_ADDRESS`** / **`SAFE_SINGLETON_ADDRESS`** / **`SAFE_MULTISEND_CALL_ONLY_ADDRESS`** (and `SAFE_FALLBACK_HANDLER_ADDRESS`)
+- Example: leave empty for the defaults
+- What it does: The Safe contracts wallets are created from (see "Wallets: Safe accounts, bundler and paymaster"); MultiSendCallOnly also batches the internal balance minting Safe's fiat deliveries. Defaults are Safe's canonical deployments on Base and Base Sepolia.
+- How to get a real value: leave empty unless Safe's contracts live elsewhere on your network.
+
+A tokenized asset's **token contract** is not configuration: it is registered per asset through `PUT /v1/trovo-manager/tokenization/contract/:tid` (see [INTEGRATION.md](INTEGRATION.md#tokenized-assets-token-contract-vs-issuing-safe)).
+
+---
+
+## Shutdown
+
+**`SHUTDOWN_GRACE_PERIOD`**
+- Example: `90s` (default `60s`)
+- What it does: How long a stopping instance (SIGTERM/SIGINT) waits for in-flight requests, running background jobs and platform-key transactions before exiting. See DEPLOYMENT.md "Running two or more instances".
+- How to get a real value: a little less than your platform's stop timeout (e.g. Kubernetes `terminationGracePeriodSeconds`).
+
+---
+
+## Account recovery
+
+Opt-in account recovery (see [INTEGRATION.md](INTEGRATION.md#account-recovery-opt-in-guardian)). Without `RECOVERY_MODULE_ADDRESS` and a guardian, the recovery endpoints answer `error-account-recovery-not-configured` (503); nothing else is affected.
+
+**`RECOVERY_MODULE_ADDRESS`**
+- Example: `0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e`
+- What it does: Candide's Social Recovery Module v0.2.0 that covered wallets enable. Its recovery period is fixed when it is deployed.
+- How to get a real value: printed by `recovery/contracts/scripts/deploy.js` and saved in `recovery/contracts/deployments/<chainId>.json` (see [recovery/DEPLOYMENT.md](../recovery/DEPLOYMENT.md)).
+
+**`RECOVERY_PERIOD_SECONDS`**
+- Example: `604800` (7 days)
+- What it does: Only for messages to users ("your wallets move to the new key after 7 days"); the module's own period is what counts. Set it to the value the module was deployed with.
+- How to get a real value: `recoveryPeriodSeconds` in the module's deployment file (`recovery/contracts/deployments/<chainId>.json`).
+
+**`ACCOUNT_RECOVERY_GUARDIAN_SAFE`** / **`ACCOUNT_RECOVERY_GUARDIAN_SIGNERS`**
+- Example: `0x1234...abcd` / `0x59c6...;0x5de4...` (hex private keys, `;` or `,` separated)
+- What it does: The platform's recovery guardian, made the only guardian of each covered wallet. With `ACCOUNT_RECOVERY_GUARDIAN_SAFE` (recommended) the guardian is that Safe and the backend executes its calls with enough of the `ACCOUNT_RECOVERY_GUARDIAN_SIGNERS` keys to meet its threshold (the first key pays gas); without it the guardian is the first key itself. The guardian can only start replacing a covered wallet's key (finalized after the recovery period, cancellable by the user) - it cannot move funds. Its keys pay the gas of starting and finalizing recoveries, so keep them funded with a little ETH.
+- How to get a real value: create a Safe owned by dedicated keys from your secrets manager (e.g. 2-of-3 with two keys here and one held offline). Changing the guardian later does not move existing wallets to it: users would have to turn recovery off and on again.
 
 ---
 
@@ -416,10 +519,10 @@ per your network's economics (testnet values can be tiny).
 
 ## Internal balance authorization / compliance
 
-**`INTERNAL_BALANCE_AUTHORIZER_WALLET`** / **`INTERNAL_BALANCE_ISSUING_SIGNERS`**
-- Example: `0x1111...` / `0xkey1,0xkey2`
-- What it does: The wallet that authorizes internal-balance operations and the signer key(s) permitted to issue them.
-- How to get a real value: operational wallets managed by whoever administers this feature.
+**`INTERNAL_BALANCE_ISSUING_SIGNERS`**
+- Example: `0xkey1,0xkey2`
+- What it does: Owner keys of each country's internal balance minting Safe (`CountryConfig.internalTokenMinterSafe`, which owns the internal balance token `internalTokenIssuer`). For a fiat purchase of a tokenized asset whose payment is confirmed, enough of them sign one Safe transaction that mints the purchase amount to the Safe and buys from the asset's sale offer for the buyer; the first key pays its gas, so it must hold ETH. (`INTERNAL_BALANCE_AUTHORIZER_WALLET` is no longer used.)
+- How to get a real value: the keys of that Safe's owners, from your secrets manager.
 
 **`COMPLIANCE_ACCOUNT_ID`**
 - Example: `acct_test_123`

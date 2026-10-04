@@ -79,6 +79,15 @@ class TrovoWalletSDK {
     final kp = WalletCoreFFI.instance.keypairFromPrivateKey(secretKey);
     return Account(kp.address, kp.privateKeyHex);
   }
+
+  // primaryWalletAddress is the address of the user's primary wallet: a
+  // Safe owned by their key (the signer), at a fixed address before it is
+  // deployed. Registration sends it as X-TW-PUBLIC-KEY (the key's address
+  // is X-TW-SIGNER); the backend derives the same address and refuses any
+  // other. Matches app-web's trovoSDK.ts primaryWalletAddress.
+  String primaryWalletAddress(String signer) {
+    return WalletCoreFFI.instance.primarySafeAddress(signer, '0');
+  }
 }
 
 class Account {

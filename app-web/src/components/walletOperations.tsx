@@ -444,6 +444,7 @@ export default function WalletOperations({
               alias={activeWallet.alias}
               isSharedAccess={activeWallet.sharedAccessEnabled}
               walletType={activeWallet.walletType!}
+              activated={activeWallet.activated !== false}
               key={0}
               isWalletDetailsPage={true}
               // ref={}

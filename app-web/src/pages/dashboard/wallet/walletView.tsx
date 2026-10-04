@@ -29,14 +29,10 @@ import TextInput from '../../../components/textInput';
 import ButtonSecondary from '../../../components/buttonSecondary';
 import { showNotification, toggleLoader } from '../../../utils/showToaster';
 import { Encryptor } from '../../../utils/encryptor';
-import {
-  createAccount,
-  importAccount,
-  signBase64Txn,
-} from '../../../utils/trovoSDK';
+import { signBase64Txn } from '../../../utils/trovoSDK';
 import { ErrorResponse } from '../../../store/api/baseapi/axiosBaseQuery';
 import { useAddSubwalletMutation } from '../../../store/api/walletApis';
-import { setTempData, setUser } from '../../../store/authSlice';
+import { setUser } from '../../../store/authSlice';
 import { User } from '../../../types/user';
 import { useLazyGetUserQuery } from '../../../store/api/authApi';
 import { deserializeUserData } from '../../../utils/deserializeAndStoreUserData';
@@ -55,7 +51,6 @@ export default function WalletView() {
   );
   const [getUser, {}] = useLazyGetUserQuery();
   const dispatch = useDispatch();
-  const tempData = useSelector((state: RootState) => state.auth.tempData);
   const [addSubwallet] = useAddSubwalletMutation();
   const [secretKey, setSecretKey] = useState('');
   const [activeWalletIndex, setActiveWalletIndex] = useState(0);
@@ -74,7 +69,6 @@ export default function WalletView() {
   const [showAddSubwalletModal, setShowAddSubwalletModal] = useState(false);
   const [showConfirmView, setShowConfirmView] = useState(false);
   const [showAuthorizeView, setShowAuthorizeView] = useState(false);
-  const [showBackupModal, setShowBackupModal] = useState(false);
   const [currentTabIndex, setCurrentTabIndex] = useState(1);
   const [gas, setGas] = useState(
     activeWallet?.claimedAssets.find(
@@ -241,6 +235,7 @@ export default function WalletView() {
       alias={wallet.alias}
       isSharedAccess={wallet.sharedAccessEnabled}
       walletType={wallet.walletType!}
+      activated={wallet.activated !== false}
       key={index}
       ref={(el) => {
         itemRefs.current[index] = el!;
@@ -331,27 +326,9 @@ export default function WalletView() {
       return;
     }
 
-    if (formData.isImport) {
-      var address = importAccount(formData.newSecretKey);
-      if (address.length == 0) {
-        setErrorObj({ ...errorObj, newSecretKey: 'Invalid secret key' });
-        return;
-      }
-
-      setFormData({
-        ...formData,
-        newAddress: address,
-      });
-    } else {
-      // generate keypair for the new subwallet
-      var ac = createAccount();
-      setFormData({
-        ...formData,
-        newAddress: ac.address,
-        newSecretKey: ac.secretKey,
-      });
-    }
-
+    // A sub-wallet is a Safe owned by the user's existing key: the backend
+    // picks its address and the primary wallet deploys it, so there is no
+    // new key to generate, import or back up.
     setShowConfirmView(true);
   };
 
@@ -361,11 +338,9 @@ export default function WalletView() {
       address: activeWallet.address,
       secretKey: secretKey,
       body: {
-        publickey: formData.newAddress,
         walletTag: formData.tag,
-        WalletDescription: formData.description,
+        walletDescription: formData.description,
         walletType: 0,
-        linkedWalletAddress: '',
       },
     };
     toggleLoader();
@@ -374,6 +349,7 @@ export default function WalletView() {
       console.log('response', res);
       setFormData({
         ...formData,
+        newAddress: res.data?.publicKey ?? '',
         transactionData: res.data,
       });
       setShowAuthorizeView(true);
@@ -642,53 +618,11 @@ export default function WalletView() {
                   <p className="font-montserratSemiBold text-primary-800">
                     You are about to add a subwallet to your Trovo App account
                   </p>
-                  <p className="text-sm text-primary-800">Choose a method</p>
-                  <div className="flex flex-col items-start space-y-3 mt-6">
-                    <div className="flex justify-between items-between space-x-2">
-                      <input
-                        type="radio"
-                        id="addSubwalletMethodImport"
-                        name="subwalletMethod"
-                        className="w-4 h-4 accent-primary-800 cursor-pointer"
-                        checked={formData.isImport}
-                        onChange={() =>
-                          setFormData({
-                            ...formData,
-                            newSecretKey: '',
-                            isImport: true,
-                          })
-                        }
-                      />
-                      <label
-                        htmlFor="addSubwalletMethodImport"
-                        className="text-sm font-montserratSemiBold text-primary-800 cursor-pointer"
-                      >
-                        Import existing wallet
-                      </label>
-                    </div>
-                    <div className="flex justify-between items-between space-x-2">
-                      <input
-                        type="radio"
-                        id="addSubwalletMethodCreate"
-                        name="subwalletMethod"
-                        className="w-4 h-4 accent-primary-800 cursor-pointer"
-                        checked={!formData.isImport}
-                        onChange={() =>
-                          setFormData({
-                            ...formData,
-                            newSecretKey: '',
-                            isImport: false,
-                          })
-                        }
-                      />
-                      <label
-                        htmlFor="addSubwalletMethodCreate"
-                        className="text-sm font-montserratSemiBold text-primary-800 cursor-pointer"
-                      >
-                        Create new wallet
-                      </label>
-                    </div>
-                  </div>
+                  <p className="text-sm text-primary-800 text-center">
+                    The new wallet is controlled by your existing key: your
+                    primary wallet creates it and pays for its setup. There is
+                    no new key to back up.
+                  </p>
                   <p className="text-xs text-primary-800">
                     Please note that completing this process will attract some
                     charges
@@ -765,27 +699,6 @@ export default function WalletView() {
                 </div>
                 {/* <p className="text-red-500">{error}</p> */}
               </div>
-              {formData.isImport && (
-                <div className="w-full space-y-2">
-                  <TextInput
-                    inputType="text"
-                    label="Secret Key"
-                    defaultValue={formData.isImport && formData.newSecretKey}
-                    placeholder="Secret key..."
-                    onInputChange={(value) =>
-                      setFormData({ ...formData, newSecretKey: value })
-                    }
-                  />
-                  <div className="w-full flex items-center">
-                    {errorObj.newSecretKey && (
-                      <span className="text-red-500 text-sm mt-1">
-                        {errorObj.newSecretKey}
-                      </span>
-                    )}
-                  </div>
-                  {/* <p className="text-red-500">{error}</p> */}
-                </div>
-              )}
               <div></div>
               <div className="w-full self-center space-y-3">
                 <Button
@@ -832,12 +745,6 @@ export default function WalletView() {
                       </p>
                       <p className="text-sm text-primary-800 ">
                         {formData.description}
-                      </p>
-                      <p className="text-sm text-primary-800 font-montserratSemiBold">
-                        Address
-                      </p>
-                      <p className="text-sm text-primary-800 ">
-                        {formData.newAddress}
                       </p>
                       <p className="text-xs text-primary-800">
                         Please note that completing this process will attract
@@ -911,13 +818,10 @@ export default function WalletView() {
 
                         const body = {
                           ...formData.transactionData,
+                          // only the primary wallet signs: it deploys the
+                          // new wallet
                           primarySignature: signBase64Txn(
                             secretKey,
-                            formData.transactionData?.transaction,
-                            formData.transactionData?.networkPassPhrase,
-                          ),
-                          subWalletSignature: signBase64Txn(
-                            formData.newSecretKey,
                             formData.transactionData?.transaction,
                             formData.transactionData?.networkPassPhrase,
                           ),
@@ -934,7 +838,7 @@ export default function WalletView() {
                         const res = await addSubwallet(payload);
 
                         const importedPayload = {
-                          signer: appUser.address,
+                          signer: appUser.primarySigner,
                           address: appUser.address,
                           secretKey: appUser.secretKeys[0],
                           body: { userId: appUser.username, import: 1 },
@@ -957,13 +861,6 @@ export default function WalletView() {
 
                         if ('data' in res) {
                           const encryptor = new Encryptor();
-                          const base64EncryptedSecretKey =
-                            await encryptor.encryptData(
-                              formData.newSecretKey,
-                              password,
-                              appUser.address,
-                            );
-
                           const passwordHash = await encryptor.createHash(
                             userData.username,
                           );
@@ -978,10 +875,7 @@ export default function WalletView() {
                             password: encryptedPassword,
                             isLoggedIn: true,
                             currency: 'USD',
-                            secretKeys: [
-                              ...appUser.secretKeys,
-                              base64EncryptedSecretKey,
-                            ],
+                            secretKeys: appUser.secretKeys,
                           };
 
                           const hash = await encryptor.createHash(
@@ -1001,17 +895,12 @@ export default function WalletView() {
                               encryptedUser: base64EncryptedUserData,
                             }),
                           );
-
-                          dispatch(
-                            setTempData({
-                              ...tempData,
-                              username: formData.tag,
-                              address: formData.newAddress,
-                              secretKey: base64EncryptedSecretKey,
-                            }),
-                          );
+                          resetForm();
                           setShowAddSubwalletModal(false);
-                          setShowBackupModal(true);
+                          showNotification(
+                            'success',
+                            'Sub-wallet created. It is ready once the network confirms the transaction.',
+                          );
                         } else if ('error' in res) {
                           const errorResponse = res.error as ErrorResponse;
                           showNotification(
@@ -1030,49 +919,6 @@ export default function WalletView() {
             </>
           )}
         </>
-      </Modal>
-      <Modal
-        showModal={showBackupModal}
-        onClose={() => {
-          setShowBackupModal(false);
-        }}
-      >
-        <div className="flex flex-col space-y-5 items-center w-full py-10 justify-center">
-          <img src="/images/launch.png" alt="success" />
-          <div className="flex flex-col text-center space-y-5 items-center w-2/3 md:px-10 justify-center">
-            <p className="text-primary-800 text-md xl:text-lg font-semibold">
-              Congratulations!
-            </p>
-            <p className="text-primary-800 text-md xl:text-lg">
-              Your wallet has been successfully created
-            </p>
-            <p className="text-primary-800 text-md xl:text-lg">
-              We strongly recommend that you backup your wallet before
-              proceeding
-            </p>
-            <p className="text-primary-800 text-md xl:text-lg">
-              Backing up your wallet is a way to restore your wallet if you
-              loose your device
-            </p>
-          </div>
-          <div className="w-3/4">
-            <Button
-              label="Backup"
-              onclick={() => {
-                navigate('/backup');
-              }}
-            />
-          </div>
-          <div className="w-3/4">
-            <ButtonSecondary
-              label="Skip"
-              onclick={() => {
-                setShowBackupModal(false);
-                navigate('/dashboard');
-              }}
-            />
-          </div>
-        </div>
       </Modal>
     </>
   );

@@ -1,6 +1,7 @@
 package users
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,20 +15,16 @@ import (
 	"strings"
 	"time"
 	"trovo-wallet-api/internal/basetxn"
-	swapErrors "trovo-wallet-api/internal/components/swaps/errors"
 	swapModels "trovo-wallet-api/internal/components/swaps/models"
-	swapServices "trovo-wallet-api/internal/components/swaps/services"
 	db "trovo-wallet-api/internal/db"
 	"trovo-wallet-api/internal/evmkeypair"
 
 	userModels "trovo-wallet-api/internal/components/users/models"
 	// db "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
-	"trovo-wallet-api/internal/middleware"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
-	"github.com/ecnepsnai/discord"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -941,7 +938,7 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		err = &tErrors.ErrorTemporaryServerError{}
 
 	}
-	if (ato.IssuingWalletAddress == nil || NotIssuedByIssuer) && len(input.AssetCode) > 0 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 42 {
+	if (ato.IssuingWalletAddress == nil || NotIssuedByIssuer) && len(input.AssetCode) > 0 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 {
 
 		//create issuing wallet
 		ato, issuingWallet, err = AssignIssuingWallet(tokenizationID, gc)
@@ -968,9 +965,9 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 		issuingWallet = w
 		ato.IssuingWalletAlias = &w.Alias
 		ato.IssuingWalletAddress = &w.ID
-		ato.MarketMakingWallet = w.LinkedWalletAddress
-		ato.WalletToHoldAssetsNotForSale = w.LinkedWalletAddress
-		input.WalletToHoldAssetsNotForSale = *w.LinkedWalletAddress
+		ato.MarketMakingWallet = &w.ID
+		ato.WalletToHoldAssetsNotForSale = &w.ID
+		input.WalletToHoldAssetsNotForSale = w.ID
 	}
 	// initialize message array
 	input.Messages = make([]string, 0)
@@ -1001,162 +998,6 @@ func SubmitTokenizationAssetInfo(tokenizationID string, initiator *userModels.Us
 }
 
 // AssignIssuingWallet assigns issuing wallet to tokenized asset instance
-func AssignIssuingWallet(tokenizationID string, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, issuingWallet userModels.UserWallet, err error) {
-	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
-
-	if len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) == 0 {
-		err = &tErrors.CustomError{Param: "issuingWalletAddress", Err: "error-default-issuing-profile-not-set", ErrMessage: "Issuing profile not set."}
-		return
-	}
-
-	//referesh issuing wallet profile
-	userModels.Username(os.Getenv("TOKENIZATION_ISSUING_PROFILE")).InvalidateUserCache(gc)
-
-	ato, _, errorGetTokenizationByID := GetTokenizedAssetByID(tokenizationID, gc.DB)
-	if errorGetTokenizationByID != nil {
-		// error tokenization is already in progress
-		log.Printf("[AssignIssuingWallet] Error fetching  tokenization with ID: %v\n", tokenizationID)
-		err = errorGetTokenizationByID
-		return
-
-	}
-	if ato.AssetCode == nil {
-		err = &tErrors.CustomError{Param: "assetCode", Err: "error-asset-code-not-set", ErrMessage: "Asset code not set."}
-		return
-	}
-	assetCode := (strings.ToUpper(replacer.Replace(strings.TrimSpace(*ato.AssetCode))))
-	ato.AssetCode = &assetCode
-
-	var NotIssuedByIssuer bool
-	if ato.IssuingWalletAlias != nil && len(strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))) > 0 {
-		NotIssuedByIssuer = !strings.HasPrefix(*ato.IssuingWalletAlias, strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE")))
-	}
-
-	if (ato.IssuingWalletAddress == nil || NotIssuedByIssuer) && len(*ato.AssetCode) > 0 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 42 {
-
-		//create issuing wallet
-
-		//get atprofile
-		var tokenizationIssuerProfile, tokenizationIssuerProfileWallet string
-		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 {
-			tokenizationIssuerProfile = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))
-		}
-		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
-			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
-		}
-		tokenizationIssuer, e := userModels.Username(tokenizationIssuerProfile).GetFullUser(gc.DB, gc)
-		if e != nil {
-			err = &tErrors.CustomError{Param: "issuingWalletAddress", Err: "error-invallid-issuing-profile", ErrMessage: "Issuing profile not valid."}
-			return
-		}
-		issuer, _ := evmkeypair.Random()
-		distributor, _ := evmkeypair.Random()
-		tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
-
-		walletTag := fmt.Sprintf("%v_issuer", *ato.AssetCode)
-		p := userModels.SubWalletInfo{
-			Address:             issuer.Address(),
-			WalletTag:           walletTag,
-			WalletType:          1,
-			LinkedWalletAddress: distributor.Address(),
-		}
-		_, err = CreateNewSubWallet(&tokenizationIssuer, &p, gc)
-
-		if err != nil {
-			log.Printf("[AssignIssuingWallet.CreateNewSubWallet: stage 1] Error creating issuing wallet [%v], err: %v\n", p.Address, err)
-			// err = &tErrors.CustomError{Param: "issuingAddress", Err: "error-invalid-issuer", ErrMessage: err}
-			return
-		}
-
-		//sign transactions
-		{
-
-			if p.LinkedWalletMustSign == 1 {
-				dsigned, e := middleware.SignBase64Txn(distributor.Seed(), p.Transaction, p.NetworkPassPhrase)
-				if e != nil {
-					log.Printf("[AssignIssuingWallet.SignBase64Txn] Error signing issuing wallet with linked wallet [%v], err: %v\n", distributor.Address(), e)
-					err = &tErrors.CustomError{Param: "issuingAddress", Err: "error-invalid-issuer", ErrMessage: e.Error()}
-					return
-				}
-				p.LinkedWalletSignature = dsigned
-			}
-
-			primarySignature, subwalletSignature, _, e := middleware.SignSubwalletBase64Txn(tokenizationIssuerProfileWalletKP.Seed(), issuer.Seed(), "", p.Transaction, p.NetworkPassPhrase)
-			if e != nil {
-				log.Printf("[AssignIssuingWallet.SignSubwalletBase64Txn] Error signing issuing wallet with primary, sub and linked wallets [%v] [%v] [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), issuer.Address(), "", e)
-				err = &tErrors.CustomError{Param: "issuingAddress", Err: "error-invalid-issuer", ErrMessage: "Invalid primary, subwallet or linked wallet Signer"}
-				return
-
-			}
-
-			p.PrimarySignature = primarySignature
-			p.SubWalletSignature = subwalletSignature
-			// p.LinkedWalletSignature = linkedWalletSignature
-
-		}
-
-		//second submission to blockchain
-		_, err = CreateNewSubWallet(&tokenizationIssuer, &p, gc)
-		if err != nil {
-			log.Printf("[AssignIssuingWallet.CreateNewSubWallet: stage 2] Error creating issuing wallet [%v], err: %v\n", p.Address, err)
-			// err = &tErrors.CustomError{Param: "issuingAddress", Err: "error-invalid-issuer", ErrMessage: err}
-			return
-		}
-
-		log.Printf("[AssignIssuingWallet.CreateNewSubWallet] Succesfully Created issuing wallet [%v], txID: %v\n", p.Address, p.TransactionID)
-
-		w, e := userModels.UserWalletID(p.Address).GetWallet(gc.DB, gc)
-		if e != nil {
-			log.Printf("[AssignIssuingWallet] Error fetching issuing wallet [%v], err: %v\n", p.Address, e)
-			err = e
-			return
-		}
-
-		//set issuing wallet
-		issuingWallet = w
-		ato.IssuingWalletAlias = &w.Alias
-
-		ato.IssuingWalletAddress = &w.ID
-		ato.MarketMakingWallet = w.LinkedWalletAddress
-		ato.WalletToHoldAssetsNotForSale = w.LinkedWalletAddress
-	}
-	if ato.IssuingWalletAlias == nil {
-		err = &tErrors.CustomError{Param: "issuingAddress", Err: "error-invalid-issuer", ErrMessage: "issuer is empty."}
-		return
-	}
-	if *ato.IssuingWalletAlias == "" {
-		err = &tErrors.CustomError{Param: "issuingAddress", Err: "error-invalid-issuer", ErrMessage: "issuer is empty."}
-		return
-	}
-	if len(issuingWallet.ID) == 0 {
-		//new wallet not generated. populate with existing wallet info.
-		w, e := userModels.UserWalletID(*ato.IssuingWalletAddress).GetWallet(gc.DB, gc)
-		if e != nil {
-			log.Printf("[AssignIssuingWallet] Error fetching issuing wallet [%v], err: %v\n", ato.IssuingWalletAddress, e)
-			err = e
-			return
-		}
-
-		//set issuing wallet
-		issuingWallet = w
-		ato.IssuingWalletAlias = &w.Alias
-		ato.IssuingWalletAddress = &w.ID
-		ato.MarketMakingWallet = w.LinkedWalletAddress
-		ato.WalletToHoldAssetsNotForSale = w.LinkedWalletAddress
-		ato.WalletToHoldAssetsNotForSale = w.LinkedWalletAddress
-	}
-
-	e := gc.DB.Omit(clause.Associations).Save(&ato).Error
-	if e != nil {
-		log.Printf("[AssignIssuingWallet] error saving tokenization to database  for %v: %v\n", tokenizationID, e)
-
-		err = &tErrors.ErrorTemporaryServerError{}
-		return
-	}
-	ato, _, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
-	return ato, issuingWallet, nil
-}
-
 // VetTokenizationAssetInfo used by trovoManager
 func VetTokenizationAssetInfo(tokenizationID string, initiator *userModels.User, input *userModels.VetTokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 
@@ -1449,7 +1290,7 @@ func AcknowledgeTokenizationFeePayment(tokenizationID string, initiator *userMod
 
 	}
 	assetCodeExists := ato.AssetCode != nil
-	if (ato.IssuingWalletAddress == nil || NotIssuedByIssuer) && assetCodeExists && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 42 {
+	if (ato.IssuingWalletAddress == nil || NotIssuedByIssuer) && assetCodeExists && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 {
 
 		//create issuing wallet
 		ato, _, err = AssignIssuingWallet(tokenizationID, gc)
@@ -1582,20 +1423,17 @@ func ActivatePrimarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 			result := gc.DB.Where("DATE(Sales_Start) <= DATE(?) AND Asset_Tokenization_Status = ?", time.Now(), 4).FindInBatches(&assets, batchSize, func(tx *gorm.DB, batch int) error {
 				for i, asset := range assets {
 
-					//check if it has been minted.
-					_, err := userModels.BantuAsset{AssetCode: *asset.AssetCode, ContractAddress: *asset.IssuingWalletAddress}.GetBlockchainAssetProperty(gc)
-					if err != nil {
-						log.Printf("[ActivatePrimarySalesRoutine][CHECK PRIMARY SALES DATES]()()()@@@()()()()FAILED TO CONFIRM MINTING of %v on blockchain due to: %v\n", *asset.AssetCode, err)
-
+					// minted once the mint operation that opens its sale offer is mined
+					if asset.OfferBookOfferID == nil {
+						log.Printf("[ActivatePrimarySalesRoutine] %v has no sale offer yet (mint not mined); not starting sales\n", *asset.AssetCode)
 						continue
 					}
 
-					// assets[i].AssetTokenizationStatus = 5
 					assets[i].AssetTokenizationStatus = 5
+					// SendPNToSuscribersForPrimarySales picks it up (on any instance)
+					assets[i].SalesNotificationPending = 1
 
 					log.Printf("[ActivatePrimarySalesRoutine][CHECK PRIMARY SALES DATES]UPDATE ASSET : %v, %v\n", *asset.AssetCode, asset.AssetTokenizationStatus)
-
-					gc.ChannelOfTokenizedAssetIDs <- asset.ID
 				}
 				e := tx.Omit(clause.Associations).Save(&assets).Error
 				if e != nil {
@@ -1616,9 +1454,6 @@ func ActivatePrimarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 		}
 
 	}
-
-	time.Sleep(15 * time.Minute)
-
 }
 
 // ActivateSecondarySalesRoutine used by automation routine to update tokenized assets to begin sales
@@ -1662,15 +1497,26 @@ func ActivateSecondarySalesRoutine(gc *sharedconfig.GlobalConfig) {
 
 	}
 
-	time.Sleep(15 * time.Minute)
-
 }
 
-// SendPNToSuscribersForPrimarySales used by automation routine to send PN for tokenized assets to begin sales
+// SendPNToSuscribersForPrimarySales sends the sale-start push notifications
+// of every asset whose primary sales started (SalesNotificationPending),
+// each asset once: it is claimed before sending.
 func SendPNToSuscribersForPrimarySales(gc *sharedconfig.GlobalConfig) {
-	chant := <-gc.ChannelOfTokenizedAssetIDs
-	t := userModels.TokenizedAssetID(chant).GetTokenization(gc)
-	if t.ID != chant {
+	var ids []string
+	gc.DB.Model(&userModels.TokenizedAsset{}).Where("sales_notification_pending = ?", 1).Limit(20).Pluck("id", &ids)
+	for _, id := range ids {
+		claim := gc.DB.Model(&userModels.TokenizedAsset{}).Where("id = ? AND sales_notification_pending = ?", id, 1).Update("sales_notification_pending", 0)
+		if claim.Error != nil || claim.RowsAffected != 1 {
+			continue
+		}
+		sendPrimarySalesNotifications(id, gc)
+	}
+}
+
+func sendPrimarySalesNotifications(id string, gc *sharedconfig.GlobalConfig) {
+	t := userModels.TokenizedAssetID(id).GetTokenization(gc)
+	if t.ID != id {
 		return
 	}
 	batchSize := 100
@@ -1710,9 +1556,6 @@ func SendPNToSuscribersForPrimarySales(gc *sharedconfig.GlobalConfig) {
 		}
 
 	}
-
-	time.Sleep(5 * time.Minute)
-
 }
 
 // ConfirmTokenizationApplicationInfoByInitiator used by original owner/initiator to advance status to 1 and allow for vetting.
@@ -2626,951 +2469,6 @@ func GetExpressionOfInterestList(user *userModels.User, gc *sharedconfig.GlobalC
 	return records
 }
 
-func SubscribeToTokenizedAsset(subscriber *userModels.User, subscriberWallet *userModels.UserWallet, ta *userModels.TokenizedAsset, input *userModels.TokenizedAssetSubscriptionInput, gc *sharedconfig.GlobalConfig) (taSubscription userModels.TokenizedAssetSubscription, err error) {
-	if sErr := subscriber.EnsureNotSuspended(); sErr != nil {
-		return taSubscription, sErr
-	}
-	input.TokenizedAssetID = ta.ID
-	input.WalletAddress = subscriberWallet.ID
-	input.SubscriberUsername = subscriber.Username
-	input.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
-	var swapInfo swapModels.SwapSendInfo
-	swapInfo.Messages = make([]string, 0)
-	swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).Truncate(7).String()
-	swapInfo.SwapAmount = swapInfo.SourceAmount
-	// get wallet owner
-	walletOwner, e := subscriberWallet.GetWalletOwner(gc.DB, gc)
-	if e != nil {
-
-		log.Printf("[SubscribeToTokenizedAsset] Error Unable to verify wallet owner of subscribing wallet %v\n", subscriberWallet.Alias)
-		err = &tErrors.CustomError{Param: "issuingWalletAddress", Err: "error-invalid-kyc", ErrMessage: "Unable to verify wallet owner."}
-		return
-
-	}
-
-	if walletOwner.KYCVerified == 0 {
-
-		log.Printf("[SubscribeToTokenizedAsset] Error Wallet owner %v has not met KYC status for asset %v\n", walletOwner.Username, *ta.AssetCode)
-		err = &tErrors.CustomError{Param: "issuingWalletAddress", Err: "error-invalid-kyc", ErrMessage: fmt.Sprintf("%v has not passed KYC to purchase this tokenized asset %v.", walletOwner.Username, *ta.AssetCode)}
-		return
-
-	}
-	if ta.AssetTokenizationStatus != 5 && ta.AssetTokenizationStatus != 6 {
-
-		log.Printf("[SubscribeToTokenizedAsset] Error Tokenized asset not in sales yet: %v\n", ta.ID)
-		err = &tErrors.CustomError{Param: "issuingWalletAddress", Err: "error-invalid-request", ErrMessage: "Only projects that are in sales can accept purchase."}
-		return
-
-	}
-	capEndDate := ta.SalesStart.AddDate(0, 0, ta.CapDurationInDays)
-	if capEndDate.After(time.Now()) && ta.CapOnPurchase > 0 && ta.CapAmountInFiat > 0 && decimal.NewFromFloat(input.Amount+ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc)).Truncate(7).GreaterThan(decimal.NewFromFloat(ta.CapAmountInFiat)) {
-
-		log.Printf("[SubscribeToTokenizedAsset] Error Tokenized asset Cap exceeded: %v, Amount In Cap: %v\n", ta.ID, decimal.NewFromFloat(ta.CapAmountInFiat).String())
-		maxPurchase := decimal.NewFromFloat(ta.CapAmountInFiat - ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc))
-		if maxPurchase.IsZero() {
-			err = &tErrors.CustomError{Param: "amount", Err: "error-cap-amount-exceeded", ErrMessage: fmt.Sprintf("You have exhausted the allowed purchase cap of %v%v worth of %v at this time.", *ta.AssetQuoteCurrency, ta.CapAmountInFiat, *ta.AssetCode)}
-
-		} else {
-
-			err = &tErrors.CustomError{Param: "amount", Err: "error-cap-amount-exceeded", ErrMessage: fmt.Sprintf("You can only purchase upto %v%v worth of %v at this time.", *ta.AssetQuoteCurrency, maxPurchase.String(), *ta.AssetCode)}
-		}
-		return
-
-	}
-
-	if subscriberWallet.SharedAccessEnabled == 1 && subscriberWallet.NumberOfApprovalsNeeded > 0 {
-		input.Multiparty = 1
-		swapInfo.Multiparty = 1
-	}
-
-	if subscriberWallet.HasViewOnlyAccess(gc) {
-		input.SignatureRequired = 1
-		swapInfo.SignatureRequired = 1
-	}
-	dbTX := gc.DB.Begin()
-	defer dbTX.Rollback()
-
-	taSubscription.UpdateTokenizedAssetSubscriptionFromInput(subscriber.Username, subscriberWallet, input, ta, gc)
-
-	//begin transaction xdr
-
-	// swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).Truncate(7).String()
-	// swapAmount := decimal.NewFromFloat(input.Amount).Truncate(7)
-
-	client := gc.BantuExpansionClient
-	//transform codes and issuer
-	swapInfo.DestinationAssetCode = strings.ToUpper(*ta.AssetCode)
-	swapInfo.DestinationContractAddress = strings.ToUpper(*ta.IssuingWalletAddress)
-
-	// resolve payment asset: any approved stablecoin, defaulting to CNGN for unchanged clients.
-	// a client-supplied issuer is never trusted verbatim - the issuer is always re-resolved server-side.
-	paymentAssetCode := strings.ToUpper(strings.TrimSpace(input.PaymentAssetCode))
-	if len(paymentAssetCode) == 0 {
-		paymentAssetCode = "CNGN"
-	}
-	paymentCurrency := GetTokenizationCurrencyByCode(paymentAssetCode, dbTX)
-	if len(paymentCurrency.AssetCode) == 0 {
-		err = &tErrors.CustomError{Param: "paymentAssetCode", Err: "error-invalid-payment-asset", ErrMessage: fmt.Sprintf("Payment asset code [%v] you supplied is invalid.", paymentAssetCode)}
-		return
-	}
-	if len(input.PaymentContractAddress) > 0 && !strings.EqualFold(input.PaymentContractAddress, paymentCurrency.ContractAddress) {
-		err = &tErrors.CustomError{Param: "paymentContractAddress", Err: "error-invalid-payment-asset", ErrMessage: "Payment asset issuer does not match the registered issuer for this currency."}
-		return
-	}
-	if userModels.IsInternalBalanceAsset(paymentCurrency.AssetCode, paymentCurrency.ContractAddress, gc) || strings.EqualFold(paymentCurrency.AssetCode, strings.ToUpper(*ta.AssetCode)) {
-		err = &tErrors.CustomError{Param: "paymentAssetCode", Err: "error-invalid-payment-asset", ErrMessage: "Payment asset cannot be the internal balance token or the tokenized asset itself."}
-		return
-	}
-	swapInfo.SourceAssetCode = strings.ToUpper(paymentCurrency.AssetCode)
-	swapInfo.SourceContractAddress = strings.ToUpper(paymentCurrency.ContractAddress)
-	// write the resolved (normalized/defaulted) payment asset back onto both the in-memory
-	// subscription row (for the direct, non-multiparty save below) and input itself - input is what
-	// gets serialized into PendingAuth.TransactionInfoStr for the multiparty path, and later
-	// re-hydrated in approvals.go's ApproveTransaction to build the TokenizedAssetSubscription row
-	// there via this same UpdateTokenizedAssetSubscriptionFromInput helper, so it must already carry
-	// the resolved values rather than whatever (possibly empty) code the client originally sent
-	taSubscription.PaymentAssetCode = paymentCurrency.AssetCode
-	taSubscription.PaymentContractAddress = paymentCurrency.ContractAddress
-	input.PaymentAssetCode = paymentCurrency.AssetCode
-	input.PaymentContractAddress = paymentCurrency.ContractAddress
-
-	//always save subscriptions afresh - done here, after the payment asset is resolved, so the
-	//saved row already carries the correct PaymentAssetCode/PaymentContractAddress
-	if input.Multiparty == 0 {
-		e := dbTX.Omit(clause.Associations).Save(&taSubscription).Error
-		if e != nil {
-			log.Printf("[SubscribeToTokenizedAsset] error saving tokenized asset subscription  to database  [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
-
-			err = &tErrors.ErrorTemporaryServerError{}
-			return
-		}
-	}
-
-	if e := swapServices.ValidateSwapSendInfo(&swapInfo); e != nil {
-		log.Printf("[SubscribeToTokenizedAsset] error validating tokenized asset subscription [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
-
-		err = e
-
-		return
-	}
-	// get market offer of the asset
-	{
-		offers, e := ta.GetMarketOffers(gc)
-		if e != nil {
-			log.Printf("[SubscribeToTokenizedAsset] error fetching matket offer of tokenized asset [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
-
-			err = &tErrors.ErrorTemporaryServerError{}
-			return
-		}
-		if len(offers.Embedded.Records) > 0 {
-			//get the first
-			offer := offers.Embedded.Records[0]
-			//get price
-			remainingBuyingLiability := decimal.RequireFromString(offer.Amount).Mul(decimal.RequireFromString(offer.Price)).Truncate(7)
-			//if the subscription amount is greater than the buying liability, then reject action.
-			decPurchaseAmountFiat := decimal.NewFromFloat(input.Amount)
-
-			if decPurchaseAmountFiat.GreaterThan(remainingBuyingLiability) {
-				//not enough liquidity
-				err = &tErrors.CustomError{Param: "amount", Err: "error-low-liquidity", ErrMessage: fmt.Sprintf("Remaining %v token can be purchased with a maximum of %v %v. Please adjust your purchase amount.", swapInfo.DestinationAssetCode, remainingBuyingLiability.String(), swapInfo.SourceAssetCode)}
-				return
-			}
-
-			if remainingBuyingLiability.IsZero() {
-				//not enough liquidity
-				err = &tErrors.CustomError{Param: "amount", Err: "error-no-liquidity", ErrMessage: fmt.Sprintf("The allocated %v asset has sold out.", swapInfo.DestinationAssetCode)}
-				return
-			}
-
-		}
-	}
-	if len(input.TransactionSignature) == 0 {
-		xdrBase64, e := generateAssetSubscriptionXdr(subscriberWallet, ta, &swapInfo, gc)
-		if e != nil {
-			log.Printf("[SubscribeToTokenizedAsset] error generating tokenized asset subscription xdr [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
-			if strings.Contains(e.Error(), "liquid") || strings.Contains(e.Error(), "market") {
-				destAsset := os.Getenv("NATIVE_ASSET_CODE")
-				sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
-				if len(swapInfo.SourceAssetCode) > 0 {
-					sourceAsset = swapInfo.SourceAssetCode
-				}
-				if len(swapInfo.DestinationAssetCode) > 0 {
-					destAsset = swapInfo.DestinationAssetCode
-				}
-				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceContractAddress, swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress)
-
-				emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
-				if b != "0" {
-					emsg = fmt.Sprintf("There is only %v %v to exchange for your %v at this time. Please reduce the quantity of %v to try again.", b, destAsset, sourceAsset, sourceAsset)
-
-				}
-				err = &tErrors.CustomError{
-					Param:      "destinationAssetCode",
-					Err:        "error-low-liquidity",
-					ErrMessage: emsg,
-				}
-				return
-			}
-			err = e
-			return
-		}
-
-		swapInfo.Transaction = xdrBase64
-		input.Transaction = xdrBase64
-		input.Messages = swapInfo.Messages
-		input.SwappedEstimate = swapInfo.SwappedEstimate
-		input.TransactionSource = swapInfo.TransactionSource
-		input.Memo = swapInfo.Memo
-
-	}
-
-	input.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
-
-	if len(input.TransactionSignature) == 0 && input.Commit == 0 {
-		err = nil
-		return taSubscription, nil
-	}
-	//no need to check this since offer can change, therefore changing the transaction
-
-	if len(input.TransactionSignature) > 0 && (input.Commit == 0 || subscriberWallet.HasViewOnlyAccess(gc)) {
-		txnHash, e := network.SubmitXdrWithSignature(client, subscriber.PrimarySigner, input.Transaction, input.TransactionSignature)
-		if e != nil {
-			log.Printf("[SubscribeToTokenizedAsset] error submitting tokenized asset subscription to blockchain [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
-
-			err = e
-			logDiscordFailedTokenizedAssetSubscription(fmt.Sprintf("Error submitting asset subscription [%+v] transaction: %s", input, err.Error()))
-			if strings.Contains(err.Error(), "liquid") {
-				destAsset := os.Getenv("NATIVE_ASSET_CODE")
-				sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
-				if len(swapInfo.SourceAssetCode) > 0 {
-					sourceAsset = swapInfo.SourceAssetCode
-				}
-				if len(swapInfo.DestinationAssetCode) > 0 {
-					destAsset = swapInfo.DestinationAssetCode
-				}
-
-				_, b, _ := gc.GetAvalableMarketQuantity(swapInfo.SourceAssetCode, swapInfo.SourceContractAddress, swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress)
-
-				emsg := fmt.Sprintf("There is no %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset)
-				if b != "0" {
-					emsg = fmt.Sprintf("There is only %v %v to exchange for your %v at this time. Please reduce the quantity of %v to try again.", b, destAsset, sourceAsset, sourceAsset)
-				}
-
-				err = &tErrors.CustomError{
-					Param:      "destinationAssetCode",
-					Err:        "error-low-liquidity",
-					ErrMessage: emsg,
-				}
-
-				return
-			}
-		}
-		input.TransactionID = txnHash
-		taSubscription.TransactionID = txnHash
-		dbTX.Omit(clause.Associations).Save(&taSubscription)
-		dbTX.Commit()
-		subscriberWallet.InvalidateUserCache(gc)
-		subscriber.InvalidateUserWalletCache(gc)
-		return taSubscription, nil
-
-	}
-	//multi Party
-	if input.Multiparty == 1 {
-		input.TransactionID = "PENDING_AUTH"
-		taSubscription.TransactionID = "PENDING_AUTH"
-
-		id := uuid.NewString()
-
-		description := fmt.Sprintf("Buying Tokenized asset [%v]\n Amount:%v,\n Getting Apprx:%v %v", *ta.AssetName, fmt.Sprintf("%v %v", input.Amount, *ta.AssetQuoteCurrency), input.SwappedEstimate, *ta.AssetCode)
-		if len(swapInfo.Memo) > 0 {
-			description = fmt.Sprintf("%v\nMemo: %v", description, input.Memo)
-
-		}
-		if len(input.Messages) > 0 {
-			var msgs string
-			for i, m := range input.Messages {
-				msgs = m
-				if i < len(input.Messages)-1 {
-					msgs = fmt.Sprintf("%s\n", msgs)
-				}
-			}
-			description = fmt.Sprintf("%v\nMessages: %v", description, msgs)
-
-		}
-		input.ReturnedDescription = description
-		transactionByte, _ := json.Marshal(*input)
-		transactionStr := string(transactionByte)
-		pendingAuth := userModels.PendingAuth{
-			ID:                     id,
-			Initiator:              subscriber.Username,
-			InitiatorSignerAddress: subscriber.PrimarySigner,
-			WalletAddress:          subscriberWallet.ID,
-			TransactionType:        "ASSET SUBSCRIPTION",
-			Description:            description,
-			TransactionSource:      input.TransactionSource,
-			ApprovalsNeeded:        subscriberWallet.NumberOfApprovalsNeeded,
-			TransactionXdr:         input.Transaction,
-			TransactionInfoStr:     &transactionStr,
-		}
-		//save and commit this to database
-		e := dbTX.Omit(clause.Associations).Create(&pendingAuth).Error
-		if e != nil {
-			log.Printf("[SubscribeToTokenizedAsset] Error saving asset subscription txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
-			err = &tErrors.ErrorTemporaryServerError{}
-
-		}
-
-		dbTX.Commit()
-		subscriberWallet.InvalidateUserCache(gc)
-		subscriber.InvalidateUserWalletCache(gc)
-		return taSubscription, nil
-	}
-	log.Println("[SubscribeToTokenizedAsset]UNKNOWN OPTION FOR ACTION")
-	err = &tErrors.ErrorTemporaryServerError{}
-	return
-
-}
-
-// SubscribeToTokenizedAssetByFiat is the fiat counterpart of SubscribeToTokenizedAsset. The buyer never
-// touches Stellar directly here: the server builds and server-signs (channel account + internal balance
-// issuing multisig + tokenization issuing profile wallet if needed) a transaction that mints the
-// country's internal balance token to the buyer and swaps it for the tokenized asset, the buyer only
-// adds their own signature, and submission to the blockchain is deferred until the fiat payment provider
-// (Flutterwave) confirms payment via webhook - see postCallbacksFlutterwaveWebhookHandler.
-//
-// The client-supplied input.ID is required on both calls and is used as the primary key of both the
-// FiatPaymentInvoice row and the TokenizedAssetSubscription row it creates, and is expected to double as
-// the payment provider's transaction reference so the webhook can find its way back to this invoice.
-//
-// Call 1 (input.TransactionSignature empty): generates the transaction xdr using a reserved channel
-// account and persists it on a new FiatPaymentInvoice + TokenizedAssetSubscription pair. A retried call 1
-// with the same id returns the already-generated invoice as-is rather than regenerating the xdr and
-// reserving a second channel account.
-// Call 2 (input.TransactionSignature present): loads the existing invoice and stores the buyer's
-// signature on it. Nothing is submitted to the blockchain in this call - that only happens later, from
-// the webhook.
-func SubscribeToTokenizedAssetByFiat(subscriber *userModels.User, subscriberWallet *userModels.UserWallet, ta *userModels.TokenizedAsset, input *userModels.FiatTokenizedAssetSubscriptionInput, gc *sharedconfig.GlobalConfig) (invoice userModels.FiatPaymentInvoice, err error) {
-	if sErr := subscriber.EnsureNotSuspended(); sErr != nil {
-		return invoice, sErr
-	}
-	if len(input.ID) == 0 {
-		err = &tErrors.CustomError{Param: "id", Err: "error-missing-parameter", ErrMessage: "id is required."}
-		return
-	}
-	input.TokenizedAssetID = ta.ID
-	input.SubscriberUsername = subscriber.Username
-
-	// call 2: buyer's signature is being supplied to finalize a previously-generated invoice
-	if len(input.TransactionSignature) > 0 {
-		e := gc.DB.Where("id = ? AND username = ?", input.ID, subscriber.Username).First(&invoice).Error
-		if e != nil {
-			err = &tErrors.CustomError{Param: "id", Err: "error-invalid-request", ErrMessage: "No pending fiat asset purchase invoice found for this id."}
-			return
-		}
-		if invoice.TransactionSignature != nil || invoice.Status != "PENDING" {
-			err = &tErrors.CustomError{Param: "id", Err: "error-invalid-request", ErrMessage: "This fiat asset purchase invoice has already been signed or processed."}
-			return
-		}
-		signature := input.TransactionSignature
-		e = gc.DB.Model(&userModels.FiatPaymentInvoice{}).Where("id = ?", invoice.ID).Update("transaction_signature", signature).Error
-		if e != nil {
-			log.Printf("[SubscribeToTokenizedAssetByFiat] error saving transaction signature for invoice %v: %v\n", invoice.ID, e)
-			err = &tErrors.ErrorTemporaryServerError{}
-			return
-		}
-		invoice.TransactionSignature = &signature
-		return invoice, nil
-	}
-
-	// call 1: an already-generated, still-unsigned invoice for this id is reused as-is rather than
-	// regenerating the xdr and reserving a second channel account
-	{
-		var existing userModels.FiatPaymentInvoice
-		e := gc.DB.Where("id = ?", input.ID).First(&existing).Error
-		if e == nil {
-			if existing.TransactionSignature != nil {
-				err = &tErrors.CustomError{Param: "id", Err: "error-invalid-request", ErrMessage: "This fiat asset purchase invoice has already been signed."}
-				return
-			}
-			return existing, nil
-		}
-	}
-
-	walletOwner, e := subscriberWallet.GetWalletOwner(gc.DB, gc)
-	if e != nil {
-		log.Printf("[SubscribeToTokenizedAssetByFiat] Error Unable to verify wallet owner of subscribing wallet %v\n", subscriberWallet.Alias)
-		err = &tErrors.CustomError{Param: "issuingWalletAddress", Err: "error-invalid-kyc", ErrMessage: "Unable to verify wallet owner."}
-		return
-	}
-	if walletOwner.KYCVerified == 0 {
-		log.Printf("[SubscribeToTokenizedAssetByFiat] Error Wallet owner %v has not met KYC status for asset %v\n", walletOwner.Username, *ta.AssetCode)
-		err = &tErrors.CustomError{Param: "issuingWalletAddress", Err: "error-invalid-kyc", ErrMessage: fmt.Sprintf("%v has not passed KYC to purchase this tokenized asset %v.", walletOwner.Username, *ta.AssetCode)}
-		return
-	}
-	if ta.AssetTokenizationStatus != 5 && ta.AssetTokenizationStatus != 6 {
-		log.Printf("[SubscribeToTokenizedAssetByFiat] Error Tokenized asset not in sales yet: %v\n", ta.ID)
-		err = &tErrors.CustomError{Param: "issuingWalletAddress", Err: "error-invalid-request", ErrMessage: "Only projects that are in sales can accept purchase."}
-		return
-	}
-	capEndDate := ta.SalesStart.AddDate(0, 0, ta.CapDurationInDays)
-	if capEndDate.After(time.Now()) && ta.CapOnPurchase > 0 && ta.CapAmountInFiat > 0 && decimal.NewFromFloat(input.Amount+ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc)).Truncate(7).GreaterThan(decimal.NewFromFloat(ta.CapAmountInFiat)) {
-		log.Printf("[SubscribeToTokenizedAssetByFiat] Error Tokenized asset Cap exceeded: %v, Amount In Cap: %v\n", ta.ID, decimal.NewFromFloat(ta.CapAmountInFiat).String())
-		maxPurchase := decimal.NewFromFloat(ta.CapAmountInFiat - ta.SumAmountBoughtByWalletOwner(subscriberWallet.Alias, gc))
-		if maxPurchase.IsZero() {
-			err = &tErrors.CustomError{Param: "amount", Err: "error-cap-amount-exceeded", ErrMessage: fmt.Sprintf("You have exhausted the allowed purchase cap of %v%v worth of %v at this time.", *ta.AssetQuoteCurrency, ta.CapAmountInFiat, *ta.AssetCode)}
-		} else {
-			err = &tErrors.CustomError{Param: "amount", Err: "error-cap-amount-exceeded", ErrMessage: fmt.Sprintf("You can only purchase upto %v%v worth of %v at this time.", *ta.AssetQuoteCurrency, maxPurchase.String(), *ta.AssetCode)}
-		}
-		return
-	}
-	if subscriberWallet.SharedAccessEnabled == 1 && subscriberWallet.NumberOfApprovalsNeeded > 0 {
-		err = &tErrors.CustomError{Param: "walletAddress", Err: "error-invalid-request", ErrMessage: "Fiat purchase is not supported on shared-access wallets that require multiple approvals."}
-		return
-	}
-
-	// get market offer of the asset - liquidity check
-	{
-		offers, e := ta.GetMarketOffers(gc)
-		if e != nil {
-			log.Printf("[SubscribeToTokenizedAssetByFiat] error fetching market offer of tokenized asset [%v] for %v: %v\n", ta.ID, subscriber.Username, e)
-			err = &tErrors.ErrorTemporaryServerError{}
-			return
-		}
-		if len(offers.Embedded.Records) > 0 {
-			offer := offers.Embedded.Records[0]
-			remainingBuyingLiability := decimal.RequireFromString(offer.Amount).Mul(decimal.RequireFromString(offer.Price)).Truncate(7)
-			decPurchaseAmountFiat := decimal.NewFromFloat(input.Amount)
-			if decPurchaseAmountFiat.GreaterThan(remainingBuyingLiability) {
-				err = &tErrors.CustomError{Param: "amount", Err: "error-low-liquidity", ErrMessage: fmt.Sprintf("Remaining %v token can be purchased with a maximum of %v. Please adjust your purchase amount.", strings.ToUpper(*ta.AssetCode), remainingBuyingLiability.String())}
-				return
-			}
-			if remainingBuyingLiability.IsZero() {
-				err = &tErrors.CustomError{Param: "amount", Err: "error-no-liquidity", ErrMessage: fmt.Sprintf("The allocated %v asset has sold out.", strings.ToUpper(*ta.AssetCode))}
-				return
-			}
-		}
-	}
-
-	var swapInfo swapModels.SwapSendInfo
-	swapInfo.Messages = make([]string, 0)
-	swapInfo.SourceAmount = decimal.NewFromFloat(input.Amount).Truncate(7).String()
-	swapInfo.SwapAmount = swapInfo.SourceAmount
-	swapInfo.DestinationAssetCode = strings.ToUpper(*ta.AssetCode)
-	swapInfo.DestinationContractAddress = strings.ToUpper(*ta.IssuingWalletAddress)
-
-	xdrBase64, channelAccountAddress, e := generateAssetSubscriptionFiatXdr(subscriberWallet, ta, &swapInfo, gc)
-	if e != nil {
-		log.Printf("[SubscribeToTokenizedAssetByFiat] error generating fiat asset subscription xdr for %v: %v\n", subscriber.Username, e)
-		err = e
-		return
-	}
-
-	countryConfig := userModels.CountryCode(*ta.AssetCountryLocation).GetConfig(gc)
-
-	dbTX := gc.DB.Begin()
-	defer dbTX.Rollback()
-
-	var taSubscription userModels.TokenizedAssetSubscription
-	taSubscription.ID = input.ID
-	taSubscription.TokenizedAssetID = ta.ID
-	taSubscription.AssetCode = *ta.AssetCode
-	taSubscription.ContractAddress = *ta.IssuingWalletAddress
-	taSubscription.WalletAlias = subscriberWallet.Alias
-	taSubscription.WalletAddress = subscriberWallet.ID
-	taSubscription.Amount = decimal.NewFromFloat(input.Amount).Truncate(7).InexactFloat64()
-	taSubscription.Price = ta.PricePerToken
-	taSubscription.SubscriberUsername = subscriber.Username
-	taSubscription.PaymentAssetCode = *countryConfig.InternalBalanceTokenCode
-	taSubscription.PaymentContractAddress = "FIAT"
-
-	if e := dbTX.Omit(clause.Associations).Create(&taSubscription).Error; e != nil {
-		log.Printf("[SubscribeToTokenizedAssetByFiat] error saving tokenized asset subscription [%+v] for %v: %v\n", taSubscription, subscriber.Username, e)
-		gc.ReleaseInUseChannelAccount(channelAccountAddress)
-		err = &tErrors.ErrorTemporaryServerError{}
-		return
-	}
-
-	walletAlias := subscriberWallet.Alias
-	walletAddress := subscriberWallet.ID
-	tokenizedAssetID := ta.ID
-
-	invoice = userModels.FiatPaymentInvoice{
-		ID:                input.ID,
-		ServiceProvider:   "flutterwave",
-		Username:          subscriber.Username,
-		Amount:            input.Amount,
-		PaymentType:       "ASSET PURCHASE",
-		Status:            "PENDING",
-		TokenizedAssetID:  &tokenizedAssetID,
-		WalletAlias:       &walletAlias,
-		WalletAddress:     &walletAddress,
-		Transaction:       &xdrBase64,
-		TransactionSource: &channelAccountAddress,
-	}
-	if e := dbTX.Create(&invoice).Error; e != nil {
-		log.Printf("[SubscribeToTokenizedAssetByFiat] error saving fiat payment invoice [%+v] for %v: %v\n", invoice, subscriber.Username, e)
-		gc.ReleaseInUseChannelAccount(channelAccountAddress)
-		err = &tErrors.ErrorTemporaryServerError{}
-		return
-	}
-
-	dbTX.Commit()
-	return invoice, nil
-}
-
-func generateAssetSubscriptionXdr(wallet *userModels.UserWallet, ta *userModels.TokenizedAsset, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) (string, error) {
-	// baseReserve := network.GetBlockchainBaseReserve()
-	swapDestMin := network.GetBlockchainSwapDestinationMin()
-	client := gc.BantuExpansionClient
-	messages := make([]string, 0)
-	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
-	var err error
-	var amountToSwap decimal.Decimal
-
-	if amountToSwap, err = decimal.NewFromString(swapInfo.SourceAmount); err != nil {
-		return "", &swapErrors.ErrorInvalidSwapAmount{}
-	}
-	// newAmountToSwap := amountToSwap.Truncate(7).String()
-
-	if ta.FundsHoldingWalletAddress == nil {
-		return "", &tErrors.CustomError{Param: "fundsHoldingWalletAddress", Err: "error-funds-holding-wallet-not-set", ErrMessage: "This tokenized asset is not yet configured to accept purchases."}
-	}
-	if ta.AssetCountryLocation == nil {
-		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-invalid-quote-currency", ErrMessage: "Tokenization does not have a valid country of location."}
-	}
-	// resolve the internal balance token (issued 1:1 on-demand to the buyer) from the asset's country config
-	countryConfig := userModels.CountryCode(*ta.AssetCountryLocation).GetConfig(gc)
-	if countryConfig.InternalBalanceTokenCode == nil || countryConfig.InternalTokenIssuer == nil {
-		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-invalid-quote-currency", ErrMessage: "Tokenization does not have valid tokenization currency."}
-	}
-	internalBalanceAsset := basetxn.CreditAsset{Code: *countryConfig.InternalBalanceTokenCode, Issuer: *countryConfig.InternalTokenIssuer}
-
-	internalBalanceIssuingSigners, err := getInternalBalanceIssuingSigners()
-	if err != nil {
-		log.Println("[generateAssetSubscriptionXdr] error parsing internal balance issuing signers", err)
-		return "", &tErrors.ErrorTemporaryServerError{}
-	}
-
-	var sourceAsset basetxn.Asset = basetxn.NativeAsset{}
-	var destinationAsset basetxn.Asset = basetxn.NativeAsset{}
-
-	if len(swapInfo.DestinationAssetCode) != 0 && !strings.EqualFold(swapInfo.DestinationAssetCode, nativeAssetCode) {
-
-		destinationAsset = basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationContractAddress}
-	}
-	if len(swapInfo.SourceAssetCode) != 0 && !strings.EqualFold(swapInfo.SourceAssetCode, nativeAssetCode) {
-
-		sourceAsset = basetxn.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceContractAddress}
-	}
-
-	swapInfo.Messages = messages
-	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
-	chanAccount, releaseChanAccount, errCheckout := sharedconfig.CheckoutChannelAccount(gc)
-	if errCheckout != nil {
-		return "", errCheckout
-	}
-	defer releaseChanAccount()
-
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
-
-	_, _, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, sourceAsset)
-	var sourceAccountTrustsDestinationAsset bool
-	if !destinationAsset.IsNative() {
-		_, sourceAccountTrustsDestinationAsset, _, _, _, _ = network.BlockchainAccountProperties(client, wallet.ID, destinationAsset)
-
-	}
-	_, sourceAccountTrustsInternalBalanceAsset, _, _, _, _ := network.BlockchainAccountProperties(client, wallet.ID, internalBalanceAsset)
-
-	if sourceAccountErr != nil {
-		return "", sourceAccountErr
-	}
-
-	log.Printf("[generateAssetSubscriptionXdr]obtained source account balance:\n%v balance is %v\n%v balance is %v\n", nativeAssetCode, sourceAccountNativeBalance, sourceAsset.GetCode(), sourceAccountCustomBalance)
-
-	if sourceAccountCustomBalance.LessThan(amountToSwap) {
-		return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwap).Sub(sourceAccountCustomBalance), sourceAsset.GetCode())}
-	}
-
-	// 1. send the stablecoin to the tokenized asset's funds holding wallet
-	ops = append(ops, &basetxn.Payment{
-		Destination:   *ta.FundsHoldingWalletAddress,
-		Amount:        swapInfo.SourceAmount,
-		Asset:         sourceAsset,
-		SourceAccount: wallet.ID,
-	})
-
-	if !sourceAccountTrustsInternalBalanceAsset {
-		// 2. establish the buyer's trustline to the internal balance token
-		ops = append(ops, &basetxn.ChangeTrust{
-			Line:          internalBalanceAsset,
-			Limit:         gc.TokenLimitAsString(),
-			SourceAccount: wallet.ID,
-		})
-		// 3. authorize that trustline
-		ops = append(ops, &basetxn.SetTrustLineFlags{
-			Trustor:       wallet.ID,
-			Asset:         internalBalanceAsset,
-			SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-			SourceAccount: *countryConfig.InternalTokenIssuer,
-		})
-	}
-
-	// 4. issue the internal balance token 1:1 to the buyer
-	ops = append(ops, &basetxn.Payment{
-		Destination:   wallet.ID,
-		Amount:        swapInfo.SwapAmount,
-		Asset:         internalBalanceAsset,
-		SourceAccount: *countryConfig.InternalTokenIssuer,
-	})
-
-	if !destinationAsset.IsNative() {
-
-		if !sourceAccountTrustsDestinationAsset {
-
-			// 5. establish trustline to the tokenized asset
-			ops = append(ops, &basetxn.ChangeTrust{
-				Line:          destinationAsset,
-				Limit:         gc.TokenLimitAsString(),
-				SourceAccount: wallet.ID,
-			})
-			// allow trust from issuer to destination wallet
-			ops = append(ops, &basetxn.SetTrustLineFlags{
-				Trustor:       wallet.ID,
-				Asset:         basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationContractAddress},
-				SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-				SourceAccount: swapInfo.DestinationContractAddress,
-			})
-
-		}
-	}
-
-	//get sendPath from the internal balance token to the tokenized asset
-	//using DestinationAccount will get paths to all assets in the destination account.
-	//using destinationAssets gets path to only the asset
-	destAsset := ""
-	if !destinationAsset.IsNative() {
-		destAsset = fmt.Sprintf("%s:%s", swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress)
-	}
-	pathInput := swapModels.SwapSendPathInput{
-		DestinationAssets:     destAsset,
-		SourceAssetCode:       internalBalanceAsset.Code,
-		SourceContractAddress: internalBalanceAsset.Issuer,
-		SourceAmount:          swapInfo.SwapAmount,
-	}
-	path, swappedEstimate, err := GetStrictSendPaths(pathInput, client)
-	if err != nil {
-		log.Println("[generateAssetSubscriptionXdr]error fetching valid swap Path ", err)
-		return "", err
-	}
-
-	// 6. swap the internal balance token for the tokenized asset
-	ops = append(ops, &basetxn.PathPaymentStrictSend{
-		SendAsset:     internalBalanceAsset,
-		SendAmount:    swapInfo.SwapAmount,
-		Destination:   wallet.ID,
-		DestAsset:     destinationAsset,
-		DestMin:       swapDestMin.String(),
-		Path:          path,
-		SourceAccount: wallet.ID,
-	})
-
-	// 7. remove the internal balance trustline so it never persists outside of this transaction
-	ops = append(ops, &basetxn.ChangeTrust{
-		Line:          internalBalanceAsset,
-		Limit:         "0",
-		SourceAccount: wallet.ID,
-	})
-
-	// Construct the transaction that holds the operations to execute on the network
-	var memoSAC, memoDAC string
-	memoSAC = swapInfo.SourceAssetCode
-	memoDAC = swapInfo.DestinationAssetCode
-
-	memo := fmt.Sprintf("%v>%v", memoSAC, memoDAC)
-	log.Println("[generateAssetSubscriptionXdr] Memo:", memo)
-	swapInfo.Memo = memo
-
-	var tx *basetxn.Transaction
-	// Construct the transaction that holds the operations to execute on the network
-	if swapInfo.Multiparty == 1 {
-		swapInfo.TransactionSource = chanSourceAccount.Address
-		tx, err = basetxn.NewTransaction(
-			basetxn.TransactionParams{
-				SourceAccount:        chanSourceAccount.Address,
-				IncrementSequenceNum: true,
-				Operations:           ops,
-				BaseFee:              2000,
-				Memo:                 memo,
-			},
-		)
-	} else {
-		tx, err = basetxn.NewTransaction(
-			basetxn.TransactionParams{
-				SourceAccount:        sourceAccount.Address,
-				IncrementSequenceNum: true,
-				Operations:           ops,
-				BaseFee:              2000,
-				Memo:                 memo,
-			},
-		)
-	}
-
-	if err != nil {
-		log.Println("[generateAssetSubscriptionXdr] error constructing transaction ", err)
-		return "", err
-	}
-
-	if swapInfo.Multiparty == 1 {
-
-		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
-
-		if err != nil {
-			log.Println("[generateAssetSubscriptionXdr] error signing transaction with channelAccount key ", err)
-			return "", &tErrors.ErrorTemporaryServerError{}
-		}
-	}
-
-	// sign for the internal balance issuer (multisig) to authorize the buyer's trustline and issue the internal balance token
-	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), internalBalanceIssuingSigners...)
-	if err != nil {
-		log.Println("[generateAssetSubscriptionXdr] error signing transaction with internal balance issuing signers ", err)
-		return "", &tErrors.ErrorTemporaryServerError{}
-	}
-
-	if !sourceAccountTrustsDestinationAsset {
-		log.Printf("[generateAssetSubscriptionXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with issuer key>>>>>>>>>>>>>>>>>>>>>>>>:[%v]\n\n", destinationAsset)
-		//get atprofile
-		var tokenizationIssuerProfileWallet string
-
-		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
-			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
-		}
-
-		tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
-
-		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
-		if err != nil {
-			log.Println("[generateAssetSubscriptionXdr] error signing transaction with issuer key to authorize trustline", err)
-			return "", &tErrors.ErrorTemporaryServerError{}
-		}
-	}
-
-	var xdrBase64 string
-
-	xdrBase64, err = tx.Base64()
-	if err != nil {
-		log.Println("[generateAssetSubscriptionXdr] error getting txn base64", err)
-		return "", err
-	}
-	swapInfo.Memo = memo
-	swapInfo.Messages = messages
-	swapInfo.SwappedEstimate = swappedEstimate
-	return xdrBase64, nil
-}
-
-// generateAssetSubscriptionFiatXdr builds the same purchase transaction as generateAssetSubscriptionXdr
-// but drops the buyer's on-chain stablecoin payment leg (fiat settlement, confirmed later by the
-// Flutterwave webhook, is what authorizes the mint) and always sources the transaction from a channel
-// account rather than the buyer's own sequence account, since submission is deferred until the webhook
-// fires - potentially long after this function returns. The channel account is only reserved
-// (StoreInUseChannelAccount) once every failable step has already succeeded; on any earlier error it is
-// returned to the pool untouched.
-func generateAssetSubscriptionFiatXdr(wallet *userModels.UserWallet, ta *userModels.TokenizedAsset, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) (xdrBase64 string, channelAccountAddress string, err error) {
-	swapDestMin := network.GetBlockchainSwapDestinationMin()
-	client := gc.BantuExpansionClient
-	messages := make([]string, 0)
-	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
-
-	if _, e := decimal.NewFromString(swapInfo.SourceAmount); e != nil {
-		return "", "", &swapErrors.ErrorInvalidSwapAmount{}
-	}
-	if ta.AssetCountryLocation == nil {
-		return "", "", &tErrors.CustomError{Param: "publicKey", Err: "error-invalid-quote-currency", ErrMessage: "Tokenization does not have a valid country of location."}
-	}
-	// resolve the internal balance token (issued 1:1 on-demand to the buyer) from the asset's country config
-	countryConfig := userModels.CountryCode(*ta.AssetCountryLocation).GetConfig(gc)
-	if countryConfig.InternalBalanceTokenCode == nil || countryConfig.InternalTokenIssuer == nil {
-		return "", "", &tErrors.CustomError{Param: "publicKey", Err: "error-invalid-quote-currency", ErrMessage: "Tokenization does not have valid tokenization currency."}
-	}
-	internalBalanceAsset := basetxn.CreditAsset{Code: *countryConfig.InternalBalanceTokenCode, Issuer: *countryConfig.InternalTokenIssuer}
-
-	internalBalanceIssuingSigners, e := getInternalBalanceIssuingSigners()
-	if e != nil {
-		log.Println("[generateAssetSubscriptionFiatXdr] error parsing internal balance issuing signers", e)
-		return "", "", &tErrors.ErrorTemporaryServerError{}
-	}
-
-	var destinationAsset basetxn.Asset = basetxn.NativeAsset{}
-	if len(swapInfo.DestinationAssetCode) != 0 && !strings.EqualFold(swapInfo.DestinationAssetCode, nativeAssetCode) {
-		destinationAsset = basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationContractAddress}
-	}
-
-	swapInfo.Messages = messages
-
-	_, _, _, _, _, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, basetxn.NativeAsset{})
-	if sourceAccountErr != nil {
-		return "", "", sourceAccountErr
-	}
-
-	var sourceAccountTrustsDestinationAsset bool
-	if !destinationAsset.IsNative() {
-		_, sourceAccountTrustsDestinationAsset, _, _, _, _ = network.BlockchainAccountProperties(client, wallet.ID, destinationAsset)
-	}
-	_, sourceAccountTrustsInternalBalanceAsset, _, _, _, _ := network.BlockchainAccountProperties(client, wallet.ID, internalBalanceAsset)
-
-	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
-
-	if !sourceAccountTrustsInternalBalanceAsset {
-		// 1. establish the buyer's trustline to the internal balance token
-		ops = append(ops, &basetxn.ChangeTrust{
-			Line:          internalBalanceAsset,
-			Limit:         gc.TokenLimitAsString(),
-			SourceAccount: wallet.ID,
-		})
-		// 2. authorize that trustline
-		ops = append(ops, &basetxn.SetTrustLineFlags{
-			Trustor:       wallet.ID,
-			Asset:         internalBalanceAsset,
-			SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-			SourceAccount: *countryConfig.InternalTokenIssuer,
-		})
-	}
-
-	// 3. issue the internal balance token 1:1 to the buyer, in place of the on-chain stablecoin
-	// payment leg - the fiat payment confirmed later by the webhook is what authorizes this mint
-	ops = append(ops, &basetxn.Payment{
-		Destination:   wallet.ID,
-		Amount:        swapInfo.SwapAmount,
-		Asset:         internalBalanceAsset,
-		SourceAccount: *countryConfig.InternalTokenIssuer,
-	})
-
-	if !destinationAsset.IsNative() && !sourceAccountTrustsDestinationAsset {
-		// 4. establish trustline to the tokenized asset
-		ops = append(ops, &basetxn.ChangeTrust{
-			Line:          destinationAsset,
-			Limit:         gc.TokenLimitAsString(),
-			SourceAccount: wallet.ID,
-		})
-		ops = append(ops, &basetxn.SetTrustLineFlags{
-			Trustor:       wallet.ID,
-			Asset:         basetxn.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationContractAddress},
-			SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-			SourceAccount: swapInfo.DestinationContractAddress,
-		})
-	}
-
-	//get sendPath from the internal balance token to the tokenized asset
-	destAsset := ""
-	if !destinationAsset.IsNative() {
-		destAsset = fmt.Sprintf("%s:%s", swapInfo.DestinationAssetCode, swapInfo.DestinationContractAddress)
-	}
-	pathInput := swapModels.SwapSendPathInput{
-		DestinationAssets:     destAsset,
-		SourceAssetCode:       internalBalanceAsset.Code,
-		SourceContractAddress: internalBalanceAsset.Issuer,
-		SourceAmount:          swapInfo.SwapAmount,
-	}
-	path, swappedEstimate, pathErr := GetStrictSendPaths(pathInput, client)
-	if pathErr != nil {
-		log.Println("[generateAssetSubscriptionFiatXdr] error fetching valid swap path ", pathErr)
-		return "", "", pathErr
-	}
-
-	// 5. swap the internal balance token for the tokenized asset
-	ops = append(ops, &basetxn.PathPaymentStrictSend{
-		SendAsset:     internalBalanceAsset,
-		SendAmount:    swapInfo.SwapAmount,
-		Destination:   wallet.ID,
-		DestAsset:     destinationAsset,
-		DestMin:       swapDestMin.String(),
-		Path:          path,
-		SourceAccount: wallet.ID,
-	})
-
-	// 6. remove the internal balance trustline so it never persists outside of this transaction
-	ops = append(ops, &basetxn.ChangeTrust{
-		Line:          internalBalanceAsset,
-		Limit:         "0",
-		SourceAccount: wallet.ID,
-	})
-
-	memo := fmt.Sprintf("FIAT>%v", swapInfo.DestinationAssetCode)
-	swapInfo.Memo = memo
-
-	// only pull a channel account off the pool once every step above that can fail has already
-	// succeeded - on any earlier error nothing was reserved, so nothing needs to be returned
-	chanAccount, releaseChanAccount, errCheckout := sharedconfig.CheckoutChannelAccount(gc)
-	if errCheckout != nil {
-		return "", "", errCheckout
-	}
-	reserved := false
-	defer func() {
-		if !reserved {
-			releaseChanAccount()
-		}
-	}()
-
-	_, _, _, _, chanSourceAccount, chanErr := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
-	if chanErr != nil {
-		return "", "", chanErr
-	}
-	swapInfo.TransactionSource = chanSourceAccount.Address
-
-	tx, txErr := basetxn.NewTransaction(
-		basetxn.TransactionParams{
-			SourceAccount:        chanSourceAccount.Address,
-			IncrementSequenceNum: true,
-			Operations:           ops,
-			BaseFee:              2000,
-			Memo:                 memo,
-		},
-	)
-	if txErr != nil {
-		log.Println("[generateAssetSubscriptionFiatXdr] error constructing transaction ", txErr)
-		return "", "", txErr
-	}
-
-	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
-	if err != nil {
-		log.Println("[generateAssetSubscriptionFiatXdr] error signing transaction with channel account key ", err)
-		return "", "", &tErrors.ErrorTemporaryServerError{}
-	}
-
-	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), internalBalanceIssuingSigners...)
-	if err != nil {
-		log.Println("[generateAssetSubscriptionFiatXdr] error signing transaction with internal balance issuing signers ", err)
-		return "", "", &tErrors.ErrorTemporaryServerError{}
-	}
-
-	if !sourceAccountTrustsDestinationAsset {
-		var tokenizationIssuerProfileWallet string
-		if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
-			tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
-		}
-		tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
-		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), tokenizationIssuerProfileWalletKP)
-		if err != nil {
-			log.Println("[generateAssetSubscriptionFiatXdr] error signing transaction with issuer key to authorize trustline", err)
-			return "", "", &tErrors.ErrorTemporaryServerError{}
-		}
-	}
-
-	xdrBase64, err = tx.Base64()
-	if err != nil {
-		log.Println("[generateAssetSubscriptionFiatXdr] error getting txn base64", err)
-		return "", "", err
-	}
-
-	gc.StoreInUseChannelAccount(chanAccount)
-	reserved = true
-	channelAccountAddress = chanAccount.Address()
-
-	swapInfo.Messages = messages
-	swapInfo.SwappedEstimate = swappedEstimate
-	return xdrBase64, channelAccountAddress, nil
-}
-
 // getInternalBalanceIssuingSigners parses the multisig internal balance issuer's signers from the
 // INTERNAL_BALANCE_ISSUING_SIGNERS env var, a CSV of secret seeds. All parsed signers are returned so
 // the caller can sign with each of them - extra valid signatures beyond the account's multisig threshold
@@ -3634,382 +2532,61 @@ func UpdateTokenizedAssetFromInput(t *userModels.TokenizedAsset, ti *userModels.
 	return t.UpdateTokenizedAssetFromInput(ti, gc)
 }
 
-func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, gc *sharedconfig.GlobalConfig) (xdrbase64, transactionSource string, messages []string, issuingWallet userModels.UserWallet, err error) {
-	replacer := strings.NewReplacer("\r", "", "\n", "", " ", "")
-
+func generateMintRegulatedTokenizedAssetXdr(t *userModels.TokenizedAsset, initiator *userModels.User, gc *sharedconfig.GlobalConfig) (transaction string, messages []string, issuingWallet userModels.UserWallet, err error) {
 	if decimal.NewFromFloat(t.NumberOfTokenToBeIssued).GreaterThan(gc.TokenLimitAsDecimal()) {
 		err = &tErrors.CustomError{Param: "numberOfTokenToBeIssued", Err: "error-token-limit-exceeded", ErrMessage: fmt.Sprintf("Issued Number of tokens cannot exceed %v", gc.TokenLimitAsString())}
 		return
 	}
-	client := gc.BantuExpansionClient
-
-	TOKENIZATION_FEE := t.GetTokenizationFeeWallet(gc)
-	feeWallet := evmkeypair.MustParseFull(TOKENIZATION_FEE.FeeWalletSecretKey)
-	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
-	messages = make([]string, 0)
-	var permInfo []userModels.WalletPermissionInfo
-
-	var minBalance = decimal.NewFromFloat(3.0)
-
-	if len(os.Getenv("WALLET_MINIMUM_BALANCE")) > 0 {
-		minBalance = decimal.RequireFromString(os.Getenv("WALLET_MINIMUM_BALANCE"))
-	}
-	if t.AssetQuoteCurrency == nil {
-		log.Println("[generateMintRegulatedTokenizedAssetXdr] Error locating quote currency")
-
-		err = &tErrors.CustomError{
-			Param:      "publicKey",
-			Err:        "error-invalid-quote-currency",
-			ErrMessage: "Tokenization does not have valid tokenization currency.",
-			Code:       404,
-		}
-		return "", "", messages, issuingWallet, err
-	}
-	if t.AssetCountryLocation == nil {
-		log.Println("[generateMintRegulatedTokenizedAssetXdr] Error locating asset country location")
-
-		err = &tErrors.CustomError{
-			Param:      "publicKey",
-			Err:        "error-invalid-quote-currency",
-			ErrMessage: "Tokenization does not have a valid country of location.",
-			Code:       404,
-		}
-		return "", "", messages, issuingWallet, err
-	}
-	// resolve quote currency + issuer from the country's internal balance token config
-	countryConfig := userModels.CountryCode(*t.AssetCountryLocation).GetConfig(gc)
-	if countryConfig.InternalBalanceTokenCode == nil || countryConfig.InternalTokenIssuer == nil {
-		log.Printf("[generateMintRegulatedTokenizedAssetXdr] Error locating quote currency %v\n", *t.AssetQuoteCurrency)
-
-		err = &tErrors.CustomError{
-			Param:      "publicKey",
-			Err:        "error-invalid-quote-currency",
-			ErrMessage: "Tokenization does not have valid tokenization currency.",
-			Code:       404,
-		}
-		return "", "", messages, issuingWallet, err
-	}
-	quoteCurrency := userModels.TokenizationCurrency{AssetCode: *countryConfig.InternalBalanceTokenCode, ContractAddress: *countryConfig.InternalTokenIssuer}
-
-	if t.MintingApprovers == nil {
-		// set default
-		u := t.GetMintingApproversInCSV(gc)
-		t.MintingApprovers = &u
-	}
-
-	if t.MintingInitators == nil {
-		//set default
-		u := t.GetMintingInitiatorsInCSV(gc)
-		t.MintingInitators = &u
-	}
-	trimmedApprovers := replacer.Replace(*t.MintingApprovers)
-	t.MintingApprovers = &trimmedApprovers
-
-	trimmedInitiators := replacer.Replace(*t.MintingInitators)
-	t.MintingInitators = &trimmedInitiators
-	var aps []string
-	var inits []string
-	aps = strings.Split(*t.MintingApprovers, ",")
-	inits = strings.Split(*t.MintingInitators, ",")
-
-	if len(aps) == 0 || len(inits) == 0 {
-		err = &tErrors.CustomError{
-			Param:      "numberOfApprovers",
-			Err:        "error-no-approver-or-initiator-specified",
-			ErrMessage: "No approvers /initiators specified",
-			Code:       404,
-		}
-		return "", "", messages, issuingWallet, err
-	}
-
-	if len(aps) < 4 {
-		err = &tErrors.CustomError{
-			Param:      "numberOfApprovers",
-			Err:        "error-approvers-less-than-4",
-			ErrMessage: fmt.Sprintf("%v approvers specified. Requires minimum of 4", len(aps)),
-			Code:       404,
-		}
-		return "", "", messages, issuingWallet, err
-	}
-	//get atprofile
-	var tokenizationIssuerProfile, tokenizationIssuerProfileWallet string
-	if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 {
-		tokenizationIssuerProfile = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))
-	}
-	if len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) > 1 {
-		tokenizationIssuerProfileWallet = strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET"))
-	}
-	var e error
-	tokenizationIssuerUser, _ := userModels.Username(tokenizationIssuerProfile).GetFullUser(gc.DB, gc)
-	issuingWallet, e = userModels.UserWalletID(*t.IssuingWalletAddress).GetWallet(gc.DB, gc)
-	if e != nil {
-		err = &tErrors.CustomError{Param: "issuingAddress", Err: "error-invalid-issuer", ErrMessage: "error validating issuing wallet."}
+	if t.AssetQuoteCurrency == nil || t.AssetCountryLocation == nil {
+		err = &tErrors.CustomError{Param: "publicKey", Err: "error-invalid-quote-currency", ErrMessage: "Tokenization does not have a valid tokenization currency and country of location.", Code: 404}
 		return
 	}
-	distributionWallet, _ := userModels.UserWalletID(*issuingWallet.LinkedWalletAddress).GetWallet(gc.DB, gc)
-
-	if len(strings.TrimSpace(os.Getenv("INTERNAL_BALANCE_AUTHORIZER_WALLET"))) == 0 {
-		err = &tErrors.CustomError{Param: "publicKey", Err: "error-internal-balance-authorizer-not-set", ErrMessage: "Internal balance token authorizer wallet not set."}
+	// the issuing and distribution Safes, owned by the issuing profile's key
+	// and the minting approvers (see tokenization_issuer.go)
+	fresh, iw, err := AssignIssuingWallet(t.ID, gc)
+	if err != nil {
 		return
 	}
-	authorizerKP := evmkeypair.MustParseFull(strings.TrimSpace(os.Getenv("INTERNAL_BALANCE_AUTHORIZER_WALLET")))
-
-	tokenizationIssuerProfileWalletKP := evmkeypair.MustParseFull(tokenizationIssuerProfileWallet)
-
-	for _, v := range aps {
-		permInfo = append(permInfo, userModels.WalletPermissionInfo{
-			TargetUsername: v,
-			Permission:     "APPROVER",
-		})
+	*t = fresh
+	approvers, err := mintingUsers(*t.MintingApprovers, gc)
+	if err != nil {
+		return
+	}
+	if len(approvers) < 4 {
+		err = &tErrors.CustomError{Param: "numberOfApprovers", Err: "error-approvers-less-than-4", ErrMessage: fmt.Sprintf("%v approvers specified. Requires minimum of 4", len(approvers)), Code: 404}
+		return
 	}
 
-	for _, v := range inits {
-		permInfo = append(permInfo, userModels.WalletPermissionInfo{
-			TargetUsername: v,
-			Permission:     "INITIATOR",
-		})
+	// The mint is one operation of the issuing Safe (tokenization_mint.go):
+	// it deploys the distribution Safe, mints the supply to it and the fee
+	// to the fee wallet, and puts the supply for sale on the offer book. The
+	// minting approvers sign it through the approval request.
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	op, plan, _, err := prepareTokenizationMint(ctx, initiator, t, gc)
+	if err != nil {
+		return
 	}
-	var p userModels.UserWalletSharedAccessInfo
 
-	p = userModels.UserWalletSharedAccessInfo{
-		WalletAddress:           *t.IssuingWalletAddress,
-		NumberOfApprovalsNeeded: len(aps) - 2,
-		Permissions:             permInfo,
-	}
-	// checkDistributionWalletHasQuoteCurrencyAuthorization used to gate minting on the
-	// distribution wallet already holding an authorized trustline to the internal balance
-	// asset (quoteCurrency). That's no longer needed: the internal balance asset is a B20
-	// regulated asset we control internally, and this same function unconditionally issues
-	// + authorizes that trustline for the distribution wallet a few ops below (see the
-	// "create + authorize distributionWallet trustline to the quote currency" ChangeTrust/
-	// SetTrustLineFlags pair), sourced from quoteCurrency.ContractAddress (the internal token
-	// issuer) on every mint. This pre-flight check was blocking first-time mints before that
-	// authorization step ever ran.
-	// if err = checkDistributionWalletHasQuoteCurrencyAuthorization(quoteCurrency.AssetCode, quoteCurrency.ContractAddress, &distributionWallet, gc); err != nil {
-	// 	return "", "", messages, issuingWallet, err
-	// }
-
-	if issuingWallet.SharedAccessEnabled == 0 {
-
-		//create sharedAccess on issuing wallet
-		_, errSharedAccess := CreateSharedWalletAccess(&tokenizationIssuerUser, &tokenizationIssuerUser, &issuingWallet, &p, gc)
-
-		if errSharedAccess != nil {
-			log.Printf("[generateMintRegulatedTokenizedAssetXdr.SignBase64Txn] Error creating shared access on issuing wallets [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), errSharedAccess)
-
-			err = &tErrors.CustomError{
-				Param:      "IssuingWalletAddress",
-				Err:        "error-could-not-create-shared-access-on-wallets",
-				ErrMessage: "Could not create shared access on issuing wallet",
-				Code:       404,
-			}
-			return "", "", messages, issuingWallet, err
-		}
-
-		//sign and submit
-		//sign transactions
-		if p.SignatureRequired == 1 {
-			signedBase64, e := middleware.SignBase64Txn(tokenizationIssuerProfileWalletKP.Seed(), p.Transaction, p.NetworkPassPhrase)
-			if e != nil {
-				log.Printf("[generateMintRegulatedTokenizedAssetXdr.SignBase64Txn] Error signing issuing wallet with primary wallets [%v], err: %v\n", tokenizationIssuerProfileWalletKP.Address(), e)
-				err = &tErrors.CustomError{Param: "issuingAddress", Err: "error-invalid-issuer", ErrMessage: e.Error()}
-				return
-
-			}
-
-			p.TransactionSignature = signedBase64
-		}
-		//get fresh records.
-		tokenizationIssuerUser.InvalidateUserCache(gc)
-		tokenizationIssuerUser, _ = userModels.Username(tokenizationIssuerProfile).GetFullUser(gc.DB, gc)
-		issuingWallet, e = userModels.UserWalletID(*t.IssuingWalletAddress).GetWallet(gc.DB, gc)
-		if e != nil {
-			err = &tErrors.CustomError{Param: "issuingAddress", Err: "error-invalid-issuer", ErrMessage: "error validating issuing wallet."}
+	// "Authorized to hold a regulated B20 asset" is this backend's own
+	// DB-backed allowlist (network.SetWalletAssetAuthorization), keyed by
+	// the token contract: grant it to the wallets the mint credits.
+	tokenizedAsset := basetxn.CreditAsset{Code: *t.AssetCode, Issuer: plan.Token.Hex()}
+	for _, g := range []struct{ wallet, reason string }{
+		{plan.Distribution.Hex(), "tokenization mint: distribution wallet"},
+		{plan.FeeWallet.Hex(), "tokenization mint: fee wallet"},
+	} {
+		if e := network.SetWalletAssetAuthorization(g.wallet, tokenizedAsset, true, iw.ID, g.reason); e != nil {
+			log.Printf("[generateMintRegulatedTokenizedAssetXdr] authorizing %v for %v: %v\n", g.wallet, *t.AssetCode, e)
+			err = &tErrors.CustomError{Param: "IssuingWalletAddress", Err: "error-could-not-authorize-wallet", ErrMessage: fmt.Sprintf("Could not authorize %v to hold %v.", g.wallet, *t.AssetCode), Code: 404}
 			return
 		}
-		//second submission to blockchain
-		_, err = CreateSharedWalletAccess(&tokenizationIssuerUser, &tokenizationIssuerUser, &issuingWallet, &p, gc)
-		if err != nil {
-			log.Printf("[generateMintRegulatedTokenizedAssetXdr.CreateSharedWalletAccess: stage 2] Error creating shared access on wallet [%v], err: %v\n", issuingWallet.ID, err)
-			return
-		}
-
-		log.Printf("[generateMintRegulatedTokenizedAssetXdr.CreateSharedWalletAccess] Succesfully Created shared access on issuing wallet [%v], txID: %v\n", issuingWallet.ID, p.TransactionID)
-
-		//get fresh records.
-		tokenizationIssuerUser.InvalidateUserCache(gc)
-		tokenizationIssuerUser, _ = userModels.Username(tokenizationIssuerProfile).GetFullUser(gc.DB, gc)
-		issuingWallet, _ = userModels.UserWalletID(*t.IssuingWalletAddress).GetWallet(gc.DB, gc)
-
-	}
-	// create distributionWallet trustline to tokenized asset
-	ops = append(ops, &basetxn.ChangeTrust{
-		Line:          basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletAddress},
-		Limit:         gc.TokenLimitAsString(),
-		SourceAccount: distributionWallet.ID,
-	})
-
-	//create trusline on fee wallet
-
-	//get fee wallet
-	ops = append(ops, &basetxn.ChangeTrust{
-		Line:          basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletAddress},
-		Limit:         gc.TokenLimitAsString(),
-		SourceAccount: feeWallet.Address(),
-	})
-
-	// allow trust from issuer to fee wallet
-	ops = append(ops, &basetxn.SetTrustLineFlags{
-		Trustor:       feeWallet.Address(),
-		Asset:         basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletAddress},
-		SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-		SourceAccount: *t.IssuingWalletAddress,
-	})
-
-	// allow trust from issuer to distribution wallet
-	ops = append(ops, &basetxn.SetTrustLineFlags{
-		Trustor:       distributionWallet.ID,
-		Asset:         basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletAddress},
-		SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-		SourceAccount: *t.IssuingWalletAddress,
-	})
-
-	// create + authorize distributionWallet trustline to the quote currency (internal balance token)
-	ops = append(ops, &basetxn.ChangeTrust{
-		Line:          basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.ContractAddress},
-		Limit:         gc.TokenLimitAsString(),
-		SourceAccount: distributionWallet.ID,
-	})
-	ops = append(ops, &basetxn.SetTrustLineFlags{
-		Trustor:       distributionWallet.ID,
-		Asset:         basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.ContractAddress},
-		SetFlags:      []basetxn.TrustLineFlag{basetxn.TrustLineAuthorized},
-		SourceAccount: quoteCurrency.ContractAddress,
-	})
-
-	//mint the token to distribution wallet
-	ops = append(ops, &basetxn.Payment{
-		Destination:   distributionWallet.ID,
-		Amount:        decimal.NewFromFloat(t.NumberOfTokenToBeIssued).StringFixed(7),
-		Asset:         basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletAddress},
-		SourceAccount: *t.IssuingWalletAddress,
-	})
-	if t.FeeInAsset > 0 {
-		//deduct fee to fee wallet, from distribution wallet
-		feeInAssetPayment := &basetxn.Payment{
-			Destination:   feeWallet.Address(),
-			Amount:        decimal.NewFromFloat(t.FeeInAsset).StringFixed(7),
-			Asset:         basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletAddress},
-			SourceAccount: distributionWallet.ID,
-		}
-		// if e := feeInAssetPayment.Validate(); e != nil {
-		// 	msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] FeeInAssetPayment Operation Failed validation: %v. Fee In Asset figure: %v. Fields: %+v", e, decimal.NewFromFloat(t.FeeInAsset).StringFixed(7), *feeInAssetPayment)
-		// 	gc.LogDiscordFailedRequest(msg)
-		// 	err = &tErrors.CustomError{
-		// 		Param:      "IssuingWalletAddress",
-		// 		Err:        "error-could-not-approve-tokenization",
-		// 		ErrMessage: "Could not approve tokenization. A fee Payment operation could not pass validation.",
-		// 		Code:       404,
-		// 	}
-		// 	return "", "", messages, issuingWallet, err
-		// }
-
-		ops = append(ops, feeInAssetPayment)
 	}
 
-	//make market
-	n, d := ToFractionInt32(t.PricePerToken)
-
-	num := decimal.NewFromInt32(n).BigInt()
-	den := decimal.NewFromInt32(d).BigInt()
-
-	if !fitsInInt32(den) || !fitsInInt32(num) {
-		//does not fit int32. return error.
-		msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] Denominator Or Numerator does not fit into Int32. D: %v, N: %v", den.String(), num.String())
-		gc.LogDiscordFailedRequest(msg)
-		err = &tErrors.CustomError{
-			Param:      "pricePerToken",
-			Err:        "error-price-per-token-out-of-range",
-			ErrMessage: "Current price per token cannot be correctly represented on the blockchain. Please consider raising the total number of tokens to be issued.",
-			Code:       404,
-		}
-		return "", "", messages, issuingWallet, err
-	}
-
-	priceStr := fmt.Sprintf("%v/%v", n, d)
-	marketOffer := &basetxn.ManageSellOffer{
-		Buying:        basetxn.CreditAsset{Code: quoteCurrency.AssetCode, Issuer: quoteCurrency.ContractAddress},
-		Amount:        decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7),
-		Selling:       basetxn.CreditAsset{Code: *t.AssetCode, Issuer: *t.IssuingWalletAddress},
-		Price:         priceStr,
-		SourceAccount: distributionWallet.ID,
-	}
-
-	ops = append(ops, marketOffer)
-	msg := fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] Transaction to mint %v units (selling %v units) of %v @ %v %v generated. N: %v, D: %v. Price: %v", decimal.NewFromFloat(t.NumberOfTokenToBeIssued).StringFixed(7), decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).StringFixed(7), *t.AssetCode, decimal.NewFromFloat(t.PricePerToken).StringFixed(7), *t.AssetQuoteCurrency, n, d, priceStr)
-	gc.LogDiscordFailedRequest(msg)
-	//check if issuing account has native enough native balance
-	var nativeAsset basetxn.Asset = basetxn.NativeAsset{}
-	_, _, walletAccountNativeBalance, _, _, errWalletAct := network.BlockchainAccountProperties(client, issuingWallet.ID, nativeAsset)
-	if errWalletAct != nil {
-		log.Printf("[generateMintRegulatedTokenizedAssetXdr] by [%v] for shared Account Properties error:[%v] \n", issuingWallet.Alias, errWalletAct)
-
-		return "", "", messages, issuingWallet, errWalletAct
-	}
-	if (walletAccountNativeBalance).LessThan(minBalance) {
-		log.Printf("[generateMintRegulatedTokenizedAssetXdr] by [%v] shared WalletAccount underfunded \n", issuingWallet.Alias)
-
-		err = &tErrors.CustomError{
-			Param:      "publicKey",
-			Err:        "error-wallet-underfunded",
-			ErrMessage: fmt.Sprintf("Wallet %v does not have enough %v balance to perform this operation", issuingWallet.Alias, os.Getenv("NATIVE_ASSET_CODE")),
-			Code:       404,
-		}
-		return "", "", messages, issuingWallet, err
-	}
-
-	// minting is free. No fee.
-	chanAccount, releaseChanAccount, errCheckout := sharedconfig.CheckoutChannelAccount(gc)
-	if errCheckout != nil {
-		return "", "", nil, userModels.UserWallet{}, errCheckout
-	}
-	defer releaseChanAccount()
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
-
-	transactionSource = chanSourceAccount.Address
-
-	tx, err := basetxn.NewTransaction(
-		basetxn.TransactionParams{
-			SourceAccount:        chanSourceAccount.Address,
-			IncrementSequenceNum: true,
-			Operations:           ops,
-			BaseFee:              2000,
-			Memo:                 "Mint " + *t.AssetCode,
-		},
-	)
-	if err != nil {
-		log.Println("[generateMintRegulatedTokenizedAssetXdr] error constructing transaction ", err)
-		return "", transactionSource, messages, issuingWallet, err
-	}
-
-	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount, feeWallet, authorizerKP)
-
-	if err != nil {
-		log.Println("[generateMintRegulatedTokenizedAssetXdr] error signing transaction with channelAccount, fee wallet & internal balance authorizer key ", err)
-		return "", transactionSource, messages, issuingWallet, &tErrors.ErrorTemporaryServerError{}
-	}
-	var xdrBase64 string
-
-	xdrBase64, err = tx.Base64()
-	if err != nil {
-		log.Println("[generateMintRegulatedTokenizedAssetXdr] error getting txn base64", err)
-		return "", transactionSource, messages, issuingWallet, err
-	}
-
-	t.TokenizationTransaction = &xdrBase64
-
-	return xdrBase64, transactionSource, messages, issuingWallet, nil
-
+	gc.LogDiscordFailedRequest(fmt.Sprintf("[generateMintRegulatedTokenizedAssetXdr] Mint of %v %v (selling %v) @ %v %v prepared: %v", decimal.NewFromFloat(t.NumberOfTokenToBeIssued).String(), *t.AssetCode, decimal.NewFromFloat(t.MaxNumberOfTokenAvailableForSale).String(), decimal.NewFromFloat(t.PricePerToken).String(), *t.AssetQuoteCurrency, plan.Description()))
+	messages = append([]string{plan.Description()}, op.Messages()...)
+	t.TokenizationTransaction = &op.Transaction
+	return op.Transaction, messages, iw, nil
 }
 
 // MintRegulatedTokenizedAsset mint tokenized assets
@@ -4155,7 +2732,7 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 		return
 	}
 	assetCodeExists := ato.AssetCode != nil
-	if (ato.IssuingWalletAddress == nil || NotIssuedByIssuer) && assetCodeExists && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE_WALLET")) == 42 {
+	if (ato.IssuingWalletAddress == nil || NotIssuedByIssuer) && assetCodeExists && len(os.Getenv("TOKENIZATION_ISSUING_PROFILE")) > 1 {
 
 		//create issuing wallet
 		ato, _, err = AssignIssuingWallet(tokenizationID, gc)
@@ -4178,7 +2755,8 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	}
 	/////
 
-	xdrBase64, transactionSource, messages, issuingWallet, err := generateMintRegulatedTokenizedAssetXdr(&ato, gc)
+	xdrBase64, messages, issuingWallet, err := generateMintRegulatedTokenizedAssetXdr(&ato, initiator, gc)
+	transactionSource := ""
 
 	if err != nil {
 
@@ -4188,13 +2766,13 @@ func MintRegulatedTokenizedAsset(tokenizationID string, initiator *userModels.Us
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
 
-	description := fmt.Sprintf("Minting tokenized asset %v:%v...%v", *ato.AssetCode, issuingWallet.ID[0:4], issuingWallet.ID[51:55])
+	description := fmt.Sprintf("Minting tokenized asset %v (token %v) through issuing wallet %v", *ato.AssetCode, *ato.ContractAddress, issuingWallet.ID)
 	mintObj := userModels.TokenMinting{
 		TokenizedAssetID:     ato.ID,
-		Destination:          *issuingWallet.LinkedWalletAddress,
-		Amount:               decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).StringFixed(7),
+		Destination:          *ato.MarketMakingWallet,
+		Amount:               decimal.NewFromFloat(ato.NumberOfTokenToBeIssued).String(),
 		AssetCode:            *ato.AssetCode,
-		ContractAddress:      issuingWallet.ID,
+		ContractAddress:      *ato.ContractAddress,
 		Transaction:          xdrBase64,
 		NetworkPassPhrase:    gc.BantuNetworkPassphrase,
 		TransactionSignature: transactionSource,
@@ -4314,38 +2892,6 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 
 }
 
-func checkDistributionWalletHasQuoteCurrencyAuthorization(assetQuoteCurrencyCode, assetQuoteCurrencyIssuer string, distributionWallet *userModels.UserWallet, gc *sharedconfig.GlobalConfig) (err error) {
-	//check if the distribution wallet has the quote currency trustline and, if the quote currency requires authorization, that it is authorized
-
-	// network.BlockchainAccountProperties' "authorized" return already IS
-	// this check (internal/network.IsWalletAuthorizedForAsset) - the
-	// original's extra pass over account.Balances re-deriving the same
-	// answer from a Stellar trustline's IsAuthorized flag has no Base
-	// equivalent to re-derive from (see WalletAssetAuthorization's doc).
-	quoteAsset := basetxn.CreditAsset{Code: assetQuoteCurrencyCode, Issuer: assetQuoteCurrencyIssuer}
-	_, authorized, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, distributionWallet.ID, quoteAsset)
-
-	if !authorized {
-		log.Printf("[checkDistributionWalletHasQuoteCurrencyAuthorization] Distribution wallet [%v] does not yet accept %v\n", distributionWallet.Alias, assetQuoteCurrencyCode)
-
-		return &tErrors.CustomError{
-			Param:      "IssuingWalletAddress",
-			Err:        "error-asset-trustline-not-authorized",
-			ErrMessage: fmt.Sprintf("Distribution wallet %v not yet authorized to hold %v", distributionWallet.Alias, assetQuoteCurrencyCode),
-			Code:       404,
-		}
-	}
-	return nil
-}
-
-func logDiscordFailedTokenizedAssetSubscription(msg string) {
-	discord.WebhookURL = "https://discord.com/api/webhooks/827986576415129663/wqMKp9wxB_fxs9Q3zlMKCNPGENXmD_ueUnL8hVCu1wmRfD2wkXAjfP85k1Ro_2_wGfiY"
-	if len(os.Getenv("FAILED_PAYMENT_ERROR_WEBHOOK")) > 50 {
-		discord.WebhookURL = os.Getenv("FAILED_PAYMENT_ERROR_WEBHOOK")
-	}
-	discord.Say(msg)
-}
-
 func GetSwapEstimate(sourceAssetCode, sourceContractAddress, amount, destinationAssetCode, destinationContractAddress string, gc *sharedconfig.GlobalConfig) (swappedEstimate string) {
 	destAsset := ""
 
@@ -4413,270 +2959,5 @@ func buildTokenizedAssetEarlyExit(walletOwnerUsername, walletAddress string, inp
 	ee.EarlyExitPenaltyAndFees = penaltyPct
 	ee.PayoutPricePerToken, _ = payoutPricePerToken.Float64()
 	ee.EstimatedPayoutAmount, _ = estimatedPayout.Float64()
-	return
-}
-
-// generateEarlyExitPaymentXdr builds a plain Payment operation moving the exiting token quantity from the
-// holder's wallet into the tokenization's distribution wallet (the issuing wallet's LinkedWalletAddress).
-// There is no on-chain buy-back/liquidity for an early exit — the tokens simply return to issuer custody,
-// and the holder is settled to their bank account off-chain from the persisted TokenizedAssetEarlyExit record.
-func generateEarlyExitPaymentXdr(wallet *userModels.UserWallet, distributionWallet *userModels.UserWallet, ta *userModels.TokenizedAsset, amount string, multiparty int, gc *sharedconfig.GlobalConfig) (xdrBase64, transactionSource string, err error) {
-	client := gc.BantuExpansionClient
-	asset := basetxn.CreditAsset{Code: strings.ToUpper(*ta.AssetCode), Issuer: strings.ToUpper(*ta.IssuingWalletAddress)}
-
-	var chanAccount *evmkeypair.Full
-	var chanSourceAccount *network.AccountInfo
-	releaseChanAccount := func() {}
-	if multiparty == 1 {
-		var errCheckout error
-		chanAccount, releaseChanAccount, errCheckout = sharedconfig.CheckoutChannelAccount(gc)
-		if errCheckout != nil {
-			return "", "", errCheckout
-		}
-		_, _, _, _, chanSourceAccount, _ = network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
-	}
-	defer releaseChanAccount()
-
-	_, sourceAccountTrustsAsset, _, sourceAccountBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, asset)
-	if sourceAccountErr != nil {
-		return "", "", sourceAccountErr
-	}
-	if !sourceAccountTrustsAsset {
-		return "", "", &tErrors.CustomError{Param: "walletAddress", Err: "error-no-trustline", ErrMessage: fmt.Sprintf("Your wallet does not hold %v.", *ta.AssetCode)}
-	}
-
-	amountDec, e := decimal.NewFromString(amount)
-	if e != nil {
-		return "", "", &tErrors.CustomError{Param: "tokenQuantityToExit", Err: "error-invalid-amount", ErrMessage: "Invalid token quantity."}
-	}
-	if sourceAccountBalance.LessThan(amountDec) {
-		return "", "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("You only have %v %v available; cannot exit %v %v.", sourceAccountBalance.String(), *ta.AssetCode, amountDec.String(), *ta.AssetCode)}
-	}
-
-	ops := []basetxn.Operation{
-		&basetxn.Payment{
-			Destination:   distributionWallet.ID,
-			Amount:        amountDec.String(),
-			Asset:         asset,
-			SourceAccount: wallet.ID,
-		},
-	}
-
-	var tx *basetxn.Transaction
-	if multiparty == 1 {
-		transactionSource = chanSourceAccount.Address
-		tx, err = basetxn.NewTransaction(
-			basetxn.TransactionParams{
-				SourceAccount:        chanSourceAccount.Address,
-				IncrementSequenceNum: true,
-				Operations:           ops,
-				BaseFee:              2000,
-				Memo:                 "EARLYEXIT",
-			},
-		)
-	} else {
-		tx, err = basetxn.NewTransaction(
-			basetxn.TransactionParams{
-				SourceAccount:        sourceAccount.Address,
-				IncrementSequenceNum: true,
-				Operations:           ops,
-				BaseFee:              2000,
-				Memo:                 "EARLYEXIT",
-			},
-		)
-	}
-	if err != nil {
-		log.Println("[generateEarlyExitPaymentXdr] error constructing transaction", err)
-		return "", "", &tErrors.ErrorTemporaryServerError{}
-	}
-
-	if multiparty == 1 {
-		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
-		if err != nil {
-			log.Println("[generateEarlyExitPaymentXdr] error signing transaction with channelAccount key", err)
-			return "", "", &tErrors.ErrorTemporaryServerError{}
-		}
-	}
-
-	xdrBase64, err = tx.Base64()
-	if err != nil {
-		return "", "", err
-	}
-	return xdrBase64, transactionSource, nil
-}
-
-// EarlyExit processes a holder's early exit (pre-maturity redemption) from a tokenized asset market fund.
-// It debits the exiting token quantity from the holder's own wallet into the tokenization's distribution
-// wallet via a plain Payment operation (there is no on-chain buy-back/liquidity for an early exit) and
-// records the payout/settlement details for the requested bank account so it can be settled manually.
-func EarlyExit(initiator *userModels.User, wallet *userModels.UserWallet, ta *userModels.TokenizedAsset, input *userModels.TokenizedAssetEarlyExitInput, gc *sharedconfig.GlobalConfig) (ee userModels.TokenizedAssetEarlyExit, err error) {
-	if sErr := initiator.EnsureNotSuspended(); sErr != nil {
-		return ee, sErr
-	}
-	input.TokenizedAssetID = ta.ID
-	input.WalletAddress = wallet.ID
-	input.TokenQuantityToExit = decimal.NewFromFloat(input.TokenQuantityToExit).Truncate(7).InexactFloat64()
-
-	walletOwner, e := wallet.GetWalletOwner(gc.DB, gc)
-	if e != nil {
-		log.Printf("[EarlyExit] Error Unable to verify wallet owner of exiting wallet %v\n", wallet.Alias)
-		err = &tErrors.CustomError{Param: "walletAddress", Err: "error-invalid-kyc", ErrMessage: "Unable to verify wallet owner."}
-		return
-	}
-
-	if walletOwner.KYCVerified == 0 {
-		log.Printf("[EarlyExit] Error Wallet owner %v has not met KYC status for asset %v\n", walletOwner.Username, *ta.AssetCode)
-		err = &tErrors.CustomError{Param: "walletAddress", Err: "error-invalid-kyc", ErrMessage: fmt.Sprintf("%v has not passed KYC to exit this tokenized asset %v.", walletOwner.Username, *ta.AssetCode)}
-		return
-	}
-
-	if ta.AssetTokenizationStatus != 5 && ta.AssetTokenizationStatus != 6 {
-		log.Printf("[EarlyExit] Error Tokenized asset not open for trading yet: %v\n", ta.ID)
-		err = &tErrors.CustomError{Param: "tokenizedAssetId", Err: "error-invalid-request", ErrMessage: "Only projects that are on sale or trading can accept an early exit."}
-		return
-	}
-
-	if !ta.MaturityDate.IsZero() && !time.Now().Before(ta.MaturityDate) {
-		log.Printf("[EarlyExit] Error Tokenized asset has already matured: %v\n", ta.ID)
-		err = &tErrors.CustomError{Param: "tokenizedAssetId", Err: "error-asset-matured", ErrMessage: "This asset has reached maturity. Please use the standard redemption instead of an early exit."}
-		return
-	}
-
-	if input.TokenQuantityToExit <= 0 {
-		err = &tErrors.CustomError{Param: "tokenQuantityToExit", Err: "error-invalid-amount", ErrMessage: "You must specify a token quantity greater than zero to exit."}
-		return
-	}
-
-	var bank userModels.Bank
-	if e := gc.DB.Where("id = ?", input.BankID).First(&bank).Error; e != nil {
-		log.Printf("[EarlyExit] Error locating bank %v: %v\n", input.BankID, e)
-		err = &tErrors.CustomError{Param: "bankId", Err: "error-invalid-bank", ErrMessage: "Please select a valid bank for payout."}
-		return
-	}
-
-	ee = buildTokenizedAssetEarlyExit(walletOwner.Username, wallet.ID, input, ta, &bank, gc)
-	estimatedPayout := decimal.NewFromFloat(ee.EstimatedPayoutAmount)
-
-	if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
-		input.Multiparty = 1
-	}
-	if wallet.HasViewOnlyAccess(gc) {
-		input.SignatureRequired = 1
-	}
-
-	issuingWallet, e := userModels.UserWalletID(*ta.IssuingWalletAddress).GetWallet(gc.DB, gc)
-	if e != nil {
-		log.Printf("[EarlyExit] Error locating issuing wallet for tokenized asset %v: %v\n", ta.ID, e)
-		err = &tErrors.CustomError{Param: "tokenizedAssetId", Err: "error-invalid-issuer", ErrMessage: "Unable to validate issuing wallet."}
-		return
-	}
-	if issuingWallet.LinkedWalletAddress == nil {
-		log.Printf("[EarlyExit] Error issuing wallet has no distribution wallet linked for tokenized asset %v\n", ta.ID)
-		err = &tErrors.CustomError{Param: "tokenizedAssetId", Err: "error-invalid-issuer", ErrMessage: "This asset has no distribution wallet configured."}
-		return
-	}
-	distributionWallet, e := userModels.UserWalletID(*issuingWallet.LinkedWalletAddress).GetWallet(gc.DB, gc)
-	if e != nil {
-		log.Printf("[EarlyExit] Error locating distribution wallet for tokenized asset %v: %v\n", ta.ID, e)
-		err = &tErrors.CustomError{Param: "tokenizedAssetId", Err: "error-invalid-issuer", ErrMessage: "Unable to validate distribution wallet."}
-		return
-	}
-
-	dbTX := gc.DB.Begin()
-	defer dbTX.Rollback()
-
-	if input.Multiparty == 0 {
-		e := dbTX.Omit(clause.Associations).Create(&ee).Error
-		if e != nil {
-			log.Printf("[EarlyExit] error saving tokenized asset early exit to database [%+v] for %v: %v\n", ee, walletOwner.Username, e)
-			err = &tErrors.ErrorTemporaryServerError{}
-			return
-		}
-	}
-
-	if len(input.TransactionSignature) == 0 {
-		xdrBase64, transactionSource, e := generateEarlyExitPaymentXdr(wallet, &distributionWallet, ta, decimal.NewFromFloat(input.TokenQuantityToExit).Truncate(7).String(), input.Multiparty, gc)
-		if e != nil {
-			log.Printf("[EarlyExit] error generating early exit xdr [%+v] for %v: %v\n", ee, walletOwner.Username, e)
-			err = e
-			return
-		}
-		input.Transaction = xdrBase64
-		input.TransactionSource = transactionSource
-		input.Memo = "EARLYEXIT"
-	}
-
-	input.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
-
-	if len(input.TransactionSignature) == 0 && input.Commit == 0 {
-		err = nil
-		return ee, nil
-	}
-
-	client := gc.BantuExpansionClient
-
-	if len(input.TransactionSignature) > 0 && (input.Commit == 0 || wallet.HasViewOnlyAccess(gc)) {
-		txnHash, e := network.SubmitXdrWithSignature(client, initiator.PrimarySigner, input.Transaction, input.TransactionSignature)
-		if e != nil {
-			log.Printf("[EarlyExit] error submitting early exit transaction to blockchain [%+v] for %v: %v\n", ee, walletOwner.Username, e)
-			err = e
-			return
-		}
-		input.TransactionID = txnHash
-		ee.TransactionID = txnHash
-		dbTX.Omit(clause.Associations).Save(&ee)
-		dbTX.Commit()
-		wallet.InvalidateUserCache(gc)
-		initiator.InvalidateUserWalletCache(gc)
-		return ee, nil
-	}
-
-	//multi party
-	if input.Multiparty == 1 {
-		input.TransactionID = "PENDING_AUTH"
-		ee.TransactionID = "PENDING_AUTH"
-
-		id := uuid.NewString()
-		description := fmt.Sprintf("Early exit of Tokenized asset [%v]\nQuantity: %v %v,\nEstimated payout: %v %v", *ta.AssetName, decimal.NewFromFloat(input.TokenQuantityToExit).String(), *ta.AssetCode, estimatedPayout.String(), *ta.AssetQuoteCurrency)
-		if len(input.Messages) > 0 {
-			var msgs string
-			for i, m := range input.Messages {
-				msgs = m
-				if i < len(input.Messages)-1 {
-					msgs = fmt.Sprintf("%s\n", msgs)
-				}
-			}
-			description = fmt.Sprintf("%v\nMessages: %v", description, msgs)
-		}
-		input.ReturnedDescription = description
-		transactionByte, _ := json.Marshal(*input)
-		transactionStr := string(transactionByte)
-		pendingAuth := userModels.PendingAuth{
-			ID:                     id,
-			Initiator:              initiator.Username,
-			InitiatorSignerAddress: initiator.PrimarySigner,
-			WalletAddress:          wallet.ID,
-			TransactionType:        "TOKENIZED ASSET EARLY EXIT",
-			Description:            description,
-			TransactionSource:      input.TransactionSource,
-			ApprovalsNeeded:        wallet.NumberOfApprovalsNeeded,
-			TransactionXdr:         input.Transaction,
-			TransactionInfoStr:     &transactionStr,
-		}
-		e := dbTX.Omit(clause.Associations).Create(&pendingAuth).Error
-		if e != nil {
-			log.Printf("[EarlyExit] Error saving early exit txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
-			err = &tErrors.ErrorTemporaryServerError{}
-			return
-		}
-		dbTX.Omit(clause.Associations).Save(&ee)
-		dbTX.Commit()
-		wallet.InvalidateUserCache(gc)
-		initiator.InvalidateUserWalletCache(gc)
-		return ee, nil
-	}
-
-	log.Println("[EarlyExit]UNKNOWN OPTION FOR ACTION")
-	err = &tErrors.ErrorTemporaryServerError{}
 	return
 }

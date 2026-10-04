@@ -89,7 +89,7 @@ func resolveAssetRecipientAddress(gc *sharedconfig.GlobalConfig, order *p2pModel
 	if order.AssetRecipient == order.CustomerUserID {
 		username = order.CustomerUsername
 	}
-	wallet, _, err := usersDB.GetWallet(username, gc.DB)
+	wallet, err := usersDB.GetWallet(username, gc.DB)
 	if err != nil || wallet.ID == "" {
 		return "", &tErrors.CustomError{Param: "assetRecipient", Err: "error-recipient-wallet-not-found", ErrMessage: "Could not resolve the asset recipient's wallet"}
 	}

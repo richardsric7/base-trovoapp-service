@@ -11,6 +11,7 @@ import {
   useFetchSecurityQuestionsQuery,
   useSubmitSecurityAnswersMutation,
   useRequestAccountRecoveryMutation,
+  useLazyGetRecoveryStatusQuery,
 } from '../../store/api/authApi';
 import { RootState } from '../../store/reduxStore';
 import {
@@ -35,13 +36,65 @@ function AnswerSecurityQuestions() {
   const [messages, setMessages] = useState([]);
   const [backupDone, setBackupDone] = useState(false);
   const [showEnsureBackupModal, setShowEnsureBackupModal] = useState(false);
-  const [invalidateOldSigner, setInvalidateOldSigner] = useState(false);
+  // when the started recovery takes effect (set once it has started)
+  const [pendingUntil, setPendingUntil] = useState<Date | null>(null);
   const [questions, setQuestions] = useState<SecurityQuestion[]>([]);
   const tempData = useSelector((state: RootState) => state.auth.tempData);
   const [requestAccountRecovery] = useRequestAccountRecoveryMutation();
   const [submitSecurityAnswers] = useSubmitSecurityAnswersMutation();
+  const [getRecoveryStatus] = useLazyGetRecoveryStatusQuery();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const clearRecoveryData = () => {
+    dispatch(
+      setFormState({
+        ...tempData,
+        emailOtp: '',
+        username: '',
+        secretKey: '',
+        address: '',
+      }),
+    );
+  };
+
+  // a started recovery completes after the recovery period, unless the
+  // account owner cancels it with their current key: follow it
+  useEffect(() => {
+    if (!pendingUntil) return undefined;
+    const check = async () => {
+      const res = await getRecoveryStatus({
+        signer: tempData.address,
+        address: tempData.address,
+        secretKey: tempData.secretKey,
+        body: { username: tempData.username },
+      });
+      const status = res.data?.status;
+      if (status === 'COMPLETED') {
+        clearRecoveryData();
+        navigate('/import');
+        showNotification(
+          'success',
+          'Your account has been recovered. You can now import it with the new secret key.',
+          5000,
+        );
+      } else if (status === 'CANCELED' || status === 'FAILED') {
+        clearRecoveryData();
+        navigate('/login');
+        showNotification(
+          'error',
+          status === 'CANCELED'
+            ? 'The recovery was canceled from a device that has the current key.'
+            : 'The recovery could not be completed. Please contact support.',
+          8000,
+        );
+      }
+    };
+    check();
+    const timer = setInterval(check, 30000);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingUntil]);
 
   const { data, isLoading } = useFetchSecurityQuestionsQuery({
     signer: tempData.address,
@@ -147,7 +200,6 @@ function AnswerSecurityQuestions() {
 
       const body = {
         newSignerAddress: tempData.address,
-        disableOldSignerFromPrimaryWallet: invalidateOldSigner ? 1 : 0,
         commit,
         emailOtp: tempData.emailOtp,
         username: tempData.username,
@@ -178,20 +230,8 @@ function AnswerSecurityQuestions() {
           setShowEnsureBackupModal(true);
         } else {
           setShowEnsureBackupModal(false);
-          navigate('/import');
-          showNotification(
-            'success',
-            'Your account has successfully been recovered. You can now import your account with the new secret key.',
-            5000, // delay for 5secs
-          );
-          dispatch(
-            setFormState({
-              ...tempData,
-              emailOtp: '',
-              username: '',
-              secretKey: '',
-              address: '',
-            }),
+          setPendingUntil(
+            res.data.executeAfter ? new Date(res.data.executeAfter) : new Date(),
           );
         }
       } else if ('error' in res) {
@@ -231,7 +271,34 @@ function AnswerSecurityQuestions() {
             <p className="text-center w-full text-primary-800 text-2xl font-bold">
               Answer Security Questions
             </p>
-            {questions.length > 0 ? (
+            {pendingUntil ? (
+              <div className="w-3/4 space-y-6">
+                <div className="w-full text-center px-5 md:px-10 py-5 bg-primary-100 rounded-xl space-y-3">
+                  <p className="text-primary-800 text-md font-semibold">
+                    Recovery in progress
+                  </p>
+                  <p className="text-primary-800 text-md">
+                    Your wallets move to your new key on{' '}
+                    {pendingUntil.toLocaleString()}. Until then the account
+                    owner is notified and can cancel the recovery from a device
+                    that still has the current key.
+                  </p>
+                  <p className="text-primary-800 text-md">
+                    Keep your new secret key safe. You can leave this page and
+                    import your account with the new secret key after that
+                    time; this page checks the status every 30 seconds.
+                  </p>
+                </div>
+                {messages.map((m, index) => (
+                  <p
+                    className="text-primary-800 text-sm text-center"
+                    key={`pending-${index}`}
+                  >
+                    {m}
+                  </p>
+                ))}
+              </div>
+            ) : questions.length > 0 ? (
               <form
                 id="security-answers"
                 onSubmit={submitAnswers}
@@ -381,19 +448,6 @@ function AnswerSecurityQuestions() {
                     </div>
                   </div>
                 </div>
-                <div className="w-3/4 flex justify-center space-x-3">
-                  <input
-                    type="checkbox"
-                    name="import"
-                    defaultChecked={invalidateOldSigner}
-                    onChange={() => {
-                      setInvalidateOldSigner(!invalidateOldSigner);
-                    }}
-                  />
-                  <p className="text-gray-500">
-                    Invalidate old signer from primary wallet?
-                  </p>
-                </div>
                 <div className="w-3/4">
                   <Button
                     label="Continue"
@@ -451,7 +505,7 @@ function AnswerSecurityQuestions() {
                         </p>
                       ))}
                       <Button
-                        label="Ok, complete account recovery"
+                        label="Ok, start account recovery"
                         onclick={() => {
                           setShowModal(false);
                           submitRequestAccountRecovery(1); // 1 = final commit

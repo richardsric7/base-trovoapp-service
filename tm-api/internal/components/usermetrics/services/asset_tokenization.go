@@ -130,6 +130,7 @@ type TokenizedAsset struct {
 	SecApprovalIdNumber                         string                          `json:"secApprovalIdNumber"`
 	IssuingWalletAddress                        string                          `json:"issuingWalletAddress"`
 	IssuingWalletAlias                          string                          `json:"issuingWalletAlias"`
+	ContractAddress                             string                          `json:"contractAddress"` // the asset's B20 token contract; IssuingWalletAddress is the Safe that mints it
 	MarketMakingWallet                          string                          `json:"marketMakingWallet"`
 	AssetDescription                            string                          `json:"assetDescription"`
 	AssetCountryLocation                        string                          `json:"assetCountryLocation"`
@@ -2318,6 +2319,66 @@ func UpdateTrovoManagerTokenizationSalesDatesWithRaw(walletDB *gorm.DB) gin.Hand
 			return
 		}
 
+		c.Data(http.StatusOK, "application/json", result)
+	}
+}
+
+// RegisterTokenizedAssetContractRequest is the body of the contract
+// registration route.
+type RegisterTokenizedAssetContractRequest struct {
+	ContractAddress string `json:"contractAddress" example:"0x1234567890abcdef1234567890abcdef12345678"`
+}
+
+// @Summary Register a tokenized asset's token contract (Trovo Manager)
+// @Description Records the deployed B20 token contract of a tokenized asset that has not been minted yet. app-backend verifies on-chain that the contract's symbol is the asset code, its supply is zero, and the asset's issuing Safe (issuingWalletAddress) holds MINTER_ROLE or is the owner. The issuing Safe is not the token: deploy the token with the issuing Safe as its owner/minter, then register it here.
+// @ID RegisterTrovoManagerTokenizationContractWithRaw
+// @Tags Tokenization
+// @Security JwtTokenAuth
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "JWT Token" default(Bearer <your-token>)
+// @Param tokenizedAssetID path string true "Tokenized Asset ID"
+// @Param request body RegisterTokenizedAssetContractRequest true "Token contract address"
+// @Success 200 {object} TokenizedAsset
+// @Failure 400 {object} models.ErrorResponse "Invalid request parameters"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /tokenization/contract/{tokenizedAssetID} [put]
+func RegisterTrovoManagerTokenizationContractWithRaw(walletDB *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ad, err := middleware.ExtractTokenMetadata(c.Request)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			return
+		}
+		if _, err := userServices.GetUser(ad.UserID, walletDB); err != nil {
+			if ex, ok := err.(p2pErrors.GenericError); ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+				return
+			}
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		tokenizedAssetID := c.Param("tokenizedAssetID")
+		if tokenizedAssetID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "tokenizedAssetID is required"})
+			return
+		}
+		var body RegisterTokenizedAssetContractRequest
+		if err := c.ShouldBindJSON(&body); err != nil || body.ContractAddress == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "contractAddress is required"})
+			return
+		}
+		request, _ := json.Marshal(body)
+
+		endpoint := fmt.Sprintf("/tokenization/contract/%s", tokenizedAssetID)
+		result, err := makeRequestWithRaw(http.MethodPut, endpoint, c.GetHeader("Authorization"), request)
+		if err != nil {
+			log.Printf("[TOKENIZATION] error registering token contract: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		c.Data(http.StatusOK, "application/json", result)
 	}
 }

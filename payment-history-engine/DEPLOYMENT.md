@@ -1,10 +1,9 @@
 # Deployment
 
 This document covers building and running `payment-history-engine` on its
-own. **There is no CI/CD wiring for this service found anywhere in this
-monorepo** — see [No CI/CD found](#no-cicd-found-in-this-repo) below. Treat
-everything here as manual/local build-and-run steps you can verify yourself
-from the Dockerfile, not a description of an existing pipeline.
+own. **There is no CI/CD pipeline in this monorepo** — see
+[CI/CD](#4-cicd) below. Everything here is a manual build-and-run step
+you can verify from the Dockerfile.
 
 ## 1. Prerequisites
 
@@ -155,24 +154,8 @@ against real Postgres 16). This is fixed by bumping the driver to
 local escape hatch. If you're working from this repo, you already have
 the fix — nothing to do.
 
-## 4. No CI/CD found in this repo
+## 4. CI/CD
 
-This monorepo's two GitHub Actions workflows were checked directly:
-
-- **`.github/workflows/deploy.yml`** — triggers only on pushes touching
-  `backend/**`, `web/**`, `trovotech-io/**`, `trovo-app-website/**`, or the
-  workflow file itself. It builds and pushes `app-backend` and the web
-  frontend to DigitalOcean Container Registry. It explicitly documents (in a
-  comment on its migration step) that it does **not** configure
-  `CDB_CONNECTION_STRING`, because "RoachDB belongs to the payment-history
-  service" and the migrator doesn't touch it.
-- **`.github/workflows/pr-checks.yml`** — its `paths-filter` only defines
-  `backend`, `web` and `mobile` filters. There is no `payment-history-engine`
-  filter, job, or path reference anywhere in either file.
-
-**Conclusion**: nothing in `.github/workflows/` builds, tests, lints, or
-deploys this service. If it is deployed anywhere today, that pipeline lives
-outside this repository (e.g. triggered manually, or from a separate
-CI system/registry not checked into `.github/workflows/` here). Treat the
-build/run steps above as the verified, manual path until CI wiring for this
-service is added.
+There is **no CI/CD pipeline** in this repository (the inherited GitHub
+Actions workflows were removed - see the root `ARCHITECTURE.md`). Build,
+test and deploy this service by hand with the steps above.

@@ -195,7 +195,7 @@ class _VeryficationState extends State<Veryfication> {
       Map responseData = await makePostRequest(
         uri: '/v1/users',
         body: jsonBody,
-        signer: address,
+        signer: state.tempSigner!,
         address: address,
         secretKey: secretKey,
       );
@@ -238,7 +238,7 @@ class _VeryficationState extends State<Veryfication> {
 
     Map responseData = await makeGetRequest(
       uri: '/v1/users/${state.userInfo!.username!.trim().replaceAll(' ', '')}',
-      signer: address,
+      signer: state.tempSigner!,
       address: address,
       secretKey: secretKey,
     );

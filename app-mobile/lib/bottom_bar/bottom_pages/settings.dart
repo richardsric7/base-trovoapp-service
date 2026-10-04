@@ -19,6 +19,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:trovo_app/utils/local_auth.dart';
+import 'package:trovo_app/widgets/network_fee_setting.dart';
 import 'package:trovo_app/widgets/popups.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 
@@ -204,6 +205,39 @@ class _SettingsState extends State<Settings> {
                     "assets/images/currency.png",
                     "",
                     "currency".tr(),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => showNetworkFeeSetting(context),
+                  child: Container(
+                    color: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(vertical: 15.0),
+                    child: Row(
+                      children: [
+                        SizedBox(width: width / 25),
+                        Image.asset(
+                          "assets/images/currency.png",
+                          height: height / 30,
+                          width: 30,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                        SizedBox(width: width / 40),
+                        Text(
+                          "networkfees".tr(),
+                          style: TextStyle(
+                            color: notifier.getblck,
+                            fontSize: 13,
+                            fontFamily: fontsemibold,
+                          ),
+                        ),
+                        const Spacer(),
+                        Icon(
+                          Icons.chevron_right,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                        SizedBox(width: width / 25),
+                      ],
+                    ),
                   ),
                 ),
                 GestureDetector(

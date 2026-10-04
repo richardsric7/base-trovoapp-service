@@ -14,9 +14,9 @@ import "time"
 // renamed or deleted, and so the list endpoint needs no per-row join.
 type AdminAccessLog struct {
 	ID     string `gorm:"primaryKey" json:"id"`
-	Event  string `gorm:"index" json:"event"`    // login.success, admin.suspend, secret.write, …
-	Status string `gorm:"index" json:"status"`   // successful | failed | pending
-	Action string `json:"action"`                // humanised label rendered in the UI "Action" column
+	Event  string `gorm:"index" json:"event"`  // login.success, admin.suspend, secret.write, …
+	Status string `gorm:"index" json:"status"` // successful | failed | pending
+	Action string `json:"action"`              // humanised label rendered in the UI "Action" column
 
 	// Category drives retention. Mutations are kept long-term; a future "read"
 	// category (sensitive reads, not wired yet) will be purged on a schedule.
@@ -36,7 +36,7 @@ type AdminAccessLog struct {
 
 	// Request context.
 	IPAddress   string `json:"ip_address,omitempty"`
-	Location    string `json:"location,omitempty"`     // "City, Country" via the existing IPAPI lookup
+	Location    string `json:"location,omitempty"` // "City, Country" via the existing IPAPI lookup
 	UserAgent   string `json:"user_agent,omitempty"`
 	Method      string `json:"method,omitempty"`       // HTTP method
 	Path        string `json:"path,omitempty"`         // request path
@@ -94,14 +94,15 @@ const (
 	EventWalletLink      = "wallet.link"
 
 	// asset
-	EventAssetAssignment     = "asset_assignment.create"
-	EventAssetCurationChange = "asset_curation.change"
-	EventTokenizationMint    = "tokenization.mint"
-	EventTokenizationVet     = "tokenization.vet"
-	EventTokenizationFail    = "tokenization.fail"
-	EventMintingUserGrant    = "minting_user.grant"
-	EventMintingUserRevoke   = "minting_user.revoke"
-	EventComplianceCreate    = "compliance.create"
+	EventAssetAssignment      = "asset_assignment.create"
+	EventAssetCurationChange  = "asset_curation.change"
+	EventTokenizationMint     = "tokenization.mint"
+	EventTokenizationContract = "tokenization.contract"
+	EventTokenizationVet      = "tokenization.vet"
+	EventTokenizationFail     = "tokenization.fail"
+	EventMintingUserGrant     = "minting_user.grant"
+	EventMintingUserRevoke    = "minting_user.revoke"
+	EventComplianceCreate     = "compliance.create"
 
 	// partner (white-label service link integrations)
 	EventServiceLinkChange = "service_link.change"

@@ -1,0 +1,335 @@
+basePath: /
+definitions:
+  api.ErrorResponse:
+    properties:
+      code:
+        example: rate-unavailable
+        type: string
+      message:
+        example: rate USD/NGN is stale
+        type: string
+    type: object
+  api.QuoteRequest:
+    properties:
+      token:
+        description: Gas token symbol ("USDC") or address.
+        example: cNGN
+        type: string
+      userOp:
+        $ref: '#/definitions/api.UserOperation'
+      validitySeconds:
+        description: |-
+          How long the quote stays valid; 0 = the service default. Shared
+          wallets waiting for approvals ask for longer (up to QUOTE_MAX_VALIDITY).
+        example: 600
+        type: integer
+    type: object
+  api.StatusResponse:
+    properties:
+      chainId:
+        type: string
+      deposit:
+        $ref: '#/definitions/monitor.Status'
+      entryPoint:
+        type: string
+      paymaster:
+        type: string
+      signer:
+        type: string
+    type: object
+  api.TokenInfo:
+    properties:
+      decimals:
+        type: integer
+      error:
+        type: string
+      exchangeRate:
+        description: 'QuotedRate in base units: what the paymaster uses'
+        type: string
+      marketRate:
+        description: tokens per ETH at market
+        type: string
+      quotedRate:
+        description: tokens per ETH with the spread
+        type: string
+      ratesAsOf:
+        type: string
+      spreadBps:
+        type: integer
+      symbol:
+        type: string
+      token:
+        type: string
+    type: object
+  api.UserOperation:
+    properties:
+      callData:
+        example: 0x7bb37428...
+        type: string
+      callGasLimit:
+        example: "0x30d40"
+        type: string
+      factory:
+        example: 0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67
+        type: string
+      factoryData:
+        example: 0x1688f0b9...
+        type: string
+      initCode:
+        example: 0x
+        type: string
+      maxFeePerGas:
+        example: "0x3b9aca00"
+        type: string
+      maxPriorityFeePerGas:
+        example: "0xf4240"
+        type: string
+      nonce:
+        example: "0x0"
+        type: string
+      paymasterPostOpGasLimit:
+        example: "0x13880"
+        type: string
+      paymasterVerificationGasLimit:
+        example: "0x249f0"
+        type: string
+      preVerificationGas:
+        example: "0xea60"
+        type: string
+      sender:
+        example: 0x5a6B0c1C6f1C0F4b1d7aA2d1C3e0bEe8a9F2d4c1
+        type: string
+      verificationGasLimit:
+        example: "0x493e0"
+        type: string
+    type: object
+  monitor.Status:
+    properties:
+      checkedAt:
+        type: string
+      depositEth:
+        type: string
+      depositWei:
+        type: string
+      error:
+        type: string
+      low:
+        type: boolean
+      lowWatermarkEth:
+        type: string
+    type: object
+  quote.Result:
+    properties:
+      exchangeRate:
+        type: string
+      marketRate:
+        type: string
+      maxCostWei:
+        type: string
+      maxTokenCost:
+        type: string
+      maxTokenCostFormatted:
+        type: string
+      paymaster:
+        type: string
+      paymasterAndData:
+        type: string
+      paymasterData:
+        type: string
+      paymasterPostOpGasLimit:
+        type: string
+      paymasterVerificationGasLimit:
+        type: string
+      quoteHash:
+        type: string
+      quotedRate:
+        type: string
+      signer:
+        type: string
+      spreadBps:
+        type: integer
+      symbol:
+        type: string
+      token:
+        type: string
+      validAfter:
+        type: integer
+      validUntil:
+        type: integer
+    type: object
+  rates.Price:
+    properties:
+      error:
+        description: why the last refresh failed, if it did
+        type: string
+      pair:
+        type: string
+      sources:
+        items:
+          $ref: '#/definitions/rates.SourceResult'
+        type: array
+      updatedAt:
+        type: string
+      value:
+        type: string
+    type: object
+  rates.SourceResult:
+    properties:
+      error:
+        type: string
+      name:
+        type: string
+      outlier:
+        type: boolean
+      value:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Signs ERC-4337 paymaster quotes so Trovo wallets can pay gas in stablecoins
+    (USDC, USDT, cNGN, ...) at market rates plus Trovo's spread.
+  title: Trovo Paymaster Quote Service
+  version: "1.0"
+paths:
+  /healthz:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Liveness
+      tags:
+      - health
+  /readyz:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 'Readiness: every gas token has a fresh rate and the deposit is known'
+      tags:
+      - health
+  /v1/quote:
+    post:
+      consumes:
+      - application/json
+      description: Prices the operation's gas in the chosen stablecoin (market rate
+        plus Trovo's spread), signs it, and returns the paymaster fields to put in
+        the UserOperation before the wallet owner signs it. The quote is bound to
+        every field of the operation; changing any of them after quoting makes the
+        paymaster reject it.
+      parameters:
+      - description: Operation and gas token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.QuoteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/quote.Result'
+        "400":
+          description: invalid request or unknown token
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "409":
+          description: the wallet owes the paymaster
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "503":
+          description: rates, chain or deposit unavailable
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Sign a gas quote for a UserOperation
+      tags:
+      - quotes
+  /v1/rates:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/rates.Price'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Every rate pair with each source's latest answer
+      tags:
+      - quotes
+  /v1/status:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.StatusResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Paymaster, signer and deposit status
+      tags:
+      - health
+  /v1/tokens:
+    get:
+      description: 'For showing users an estimated fee before they send: fee in token
+        = gas (wei) × exchangeRate / 1e18 base units.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api.TokenInfo'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Gas tokens and the current price of 1 ETH in each
+      tags:
+      - quotes
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: X-API-Key
+    type: apiKey
+swagger: "2.0"

@@ -85,6 +85,9 @@ func parseBalance(balanceStr string) float64 {
 
 func processData(balance, publicKey string, payout *userModels.ProceedPayout, gc *sharedconfig.GlobalConfig) {
 	var scheduleItem userModels.TokenizedAssetPayoutSchedule
+	if payout.TokenizedAsset.ContractAddress == nil {
+		return // not minted: there are no holders of a token contract yet
+	}
 
 	// var payout userModels.ProceedPayout
 	bal := decimal.RequireFromString(balance).InexactFloat64()
@@ -107,7 +110,7 @@ func processData(balance, publicKey string, payout *userModels.ProceedPayout, gc
 		TokenizedAssetID:               payout.TokenizedAssetID,
 		Batch:                          payout.Batch,
 		PayoutAssetCode:                *payout.TokenizedAsset.AssetCode,
-		PayoutContractAddress:          *payout.TokenizedAsset.IssuingWalletAddress,
+		PayoutContractAddress:          *payout.TokenizedAsset.ContractAddress,
 		BeneficiaryAddress:             publicKey,
 		ConfirmedTokenizedAssetBalance: bal,
 		AmountToReceive:                amountToReceive.InexactFloat64(),

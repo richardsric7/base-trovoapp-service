@@ -1,0 +1,47 @@
+{
+  "chainId": "31337",
+  "paymaster": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+  "quoteSignerPrivateKey": "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
+  "cases": [
+    {
+      "name": "deployed wallet",
+      "sender": "0x5a6b0c1c6f1c0f4b1d7aa2d1c3e0bee8a9f2d4c1",
+      "nonce": "7",
+      "initCode": "0x",
+      "callData": "0x7bb374280000000000000000000000000000000000000000000000000000000000000001",
+      "verificationGasLimit": "300000",
+      "callGasLimit": "200000",
+      "preVerificationGas": "60000",
+      "maxFeePerGas": "5000000000",
+      "maxPriorityFeePerGas": "1000000",
+      "paymasterVerificationGasLimit": "150000",
+      "paymasterPostOpGasLimit": "80000",
+      "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "validUntil": 1790000000,
+      "validAfter": 1789999000,
+      "exchangeRate": "3000000000",
+      "hash": "0xb002d6dd62ca9e28e616aa13697a9f509c6f13539cd0d0ae04522821ecab9ebe",
+      "signature": "0x09d2d9502a53677759f1d115e9e871d65c52dfc41858d3c6a35bdb0bea2c6fb30f4becfdfd3ae10be43173af96ec726c52b9498e30e4648a3c4d577c9c7d6ae71c"
+    },
+    {
+      "name": "activation with initCode, large values",
+      "sender": "0x00000000000000000000000000000000000000ff",
+      "nonce": "340282366920938463463374607431768211456",
+      "initCode": "0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec671688f0b9000000000000000000000000000000000000000000000000000000000000abcd",
+      "callData": "0x",
+      "verificationGasLimit": "1000000",
+      "callGasLimit": "0",
+      "preVerificationGas": "123456789",
+      "maxFeePerGas": "340282366920938463463374607431768211455",
+      "maxPriorityFeePerGas": "1",
+      "paymasterVerificationGasLimit": "1",
+      "paymasterPostOpGasLimit": "340282366920938463463374607431768211455",
+      "token": "0x1000000000000000000000000000000000000001",
+      "validUntil": 281474976710655,
+      "validAfter": 0,
+      "exchangeRate": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "hash": "0x8c5d566db160895b9ebc29851722aaf8924cd432e3577ff583fce1c4c6cd1834",
+      "signature": "0x4a197cc6047eefda9a82c14f291603d6e57dc942286b221410c10d2da14c1b9c6539cfe764bf6ccab89fbc4b3b54c1c0db018e8eb3b1d5c713d4ac538038114e1c"
+    }
+  ]
+}

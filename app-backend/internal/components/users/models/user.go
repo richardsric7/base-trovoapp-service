@@ -2,48 +2,49 @@ package users
 
 import (
 	"bytes"
+	"strings"
 	"time"
 )
 
 type User struct {
-	CreatedAt                time.Time               `json:"createdAt"`
-	UpdatedAt                time.Time               `json:"updatedAt"`
-	LastUpdatedMobileOn      time.Time               `json:"lastUpdatedMobileOn"`
-	LastRecoveredAccountOn   time.Time               `json:"lastRecoveredAccountOn"`
-	ID                       string                  `json:"id"`
-	Username                 string                  `gorm:"size:30; index:idx_user_unique_username, unique" json:"username"`
-	Email                    string                  `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
-	ImageThumbnailURL        *string                 `json:"imageThumbnailURL"`
-	FirstName                string                  `gorm:"size:50" json:"firstName"`
-	LastName                 *string                 `gorm:"size:50" json:"lastName"`
-	Mobile                   *string                 `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
-	Address                  string                  `gorm:"size:56; index:idx_user_unique_address, unique" json:"publicKey"`
-	PrimarySigner            string                  `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
-	Referrer                 *string                 `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
-	ReferralLink             *string                 `json:"referralLink"`
-	ReferralQrCode           *string                 `json:"referralQrCode"`
-	PushNotificationToken    *string                 `json:"pushNotificationToken"`
-	Corporate                int                     `gorm:"type:integer;not null; default:0" json:"corporate"`
-	MobileVerified           int                     `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
-	MembershipType           int                     `gorm:"type:integer;not null; default:0" json:"membershipType"`
-	MembershipExpiry         *time.Time              `json:"membershipExpiry"`
-	KYCVerified              int                     `gorm:"type:integer;not null; default:0" json:"kycVerified"`
-	AccountRecoveryEnabled   int                     `gorm:"type:integer;not null; default:0" json:"accountRecoveryEnabled"`
-	AccountRecoveryExpiresOn *time.Time              `gorm:"null" json:"accountRecoveryExpiresOn"`
-	UserWallets              []UserWallet            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userWallets"`
-	PublicIP                 string                  `gorm:"size:45" json:"publicIP"`
-	CountryCode              *string                 `gorm:"size:2;null"`
-	Latitude                 *float64                `gorm:"null"`
-	Longitude                *float64                `gorm:"null"`
-	City                     *string                 `gorm:"null;size:100"`
-	Region                   *string                 `gorm:"null;size:100"`
-	RegionName               *string                 `gorm:"null;size:100"`
-	TimeZone                 *string                 `gorm:"null;size:100"`
-	ISP                      *string                 `gorm:"null;size:150"`
-	HasSecurityQuestions     int                     `gorm:"type:integer;not null;default:0" json:"hasSecurityQuestions"`
-	Verified                 int                     `gorm:"type:integer;not null;default:0" json:"verified"`
-	Suspended                int                     `gorm:"type:integer;not null;default:0" json:"suspended"`
-	SuspensionReason         *string                 `gorm:"null" json:"suspensionReason"`
+	CreatedAt                time.Time    `json:"createdAt"`
+	UpdatedAt                time.Time    `json:"updatedAt"`
+	LastUpdatedMobileOn      time.Time    `json:"lastUpdatedMobileOn"`
+	LastRecoveredAccountOn   time.Time    `json:"lastRecoveredAccountOn"`
+	ID                       string       `json:"id"`
+	Username                 string       `gorm:"size:30; index:idx_user_unique_username, unique" json:"username"`
+	Email                    string       `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
+	ImageThumbnailURL        *string      `json:"imageThumbnailURL"`
+	FirstName                string       `gorm:"size:50" json:"firstName"`
+	LastName                 *string      `gorm:"size:50" json:"lastName"`
+	Mobile                   *string      `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
+	Address                  string       `gorm:"size:56; index:idx_user_unique_address, unique" json:"publicKey"`
+	PrimarySigner            string       `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
+	Referrer                 *string      `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
+	ReferralLink             *string      `json:"referralLink"`
+	ReferralQrCode           *string      `json:"referralQrCode"`
+	PushNotificationToken    *string      `json:"pushNotificationToken"`
+	Corporate                int          `gorm:"type:integer;not null; default:0" json:"corporate"`
+	MobileVerified           int          `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
+	MembershipType           int          `gorm:"type:integer;not null; default:0" json:"membershipType"`
+	MembershipExpiry         *time.Time   `json:"membershipExpiry"`
+	KYCVerified              int          `gorm:"type:integer;not null; default:0" json:"kycVerified"`
+	AccountRecoveryEnabled   int          `gorm:"type:integer;not null; default:0" json:"accountRecoveryEnabled"`
+	AccountRecoveryExpiresOn *time.Time   `gorm:"null" json:"accountRecoveryExpiresOn"`
+	UserWallets              []UserWallet `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userWallets"`
+	PublicIP                 string       `gorm:"size:45" json:"publicIP"`
+	CountryCode              *string      `gorm:"size:2;null"`
+	Latitude                 *float64     `gorm:"null"`
+	Longitude                *float64     `gorm:"null"`
+	City                     *string      `gorm:"null;size:100"`
+	Region                   *string      `gorm:"null;size:100"`
+	RegionName               *string      `gorm:"null;size:100"`
+	TimeZone                 *string      `gorm:"null;size:100"`
+	ISP                      *string      `gorm:"null;size:150"`
+	HasSecurityQuestions     int          `gorm:"type:integer;not null;default:0" json:"hasSecurityQuestions"`
+	Verified                 int          `gorm:"type:integer;not null;default:0" json:"verified"`
+	Suspended                int          `gorm:"type:integer;not null;default:0" json:"suspended"`
+	SuspensionReason         *string      `gorm:"null" json:"suspensionReason"`
 	// IsMerchant/MerchantOnline back the P2P marketplace's merchant gate
 	// (internal/components/p2p's CreateOffer/ListMarketplaceOffers): a user
 	// becomes a merchant by requesting it once KYC level 2 is done (see
@@ -53,24 +54,34 @@ type User struct {
 	// to true so the online toggle only matters once a merchant actively
 	// wants a break, rather than requiring an extra "go online" step right
 	// after becoming a merchant.
-	IsMerchant               bool                    `gorm:"not null;default:false" json:"isMerchant"`
-	MerchantOnline           bool                    `gorm:"not null;default:true" json:"merchantOnline"`
-	WalletsSharedWithUser    []WalletPermission      `gorm:"foreignKey:TargetUsername;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	PatronMembership         *UserPatronMembership   `gorm:"foreignKey:Username;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"patronMembership"`
-	UserClosedGroups         []UserClosedGroup       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userClosedGroups"`
-	UserFiatPaymentMethods   []UserFiatPaymentMethod `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userFiatPaymentMethods"`
-	CreatedByServiceLinkID   *string                 `gorm:"null;size:150; index:idx_user_unique_email, unique; index:idx_user_unique_phone, unique" json:"createdByServiceLinkId"`
+	IsMerchant             bool                    `gorm:"not null;default:false" json:"isMerchant"`
+	MerchantOnline         bool                    `gorm:"not null;default:true" json:"merchantOnline"`
+	WalletsSharedWithUser  []WalletPermission      `gorm:"foreignKey:TargetUsername;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	PatronMembership       *UserPatronMembership   `gorm:"foreignKey:Username;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"patronMembership"`
+	UserClosedGroups       []UserClosedGroup       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userClosedGroups"`
+	UserFiatPaymentMethods []UserFiatPaymentMethod `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userFiatPaymentMethods"`
+	CreatedByServiceLinkID *string                 `gorm:"null;size:150; index:idx_user_unique_email, unique; index:idx_user_unique_phone, unique" json:"createdByServiceLinkId"`
+	// GasFeeAsset is the stablecoin (curated asset code, e.g. "USDC",
+	// "cNGN") the user chose to pay network fees in, through the paymaster.
+	// Nil pays in ETH. If the wallet holds none of it, ETH is used.
+	GasFeeAsset *string `gorm:"size:12;null" json:"gasFeeAsset"`
 }
 
 type UserWallet struct {
-	CreatedAt               time.Time          `json:"createdAt"`
-	UpdatedAt               time.Time          `json:"updatedAt"`
-	ID                      string             `gorm:"size:56" json:"publicKey"`
-	TempAddress             *string            `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
-	Tag                     *string            `gorm:"null;size:50" json:"tag"`
-	Description             *string            `gorm:"null;size:100" json:"description"`
-	Alias                   string             `gorm:"size:70; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
-	Signer                  string             `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`  //if ID is same as signer, then it is a primary wallet
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	// ID is the wallet's address: a Safe (v1.4.1 + Safe4337Module) whose
+	// address is fixed before it is deployed (see internal/aa). It never
+	// changes, even when its owners (signers) do.
+	ID          string  `gorm:"size:56" json:"publicKey"`
+	Tag         *string `gorm:"null;size:50" json:"tag"`
+	Description *string `gorm:"null;size:100" json:"description"`
+	Alias       string  `gorm:"size:70; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
+	// Signer is the owner key that controls the wallet: the user's
+	// PrimarySigner (their mnemonic key) for their own wallets. It changes
+	// on key rotation (account recovery). PrimaryWallet marks the primary
+	// wallet.
+	Signer                  string             `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`
 	UserID                  string             `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
 	SharedAccessEnabled     int                `gorm:"type:integer;not null; default:0" json:"sharedAccessEnabled"`
 	Tracked                 int                `gorm:"type:integer;not null;default:0" json:"-"`
@@ -82,6 +93,32 @@ type UserWallet struct {
 	SharedAccessUpdatedAt   time.Time          `json:"sharedAccessUpdatedAt"`
 	FeeDisabled             int                `gorm:"type:integer; not null; default:0" json:"feeDisabled"`
 	LinkedWalletAddress     *string            `gorm:"index:idx_linked_wallet_pubk, unique" json:"linkedWalletAddress"`
+
+	// How the wallet's Safe was (or will be) deployed. InitialOwners
+	// (comma-separated), InitialThreshold and SafeSaltNonce fix its
+	// address; they are needed to deploy it and never change afterwards.
+	InitialOwners    string `gorm:"size:600;not null;default:''" json:"initialOwners"`
+	InitialThreshold int    `gorm:"not null;default:1" json:"initialThreshold"`
+	SafeSaltNonce    string `gorm:"size:80;not null;default:'0'" json:"safeSaltNonce"`
+	// InitialModules (comma-separated) are modules enabled at deployment
+	// besides the Safe4337Module: a linked distribution wallet enables its
+	// issuing wallet's Safe, whose owners manage it. Part of the address.
+	InitialModules string `gorm:"size:600;not null;default:''" json:"initialModules"`
+	SafeVersion    string `gorm:"size:40;not null;default:''" json:"safeVersion"`
+	// Activated is set once the Safe is deployed on-chain - by the wallet's
+	// own first operation (primary wallets) or by the primary wallet
+	// deploying it (sub-wallets). Funds can be received before that.
+	Activated        bool       `gorm:"not null;default:false" json:"activated"`
+	ActivatedAt      *time.Time `gorm:"null" json:"activatedAt"`
+	ActivationTxHash *string    `gorm:"size:70;null" json:"activationTxHash"`
+	// ActivatedBy is the wallet whose operation deployed this one (itself
+	// for a primary wallet).
+	ActivatedBy *string `gorm:"size:56;null" json:"activatedBy"`
+	// OwnersHash (aa.OwnersHash of the on-chain owners and threshold) and
+	// OwnersSyncedAt record the last time the database's view of the
+	// wallet's owners was checked against the chain.
+	OwnersHash     *string    `gorm:"size:70;null" json:"-"`
+	OwnersSyncedAt *time.Time `gorm:"null" json:"-"`
 }
 
 type UserFiatPaymentMethod struct {
@@ -165,6 +202,9 @@ type ModifySharedAccessInfo struct {
 	ModifiedPermissions     []WalletPermissionInfo `json:"modifiedPermissions"`
 	AddedPermissions        []WalletPermissionInfo `json:"addedPermissions"`
 	RevokedPermissions      []WalletPermissionInfo `json:"revokedPermissions"`
+	// DryRun computes the permission changes only (used when an approval
+	// completes); nothing is built, signed or saved.
+	DryRun bool `json:"-"`
 }
 type WalletPermissionInfo struct {
 	ID                    string  `json:"Id"`
@@ -293,12 +333,17 @@ type UserSecurityAnswer struct {
 }
 
 type UserAccountRecoveryPayload struct {
-	Transaction          string             `json:"transaction"`
-	TransactionSignature string             `json:"transactionSignature"`
-	TransactionID        string             `json:"transactionId"`
-	NetworkPassPhrase    string             `json:"networkPassPhrase"`
-	Messages             []string           `json:"messages"`
-	SecurityAnswers      UserSecurityAnswer `json:"securityAnswers"`
+	// Transactions are the operations to sign, one per covered wallet
+	// (Wallets, same order); Transaction is the first, for older clients.
+	Transactions          []string           `json:"transactions"`
+	TransactionSignatures []string           `json:"transactionSignatures"`
+	Wallets               []string           `json:"wallets"`
+	Transaction           string             `json:"transaction"`
+	TransactionSignature  string             `json:"transactionSignature"`
+	TransactionID         string             `json:"transactionId"`
+	NetworkPassPhrase     string             `json:"networkPassPhrase"`
+	Messages              []string           `json:"messages"`
+	SecurityAnswers       UserSecurityAnswer `json:"securityAnswers"`
 }
 type UserAccountDeletionPayload struct {
 	Transaction          string   `json:"transaction"`
@@ -308,15 +353,54 @@ type UserAccountDeletionPayload struct {
 	Messages             []string `json:"messages"`
 }
 
+// Account recovery statuses (UserAccountRecoveryLog.Status).
+const (
+	AccountRecoveryPending   = "PENDING"
+	AccountRecoveryCanceled  = "CANCELED"
+	AccountRecoveryCompleted = "COMPLETED"
+	AccountRecoveryFailed    = "FAILED"
+)
+
+// UserAccountRecoveryLog is one account recovery: the platform's recovery
+// key started replacing OldSignerAddress with NewSignerAddress on Wallets
+// (comma-separated), which takes effect from ExecuteAfter unless the owner
+// cancels.
 type UserAccountRecoveryLog struct {
-	CreatedAt        time.Time `json:"createdAt"`
-	Username         string    `gorm:"size:100;primaryKey" json:"username"`
-	OldSignerAddress string    `gorm:"size:100;primaryKey" json:"oldSignerAddress"`
-	NewSignerAddress string    `gorm:"size:100" json:"newSignerAddress"`
-	MasterWallet     int       `gorm:"default:0" json:"masterWallet"`
+	CreatedAt        time.Time  `json:"createdAt"`
+	UpdatedAt        time.Time  `json:"updatedAt"`
+	ID               string     `gorm:"size:40;primaryKey" json:"id"`
+	Username         string     `gorm:"size:100;index" json:"username"`
+	OldSignerAddress string     `gorm:"size:100" json:"oldSignerAddress"`
+	NewSignerAddress string     `gorm:"size:100" json:"newSignerAddress"`
+	MasterWallet     int        `gorm:"default:0" json:"masterWallet"`
+	Status           string     `gorm:"size:20;not null;default:'PENDING';index" json:"status"`
+	Wallets          string     `gorm:"type:text" json:"wallets"`
+	ExecuteAfter     *time.Time `json:"executeAfter"`
+	StartTxHashes    string     `gorm:"type:text" json:"startTxHashes"`
+	CompletedAt      *time.Time `json:"completedAt"`
+}
+
+// WalletList splits Wallets.
+func (l *UserAccountRecoveryLog) WalletList() []string {
+	var out []string
+	for _, w := range strings.Split(l.Wallets, ",") {
+		if w = strings.TrimSpace(w); w != "" {
+			out = append(out, w)
+		}
+	}
+	return out
+}
+
+// RecoveryWatchCursor is the last block the recovery watcher scanned.
+type RecoveryWatchCursor struct {
+	ID    string `gorm:"size:40;primaryKey"`
+	Block uint64
 }
 
 type AccountRecoveryRequest struct {
+	// ExecuteAfter is when the recovery takes effect, unless canceled.
+	ExecuteAfter                      *time.Time         `json:"executeAfter"`
+	Wallets                           []string           `json:"wallets"`
 	NewSignerAddress                  string             `json:"newSignerAddress"`
 	DisableOldSignerFromPrimaryWallet uint64             `json:"disableOldSignerFromPrimaryWallet"`
 	Commit                            uint64             `json:"commit"`

@@ -38,6 +38,10 @@ type CuratedAsset struct {
 	// "P2PEnabled" on the digit (p2_p_enabled), not into the p2p_enabled
 	// column name every other P2P table/query in this codebase expects.
 	P2PEnabled bool `gorm:"column:p2p_enabled;not null;default:false" json:"p2pEnabled"`
+	// GasFeeEligible lets users pick this asset to pay network fees in
+	// (through the paymaster). It must also be enabled on the paymaster
+	// contract and priced by the paymaster quote service.
+	GasFeeEligible bool `gorm:"not null;default:false" json:"gasFeeEligible"`
 }
 
 // CuratedAsset model struct for CuratedAsset.

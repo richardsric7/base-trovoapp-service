@@ -17,13 +17,13 @@ import (
 func GetSortedUserBalance(publicKey string, gc *sharedconfig.GlobalConfig) (balances []userModels.Balance, err error) {
 
 	var userWallet userModels.UserWallet
-	userWallet, temp, err := userDB.GetWallet(publicKey, gc.DB)
+	userWallet, err = userDB.GetWallet(publicKey, gc.DB)
 	if err != nil {
 		return
 	}
 
 	//GetBalance
-	unsortedBalances, err := userWallet.GetBalance(temp, gc)
+	unsortedBalances, err := userWallet.GetBalance(gc)
 	if err != nil {
 		return
 	}

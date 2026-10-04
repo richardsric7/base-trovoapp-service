@@ -44,6 +44,9 @@ func Init(router *gin.Engine, s *serverModels.Server) {
 	apiV1.GET("/assets/curated/:id", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetCuratedAssetByIDHandler(s.TrovoWalletDB))
 	apiV1.POST("/assets/curated", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventAssetCurationChange, models.AccessCategoryAsset, accesslog.BodyField("assetCode")), userMetricServices.SaveCuratedAssetHandler(s.TrovoWalletDB))
 	apiV1.PUT("/assets/curated/:id/p2p-enabled", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventAssetCurationChange, models.AccessCategoryAsset, accesslog.Param("id")), userMetricServices.SetCuratedAssetP2PEnabledHandler(s.TrovoWalletDB))
+	// gasFeeEligible: whether app users may pay network fees in the asset
+	// (app-backend's paymaster flow reads the same gas_fee_eligible column).
+	apiV1.PUT("/assets/curated/:id/gas-fee-eligible", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventAssetCurationChange, models.AccessCategoryAsset, accesslog.Param("id")), userMetricServices.SetCuratedAssetGasFeeEligibleHandler(s.TrovoWalletDB))
 	// Deactivate/reactivate - the supported way to retire a curated asset;
 	// there is intentionally no delete endpoint, since existing wallets,
 	// offers and orders can still reference the asset by code.
@@ -85,6 +88,7 @@ func Init(router *gin.Engine, s *serverModels.Server) {
 	apiV1.PUT("/tokenization/salesdate/:tokenizedAssetID", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.UpdateTrovoManagerTokenizationSalesDatesWithRaw(s.TrovoWalletDB))
 	apiV1.POST("/tokenization/fee/:tokenizedAssetID", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.AcknowledgeTokenizationFeePaymentWithRaw(s.TrovoWalletDB))
 	apiV1.POST("/tokenization/failed/:tokenizedAssetID", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventTokenizationFail, models.AccessCategoryAsset, accesslog.Param("tokenizedAssetID")), userMetricServices.FailDueDiligenceWithRaw(s.TrovoWalletDB))
+	apiV1.PUT("/tokenization/contract/:tokenizedAssetID", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventTokenizationContract, models.AccessCategoryAsset, accesslog.Param("tokenizedAssetID")), userMetricServices.RegisterTrovoManagerTokenizationContractWithRaw(s.TrovoWalletDB))
 	apiV1.POST("/tokenization/mint/:tokenizedAssetID", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventTokenizationMint, models.AccessCategoryAsset, accesslog.Param("tokenizedAssetID")), userMetricServices.ConfirmAndMintTokenizationWithRaw(s.TrovoWalletDB))
 	// apiV1.PUT("/tokenization/document", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.UploadTokenizationDocument(s.TrovoWalletDB))
 	apiV1.PUT("/tokenization/document", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.UploadTrovoManagerTokenizationDocumentWithRaw(s.TrovoWalletDB))
