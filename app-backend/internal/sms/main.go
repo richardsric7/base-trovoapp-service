@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 	tErrors "trovo-wallet-api/internal/errors"
 
 	"github.com/infobip/infobip-api-go-client/v2"
@@ -139,7 +140,7 @@ func SendSMSWithTermiiGateway(destNumber, messageBody string) error {
 	url := fmt.Sprintf("https://%s/api/sms/send?to=%s&from=%s&sms=%s&type=plain&channel=%s&api_key=%s", os.Getenv("TERMII_SMS_URL"), destNumber, senderID, url.QueryEscape(text), channel, os.Getenv("TERMII_SMS_API_KEY"))
 	log.Println("URL:", url)
 
-	resp, err := http.Post(url, "application/json", nil)
+	resp, err := outboundHTTP.Post(url, "application/json", nil)
 
 	if err != nil {
 		log.Printf("[SendSMSWithTermiiGateway] send sms has error: %v\n", err)
@@ -183,3 +184,7 @@ func getSMSProvider(destination string, db *gorm.DB) string {
 	}
 	return phoneProvider.Provider
 }
+
+// outboundHTTP calls the provider, with a timeout (http.DefaultClient has
+// none).
+var outboundHTTP = &http.Client{Timeout: 15 * time.Second}

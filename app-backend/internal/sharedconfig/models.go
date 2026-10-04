@@ -1471,7 +1471,7 @@ func (gc *GlobalConfig) ConvertCngnToUsd(cngnAmount float64) (result decimal.Dec
 		return
 	}
 
-	resp, err := http.Get(fmt.Sprintf("%v/api/convert/ngn-to-usd/%v", os.Getenv("CNGN_PRICE_API_URL"), decimal.NewFromFloat(cngnAmount).String()))
+	resp, err := priceAPIHTTP.Get(fmt.Sprintf("%v/api/convert/ngn-to-usd/%v", os.Getenv("CNGN_PRICE_API_URL"), decimal.NewFromFloat(cngnAmount).String()))
 	if err != nil {
 		log.Println("[ConvertCngnToUsd] http get error", err)
 		return
@@ -1508,7 +1508,7 @@ func (gc *GlobalConfig) ConvertUsdToCngn(usdAmount float64) (result decimal.Deci
 		return
 	}
 
-	resp, err := http.Get(fmt.Sprintf("%v/api/convert/usd-to-ngn/%v", os.Getenv("CNGN_PRICE_API_URL"), decimal.NewFromFloat(usdAmount).String()))
+	resp, err := priceAPIHTTP.Get(fmt.Sprintf("%v/api/convert/usd-to-ngn/%v", os.Getenv("CNGN_PRICE_API_URL"), decimal.NewFromFloat(usdAmount).String()))
 	if err != nil {
 		log.Println("[ConvertUsdToCngn] http get error", err)
 		return
@@ -1536,3 +1536,6 @@ func (gc *GlobalConfig) ConvertUsdToCngn(usdAmount float64) (result decimal.Deci
 	}
 	return
 }
+
+// priceAPIHTTP calls the cNGN price API, with a timeout.
+var priceAPIHTTP = &http.Client{Timeout: 15 * time.Second}

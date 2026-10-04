@@ -65,17 +65,6 @@ func GetBlockchainSwapDestinationMin() decimal.Decimal {
 	return val
 }
 
-// GetBlockchainClient returns the Base JSON-RPC client, the Base equivalent
-// of Stellar's Horizon client.
-func GetBlockchainClient() *ethclient.Client {
-	url := os.Getenv("BASE_RPC_URL")
-	client, err := ethclient.Dial(url)
-	if err != nil {
-		log.Panicf("[GetBlockchainClient] invalid BASE_RPC_URL %q: %v", url, err)
-	}
-	return client
-}
-
 func TempAccountKeypair(publicKey string) (*evmkeypair.Full, error) {
 	mnemonic := os.Getenv("MNEMONIC_TEMP_ACCOUNTS")
 

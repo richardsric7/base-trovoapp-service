@@ -9,7 +9,6 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"log"
-	"net/http"
 	"trovo-wallet-api/internal/middleware"
 
 	"github.com/shopspring/decimal"
@@ -28,32 +27,9 @@ type retryCallbacks struct {
 
 func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
-	callBackRetryChan := make(chan retryCallbacks, 20000)
-	go func(c chan retryCallbacks) {
-		log.Println("#####@started Routine to retry failed auth/events/login callbacks....")
-		//loop
-		for {
-			callbackObj := <-c
-			if callbackObj.Count > 100 {
-				//skip 100 retries
-				continue
-			}
-			_, err := http.Post(callbackObj.CallbackURL, "application/json", callbackObj.Req)
-
-			if err != nil {
-				//send back into channel to retry later
-				log.Printf("Callback retry failed: [%+v]\n", callbackObj)
-				if callbackObj.Count <= 99 {
-					callbackObj.Count++
-					c <- callbackObj
-				}
-
-			}
-			//wait 1 second
-			time.Sleep(1 * time.Second)
-		}
-
-	}(callBackRetryChan)
+	// callbacks are delivered (and retried) through gc.SendCallback;
+	// nothing is sent on this channel any more, so it holds no buffer
+	callBackRetryChan := make(chan retryCallbacks)
 
 	{
 		//auto expire login sessions that where that are not within valid time.

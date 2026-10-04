@@ -30,9 +30,14 @@ func (s *Server) Start(r *gin.Engine) {
 	if PORT == ":" {
 		PORT = ":8082"
 	}
+	// ReadHeaderTimeout/IdleTimeout: slow or idle clients cannot hold
+	// connections (and their memory) open; no Read/WriteTimeout, which would
+	// cut uploads and the login stream
 	srv := &http.Server{
-		Addr:    PORT,
-		Handler: r,
+		Addr:              PORT,
+		Handler:           r,
+		ReadHeaderTimeout: 10 * time.Second,
+		IdleTimeout:       2 * time.Minute,
 	}
 
 	// Initializing the server in a goroutine so that

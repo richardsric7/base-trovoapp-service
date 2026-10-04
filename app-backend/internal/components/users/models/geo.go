@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 	"log"
-	"net/http"
 	"os"
 	tErrors "trovo-wallet-api/internal/errors"
 )
@@ -28,7 +27,7 @@ func GetGeoInfo(ip string) (fetchedGeoIP IPAPI, err error) {
 		return
 	}
 
-	resp, err := http.Get(os.Getenv("IPAPI_HOST") + "/" + ip + "?key=" + os.Getenv("IPAPI_KEY"))
+	resp, err := outboundHTTP.Get(os.Getenv("IPAPI_HOST") + "/" + ip + "?key=" + os.Getenv("IPAPI_KEY"))
 
 	if err == nil {
 		defer resp.Body.Close()
