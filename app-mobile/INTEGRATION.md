@@ -68,6 +68,18 @@ stale timestamps or bad signatures — that verification logic lives in
 The actual signing (`TrovoWalletSDK().signHTTP` in
 `lib/functions/trovo-sdk.dart`) delegates to `WalletCoreFFI` — see below.
 
+### Account recovery
+
+Turning account recovery on or off, and cancelling a recovery in progress,
+change each covered wallet in its own operation: the backend's first answer
+(202) carries `transactions` (one per wallet) and `wallets`, and the app
+signs every one (`lib/screens/account_recovery/recovery_operations.dart`)
+and sends them back as `transactionSignatures`. A device recovering an
+account polls `GET /v1/account/recovery/status/:username` with the new key
+until the recovery completes after its waiting period. See
+[recovery/INTEGRATION.md](../recovery/INTEGRATION.md) and
+[app-backend/INTEGRATION.md](../app-backend/INTEGRATION.md#account-recovery-opt-in-guardian).
+
 ## Shared code with the rest of the monorepo: `wallet-core`
 
 This app is **not** fully code-isolated — it's meant to share its

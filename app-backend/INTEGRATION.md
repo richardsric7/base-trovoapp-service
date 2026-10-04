@@ -522,6 +522,95 @@ not registered (`error-token-contract-not-registered`) or not on sale yet
 
 ---
 
+## Account recovery: opt-in guardian
+
+Trovo is non-custodial: users keep their secret key, and the platform holds
+no key that controls their wallets. Account recovery is an **opt-in**
+exception with a narrow power. It uses Candide's Social Recovery Module
+(`RECOVERY_MODULE_ADDRESS`, deployed from [recovery/](../recovery/README.md)):
+a user who turns it on makes the platform's recovery guardian
+(`ACCOUNT_RECOVERY_GUARDIAN_SAFE` / `_SIGNERS`) the only guardian of their
+wallets. The guardian can only *start* replacing a wallet's key; the
+replacement takes effect after the module's recovery period, during which
+the user is notified and can cancel it with their current key. It can never
+transfer funds or execute anything else on the wallet.
+
+**Covered wallets**: the user's primary wallet and their own sub-wallets
+without approvers, once activated (deployed). Wallets with co-signers are
+recovered by their co-signers instead (below), and adding approvers to a
+covered wallet removes the guardian in the same operation.
+
+### Turning it on and off (two steps, one signature per wallet)
+
+`POST /v1/users/account/recovery` (on) and `DELETE /v1/users/account/recovery`
+(off), signed with the user's key:
+
+1. Without signatures the backend answers **202** with `transactions` (one
+   operation per wallet, base64 hashes to sign), `wallets` (their aliases,
+   same order) and `messages` to show. Turning it on enables the module and
+   adds the guardian on each wallet not yet covered; the primary wallet's
+   operation also pays the fee (`ACCOUNT_RECOVERY_FEE`, first time only).
+   The primary wallet must be activated (`error primary account not yet
+   activated`).
+2. The app signs every transaction and sends the same body back with
+   `transactionSignatures` (same order). **200** with `transactionId` (the
+   operations' hashes, comma separated) when submitted. Turning it on again
+   later covers wallets created since, without a fee.
+
+`transaction` / `transactionSignature` (single) still work for one wallet.
+`DELETE` answers 200 directly when no wallet still has the guardian.
+
+### Recovering (the device with the new key)
+
+1. Email OTP (`/v1/account/recovery/request-email-otp/:username`,
+   `/v1/account/recovery/verify-email-otp/...`) and security answers, as before.
+2. `POST /v1/users/account/recover` signed with the **new** key, with
+   `newSignerAddress`, `emailOtp`, `securityAnswers` and `commit`:
+   `commit: 0` checks and returns `messages` and the covered `wallets`
+   (202); `commit: 1` has the guardian start replacing the old key with the
+   new one on every covered wallet and answers **200** with `executeAfter`
+   (when it takes effect) and `transactionId` (the guardian's transactions).
+   The user is notified by push and email straight away.
+3. `GET /v1/account/recovery/status/:username`, signed with the new key,
+   returns `{status, executeAfter, completedAt}` for the recovery onto that
+   key: `PENDING`, then `COMPLETED` (import the account with the new key),
+   or `CANCELED` / `FAILED`.
+
+After the period a background job (every 30 s, `process-account-recoveries`
+lock) finalizes the recovery on each wallet, then switches the user's
+signer to the new key. Wallets the user shares with approvers - their own
+and those they approve on - each get a `REPLACE SIGNER` approval request
+(an operation swapping the old key for the new one) that the other
+co-signers approve like any other request. When the remaining co-signers
+cannot reach the wallet's threshold, the request says so and Discord is
+alerted.
+
+### Cancelling (the device with the current key)
+
+`POST /v1/users/account/recovery/cancel`, signed with the current key, in
+the same two steps as turning recovery on: **202** with one `transactions`
+entry per wallet being recovered, then **200** once the signed operations
+are submitted. **404** `error-no-recovery-pending` when there is none. The
+apps show it on the account recovery page, which recovery push
+notifications (`route: accountRecovery`) open.
+
+### Monitoring
+
+The same job watches the module's `RecoveryExecuted` events: a recovery the
+backend did not start (e.g. a misused guardian key) raises a Discord alert
+and an urgent notification asking the owner to cancel it. A recovery the
+guardian's transaction never confirmed is marked `FAILED` after 15 minutes
+with an alert.
+
+### Never-activated accounts
+
+`POST /v1/users/inactive-account/recover` (users who never turned recovery
+on) only works while none of the account's wallets is deployed or holds
+any balance: it rebuilds the primary wallet for the new key, which changes
+its address.
+
+---
+
 ## Swagger UI: the per-endpoint reference
 
 Once the server is running, every documented endpoint — request

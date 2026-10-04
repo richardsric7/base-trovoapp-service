@@ -7,7 +7,6 @@ import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.da
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_app/functions/trovo-sdk.dart';
 import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
@@ -16,6 +15,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
+import 'recovery_operations.dart';
 
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
@@ -341,24 +342,6 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
     sendToServer();
   }
 
-  postProcessData(messageShown, messageLength, data) {
-    // we would like to display all messages returned from the initial
-    // request to server using a popup. In order to achieve that we
-    // employ the use of a little recursion here. Please recursive
-    // functions can turn into a nightmare fast so be carefull here.
-    if (messageShown <= messageLength - 1) {
-      showResponseMessage(
-        context,
-        data['messages'][messageShown],
-        () => {postProcessData(messageShown, messageLength, data)},
-      );
-
-      messageShown++;
-      return;
-    }
-    sendFullDataToServer(data);
-  }
-
   sendToServer() async {
     try {
       showLoader(context);
@@ -390,12 +373,17 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
 
       hideLoader(context);
 
-      if (responseData['statusCode'] == 202) {
-        // sendFullDataToServer(responseData['data']);
-        var messageLength = responseData['data']['messages'].length;
-        var messageShown = 0;
-
-        postProcessData(messageShown, messageLength, responseData['data']);
+      if (responseData['statusCode'] == 200) {
+        // nothing left to change on-chain: already off
+        showLoader(context);
+        await onDisabled();
+      } else if (responseData['statusCode'] == 202) {
+        Map data = responseData['data'];
+        showMessagesThen(
+          context,
+          recoveryMessages(data),
+          () => sendFullDataToServer(data),
+        );
       } else {
         hideLoader(context);
         popup(
@@ -410,17 +398,32 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
     }
   }
 
+  Future<void> onDisabled() async {
+    await updateUserInfo(
+      primaryWallet.signer!,
+      appState.secretKeys[0],
+      primaryWallet.address!,
+      appState.userInfo!.username,
+      appState,
+    );
+    hideLoader(context);
+    appState.viewData = {
+      SuccessViewPageConfig.key: {
+        'title': "success".tr(),
+        'message': "disableaccountrecoverysuccess".tr(),
+      },
+    };
+    appState.currentAction = PageAction(
+      state: PageState.replace,
+      page: SuccessViewPageConfig,
+    );
+  }
+
   void sendFullDataToServer(responseBody) async {
     try {
       showLoader(context);
-      // get primary signature
-      var signature = TrovoWalletSDK().signBase64Txn(
-        appState.secretKeys[0],
-        responseBody['transaction'],
-        responseBody['networkPassPhrase'],
-      );
-
-      responseBody['transactionSignature'] = signature;
+      // one signature per wallet's operation
+      signRecoveryTransactions(responseBody, appState.secretKeys[0]);
       String requestBody = jsonEncode(responseBody);
 
       Map responseData = await makeDeleteRequest(
@@ -432,28 +435,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
       );
 
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo(
-          primaryWallet.signer!,
-          appState.secretKeys[0],
-          primaryWallet.address!,
-          appState.userInfo!.username,
-          appState,
-        );
-        hideLoader(context);
-        // showSuccessAlert(context, onTap: () {
-        //   appState.currentAction = PageAction(
-        //       state: PageState.replaceAll, page: BottomHomePageConfig);
-        // });
-        appState.viewData = {
-          SuccessViewPageConfig.key: {
-            'title': "success".tr(),
-            'message': "disableaccountrecoverysuccess".tr(),
-          },
-        };
-        appState.currentAction = PageAction(
-          state: PageState.replace,
-          page: SuccessViewPageConfig,
-        );
+        await onDisabled();
       } else {
         popup(
           context,

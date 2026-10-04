@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:trovo_app/network/requests.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
@@ -22,9 +25,52 @@ class AccountRecoverySuccess extends StatefulWidget {
   State<AccountRecoverySuccess> createState() => _AccountRecoverySuccess();
 }
 
+// AccountRecoverySuccess follows a started recovery for the recovering
+// device: PENDING until the recovery period is over (the account owner can
+// still cancel), then COMPLETED, when the new key can import the account.
 class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
   late ColorNotifier notifier;
   late DataProvider appState;
+  String status = 'PENDING';
+  DateTime? executeAfter;
+  Timer? timer;
+
+  Future<void> checkStatus() async {
+    try {
+      Map res = await makeGetRequest(
+        uri: '/v1/account/recovery/status/${appState.tempUsername}',
+        signer: appState.tempAddress,
+        address: appState.tempAddress,
+        secretKey: appState.tempSecretKey,
+      );
+      if (res['statusCode'] != 200 || !mounted) return;
+      final s = res['data']['status'] ?? '';
+      setState(() {
+        if (s != '') status = s;
+        if (res['data']['executeAfter'] != null) {
+          executeAfter = DateTime.tryParse(res['data']['executeAfter'])
+              ?.toLocal();
+        }
+      });
+      if (status != 'PENDING') timer?.cancel();
+    } catch (_) {}
+  }
+
+  String get details {
+    switch (status) {
+      case 'COMPLETED':
+        return "otpcongratulationsdetails".tr();
+      case 'CANCELED':
+        return "recoverycanceleddetails".tr();
+      case 'FAILED':
+        return "recoveryfaileddetails".tr();
+      default:
+        final when = executeAfter == null
+            ? ''
+            : DateFormat.yMMMd().add_jm().format(executeAfter!);
+        return "recoverypendingdetails".tr(args: [when]);
+    }
+  }
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -40,6 +86,22 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final data = appState.viewData?[AccountRecoverySuccessViewPageConfig.key];
+      if (data != null && data['executeAfter'] != null) {
+        setState(() {
+          executeAfter = DateTime.tryParse(data['executeAfter'])?.toLocal();
+        });
+      }
+      checkStatus();
+      timer = Timer.periodic(Duration(seconds: 30), (_) => checkStatus());
+    });
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -112,7 +174,11 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                           child: Column(
                             children: [
                               Text(
-                                '${"congratulations".tr()} ${appState.tempUsername}',
+                                status == 'COMPLETED'
+                                    ? '${"congratulations".tr()} ${appState.tempUsername}'
+                                    : status == 'PENDING'
+                                    ? "recoverypendingtitle".tr()
+                                    : "accountrecovery".tr(),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 16,
@@ -122,7 +188,7 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                               ),
                               SizedBox(height: 2),
                               Text(
-                                "otpcongratulationsdetails".tr(),
+                                details,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 16,

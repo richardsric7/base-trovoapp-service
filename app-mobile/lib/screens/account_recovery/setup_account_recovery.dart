@@ -7,13 +7,14 @@ import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_app/models/wallet.dart';
-import 'package:trovo_app/functions/trovo-sdk.dart';
 import 'package:trovo_app/network/requests.dart';
 import 'package:trovo_app/storage/cache.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/widgets/loader.dart';
 import 'package:trovo_app/widgets/popups.dart';
+
+import 'recovery_operations.dart';
 
 import '../../custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
@@ -182,10 +183,12 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
       hideLoader(context);
 
       if (responseData['statusCode'] == 202) {
-        var messageLength = responseData['data']['messages'].length;
-        var messageShown = 0;
-
-        postProcessData(messageShown, messageLength, responseData['data']);
+        Map data = responseData['data'];
+        showMessagesThen(
+          context,
+          recoveryMessages(data),
+          () => sendFullDataToServer(data),
+        );
       } else {
         popup(
           context,
@@ -200,35 +203,11 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
     }
   }
 
-  postProcessData(messageShown, messageLength, data) {
-    // we would like to display all messages returned from the initial
-    // request to server using a popup. In order to achieve that we
-    // employ the use of a little recursion here. Please recursive
-    // functions can turn into a nightmare fast so be carefull here.
-    if (messageShown <= messageLength - 1) {
-      showResponseMessage(
-        context,
-        data['messages'][messageShown],
-        () => {postProcessData(messageShown, messageLength, data)},
-      );
-
-      messageShown++;
-      return;
-    }
-    sendFullDataToServer(data);
-  }
-
   void sendFullDataToServer(responseBody) async {
     try {
       showLoader(context);
-      // get primary signature
-      var signature = TrovoWalletSDK().signBase64Txn(
-        appState.secretKeys[0],
-        responseBody['transaction'],
-        responseBody['networkPassPhrase'],
-      );
-
-      responseBody['transactionSignature'] = signature;
+      // one signature per wallet's operation
+      signRecoveryTransactions(responseBody, appState.secretKeys[0]);
       String requestBody = jsonEncode(responseBody);
 
       Map responseData = await makePostRequest(

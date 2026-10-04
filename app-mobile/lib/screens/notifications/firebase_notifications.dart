@@ -191,6 +191,17 @@ void goToPageRoute(String route) {
           );
         });
         break;
+      case 'accountRecovery':
+        // a recovery of the account started, completed or was canceled:
+        // the page where the owner can cancel one in progress
+        _appState.currentAction = PageAction(
+          state: PageState.addAll,
+          pages: [
+            BottomHomePageConfig,
+            DisableAccountRecoveryInfoViewPageConfig,
+          ],
+        );
+        break;
       default:
         _appState.currentAction = PageAction(
           state: PageState.replaceAll,

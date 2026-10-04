@@ -1876,14 +1876,15 @@ func postUsersAccountRecoveryHandler(callBackRetryChan chan userModels.RetryCall
 			return
 		}
 
-		//At this point, there was no error.
+		//At this point, there was no error: 202 with the operations to sign
+		//(transactions), or 200 once they are submitted.
 		if len(payload.TransactionID) > 0 {
 			if user.PushNotificationToken != nil {
 				dataPayload := make(map[string]string)
 				dataPayload["none"] = ""
-				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Enabled!", fmt.Sprintf("Congratulations! You have successfully enabled account recovery service on your account [%v]. Your account will be recovered by Trovotech should you lose your secret key. The service will expire on %v. We will notify you when it is time to renew the service to keep your account recovery active.", user.Username, user.AccountRecoveryExpiresOn.Format("01-02-2006 15:04:05")), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-				c.JSON(http.StatusOK, payload)
+				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Enabled!", fmt.Sprintf("You have turned on account recovery for your account [%v]. If you lose your secret key, we can move your wallets to a new key after a waiting period during which you are notified and can cancel. We can never move your funds.", user.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 			}
+			c.JSON(http.StatusOK, payload)
 		} else {
 			c.JSON(http.StatusAccepted, payload)
 		}
@@ -1956,6 +1957,9 @@ func deleteUsersAccountRecoveryHandler(callBackRetryChan chan userModels.RetryCa
 				dataPayload["none"] = ""
 				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Disabled!", fmt.Sprintf("Congratulations! You have successfully disabled account recovery feature on your account [%v].", user.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 			}
+			c.JSON(http.StatusOK, payload)
+		} else if len(payload.Transactions) == 0 {
+			// nothing left on-chain: disabled
 			c.JSON(http.StatusOK, payload)
 		} else {
 			c.JSON(http.StatusAccepted, payload)
@@ -2062,6 +2066,11 @@ func postUsersAccountRecoveryCancelHandler(callBackRetryChan chan userModels.Ret
 			} else {
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
 			}
+			return
+		}
+		// 202 with the operations to sign, 200 once canceled
+		if len(payload.TransactionID) == 0 && len(payload.Transactions) > 0 {
+			c.JSON(http.StatusAccepted, payload)
 			return
 		}
 		c.JSON(http.StatusOK, payload)

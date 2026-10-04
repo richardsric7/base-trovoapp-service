@@ -229,11 +229,6 @@ link) never does this lookup.
 These are BIP-39 mnemonics for internal signer wallets the app uses to
 perform specific categories of on-chain actions automatically.
 
-**`MNEMONIC_ACCOUNT_RECOVERY`** / **`ACCOUNT_RECOVERY_SALT`**
-- Example: `test test test test test test test test test test test junk` / `openssl rand -hex 16` output
-- What it does: Signer mnemonic and salt used in the account-recovery flow's key derivation.
-- How to get a real value: generate a fresh BIP-39 mnemonic with any standard wallet tool (e.g. `ethers.Wallet.createRandom().mnemonic.phrase` in Node); generate the salt with `openssl rand -hex 16`.
-
 **`MNEMONIC_BULK_PAYMENT`** / **`BULK_PAYMENT_SALT`**
 - Example: mnemonic / `openssl rand -hex 16` output
 - What it does: Signer mnemonic and salt for the bulk-payment feature's derived sub-wallets.
@@ -374,10 +369,8 @@ all point at the same test wallet.
 - What it does: The fee amount (in whatever unit the market-making flow expects) charged per market-making trade.
 - How to get a real value: set per your fee schedule.
 
-**`ACCOUNT_RECOVERY_FEE_AMOUNT_USD`** / **`ACCOUNT_RECOVERY_FEE_ASSET_CODE`**
-- Example: `1.00` / `USDB`
-- What it does: The USD-denominated fee charged for account recovery, and which asset it's actually collected in.
-- How to get a real value: set per your fee schedule; asset code must be one your platform supports.
+**Account recovery fee** (not an environment variable)
+- The fee charged when a user turns account recovery on is the `service_fees` row `ACCOUNT_RECOVERY_FEE`: `fee_fixed` is the amount in USD, `fee_asset_code` / `fee_contract_address` the stablecoin it is paid in (converted at the current rate). It is paid from the user's primary wallet in the same operation that turns recovery on, to `ACCOUNT_RECOVERY_FEE_WALLET`. An inactive row (or a fee of 0) charges nothing.
 
 **`SHARED_ACCESS_FEE_ADDRESS`** / **`SHARED_ACCESS_FEE_AMOUNT`** / **`SHARED_ACCESS_FEE_ASSET_CODE`** / **`SHARED_ACCESS_FEE_ASSET_CONTRACT_ADDRESS`**
 - Example: `0x1111...` / `0.5` / `USDB` / `0x0000...`
@@ -406,7 +399,6 @@ per your network's economics (testnet values can be tiny).
 `WALLET_SIGNER_ACTIVATION_AMOUNT`, `SUB_WALLET_ACTIVATION_AMOUNT`,
 `BULKPAYMENT_SUB_WALLET_ACTIVATION_AMOUNT`,
 `MM_SUB_WALLET_ACTIVATION_AMOUNT`, `ISSUING_SUB_WALLET_ACTIVATION_AMOUNT`,
-`RECOVERY_SIGNER_ACTIVATION_AMOUNT`, `ACCOUNT_RECOVERY_MINIMUM_BALANCE`,
 `MIN_SENDABLE_AMOUNT`
 
 - Example value (any of the above): `0.001`
@@ -475,6 +467,27 @@ network fee.
 - How to get a real value: leave empty unless Safe's contracts live elsewhere on your network.
 
 A tokenized asset's **token contract** is not configuration: it is registered per asset through `PUT /v1/trovo-manager/tokenization/contract/:tid` (see [INTEGRATION.md](INTEGRATION.md#tokenized-assets-token-contract-vs-issuing-safe)).
+
+---
+
+## Account recovery
+
+Opt-in account recovery (see [INTEGRATION.md](INTEGRATION.md#account-recovery-opt-in-guardian)). Without `RECOVERY_MODULE_ADDRESS` and a guardian, the recovery endpoints answer `error-account-recovery-not-configured` (503); nothing else is affected.
+
+**`RECOVERY_MODULE_ADDRESS`**
+- Example: `0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e`
+- What it does: Candide's Social Recovery Module v0.2.0 that covered wallets enable. Its recovery period is fixed when it is deployed.
+- How to get a real value: printed by `recovery/contracts/scripts/deploy.js` and saved in `recovery/contracts/deployments/<chainId>.json` (see [recovery/DEPLOYMENT.md](../recovery/DEPLOYMENT.md)).
+
+**`RECOVERY_PERIOD_SECONDS`**
+- Example: `604800` (7 days)
+- What it does: Only for messages to users ("your wallets move to the new key after 7 days"); the module's own period is what counts. Set it to the value the module was deployed with.
+- How to get a real value: `recoveryPeriodSeconds` in the module's deployment file (`recovery/contracts/deployments/<chainId>.json`).
+
+**`ACCOUNT_RECOVERY_GUARDIAN_SAFE`** / **`ACCOUNT_RECOVERY_GUARDIAN_SIGNERS`**
+- Example: `0x1234...abcd` / `0x59c6...;0x5de4...` (hex private keys, `;` or `,` separated)
+- What it does: The platform's recovery guardian, made the only guardian of each covered wallet. With `ACCOUNT_RECOVERY_GUARDIAN_SAFE` (recommended) the guardian is that Safe and the backend executes its calls with enough of the `ACCOUNT_RECOVERY_GUARDIAN_SIGNERS` keys to meet its threshold (the first key pays gas); without it the guardian is the first key itself. The guardian can only start replacing a covered wallet's key (finalized after the recovery period, cancellable by the user) - it cannot move funds. Its keys pay the gas of starting and finalizing recoveries, so keep them funded with a little ETH.
+- How to get a real value: create a Safe owned by dedicated keys from your secrets manager (e.g. 2-of-3 with two keys here and one held offline). Changing the guardian later does not move existing wallets to it: users would have to turn recovery off and on again.
 
 ---
 

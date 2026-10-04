@@ -103,6 +103,16 @@ worth flagging as something you'd want removed or gated behind a debug
 flag before a hardened production build, since it logs signing material
 to the browser console.
 
+### Account recovery
+
+Recovering an account on the web starts the recovery (`POST
+/v1/users/account/recover`, `commit: 1`) and then polls `GET
+/v1/account/recovery/status/:username` with the new key: the recovery
+takes effect after its waiting period (the account owner can cancel it
+meanwhile), and only then does the page send the user to import the
+account with the new key. See
+[app-backend/INTEGRATION.md](../app-backend/INTEGRATION.md#account-recovery-opt-in-guardian).
+
 ## (b) Using `wallet-core` (WASM)
 
 Yes — confirmed by code, not inferred. `app-web` vendors the compiled

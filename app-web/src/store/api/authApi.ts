@@ -118,6 +118,21 @@ export const authApi = baseApi.injectEndpoints({
         }, 
       }),
     }),
+    // state of the recovery onto the requesting (new) key: PENDING until the
+    // recovery period is over, then COMPLETED (or CANCELED by the owner)
+    getRecoveryStatus: builder.query({
+      query: (payload: Payload) => ({
+        url: `/v1/account/recovery/status/${payload.body.username}`,
+        method: 'GET',
+        data: {
+          creds: {
+            signer: payload.signer,
+            address: payload.address,
+            secretKey: payload.secretKey,
+          }
+        },
+      }),
+    }),
     getUser: builder.query({
       query: (payload: Payload) => {
         let url = `/v1/users/${payload.body.userId}`;
@@ -151,5 +166,6 @@ export const {
   useFetchSecurityQuestionsQuery,
   useSubmitSecurityAnswersMutation,
   useRequestAccountRecoveryMutation,
+  useLazyGetRecoveryStatusQuery,
   useLazyGetUserQuery,
 } = authApi;
