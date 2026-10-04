@@ -98,6 +98,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	router.DELETE("/v1/users/account/recovery", middleware.AuthenticationMiddlewareUsingTimestamp(), deleteUsersAccountRecoveryHandler(callBackRetryChan, gc))
 
+	router.POST("/v1/users/account/recovery/cancel", middleware.RateLimitMiddleware(gc, "account-recovery-cancel", 20, time.Minute), middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersAccountRecoveryCancelHandler(callBackRetryChan, gc))
+
+	router.GET("/v1/account/recovery/status/:targetUser", middleware.RateLimitMiddleware(gc, "account-recovery-status", 60, time.Minute), middleware.AuthenticationMiddlewareUsingTimestamp(), getAccountRecoveryStatusTargetUserHandler(callBackRetryChan, gc))
+
 	router.POST("/v1/users/account/recover", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersAccountRecoverHandler(callBackRetryChan, gc))
 
 	router.POST("/v1/users/inactive-account/recover", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersInactiveAccountRecoverHandler(callBackRetryChan, gc))

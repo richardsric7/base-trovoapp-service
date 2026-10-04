@@ -2,6 +2,7 @@ package users
 
 import (
 	"bytes"
+	"strings"
 	"time"
 )
 
@@ -103,7 +104,7 @@ type UserWallet struct {
 	// besides the Safe4337Module: a linked distribution wallet enables its
 	// issuing wallet's Safe, whose owners manage it. Part of the address.
 	InitialModules string `gorm:"size:600;not null;default:''" json:"initialModules"`
-	SafeVersion      string `gorm:"size:40;not null;default:''" json:"safeVersion"`
+	SafeVersion    string `gorm:"size:40;not null;default:''" json:"safeVersion"`
 	// Activated is set once the Safe is deployed on-chain - by the wallet's
 	// own first operation (primary wallets) or by the primary wallet
 	// deploying it (sub-wallets). Funds can be received before that.
@@ -332,12 +333,17 @@ type UserSecurityAnswer struct {
 }
 
 type UserAccountRecoveryPayload struct {
-	Transaction          string             `json:"transaction"`
-	TransactionSignature string             `json:"transactionSignature"`
-	TransactionID        string             `json:"transactionId"`
-	NetworkPassPhrase    string             `json:"networkPassPhrase"`
-	Messages             []string           `json:"messages"`
-	SecurityAnswers      UserSecurityAnswer `json:"securityAnswers"`
+	// Transactions are the operations to sign, one per covered wallet
+	// (Wallets, same order); Transaction is the first, for older clients.
+	Transactions          []string           `json:"transactions"`
+	TransactionSignatures []string           `json:"transactionSignatures"`
+	Wallets               []string           `json:"wallets"`
+	Transaction           string             `json:"transaction"`
+	TransactionSignature  string             `json:"transactionSignature"`
+	TransactionID         string             `json:"transactionId"`
+	NetworkPassPhrase     string             `json:"networkPassPhrase"`
+	Messages              []string           `json:"messages"`
+	SecurityAnswers       UserSecurityAnswer `json:"securityAnswers"`
 }
 type UserAccountDeletionPayload struct {
 	Transaction          string   `json:"transaction"`
@@ -347,15 +353,54 @@ type UserAccountDeletionPayload struct {
 	Messages             []string `json:"messages"`
 }
 
+// Account recovery statuses (UserAccountRecoveryLog.Status).
+const (
+	AccountRecoveryPending   = "PENDING"
+	AccountRecoveryCanceled  = "CANCELED"
+	AccountRecoveryCompleted = "COMPLETED"
+	AccountRecoveryFailed    = "FAILED"
+)
+
+// UserAccountRecoveryLog is one account recovery: the platform's recovery
+// key started replacing OldSignerAddress with NewSignerAddress on Wallets
+// (comma-separated), which takes effect from ExecuteAfter unless the owner
+// cancels.
 type UserAccountRecoveryLog struct {
-	CreatedAt        time.Time `json:"createdAt"`
-	Username         string    `gorm:"size:100;primaryKey" json:"username"`
-	OldSignerAddress string    `gorm:"size:100;primaryKey" json:"oldSignerAddress"`
-	NewSignerAddress string    `gorm:"size:100" json:"newSignerAddress"`
-	MasterWallet     int       `gorm:"default:0" json:"masterWallet"`
+	CreatedAt        time.Time  `json:"createdAt"`
+	UpdatedAt        time.Time  `json:"updatedAt"`
+	ID               string     `gorm:"size:40;primaryKey" json:"id"`
+	Username         string     `gorm:"size:100;index" json:"username"`
+	OldSignerAddress string     `gorm:"size:100" json:"oldSignerAddress"`
+	NewSignerAddress string     `gorm:"size:100" json:"newSignerAddress"`
+	MasterWallet     int        `gorm:"default:0" json:"masterWallet"`
+	Status           string     `gorm:"size:20;not null;default:'PENDING';index" json:"status"`
+	Wallets          string     `gorm:"type:text" json:"wallets"`
+	ExecuteAfter     *time.Time `json:"executeAfter"`
+	StartTxHashes    string     `gorm:"type:text" json:"startTxHashes"`
+	CompletedAt      *time.Time `json:"completedAt"`
+}
+
+// WalletList splits Wallets.
+func (l *UserAccountRecoveryLog) WalletList() []string {
+	var out []string
+	for _, w := range strings.Split(l.Wallets, ",") {
+		if w = strings.TrimSpace(w); w != "" {
+			out = append(out, w)
+		}
+	}
+	return out
+}
+
+// RecoveryWatchCursor is the last block the recovery watcher scanned.
+type RecoveryWatchCursor struct {
+	ID    string `gorm:"size:40;primaryKey"`
+	Block uint64
 }
 
 type AccountRecoveryRequest struct {
+	// ExecuteAfter is when the recovery takes effect, unless canceled.
+	ExecuteAfter                      *time.Time         `json:"executeAfter"`
+	Wallets                           []string           `json:"wallets"`
 	NewSignerAddress                  string             `json:"newSignerAddress"`
 	DisableOldSignerFromPrimaryWallet uint64             `json:"disableOldSignerFromPrimaryWallet"`
 	Commit                            uint64             `json:"commit"`

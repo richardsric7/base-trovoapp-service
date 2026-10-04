@@ -877,6 +877,21 @@ func main() {
 	}
 
 	{
+		// Finalize account recoveries whose recovery period is over, notice
+		// cancellations and alert on recoveries started outside the backend.
+		go func() {
+			for {
+				sharedconfig.WithSingletonLock(&globalConfig, "process-account-recoveries", 2*time.Minute, func() {
+					ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+					defer cancel()
+					userServices.ProcessAccountRecoveries(ctx, &globalConfig)
+				})
+				time.Sleep(30 * time.Second)
+			}
+		}()
+	}
+
+	{
 		//Start processing payment streams
 		go func() {
 			for {

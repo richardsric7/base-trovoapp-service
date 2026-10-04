@@ -813,6 +813,14 @@ func (id UserWalletID) GetBlockchainAccountDetail(gc *sharedconfig.GlobalConfig)
 	return fetchAccountDetail(string(id), gc, fmt.Sprintf("bca_%v", string(id)))
 }
 
+// GetBlockchainAccountDetailFresh is GetBlockchainAccountDetail read from
+// the chain, not the cache.
+func (id UserWalletID) GetBlockchainAccountDetailFresh(gc *sharedconfig.GlobalConfig) (clientAccount AccountDetail, destinationAccountExists bool, err error) {
+	key := fmt.Sprintf("bca_%v", string(id))
+	gc.RedisCache.DeleteFromCache(key)
+	return fetchAccountDetail(string(id), gc, key)
+}
+
 // isIssuerOfAssetCode reports whether issuer has an asset with assetCode
 // registered in this app's own catalog. Stellar's version queried
 // Horizon's global asset registry (client.Assets(ForContractAddress,

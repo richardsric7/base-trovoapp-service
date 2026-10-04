@@ -88,6 +88,13 @@ func sharedAccessCalls(ctx context.Context, wallet, linked *userModels.UserWalle
 	if err != nil {
 		return nil, &tErrors.CustomError{Param: "numberOfApprovalsNeeded", Err: "error-approvers-not-enough", ErrMessage: err.Error(), Code: http.StatusBadRequest}
 	}
+	// a wallet with co-signers leaves account recovery: its key is replaced
+	// by its co-signers' approval instead
+	revoke, err := guardianRevokeCalls(ctx, aw.Address, target, gc)
+	if err != nil {
+		return nil, err
+	}
+	calls = append(calls, revoke...)
 	if linked == nil {
 		return calls, nil
 	}
@@ -111,7 +118,11 @@ func sharedAccessCalls(ctx context.Context, wallet, linked *userModels.UserWalle
 	if err != nil {
 		return nil, &tErrors.ErrorTemporaryServerError{}
 	}
-	for _, c := range linkedCalls {
+	linkedRevoke, err := guardianRevokeCalls(ctx, lw.Address, target, gc)
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range append(linkedCalls, linkedRevoke...) {
 		calls = append(calls, aa.ViaModule(lw.Address, c))
 	}
 	return calls, nil

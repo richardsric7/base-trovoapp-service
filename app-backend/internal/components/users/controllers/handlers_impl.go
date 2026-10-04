@@ -2008,7 +2008,7 @@ func postUsersAccountRecoverHandler(callBackRetryChan chan userModels.RetryCallb
 		}
 
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/account/recover  %v", user.Username), gc.DB)
-		_, sharedApproverWallets, err := userServices.DoAccountRecovery(&user, &payload, gc)
+		_, _, err = userServices.DoAccountRecovery(&user, &payload, gc)
 		if err != nil {
 			var ex tErrors.GenericError
 			var ok bool
@@ -2022,56 +2022,63 @@ func postUsersAccountRecoverHandler(callBackRetryChan chan userModels.RetryCallb
 			return
 		}
 
-		//At this point, there was no error.
+		//At this point, there was no error. A committed recovery has
+		//started: it completes after the recovery period (the user and
+		//their wallets' co-signers are notified then).
 		if payload.Commit == 1 && len(payload.TransactionID) > 0 {
 			c.JSON(http.StatusOK, payload)
-			userMessage := fmt.Sprintf("Congratulations! You have successfully recovered your account [%v]. Please import the new secret key using the same username specified.", user.Username)
-			if len(sharedApproverWallets) > 0 {
-				userMessage = "\n Your approver permissions on any shared wallets has been revoked. All approvers/initiators on the wallets has been notified to re-instate your permissions."
-			}
-			if user.PushNotificationToken != nil {
-				dataPayload := make(map[string]string)
-				dataPayload["route"] = "none"
-				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Successful!", userMessage, "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			}
-			if len(sharedApproverWallets) > 0 {
-				for _, walletPermission := range sharedApproverWallets {
-					{
-						notificationList := make(map[string]string)
-						//start push notificationMessage
-						wallet, e := userModels.UserWalletID(walletPermission.WalletAddress).GetWallet(gc.DB, gc)
-						if e != nil {
-							return
-						}
-						permissionList := wallet.Permissions
-						for _, v := range permissionList {
-
-							u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
-							if e != nil {
-								continue
-							}
-
-							if u.PushNotificationToken != nil && v.Permission != "VIEW-ONLY" {
-								if _, ok := notificationList[*u.PushNotificationToken]; ok {
-									continue
-								}
-								dataPayload := make(map[string]string)
-								dataPayload["route"] = "pendingApproval"
-
-								pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v's %v permission on %v has been revoked!", user.Username, walletPermission.Permission, wallet.Alias), fmt.Sprintf("As part of strict security protocol, %v's %v permission on the wallet %v has been revoked due to account recovery!\n Please follow procedure to initiate re-instating this user immediately so that they can perform the functions as you assign to them. This is a security procedure, so first confirm from %v that the account recovery was intentional.", user.Username, walletPermission.Permission, wallet.Alias, user.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-								notificationList[*u.PushNotificationToken] = v.TargetUsername
-
-							}
-						}
-					}
-				}
-
-			}
-
 		} else {
 			c.JSON(http.StatusAccepted, payload)
 		}
+	}
+}
 
+// postUsersAccountRecoveryCancelHandler godoc
+// @Summary POST /v1/users/account/recovery/cancel - cancel a pending account recovery
+// @Description Two steps: without transactionSignatures it returns the operations to sign (one per wallet being recovered); with them it submits them. Signed with the current key.
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param body body userModels.UserAccountRecoveryPayload true "Cancel payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Router /v1/users/account/recovery/cancel [post]
+func postUsersAccountRecoveryCancelHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var payload userModels.UserAccountRecoveryPayload
+		data, _ := io.ReadAll(c.Request.Body)
+		if err := json.Unmarshal(data, &payload); err != nil {
+			var invalidJSON tErrors.ErrorInvalidJSON
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		if err == nil {
+			err = userServices.CancelAccountRecovery(&user, &payload, gc)
+		}
+		if err != nil {
+			if ex, ok := err.(tErrors.GenericError); ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+		c.JSON(http.StatusOK, payload)
+	}
+}
+
+// getAccountRecoveryStatusTargetUserHandler godoc
+// @Summary GET /v1/account/recovery/status/:targetUser - state of a recovery onto a new key
+// @Description For the device recovering an account (whose new key is not active yet): the status (PENDING, CANCELED, COMPLETED, FAILED; empty when none) of the recovery onto the key that signed the request, and when it takes effect.
+// @Tags users
+// @Produce json
+// @Param targetUser path string true "Username"
+// @Success 200 {object} map[string]interface{}
+// @Router /v1/account/recovery/status/{targetUser} [get]
+func getAccountRecoveryStatusTargetUserHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, userServices.GetAccountRecoveryStatus(c.Param("targetUser"), middleware.ExtractSigner(c), gc))
 	}
 }
 
