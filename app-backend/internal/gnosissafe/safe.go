@@ -450,10 +450,6 @@ func sendTransaction(ctx context.Context, client *ethclient.Client, chainID *big
 	defer cancel()
 
 	fromAddr := common.HexToAddress(from.Address())
-	nonce, err := client.PendingNonceAt(ctx, fromAddr)
-	if err != nil {
-		return "", err
-	}
 	gasPrice, err := client.SuggestGasPrice(ctx)
 	if err != nil {
 		return "", err
@@ -464,15 +460,35 @@ func sendTransaction(ctx context.Context, client *ethclient.Client, chainID *big
 		// surface that instead of burning gas on a doomed transaction.
 		return "", fmt.Errorf("estimating gas: %w", err)
 	}
-	tx := types.NewTx(&types.LegacyTx{Nonce: nonce, To: &to, Value: big.NewInt(0), Gas: gasLimit * 12 / 10, GasPrice: gasPrice, Data: data})
-	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), from.PrivateKey())
+	nonce, release, err := nextNonce(ctx, client, fromAddr)
 	if err != nil {
 		return "", err
 	}
+	tx := types.NewTx(&types.LegacyTx{Nonce: nonce, To: &to, Value: big.NewInt(0), Gas: gasLimit * 12 / 10, GasPrice: gasPrice, Data: data})
+	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), from.PrivateKey())
+	if err != nil {
+		release()
+		return "", err
+	}
 	if err := client.SendTransaction(ctx, signedTx); err != nil {
+		release()
 		return "", err
 	}
 	return signedTx.Hash().Hex(), nil
+}
+
+// NonceSource, when set, hands out a key's next nonce while the key's lock
+// is held (app-backend sets sharedconfig.NextNonceLocked, which also
+// counts nonces reserved by transactions signed now and sent later).
+// Unset, it is the chain's pending nonce.
+var NonceSource func(ctx context.Context, client *ethclient.Client, from common.Address) (nonce uint64, release func(), err error)
+
+func nextNonce(ctx context.Context, client *ethclient.Client, from common.Address) (uint64, func(), error) {
+	if NonceSource != nil {
+		return NonceSource(ctx, client, from)
+	}
+	n, err := client.PendingNonceAt(ctx, from)
+	return n, func() {}, err
 }
 
 // KeyLock, when set, runs fn holding the named lock across every instance

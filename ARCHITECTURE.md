@@ -131,7 +131,8 @@ The pattern used everywhere this came up:
 - **Platform signing keys** (a platform Safe, or a key that sends
   transactions) are used by one instance at a time: a named lock held from
   reading the nonce until the transaction is mined (a Safe) or broadcast (a
-  key). app-backend uses the same `distributed_locks` table, renewed while
+  key); a transaction signed now and sent later reserves its key's nonce
+  under the same lock instead (`sharedconfig.ReserveNonce`). app-backend uses the same `distributed_locks` table, renewed while
   held (`sharedconfig.WithKeyLock`, wired into `internal/gnosissafe`);
   tm-api, which has no lock table, uses a Redis lock (`cache.WithLock`) for
   its vault-signer Safe changes, so running tm-api on more than one

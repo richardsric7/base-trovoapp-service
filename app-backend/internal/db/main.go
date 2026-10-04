@@ -357,7 +357,7 @@ func runSchemaMigration(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetPayoutEngineTask: ", errMigrate)
 		}
 
-		errMigrate = gormDB.AutoMigrate(&users.UserAccountRecoveryLog{}, &users.RecoveryWatchCursor{}, &sharedConfig.CallbackDelivery{})
+		errMigrate = gormDB.AutoMigrate(&users.UserAccountRecoveryLog{}, &users.RecoveryWatchCursor{}, &sharedConfig.CallbackDelivery{}, &sharedConfig.NonceReservation{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserAccountRecoveryLog: ", errMigrate)
 		}

@@ -275,9 +275,21 @@ func NewTxBuilder(client *ethclient.Client) *TxBuilder {
 	return &TxBuilder{Client: client}
 }
 
+// ReserveNonce, when set, hands out from's next nonce for a transaction
+// signed now and sent later, so concurrent signatures with the same key -
+// on this instance or another - never share a nonce (app-backend sets
+// sharedconfig.ReserveNonce). Unset, it is the chain's pending nonce.
+var ReserveNonce func(ctx context.Context, from common.Address) (uint64, error)
+
 func (b *TxBuilder) BuildPaymentTx(ctx context.Context, from common.Address, op basetxn.Payment) (*types.Transaction, error) {
 	to := common.HexToAddress(op.Destination)
-	nonce, err := b.Client.PendingNonceAt(ctx, from)
+	var nonce uint64
+	var err error
+	if ReserveNonce != nil {
+		nonce, err = ReserveNonce(ctx, from)
+	} else {
+		nonce, err = b.Client.PendingNonceAt(ctx, from)
+	}
 	if err != nil {
 		return nil, err
 	}

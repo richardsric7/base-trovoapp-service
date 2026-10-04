@@ -40,6 +40,8 @@ import (
 	m "trovo-wallet-api/internal/mail"
 	"trovo-wallet-api/internal/middleware"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
@@ -370,6 +372,13 @@ func main() {
 	gnosissafe.KeyLock = func(ctx context.Context, name string, fn func() error) error {
 		return sharedconfig.WithKeyLock(globalConfig.DB, "key:"+name, 3*time.Minute, fn)
 	}
+	gnosissafe.NonceSource = func(ctx context.Context, client *ethclient.Client, from common.Address) (uint64, func(), error) {
+		return sharedconfig.NextNonceLocked(ctx, globalConfig.DB, client, from)
+	}
+	// legacy transactions signed now and sent later reserve their nonce
+	network.ReserveNonce = func(ctx context.Context, from common.Address) (uint64, error) {
+		return sharedconfig.ReserveNonce(ctx, globalConfig.DB, globalConfig.BantuExpansionClient, from)
+	}
 	{
 
 		//update referral links for people with no referral link
@@ -427,9 +436,10 @@ func main() {
 
 	go func() {
 		funder := evmkeypair.MustParseFull(os.Getenv("CHANNEL_ACCOUNT_FUNDER"))
-		// instances booting together fund from the same key one at a time
-		// (the second then finds the accounts funded)
-		lockErr := sharedconfig.WithKeyLock(globalConfig.DB, "key:eoa:"+strings.ToLower(funder.Address()), 10*time.Minute, func() (lockedErr error) {
+		// instances booting together fund channel accounts one at a time (the
+		// second then finds them funded); each funding transaction's nonce is
+		// reserved under the funder key's own lock (network.ReserveNonce)
+		lockErr := sharedconfig.WithKeyLock(globalConfig.DB, "channel-account-funding", 10*time.Minute, func() (lockedErr error) {
 			var channelAccountsCSV string
 			if len(scas) >= 1 {
 
