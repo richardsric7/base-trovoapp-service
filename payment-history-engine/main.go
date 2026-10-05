@@ -112,11 +112,7 @@ func main() {
 		// vestigial on Base (see network.GetBlockchainNetworkPassPhrase /
 		// GetBlockchainBaseReserve) - both handle being unset gracefully,
 		// so they're no longer required to boot.
-		requiredEnvironmentVariables := []string{"BASE_RPC_URL",
-			"MNEMONIC_TEMP_ACCOUNTS", "NATIVE_ASSET_CODE", "ENABLE_CACHING",
-			"MM_FEE_COLLECTION_CHANNEL_ACCOUNT", "MARKET_MAKING_SALT", "MNEMONIC_MARKET_MAKING",
-			"MARKET_MAKING_FEE_WALLET",
-		}
+		requiredEnvironmentVariables := []string{"BASE_RPC_URL", "NATIVE_ASSET_CODE", "ENABLE_CACHING"}
 
 		for _, requiredEnvironmentVariable := range requiredEnvironmentVariables {
 			if len(os.Getenv(requiredEnvironmentVariable)) == 0 {
@@ -368,23 +364,12 @@ func main() {
 	}
 
 	//Start processing payment streams
-	go func() {
-		for {
-			if !isStartStreaming() {
-				time.Sleep(5 * time.Second)
-				continue
-			}
-			MonitorPaymentStream(database, roachDB)
-			time.Sleep(5 * time.Second)
-		}
-	}()
-
 	for {
 		if !isStartStreaming() {
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		MonitorTradeStream(database, roachDB, &redisCache)
+		MonitorPaymentStream(database, roachDB)
 		time.Sleep(5 * time.Second)
 	}
 
@@ -410,18 +395,6 @@ func GetLastCursor(roachDB *gorm.DB) (lastCursor string) {
 		return mAccount.LastCursor
 	}
 	log.Println("[GetLastCursor] returning DB cursor since could not fetch from db.....")
-	return envCusor
-
-}
-
-func GetTradeResumeCursor() string {
-	var envCusor string
-	if len(os.Getenv("TRADE_RESUME_CURSOR")) > 0 {
-		envCusor = os.Getenv("TRADE_RESUME_CURSOR")
-	} else {
-		envCusor = "0"
-	}
-
 	return envCusor
 
 }
@@ -545,30 +518,6 @@ func getTokenMeta(client *ethclient.Client, contract string) tokenMeta {
 		tokenMetaCache.Store(key, meta)
 	}
 	return meta
-}
-
-// swapTransactionType labels a path payment as a plain SWAP, or as a MINT/BURN TOKEN (SWAP ...)
-// when one leg's issuer is also that leg's sender/receiver, mirroring the plain "payment"
-// operation's MINT TOKEN / BURN TOKEN classification (an issuer sending its own asset is a mint,
-// an issuer receiving its own asset is a burn) so mint/burn activity routed through a path
-// payment isn't hidden behind a generic swap label. Currently unused: Base has no native DEX to
-// source a path-payment-shaped swap event from (see MonitorTradeStream's doc comment) - kept for
-// a future DEX/AMM-router integration that would want the same classification.
-func swapTransactionType(from, sourceContractAddress, sourceAssetCode, to, destinationContractAddress, destinationAssetCode string) string {
-	swapLabel := fmt.Sprintf("SWAP %s>%s", sourceAssetCode, destinationAssetCode)
-	isMint := sourceContractAddress != "" && from == sourceContractAddress
-	isBurn := destinationContractAddress != "" && to == destinationContractAddress
-
-	switch {
-	case isMint && isBurn:
-		return fmt.Sprintf("MINT/BURN TOKEN (%s)", swapLabel)
-	case isMint:
-		return fmt.Sprintf("MINT TOKEN (%s)", swapLabel)
-	case isBurn:
-		return fmt.Sprintf("BURN TOKEN (%s)", swapLabel)
-	default:
-		return swapLabel
-	}
 }
 
 // lookupTrackedWallets finds the alias/name of from/to among this engine's
@@ -887,25 +836,4 @@ func MonitorAddressPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *syn
 	}
 
 	log.Println("#####[MonitorAddressPaymentStream]...finished backfill pass for", publicKey)
-}
-
-// MonitorTradeStream watched Horizon's global trade stream
-// (client.StreamTrades) and, for each trade filling one of this app's
-// market-making offers, built and submitted a fee-collection transaction
-// (see the former ProcessTrade). On Base, market-making offers live on
-// TrovoOfferBook and their fills are indexed by app-backend
-// (internal/offerbook); market-making fees are no longer charged, so there
-// is no fee to collect when an offer is filled, and this stays idle.
-func MonitorTradeStream(db, roachDB *gorm.DB, redisCache *cache.RedisCache) {
-	checkExists := db.Where("CAST(remaining_quantity AS REAL) > ? AND canceled = 0", 0).First(&paymentModels.MarketOffer{}).Error
-
-	if checkExists != nil {
-		if !errors.Is(checkExists, gorm.ErrRecordNotFound) {
-			log.Println("[MonitorTradeStream]unknown error while checking market offers:", checkExists)
-		}
-		log.Println("[MonitorTradeStream] exited because no market offers exists:", checkExists)
-		return
-	}
-	log.Println("[MonitorTradeStream] Base has no trade stream to watch yet (see doc comment) - idling.")
-	time.Sleep(5 * time.Minute)
 }

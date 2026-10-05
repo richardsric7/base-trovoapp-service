@@ -61,12 +61,6 @@ wallets.
   - `tm-api`'s (the admin dashboard) `GET /payment/history`
     (`tm-api/internal/components/general/services/payment_history.go`,
     queried against its own `walletDB` handle — same physical database).
-- **`market_offers`** — owned/migrated by `app-backend`
-  (`gormDB.AutoMigrate(&users.MarketOffer{})`). This engine's trade-stream
-  loop (`MonitorTradeStream`) only reads it, to decide whether there's any
-  active market-making offer worth watching — and today, even when one
-  exists, the loop is an idle stub (Base has no DEX/order-book event source
-  wired up yet).
 
 ### 2. RoachDB / CockroachDB (`CDB_CONNECTION_STRING`)
 

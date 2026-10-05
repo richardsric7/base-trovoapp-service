@@ -10,19 +10,15 @@ import (
 	"time"
 	"trovo-wallet-payment-history-engine/internal/basetxn"
 	tErrors "trovo-wallet-payment-history-engine/internal/errors"
-	"trovo-wallet-payment-history-engine/internal/evmkeypair"
 
 	"github.com/ecnepsnai/discord"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/shopspring/decimal"
 )
-
-var kTempAccountSalt string = "j4rkTZQ2mLk3NAhK"
 
 // GetBlockchainNetworkPassPhrase is vestigial on Base (Stellar used a
 // network passphrase for signature domain separation; Base's chain ID,
@@ -63,21 +59,6 @@ func GetBlockchainSwapDestinationMin() decimal.Decimal {
 		return decimal.RequireFromString("0.0000500")
 	}
 	return val
-}
-
-func TempAccountKeypair(publicKey string) (*evmkeypair.Full, error) {
-	mnemonic := os.Getenv("MNEMONIC_TEMP_ACCOUNTS")
-
-	h := crypto.Keccak256(
-		[]byte(kTempAccountSalt),
-		[]byte(mnemonic),
-		[]byte(publicKey),
-	)
-
-	var rawSeed [32]byte
-	copy(rawSeed[:], h[0:32])
-
-	return evmkeypair.FromRawSeed(rawSeed)
 }
 
 // AccountInfo is the Base equivalent of Stellar's *horizon.Account -

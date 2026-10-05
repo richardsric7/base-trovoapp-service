@@ -16,6 +16,7 @@ import (
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	users "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/dynamiclinks"
+	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/offerbook"
 	sharedConfig "trovo-wallet-api/internal/sharedconfig"
 	SMS "trovo-wallet-api/internal/sms"
@@ -190,6 +191,12 @@ func runSchemaMigration(gormDB *gorm.DB) {
 		errMigrate := gormDB.AutoMigrate(&sharedConfig.ChannelAccount{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating ChannelAccount: ", errMigrate)
+		}
+	}
+	{
+		// internal/network's own tables (asset authorizations, account signers)
+		if errMigrate := gormDB.AutoMigrate(&network.WalletAssetAuthorization{}, &network.AccountSigner{}); errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating network tables: ", errMigrate)
 		}
 	}
 	{

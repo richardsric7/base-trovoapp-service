@@ -349,10 +349,6 @@ var authDB *gorm.DB
 // Called once at startup (see main.go).
 func SetDB(db *gorm.DB) {
 	authDB = db
-	if authDB != nil {
-		authDB.AutoMigrate(&WalletAssetAuthorization{})
-		authDB.AutoMigrate(&AccountSigner{})
-	}
 	basetxn.SetDefaultBuilder(NewTxBuilder(GetBlockchainClient()))
 }
 
