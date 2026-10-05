@@ -54,6 +54,17 @@ the same as it does for its own `AdminDB` tables. Concretely:
 - **`service_links`** (`internal/models/service_links.go`) — white-label partner integration accounts (the credentials third parties use to call app-backend's own `/v1/servicelinks` API). app-backend has never exposed a create/edit endpoint for these — every row has historically been provisioned by a direct DB insert — so tm-api owns their lifecycle. Managed via `/service-links`. Includes `rateLimitPerMinute` (0 = no override): a per-partner rate-limit budget enforced by app-backend's `RateLimitMiddleware` on every request that service link makes, overriding that route's shared default — set this when one partner's legitimate traffic needs a different budget than everyone else's. See app-backend's CONFIGURATION.md "Rate limiting" section for the enforcement side.
 - **Fee configs** (`internal/components/usermetrics/services/fees_handler.go`) — per-service-link fee configuration, managed via `/fee/configs`.
 - **`fee_exempt_users`** (`internal/models/fee_exempt.go`) — accounts that pay no platform service fees (swap, payment, patron, account recovery, sub-wallet creation, tokenization application, closed group): the platform's own trading or operations accounts. app-backend reads the table whenever it charges a fee, so a change applies to the account's next request. Managed via `GET/POST /fee/exempt-users` and `DELETE /fee/exempt-users/:username` (Trovo admins only: organization members get 403; every change is audited as `fee_exemption.add` / `fee_exemption.remove`, with the admin's email stored as `addedBy`). The username must be an existing Trovo account. The tokenization issuing profile is always exempt and does not need to be listed.
+- **Proceeds payouts** (`internal/components/proceedpayouts/`): `proceed_payouts`, their schedules (`tokenized_asset_payout_schedules`), approvals, batches, `payout_engine_states` and the `PROCEED_PAYOUT_FEE` row of `service_fees`. A trustee authorizing a stakeholder distribution registers its payout (`proceedpayouts.DistributionClient`, the stakeholder portal's `DistributionPayoutClient`), and the distribution then follows the payout's status. Trovo admins drive the payout through `/proceed-payouts`:
+  - prepare / re-prepare;
+  - set the payout's fee (FIXED, or PERCENT with a cap; VAT at the asset country's rate is charged on it);
+  - approve, by `PROCEED_PAYOUT_APPROVALS_REQUIRED` distinct admins (neither the preparer nor the fee setter);
+  - reject, confirm funding, pause, resume, cancel, retry failed;
+  - exclude / include / mark paid a holder;
+  - the engine's kill switch and sweep;
+  - the fee configuration;
+  - the payouts and payout fee / VAT reports.
+
+  All of these are Trovo admins only and audited (`payout.*`, `payout_item.*`, `payout_engine.*`). Each change is a conditional status update, after which tm-api publishes a wake-up on Redis `payout-engine:commands`. `payout-engine` (no HTTP) does the work; see its [INTEGRATION.md](../payout-engine/INTEGRATION.md).
 - **`kyc_configs`, `faucet_configs`, `doja_widgets`, `kyc_levels`** (`internal/models/configs.go`) — third-party KYC/faucet provider configuration and KYC-level definitions, managed via `/kyc/configs`, `/faucet/configs`, `/doja/widgets`, `/kyc/levels`.
 
 These writes go straight through `s.TrovoWalletDB` with plain GORM calls —

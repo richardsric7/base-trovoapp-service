@@ -77,7 +77,7 @@ notifications, tokenized-asset data).
 
 | Variable | Example | Effect | How to get a real value |
 |---|---|---|---|
-| `ENABLE_CACHING` | `0` | `1` enables the Redis-backed HTTP response cache; anything else disables it (in-memory no-op). Also gates whether `/health`'s cache dependency check runs. | `0` for local dev unless you're specifically testing caching behavior. |
+| `ENABLE_CACHING` | `0` | `1` enables the Redis-backed HTTP response cache; anything else disables it (in-memory no-op). Also gates whether `/health`'s cache dependency check runs, and whether tm-api wakes `payout-engine` over Redis after a payout change (without it the engine notices on its next poll). | `0` for local dev unless you're specifically testing caching behavior. |
 | `REDIS_HOST` | `localhost` | Redis host, used only when `ENABLE_CACHING=1`. | Your Redis instance's hostname. |
 | `REDIS_PORT` | `6379` | Redis port. | Your Redis instance's port. |
 | `REDIS_PASSWORD` | *(empty)* | Redis auth password, if any. | Your Redis instance's password, if it requires one. |
@@ -191,4 +191,5 @@ in the source — a real value routes alerts to your own channel instead.
 
 | Variable | Example | Effect | How to get a real value |
 |---|---|---|---|
+| `PROCEED_PAYOUT_APPROVALS_REQUIRED` | `2` | How many distinct Trovo admins must approve a proceeds payout's locked schedule before it can be funded and paid (at least 1; neither the admin who prepared it nor the one who set its fee counts). Read when a payout is registered or prepared. | A business decision; keep it at 2 or more. |
 | `TAKER_FEE` | `0.1` | Overrides the taker-fee percentage shown on user-info responses (`internal/components/users/services/get_user.go`). Leave unset to use the built-in default. | A business decision — set to whatever the current taker-fee rate is. |

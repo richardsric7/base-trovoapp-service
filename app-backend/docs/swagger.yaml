@@ -5750,6 +5750,33 @@ paths:
       summary: PUT /v1/tokenization/logo
       tags:
       - users
+  /v1/tokenization/payouts:
+    get:
+      description: 'The proceeds payouts (dividends / interest) to the user''s wallets,
+        newest first: paid ones with their transaction, and scheduled ones once a
+        payout''s holder schedule is locked. Optional tokenizedAssetId narrows it
+        to one asset.'
+      parameters:
+      - description: Tokenized asset id
+        in: query
+        name: tokenizedAssetId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: GET /v1/tokenization/payouts
+      tags:
+      - users
   /v1/tokenization/subscriptions:
     get:
       produces:

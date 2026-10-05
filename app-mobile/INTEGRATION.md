@@ -93,6 +93,18 @@ screen. A withdrawal is built, shown, confirmed (biometrics where available),
 signed with `signBase64Txn` and submitted, like a payment. See
 `app-backend/INTEGRATION.md` ("Bank deposits and withdrawals").
 
+### Dividends and interest
+
+An asset's **Dividend and Interest** screen (`dividend_and_yield.dart`), its
+history (`dividend_history.dart`; `yield_history.dart` shows the same list
+as "Interest History") and a payout's detail
+(`dividend_payment_detail.dart`) read
+`GET /v1/tokenization/payouts` (`lib/network/payout_requests.dart`,
+`lib/models/proceed_payout.dart`). They are matched to the asset by its
+token contract, and show what was paid, with its transaction on Basescan,
+and what is scheduled but not yet paid. The payouts themselves are made by
+`payout-engine`; see `app-backend/INTEGRATION.md` ("Proceeds payouts").
+
 ## Shared code with the rest of the monorepo: `wallet-core`
 
 This app is **not** fully code-isolated — it's meant to share its

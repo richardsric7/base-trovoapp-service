@@ -2451,6 +2451,126 @@ paths:
       summary: Get service link service fee by ID
       tags:
       - Fees
+  /fee/exempt-users:
+    get:
+      description: Accounts that pay no platform service fees (swap, payment, patron,
+        account recovery, sub-wallet, tokenization application, closed group). The
+        tokenization issuing profile is always exempt and is not listed.
+      operationId: GetFeeExemptUsers
+      parameters:
+      - default: Bearer <your-token>
+        description: JWT Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.FeeExemptUser'
+                  type: array
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - JwtTokenAuth: []
+      summary: List fee-exempt accounts
+      tags:
+      - Fees
+    post:
+      consumes:
+      - application/json
+      description: Adds a Trovo account (by username) to the fee-exempt list, or updates
+        its reason. Takes effect on its next fee-charging request.
+      operationId: AddFeeExemptUser
+      parameters:
+      - default: Bearer <your-token>
+        description: JWT Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Account and reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usermetrics.AddFeeExemptUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.FeeExemptUser'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Exempt an account from platform service fees
+      tags:
+      - Fees
+  /fee/exempt-users/{username}:
+    delete:
+      description: The account pays platform service fees again from its next request.
+      operationId: RemoveFeeExemptUser
+      parameters:
+      - default: Bearer <your-token>
+        description: JWT Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Remove a fee exemption
+      tags:
+      - Fees
   /fiat/payments:
     get:
       description: Retrieves paginated fiat payment records aggregated from fiat_payment
@@ -4794,6 +4914,710 @@ paths:
       summary: Ping
       tags:
       - Meta
+  /proceed-payouts:
+    get:
+      description: Payouts of authorized stakeholder distributions, newest first.
+      parameters:
+      - description: Status (REGISTERED, LOCKED, APPROVED, PAYING, PAUSED, COMPLETED,
+          ...)
+        in: query
+        name: status
+        type: string
+      - description: Tokenized asset ID or code
+        in: query
+        name: asset
+        type: string
+      - description: Created on or after (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: Created on or before (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      - default: 1
+        description: Page
+        in: query
+        name: page
+        type: integer
+      - default: 50
+        description: Page size (max 200)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/proceedpayouts.PayoutView'
+                  type: array
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: List proceeds payouts
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}:
+    get:
+      description: The payout with its approvals, batches, holder counts and the engine's
+        state.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.Detail'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: A proceeds payout
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/approve:
+    post:
+      description: Each admin approves once; the payout is approved when the required
+        number of distinct admins (PROCEED_PAYOUT_APPROVALS_REQUIRED, default 2) approved
+        this schedule.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Approve a locked schedule
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: Stops the payout for good; holders already paid stay paid. Not
+        while a batch is being mined.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.ReasonRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Cancel a payout
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/confirm-funding:
+    post:
+      description: payout-engine checks the payout Safe holds what is still to pay
+        (on top of other payouts in progress), that the signers can sign and the executor
+        has gas, then starts paying; otherwise the payout returns to APPROVED with
+        the shortfall in its note.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Confirm the payout is funded
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/fee:
+    put:
+      consumes:
+      - application/json
+      description: FIXED (an amount of the payout token) or PERCENT of the payout
+        (capped by feeCap when above 0). VAT at the asset country's rate is charged
+        on the fee. The fee and VAT are paid from the payout to the fee and VAT wallets.
+        On a locked or approved payout the schedule is prepared again, so the fee
+        is approved with it; the admin who sets the fee cannot approve.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Fee
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.FeeRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Set a payout's processing fee
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/items:
+    get:
+      description: 'The schedule''s lines: the fee and VAT, then holders by amount.'
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: PENDING, QUEUED, PAID, FAILED, EXCLUDED or SKIPPED
+        in: query
+        name: status
+        type: string
+      - description: HOLDER, FEE or VAT
+        in: query
+        name: kind
+        type: string
+      - description: Address or username
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: Page
+        in: query
+        name: page
+        type: integer
+      - default: 50
+        description: Page size (max 200)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/proceedpayouts.PayoutItem'
+                  type: array
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: A payout's schedule
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/items/{itemId}/exclude:
+    post:
+      consumes:
+      - application/json
+      description: Leaves a pending or failed holder out of the payout; its share
+        stays in the payout Safe. Approvals stand.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Schedule item ID
+        in: path
+        name: itemId
+        required: true
+        type: string
+      - description: Reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.ReasonRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutItem'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Exclude a holder
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/items/{itemId}/include:
+    post:
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Schedule item ID
+        in: path
+        name: itemId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutItem'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Include an excluded holder again
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/items/{itemId}/mark-paid:
+    post:
+      consumes:
+      - application/json
+      description: Records that a holder the engine could not pay was paid another
+        way. The payout must be paused or completed with failures.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Schedule item ID
+        in: path
+        name: itemId
+        required: true
+        type: string
+      - description: How it was paid
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.ReferenceRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutItem'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Mark a holder paid
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/pause:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Reason
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/proceedpayouts.ReasonRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Pause a payout
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/prepare:
+    post:
+      description: payout-engine snapshots the asset's holders (transfers during preparation
+        included) and locks the schedule for approval. A locked or approved schedule
+        is prepared again and its approvals dropped. The admin who prepares cannot
+        approve.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Prepare (or re-prepare) a payout's schedule
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/reject:
+    post:
+      consumes:
+      - application/json
+      description: Sends a locked or approved payout back to REGISTERED and drops
+        its approvals.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.ReasonRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Reject a schedule
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/resume:
+    post:
+      description: The funding check runs again before paying continues.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Resume a paused payout
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/retry-failed:
+    post:
+      description: Puts a completed payout's failed transfers back in the schedule;
+        they are paid after a new funding check.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Retry failed transfers
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/engine:
+    get:
+      description: Heartbeat (online), current activity, last error, kill switch and
+        pending sweep.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.EngineStatus'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: payout-engine's state
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/engine/halt:
+    post:
+      consumes:
+      - application/json
+      description: The engine stops all payout work until it is resumed.
+      parameters:
+      - description: Reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.ReasonRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.EngineStatus'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Stop payout-engine (kill switch)
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/engine/sweep:
+    post:
+      consumes:
+      - application/json
+      description: Moves the payout Safe's whole balance of the token to the engine's
+        sweep address (PROCEED_PAYOUT_SWEEP_ADDRESS); refused while a payout of that
+        token is being funded or paid.
+      parameters:
+      - description: Token contract
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.SweepRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.EngineStatus'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Sweep a token from the payout Safe
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/engine/unhalt:
+    post:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.EngineStatus'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Let payout-engine work again
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/fee-config:
+    get:
+      description: 'The payout fee wallet and the default fee of new payouts (none
+        set: FIXED 0, cap 0), and the VAT wallet.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.FeeConfig'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: The payout fee configuration
+      tags:
+      - Proceeds payouts
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Fee wallet and defaults
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.FeeConfigRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.FeeConfig'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Set the payout fee configuration
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/reports/fees:
+    get:
+      description: Payout processing fees and the VAT on them as paid to the fee and
+        VAT wallets, with totals per asset and currency.
+      parameters:
+      - description: Tokenized asset ID or code
+        in: query
+        name: asset
+        type: string
+      - description: From (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: To (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.FeesReport'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Payout fees and VAT report
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/reports/payouts:
+    get:
+      description: Matching payouts with totals per payout currency (authorized, to
+        holders, paid, fees, VAT) and counts per status.
+      parameters:
+      - description: Status
+        in: query
+        name: status
+        type: string
+      - description: Tokenized asset ID or code
+        in: query
+        name: asset
+        type: string
+      - description: From (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: To (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutsReport'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Payouts report
+      tags:
+      - Proceeds payouts
   /public/tokenization:
     get:
       description: Get all parameters needed for tokenization and display (requires
@@ -11574,6 +12398,17 @@ definitions:
         example: FLW_TOKEN_123
         type: string
     type: object
+  models.FeeExemptUser:
+    properties:
+      addedBy:
+        type: string
+      createdAt:
+        type: string
+      reason:
+        type: string
+      username:
+        type: string
+    type: object
   models.FiatPaymentRecord:
     properties:
       amount:
@@ -13374,6 +14209,562 @@ definitions:
         example: 6h
         type: string
     type: object
+  proceedpayouts.CurrencyTotals:
+    properties:
+      currency:
+        type: string
+      fees:
+        type: string
+      holderPayable:
+        description: after fee and VAT
+        type: string
+      holdersFailed:
+        type: integer
+      holdersPaid:
+        type: integer
+      paidToHolders:
+        type: string
+      payouts:
+        type: integer
+      total:
+        description: authorized
+        type: string
+      vat:
+        type: string
+    type: object
+  proceedpayouts.Detail:
+    properties:
+      amountPerToken:
+        type: string
+      approvalList:
+        items:
+          $ref: '#/definitions/proceedpayouts.PayoutApproval'
+        type: array
+      approvals:
+        description: for the current schedule
+        type: integer
+      approvalsRequired:
+        type: integer
+      approvedAt:
+        type: string
+      assetCode:
+        type: string
+      assetName:
+        type: string
+      batch:
+        type: string
+      batches:
+        items:
+          $ref: '#/definitions/proceedpayouts.PayoutBatch'
+        type: array
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      distributionId:
+        type: string
+      eligibleUnits:
+        type: string
+      engine:
+        $ref: '#/definitions/proceedpayouts.EngineStatus'
+      excludedCount:
+        type: integer
+      failedCount:
+        type: integer
+      fee:
+        type: string
+      feeCap:
+        type: string
+      feeSetBy:
+        type: string
+      feeType:
+        type: string
+      feeUnits:
+        type: string
+      feeValue:
+        type: string
+      feeWallet:
+        type: string
+      fundingCheckedAt:
+        type: string
+      fundingRequestedBy:
+        type: string
+      holderCount:
+        type: integer
+      holderPayable:
+        description: TotalAmount less fee and VAT
+        type: string
+      holderPayableUnits:
+        type: string
+      id:
+        type: integer
+      itemCounts:
+        additionalProperties:
+          type: integer
+        description: holders by status
+        type: object
+      lockedAt:
+        type: string
+      note:
+        type: string
+      paid:
+        description: to holders
+        type: string
+      paidCount:
+        type: integer
+      paidUnits:
+        type: string
+      payable:
+        description: to eligible holders
+        type: string
+      payableUnits:
+        type: string
+      paymentScheduleReady:
+        type: integer
+      payoutAssetCode:
+        type: string
+      payoutCompleted:
+        type: integer
+      payoutContractAddress:
+        type: string
+      payoutDecimals:
+        type: integer
+      payoutSafeAddress:
+        type: string
+      preparationRequestedAt:
+        type: string
+      preparedBy:
+        type: string
+      retained:
+        description: excluded holders' share and rounding dust
+        type: string
+      retainedUnits:
+        type: string
+      scannedBlock:
+        type: integer
+      scheduleChecksum:
+        type: string
+      snapshotBlock:
+        type: integer
+      snapshotStartBlock:
+        type: integer
+      startedAt:
+        type: string
+      status:
+        type: string
+      statusBeforePause:
+        type: string
+      supplyUnits:
+        type: string
+      tokenContractAddress:
+        type: string
+      tokenDecimals:
+        type: integer
+      tokenizedAssetId:
+        type: string
+      totalAmount:
+        type: string
+      totalUnits:
+        type: string
+      updatedAt:
+        type: string
+      vat:
+        type: string
+      vatPercent:
+        type: string
+      vatUnits:
+        type: string
+      vatWallet:
+        type: string
+    type: object
+  proceedpayouts.EngineStatus:
+    properties:
+      activity:
+        type: string
+      haltReason:
+        type: string
+      halted:
+        type: boolean
+      haltedAt:
+        type: string
+      haltedBy:
+        type: string
+      heartbeatAt:
+        type: string
+      id:
+        type: integer
+      instance:
+        type: string
+      lastError:
+        type: string
+      online:
+        description: heartbeat within the last 90 seconds
+        type: boolean
+      sweepRequestedAt:
+        type: string
+      sweepRequestedBy:
+        type: string
+      sweepResult:
+        type: string
+      sweepToken:
+        type: string
+      version:
+        type: string
+    type: object
+  proceedpayouts.FeeCollection:
+    properties:
+      amount:
+        type: number
+      assetCode:
+        description: the asset whose payout paid it
+        type: string
+      createdAt:
+        type: string
+      destinationWallet:
+        type: string
+      feeType:
+        type: string
+      id:
+        type: string
+      payoutAssetCode:
+        type: string
+      payoutBatch:
+        description: '"payout <batch>"'
+        type: string
+      payoutSafe:
+        description: the payout Safe
+        type: string
+      transactionHash:
+        type: string
+    type: object
+  proceedpayouts.FeeConfig:
+    properties:
+      feeCap:
+        type: string
+      feeType:
+        type: string
+      feeValue:
+        type: string
+      feeWallet:
+        type: string
+      lastUpdatedBy:
+        type: string
+      vatWallet:
+        type: string
+    type: object
+  proceedpayouts.FeeConfigRequest:
+    properties:
+      feeCap:
+        type: string
+      feeType:
+        type: string
+      feeValue:
+        type: string
+      feeWallet:
+        type: string
+    required:
+    - feeWallet
+    type: object
+  proceedpayouts.FeeRequest:
+    properties:
+      feeCap:
+        description: 'PERCENT only; 0 or empty: no cap'
+        type: string
+      feeType:
+        description: FIXED or PERCENT
+        type: string
+      feeValue:
+        type: string
+    required:
+    - feeType
+    - feeValue
+    type: object
+  proceedpayouts.FeeTotals:
+    properties:
+      assetCode:
+        type: string
+      count:
+        type: integer
+      fees:
+        type: number
+      payoutAssetCode:
+        type: string
+      vat:
+        type: number
+    type: object
+  proceedpayouts.FeesReport:
+    properties:
+      collections:
+        items:
+          $ref: '#/definitions/proceedpayouts.FeeCollection'
+        type: array
+      totalFees:
+        additionalProperties:
+          format: float64
+          type: number
+        description: per payout currency
+        type: object
+      totalVat:
+        additionalProperties:
+          format: float64
+          type: number
+        type: object
+      totals:
+        items:
+          $ref: '#/definitions/proceedpayouts.FeeTotals'
+        type: array
+    type: object
+  proceedpayouts.PayoutApproval:
+    properties:
+      adminEmail:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: integer
+      proceedPayoutId:
+        type: integer
+      scheduleChecksum:
+        type: string
+    type: object
+  proceedpayouts.PayoutBatch:
+    properties:
+      amountUnits:
+        type: string
+      createdAt:
+        type: string
+      error:
+        type: string
+      executor:
+        type: string
+      gasUsed:
+        type: integer
+      id:
+        type: integer
+      itemCount:
+        type: integer
+      proceedPayoutId:
+        type: integer
+      safeNonce:
+        type: integer
+      safeTxHash:
+        type: string
+      status:
+        type: string
+      txHash:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  proceedpayouts.PayoutItem:
+    properties:
+      actionBy:
+        type: string
+      amountToReceive:
+        type: number
+      amountUnits:
+        type: string
+      balanceUnits:
+        type: string
+      batch:
+        type: string
+      batchId:
+        type: integer
+      beneficiaryAddress:
+        type: string
+      cannotReceiveAsset:
+        type: integer
+      confirmedTokenizedAssetBalance:
+        type: number
+      createdAt:
+        type: string
+      id:
+        type: string
+      kind:
+        type: string
+      paidAt:
+        type: string
+      payoutAssetCode:
+        type: string
+      payoutContractAddress:
+        type: string
+      proceedPayoutId:
+        type: integer
+      reason:
+        type: string
+      status:
+        type: string
+      tokenizedAssetId:
+        type: string
+      txHash:
+        type: string
+      updatedAt:
+        type: string
+      username:
+        type: string
+    type: object
+  proceedpayouts.PayoutView:
+    properties:
+      amountPerToken:
+        type: string
+      approvals:
+        description: for the current schedule
+        type: integer
+      approvalsRequired:
+        type: integer
+      approvedAt:
+        type: string
+      assetCode:
+        type: string
+      assetName:
+        type: string
+      batch:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      distributionId:
+        type: string
+      eligibleUnits:
+        type: string
+      excludedCount:
+        type: integer
+      failedCount:
+        type: integer
+      fee:
+        type: string
+      feeCap:
+        type: string
+      feeSetBy:
+        type: string
+      feeType:
+        type: string
+      feeUnits:
+        type: string
+      feeValue:
+        type: string
+      feeWallet:
+        type: string
+      fundingCheckedAt:
+        type: string
+      fundingRequestedBy:
+        type: string
+      holderCount:
+        type: integer
+      holderPayable:
+        description: TotalAmount less fee and VAT
+        type: string
+      holderPayableUnits:
+        type: string
+      id:
+        type: integer
+      lockedAt:
+        type: string
+      note:
+        type: string
+      paid:
+        description: to holders
+        type: string
+      paidCount:
+        type: integer
+      paidUnits:
+        type: string
+      payable:
+        description: to eligible holders
+        type: string
+      payableUnits:
+        type: string
+      paymentScheduleReady:
+        type: integer
+      payoutAssetCode:
+        type: string
+      payoutCompleted:
+        type: integer
+      payoutContractAddress:
+        type: string
+      payoutDecimals:
+        type: integer
+      payoutSafeAddress:
+        type: string
+      preparationRequestedAt:
+        type: string
+      preparedBy:
+        type: string
+      retained:
+        description: excluded holders' share and rounding dust
+        type: string
+      retainedUnits:
+        type: string
+      scannedBlock:
+        type: integer
+      scheduleChecksum:
+        type: string
+      snapshotBlock:
+        type: integer
+      snapshotStartBlock:
+        type: integer
+      startedAt:
+        type: string
+      status:
+        type: string
+      statusBeforePause:
+        type: string
+      supplyUnits:
+        type: string
+      tokenContractAddress:
+        type: string
+      tokenDecimals:
+        type: integer
+      tokenizedAssetId:
+        type: string
+      totalAmount:
+        type: string
+      totalUnits:
+        type: string
+      updatedAt:
+        type: string
+      vat:
+        type: string
+      vatPercent:
+        type: string
+      vatUnits:
+        type: string
+      vatWallet:
+        type: string
+    type: object
+  proceedpayouts.PayoutsReport:
+    properties:
+      byStatus:
+        additionalProperties:
+          type: integer
+        type: object
+      payouts:
+        items:
+          $ref: '#/definitions/proceedpayouts.PayoutView'
+        type: array
+      totals:
+        items:
+          $ref: '#/definitions/proceedpayouts.CurrencyTotals'
+        type: array
+    type: object
+  proceedpayouts.ReasonRequest:
+    properties:
+      reason:
+        type: string
+    type: object
+  proceedpayouts.ReferenceRequest:
+    properties:
+      reference:
+        type: string
+    type: object
+  proceedpayouts.SweepRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
   response.Data:
     properties:
       data: {}
@@ -13514,6 +14905,16 @@ definitions:
         type: string
       qrCode:
         type: string
+    type: object
+  usermetrics.AddFeeExemptUserRequest:
+    properties:
+      reason:
+        type: string
+      username:
+        type: string
+    required:
+    - reason
+    - username
     type: object
   usermetrics.ApprovedAssetCustodian:
     properties:

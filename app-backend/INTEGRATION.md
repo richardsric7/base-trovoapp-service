@@ -714,6 +714,31 @@ Bank accounts are entered per withdrawal (Stablerail supports a fixed list
 of banks); they are not the P2P payment methods, which accept any bank or
 channel name.
 
+## Proceeds payouts (dividends and interest)
+
+A tokenized asset's proceeds are paid to its token holders by
+`payout-engine`, a separate worker on this database (see
+[payout-engine/README.md](../payout-engine/README.md)), driven from TM.
+app-backend owns the tables (`proceed_payouts`,
+`tokenized_asset_payout_schedules`, `proceed_payout_batches`,
+`proceed_payout_approvals`, `payout_token_indexes`,
+`payout_token_balances`, `payout_engine_states`) and shows holders their
+payouts:
+
+- `GET /v1/tokenization/payouts[?tokenizedAssetId=]` (request-signed, rate
+  limited) lists the payouts to the user's wallets, newest first. It
+  includes paid ones, with their transaction, and scheduled ones once a
+  payout's holder schedule is locked (status `PENDING` / `QUEUED`), plus
+  ones the engine could not pay yet (`FAILED`). Payouts that were
+  cancelled or are still being prepared, and holders an admin excluded, are
+  not listed. Each entry has the asset (code, name, token contract), the
+  payout token and amount, the tokens held at the snapshot, the receiving
+  wallet and its alias. app-mobile's dividend and interest screens use it.
+
+The processing fee and its VAT on each payout are paid to the fee and VAT
+wallets and recorded in `fee_collections` as `PROCEED_PAYOUT_FEE` /
+`PROCEED_PAYOUT_FEE_VAT`.
+
 ## Swagger UI: the per-endpoint reference
 
 Once the server is running, every documented endpoint — request

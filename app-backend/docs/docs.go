@@ -4801,6 +4801,42 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/tokenization/payouts": {
+            "get": {
+                "description": "The proceeds payouts (dividends / interest) to the user's wallets, newest first: paid ones with their transaction, and scheduled ones once a payout's holder schedule is locked. Optional tokenizedAssetId narrows it to one asset.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "GET /v1/tokenization/payouts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tokenized asset id",
+                        "name": "tokenizedAssetId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/tokenization/subscriptions": {
             "get": {
                 "produces": [

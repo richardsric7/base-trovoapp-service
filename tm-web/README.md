@@ -61,7 +61,8 @@ src/
 │   │   ├── vault-signer/       #   vault-signer secret management UI
 │   │   ├── servicelinks/       #   service link config
 │   │   ├── feeexemptions/      #   accounts exempt from platform service fees
-│   │   ├── payment/, revenue/, dividendandyield/, earlyexit/, ...
+│   │   ├── dividendandyield/   #   proceeds payouts: stages, approvals, schedule, fee & engine controls, reports (tm-api /proceed-payouts)
+│   │   ├── payment/, revenue/, earlyexit/, ...
 │   │   └── settings/, audit-trail/, system-health/, notification/, ...
 │   ├── organisation/           # SEPARATE stakeholder portal (external orgs), own auth (see INTEGRATION.md)
 │   ├── external-api-clients/   # Admin UI for managing tm-api's external API client credentials

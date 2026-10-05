@@ -3610,6 +3610,194 @@ const docTemplate = `{
                 }
             }
         },
+        "/fee/exempt-users": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Accounts that pay no platform service fees (swap, payment, patron, account recovery, sub-wallet, tokenization application, closed group). The tokenization issuing profile is always exempt and is not listed.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fees"
+                ],
+                "summary": "List fee-exempt accounts",
+                "operationId": "GetFeeExemptUsers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.FeeExemptUser"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Adds a Trovo account (by username) to the fee-exempt list, or updates its reason. Takes effect on its next fee-charging request.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fees"
+                ],
+                "summary": "Exempt an account from platform service fees",
+                "operationId": "AddFeeExemptUser",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Account and reason",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/usermetrics.AddFeeExemptUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.FeeExemptUser"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/fee/exempt-users/{username}": {
+            "delete": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "The account pays platform service fees again from its next request.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fees"
+                ],
+                "summary": "Remove a fee exemption",
+                "operationId": "RemoveFeeExemptUser",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/fiat/payments": {
             "get": {
                 "description": "Retrieves paginated fiat payment records aggregated from fiat_payment and fiat_payment_invoice tables.",
@@ -7003,6 +7191,1187 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Payouts of authorized stakeholder distributions, newest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "List proceeds payouts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Status (REGISTERED, LOCKED, APPROVED, PAYING, PAUSED, COMPLETED, ...)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tokenized asset ID or code",
+                        "name": "asset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created on or after (YYYY-MM-DD)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created on or before (YYYY-MM-DD)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Page size (max 200)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/proceedpayouts.PayoutView"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/engine": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Heartbeat (online), current activity, last error, kill switch and pending sweep.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "payout-engine's state",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.EngineStatus"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/engine/halt": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "The engine stops all payout work until it is resumed.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Stop payout-engine (kill switch)",
+                "parameters": [
+                    {
+                        "description": "Reason",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/proceedpayouts.ReasonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.EngineStatus"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/engine/sweep": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Moves the payout Safe's whole balance of the token to the engine's sweep address (PROCEED_PAYOUT_SWEEP_ADDRESS); refused while a payout of that token is being funded or paid.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Sweep a token from the payout Safe",
+                "parameters": [
+                    {
+                        "description": "Token contract",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/proceedpayouts.SweepRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.EngineStatus"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/engine/unhalt": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Let payout-engine work again",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.EngineStatus"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/fee-config": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "The payout fee wallet and the default fee of new payouts (none set: FIXED 0, cap 0), and the VAT wallet.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "The payout fee configuration",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.FeeConfig"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Set the payout fee configuration",
+                "parameters": [
+                    {
+                        "description": "Fee wallet and defaults",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/proceedpayouts.FeeConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.FeeConfig"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/reports/fees": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Payout processing fees and the VAT on them as paid to the fee and VAT wallets, with totals per asset and currency.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Payout fees and VAT report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tokenized asset ID or code",
+                        "name": "asset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "From (YYYY-MM-DD)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "To (YYYY-MM-DD)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.FeesReport"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/reports/payouts": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Matching payouts with totals per payout currency (authorized, to holders, paid, fees, VAT) and counts per status.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Payouts report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tokenized asset ID or code",
+                        "name": "asset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "From (YYYY-MM-DD)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "To (YYYY-MM-DD)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.PayoutsReport"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "The payout with its approvals, batches, holder counts and the engine's state.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "A proceeds payout",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payout ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.Detail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/{id}/approve": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Each admin approves once; the payout is approved when the required number of distinct admins (PROCEED_PAYOUT_APPROVALS_REQUIRED, default 2) approved this schedule.",
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Approve a locked schedule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payout ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.PayoutView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/{id}/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Stops the payout for good; holders already paid stay paid. Not while a batch is being mined.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Cancel a payout",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payout ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reason",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/proceedpayouts.ReasonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.PayoutView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/{id}/confirm-funding": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "payout-engine checks the payout Safe holds what is still to pay (on top of other payouts in progress), that the signers can sign and the executor has gas, then starts paying; otherwise the payout returns to APPROVED with the shortfall in its note.",
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Confirm the payout is funded",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payout ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.PayoutView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/{id}/fee": {
+            "put": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "FIXED (an amount of the payout token) or PERCENT of the payout (capped by feeCap when above 0). VAT at the asset country's rate is charged on the fee. The fee and VAT are paid from the payout to the fee and VAT wallets. On a locked or approved payout the schedule is prepared again, so the fee is approved with it; the admin who sets the fee cannot approve.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Set a payout's processing fee",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payout ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fee",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/proceedpayouts.FeeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.PayoutView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/{id}/items": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "The schedule's lines: the fee and VAT, then holders by amount.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "A payout's schedule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payout ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "PENDING, QUEUED, PAID, FAILED, EXCLUDED or SKIPPED",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "HOLDER, FEE or VAT",
+                        "name": "kind",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Address or username",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Page size (max 200)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/proceedpayouts.PayoutItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/{id}/items/{itemId}/exclude": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Leaves a pending or failed holder out of the payout; its share stays in the payout Safe. Approvals stand.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Exclude a holder",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payout ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Schedule item ID",
+                        "name": "itemId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reason",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/proceedpayouts.ReasonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.PayoutItem"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/{id}/items/{itemId}/include": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Include an excluded holder again",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payout ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Schedule item ID",
+                        "name": "itemId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.PayoutItem"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/{id}/items/{itemId}/mark-paid": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Records that a holder the engine could not pay was paid another way. The payout must be paused or completed with failures.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Mark a holder paid",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payout ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Schedule item ID",
+                        "name": "itemId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "How it was paid",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/proceedpayouts.ReferenceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.PayoutItem"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/{id}/pause": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Pause a payout",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payout ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reason",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/proceedpayouts.ReasonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.PayoutView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/{id}/prepare": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "payout-engine snapshots the asset's holders (transfers during preparation included) and locks the schedule for approval. A locked or approved schedule is prepared again and its approvals dropped. The admin who prepares cannot approve.",
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Prepare (or re-prepare) a payout's schedule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payout ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.PayoutView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/{id}/reject": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Sends a locked or approved payout back to REGISTERED and drops its approvals.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Reject a schedule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payout ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reason",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/proceedpayouts.ReasonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.PayoutView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/{id}/resume": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "The funding check runs again before paying continues.",
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Resume a paused payout",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payout ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.PayoutView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/proceed-payouts/{id}/retry-failed": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Puts a completed payout's failed transfers back in the schedule; they are paid after a new funding check.",
+                "tags": [
+                    "Proceeds payouts"
+                ],
+                "summary": "Retry failed transfers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payout ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proceedpayouts.PayoutView"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -17213,6 +18582,23 @@ const docTemplate = `{
                 }
             }
         },
+        "models.FeeExemptUser": {
+            "type": "object",
+            "properties": {
+                "addedBy": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "models.FiatPaymentRecord": {
             "type": "object",
             "properties": {
@@ -19912,6 +21298,837 @@ const docTemplate = `{
                 }
             }
         },
+        "proceedpayouts.CurrencyTotals": {
+            "type": "object",
+            "properties": {
+                "currency": {
+                    "type": "string"
+                },
+                "fees": {
+                    "type": "string"
+                },
+                "holderPayable": {
+                    "description": "after fee and VAT",
+                    "type": "string"
+                },
+                "holdersFailed": {
+                    "type": "integer"
+                },
+                "holdersPaid": {
+                    "type": "integer"
+                },
+                "paidToHolders": {
+                    "type": "string"
+                },
+                "payouts": {
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "authorized",
+                    "type": "string"
+                },
+                "vat": {
+                    "type": "string"
+                }
+            }
+        },
+        "proceedpayouts.Detail": {
+            "type": "object",
+            "properties": {
+                "amountPerToken": {
+                    "type": "string"
+                },
+                "approvalList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/proceedpayouts.PayoutApproval"
+                    }
+                },
+                "approvals": {
+                    "description": "for the current schedule",
+                    "type": "integer"
+                },
+                "approvalsRequired": {
+                    "type": "integer"
+                },
+                "approvedAt": {
+                    "type": "string"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetName": {
+                    "type": "string"
+                },
+                "batch": {
+                    "type": "string"
+                },
+                "batches": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/proceedpayouts.PayoutBatch"
+                    }
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "distributionId": {
+                    "type": "string"
+                },
+                "eligibleUnits": {
+                    "type": "string"
+                },
+                "engine": {
+                    "$ref": "#/definitions/proceedpayouts.EngineStatus"
+                },
+                "excludedCount": {
+                    "type": "integer"
+                },
+                "failedCount": {
+                    "type": "integer"
+                },
+                "fee": {
+                    "type": "string"
+                },
+                "feeCap": {
+                    "type": "string"
+                },
+                "feeSetBy": {
+                    "type": "string"
+                },
+                "feeType": {
+                    "type": "string"
+                },
+                "feeUnits": {
+                    "type": "string"
+                },
+                "feeValue": {
+                    "type": "string"
+                },
+                "feeWallet": {
+                    "type": "string"
+                },
+                "fundingCheckedAt": {
+                    "type": "string"
+                },
+                "fundingRequestedBy": {
+                    "type": "string"
+                },
+                "holderCount": {
+                    "type": "integer"
+                },
+                "holderPayable": {
+                    "description": "TotalAmount less fee and VAT",
+                    "type": "string"
+                },
+                "holderPayableUnits": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "itemCounts": {
+                    "description": "holders by status",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "lockedAt": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "paid": {
+                    "description": "to holders",
+                    "type": "string"
+                },
+                "paidCount": {
+                    "type": "integer"
+                },
+                "paidUnits": {
+                    "type": "string"
+                },
+                "payable": {
+                    "description": "to eligible holders",
+                    "type": "string"
+                },
+                "payableUnits": {
+                    "type": "string"
+                },
+                "paymentScheduleReady": {
+                    "type": "integer"
+                },
+                "payoutAssetCode": {
+                    "type": "string"
+                },
+                "payoutCompleted": {
+                    "type": "integer"
+                },
+                "payoutContractAddress": {
+                    "type": "string"
+                },
+                "payoutDecimals": {
+                    "type": "integer"
+                },
+                "payoutSafeAddress": {
+                    "type": "string"
+                },
+                "preparationRequestedAt": {
+                    "type": "string"
+                },
+                "preparedBy": {
+                    "type": "string"
+                },
+                "retained": {
+                    "description": "excluded holders' share and rounding dust",
+                    "type": "string"
+                },
+                "retainedUnits": {
+                    "type": "string"
+                },
+                "scannedBlock": {
+                    "type": "integer"
+                },
+                "scheduleChecksum": {
+                    "type": "string"
+                },
+                "snapshotBlock": {
+                    "type": "integer"
+                },
+                "snapshotStartBlock": {
+                    "type": "integer"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "statusBeforePause": {
+                    "type": "string"
+                },
+                "supplyUnits": {
+                    "type": "string"
+                },
+                "tokenContractAddress": {
+                    "type": "string"
+                },
+                "tokenDecimals": {
+                    "type": "integer"
+                },
+                "tokenizedAssetId": {
+                    "type": "string"
+                },
+                "totalAmount": {
+                    "type": "string"
+                },
+                "totalUnits": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "vat": {
+                    "type": "string"
+                },
+                "vatPercent": {
+                    "type": "string"
+                },
+                "vatUnits": {
+                    "type": "string"
+                },
+                "vatWallet": {
+                    "type": "string"
+                }
+            }
+        },
+        "proceedpayouts.EngineStatus": {
+            "type": "object",
+            "properties": {
+                "activity": {
+                    "type": "string"
+                },
+                "haltReason": {
+                    "type": "string"
+                },
+                "halted": {
+                    "type": "boolean"
+                },
+                "haltedAt": {
+                    "type": "string"
+                },
+                "haltedBy": {
+                    "type": "string"
+                },
+                "heartbeatAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "instance": {
+                    "type": "string"
+                },
+                "lastError": {
+                    "type": "string"
+                },
+                "online": {
+                    "description": "heartbeat within the last 90 seconds",
+                    "type": "boolean"
+                },
+                "sweepRequestedAt": {
+                    "type": "string"
+                },
+                "sweepRequestedBy": {
+                    "type": "string"
+                },
+                "sweepResult": {
+                    "type": "string"
+                },
+                "sweepToken": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "proceedpayouts.FeeCollection": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "assetCode": {
+                    "description": "the asset whose payout paid it",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "destinationWallet": {
+                    "type": "string"
+                },
+                "feeType": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "payoutAssetCode": {
+                    "type": "string"
+                },
+                "payoutBatch": {
+                    "description": "\"payout \u003cbatch\u003e\"",
+                    "type": "string"
+                },
+                "payoutSafe": {
+                    "description": "the payout Safe",
+                    "type": "string"
+                },
+                "transactionHash": {
+                    "type": "string"
+                }
+            }
+        },
+        "proceedpayouts.FeeConfig": {
+            "type": "object",
+            "properties": {
+                "feeCap": {
+                    "type": "string"
+                },
+                "feeType": {
+                    "type": "string"
+                },
+                "feeValue": {
+                    "type": "string"
+                },
+                "feeWallet": {
+                    "type": "string"
+                },
+                "lastUpdatedBy": {
+                    "type": "string"
+                },
+                "vatWallet": {
+                    "type": "string"
+                }
+            }
+        },
+        "proceedpayouts.FeeConfigRequest": {
+            "type": "object",
+            "required": [
+                "feeWallet"
+            ],
+            "properties": {
+                "feeCap": {
+                    "type": "string"
+                },
+                "feeType": {
+                    "type": "string"
+                },
+                "feeValue": {
+                    "type": "string"
+                },
+                "feeWallet": {
+                    "type": "string"
+                }
+            }
+        },
+        "proceedpayouts.FeeRequest": {
+            "type": "object",
+            "required": [
+                "feeType",
+                "feeValue"
+            ],
+            "properties": {
+                "feeCap": {
+                    "description": "PERCENT only; 0 or empty: no cap",
+                    "type": "string"
+                },
+                "feeType": {
+                    "description": "FIXED or PERCENT",
+                    "type": "string"
+                },
+                "feeValue": {
+                    "type": "string"
+                }
+            }
+        },
+        "proceedpayouts.FeeTotals": {
+            "type": "object",
+            "properties": {
+                "assetCode": {
+                    "type": "string"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "fees": {
+                    "type": "number"
+                },
+                "payoutAssetCode": {
+                    "type": "string"
+                },
+                "vat": {
+                    "type": "number"
+                }
+            }
+        },
+        "proceedpayouts.FeesReport": {
+            "type": "object",
+            "properties": {
+                "collections": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/proceedpayouts.FeeCollection"
+                    }
+                },
+                "totalFees": {
+                    "description": "per payout currency",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "format": "float64"
+                    }
+                },
+                "totalVat": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "format": "float64"
+                    }
+                },
+                "totals": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/proceedpayouts.FeeTotals"
+                    }
+                }
+            }
+        },
+        "proceedpayouts.PayoutApproval": {
+            "type": "object",
+            "properties": {
+                "adminEmail": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "proceedPayoutId": {
+                    "type": "integer"
+                },
+                "scheduleChecksum": {
+                    "type": "string"
+                }
+            }
+        },
+        "proceedpayouts.PayoutBatch": {
+            "type": "object",
+            "properties": {
+                "amountUnits": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "executor": {
+                    "type": "string"
+                },
+                "gasUsed": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "itemCount": {
+                    "type": "integer"
+                },
+                "proceedPayoutId": {
+                    "type": "integer"
+                },
+                "safeNonce": {
+                    "type": "integer"
+                },
+                "safeTxHash": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "txHash": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "proceedpayouts.PayoutItem": {
+            "type": "object",
+            "properties": {
+                "actionBy": {
+                    "type": "string"
+                },
+                "amountToReceive": {
+                    "type": "number"
+                },
+                "amountUnits": {
+                    "type": "string"
+                },
+                "balanceUnits": {
+                    "type": "string"
+                },
+                "batch": {
+                    "type": "string"
+                },
+                "batchId": {
+                    "type": "integer"
+                },
+                "beneficiaryAddress": {
+                    "type": "string"
+                },
+                "cannotReceiveAsset": {
+                    "type": "integer"
+                },
+                "confirmedTokenizedAssetBalance": {
+                    "type": "number"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "payoutAssetCode": {
+                    "type": "string"
+                },
+                "payoutContractAddress": {
+                    "type": "string"
+                },
+                "proceedPayoutId": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tokenizedAssetId": {
+                    "type": "string"
+                },
+                "txHash": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "proceedpayouts.PayoutView": {
+            "type": "object",
+            "properties": {
+                "amountPerToken": {
+                    "type": "string"
+                },
+                "approvals": {
+                    "description": "for the current schedule",
+                    "type": "integer"
+                },
+                "approvalsRequired": {
+                    "type": "integer"
+                },
+                "approvedAt": {
+                    "type": "string"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetName": {
+                    "type": "string"
+                },
+                "batch": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "distributionId": {
+                    "type": "string"
+                },
+                "eligibleUnits": {
+                    "type": "string"
+                },
+                "excludedCount": {
+                    "type": "integer"
+                },
+                "failedCount": {
+                    "type": "integer"
+                },
+                "fee": {
+                    "type": "string"
+                },
+                "feeCap": {
+                    "type": "string"
+                },
+                "feeSetBy": {
+                    "type": "string"
+                },
+                "feeType": {
+                    "type": "string"
+                },
+                "feeUnits": {
+                    "type": "string"
+                },
+                "feeValue": {
+                    "type": "string"
+                },
+                "feeWallet": {
+                    "type": "string"
+                },
+                "fundingCheckedAt": {
+                    "type": "string"
+                },
+                "fundingRequestedBy": {
+                    "type": "string"
+                },
+                "holderCount": {
+                    "type": "integer"
+                },
+                "holderPayable": {
+                    "description": "TotalAmount less fee and VAT",
+                    "type": "string"
+                },
+                "holderPayableUnits": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lockedAt": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "paid": {
+                    "description": "to holders",
+                    "type": "string"
+                },
+                "paidCount": {
+                    "type": "integer"
+                },
+                "paidUnits": {
+                    "type": "string"
+                },
+                "payable": {
+                    "description": "to eligible holders",
+                    "type": "string"
+                },
+                "payableUnits": {
+                    "type": "string"
+                },
+                "paymentScheduleReady": {
+                    "type": "integer"
+                },
+                "payoutAssetCode": {
+                    "type": "string"
+                },
+                "payoutCompleted": {
+                    "type": "integer"
+                },
+                "payoutContractAddress": {
+                    "type": "string"
+                },
+                "payoutDecimals": {
+                    "type": "integer"
+                },
+                "payoutSafeAddress": {
+                    "type": "string"
+                },
+                "preparationRequestedAt": {
+                    "type": "string"
+                },
+                "preparedBy": {
+                    "type": "string"
+                },
+                "retained": {
+                    "description": "excluded holders' share and rounding dust",
+                    "type": "string"
+                },
+                "retainedUnits": {
+                    "type": "string"
+                },
+                "scannedBlock": {
+                    "type": "integer"
+                },
+                "scheduleChecksum": {
+                    "type": "string"
+                },
+                "snapshotBlock": {
+                    "type": "integer"
+                },
+                "snapshotStartBlock": {
+                    "type": "integer"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "statusBeforePause": {
+                    "type": "string"
+                },
+                "supplyUnits": {
+                    "type": "string"
+                },
+                "tokenContractAddress": {
+                    "type": "string"
+                },
+                "tokenDecimals": {
+                    "type": "integer"
+                },
+                "tokenizedAssetId": {
+                    "type": "string"
+                },
+                "totalAmount": {
+                    "type": "string"
+                },
+                "totalUnits": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "vat": {
+                    "type": "string"
+                },
+                "vatPercent": {
+                    "type": "string"
+                },
+                "vatUnits": {
+                    "type": "string"
+                },
+                "vatWallet": {
+                    "type": "string"
+                }
+            }
+        },
+        "proceedpayouts.PayoutsReport": {
+            "type": "object",
+            "properties": {
+                "byStatus": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "payouts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/proceedpayouts.PayoutView"
+                    }
+                },
+                "totals": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/proceedpayouts.CurrencyTotals"
+                    }
+                }
+            }
+        },
+        "proceedpayouts.ReasonRequest": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "proceedpayouts.ReferenceRequest": {
+            "type": "object",
+            "properties": {
+                "reference": {
+                    "type": "string"
+                }
+            }
+        },
+        "proceedpayouts.SweepRequest": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "response.Data": {
             "type": "object",
             "properties": {
@@ -20115,6 +22332,21 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "qrCode": {
+                    "type": "string"
+                }
+            }
+        },
+        "usermetrics.AddFeeExemptUserRequest": {
+            "type": "object",
+            "required": [
+                "reason",
+                "username"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

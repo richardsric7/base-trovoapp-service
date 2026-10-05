@@ -9,15 +9,17 @@ If you are new here, the one sentence version is: **`app-backend` is the single
 source of truth.** Everything else is either a client of it (a UI a person uses),
 an admin surface that manages its data (`tm-api` / `tm-web`), or a supporting
 library it or its clients depend on (`wallet-core`). `payment-history-engine` is
-a separate, narrower service with its own database.
+a separate, narrower service with its own database; `payout-engine` is a worker
+on app-backend's database that pays tokenized-asset proceeds to token holders.
 
-## The eight projects
+## The projects
 
 | Project | What it is | Talks to | Docs |
 |---|---|---|---|
 | `app-backend` | Go REST API. The core Trovo Wallet backend: accounts, wallets, payments, swaps, P2P marketplace, tokenized assets, KYC, white-label service-link integrations. Owns the primary Postgres database. | Nothing else in this repo (it's the foundation) | [app-backend/README.md](app-backend/README.md) |
 | `tm-api` | Go REST API. Backend for the internal admin dashboard (`tm-web`). | Shares `app-backend`'s database directly for admin/catalog tables; calls `app-backend`'s HTTP API for transactional writes. Has its own second database for admin-only data (admin accounts, roles, access logs). | [tm-api/README.md](tm-api/README.md) |
 | `payment-history-engine` | Go service. Indexes/tracks payment history against its own separate database. | See its own [INTEGRATION.md](payment-history-engine/INTEGRATION.md) — verify there rather than assuming a relationship to the other services. | [payment-history-engine/README.md](payment-history-engine/README.md) |
+| `payout-engine` | Go worker, no HTTP. Pays a tokenized asset's proceeds (dividends, interest) to its token holders from a dedicated payout Safe: snapshots holders by replaying the token's transfers, locks a schedule (with the payout's processing fee and VAT) for admin approval, checks the Safe is funded, pays in batches with crash-safe recovery and notifies paid users. One active instance (heartbeat claim). | Works from `app-backend`'s database (payout tables), driven by `tm-api` admin actions, which wake it over Redis; reads and writes Base; signers from the vault manager's managed secret. | [payout-engine/README.md](payout-engine/README.md) |
 | `app-web` | Vite + React + TypeScript. The end-user web wallet. | Calls `app-backend`'s REST API. May use `wallet-core` (verify in its own docs). | [app-web/README.md](app-web/README.md) |
 | `app-mobile` | Flutter (Dart). The end-user mobile wallet (iOS + Android). | Calls `app-backend`'s REST API. Uses `wallet-core` as a native library via Dart FFI. | [app-mobile/README.md](app-mobile/README.md) |
 | `tm-web` | Next.js + TypeScript. The internal admin dashboard staff use to manage the platform. | Calls `tm-api`'s REST API only — never talks to `app-backend` directly. | [tm-web/README.md](tm-web/README.md) |
