@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -71,7 +72,58 @@ func StableRailInitiateOfframp(reqData userModels.StablerailOfframpRequest, gc *
 		return nil, fmt.Errorf("error unmarshaling response: %w", err)
 	}
 
+	// record it, so UpdateOfframpStatuses follows it to the end
+	if id := offrampResp.Data.RequestID; id != "" {
+		rec := userModels.StablerailOfframp{
+			ID: id, BankCode: reqData.BankCode, AccountNumber: reqData.AccountNumber, BaseAmount: float64(reqData.Amount),
+			Ticker: reqData.Ticker, Status: nonEmpty(offrampResp.Data.Status, "PENDING"), TrovoUsername: reqData.UserID,
+		}
+		if e := gc.DB.Create(&rec).Error; e != nil {
+			log.Printf("[StableRailInitiateOfframp] recording offramp %v: %v", id, e)
+		}
+	}
 	return &offrampResp, nil
 }
 
-//TODO: stable rail offramp status update
+// offrampFinal reports whether an offramp status is final.
+func offrampFinal(status string) bool {
+	switch strings.ToUpper(strings.TrimSpace(status)) {
+	case "COMPLETED", "COMPLETE", "SUCCESS", "SUCCESSFUL", "FAILED", "FAILURE", "CANCELLED", "CANCELED", "REJECTED", "REVERSED":
+		return true
+	}
+	return false
+}
+
+// UpdateOfframpStatuses asks Stablerail for the status of every offramp not
+// yet finished, records it, and tells the user when one finishes.
+func UpdateOfframpStatuses(gc *sharedconfig.GlobalConfig) {
+	var pending []userModels.StablerailOfframp
+	gc.DB.Where("created_at > ?", time.Now().Add(-30*24*time.Hour)).Order("created_at").Limit(100).Find(&pending)
+	for _, o := range pending {
+		if offrampFinal(o.Status) {
+			continue
+		}
+		res, err := GetOfframpStatus(o.ID, gc)
+		if err != nil || res == nil || res.Data.Status == "" {
+			continue
+		}
+		status := res.Data.Status
+		if strings.EqualFold(status, o.Status) {
+			continue
+		}
+		gc.DB.Model(&userModels.StablerailOfframp{}).Where("id = ?", o.ID).Update("status", status)
+		if !offrampFinal(status) {
+			continue
+		}
+		u, err := userModels.Username(o.TrovoUsername).GetSimpleUser(gc.DB, gc)
+		if err != nil {
+			continue
+		}
+		title, body := "Bank withdrawal completed", fmt.Sprintf("Your withdrawal of %v %v to your bank account has been paid.", o.BaseAmount, o.Ticker)
+		if f := strings.ToUpper(status); f != "COMPLETED" && f != "COMPLETE" && f != "SUCCESS" && f != "SUCCESSFUL" {
+			title, body = "Bank withdrawal failed", fmt.Sprintf("Your withdrawal of %v %v to your bank account could not be completed (%v). Please contact support.", o.BaseAmount, o.Ticker, status)
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[UpdateOfframpStatuses] offramp %v of %v ended %v", o.ID, o.TrovoUsername, status))
+		}
+		u.SendPushMessage(title, body, "", map[string]string{"route": "basicTransactionHistory"}, gc)
+	}
+}

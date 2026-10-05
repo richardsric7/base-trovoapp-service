@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	bantupayerrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/offerbook"
 
 	"github.com/shopspring/decimal"
 )
@@ -33,13 +34,21 @@ type OrderBookSummary struct {
 	Asks []PriceLevel `json:"asks"`
 }
 
-// getBantuOrderBookSummary is a stub: Base has no native on-chain order
-// book to query - see internal/sharedconfig/order_book_summary.go's doc
-// (same simplification applied there) for the Base DEX-pricing follow-up
-// this is pending. Every caller below already falls back to "0"/
-// temporary-error on a non-nil err, so this degrades gracefully.
+// getBantuOrderBookSummary reads the order book of the selling asset
+// against the buying asset from the offer book index (internal/offerbook).
+// Only tokens trade there: a native-asset side has no book (an error).
 func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary OrderBookSummary, err error) {
-	return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+	asks, bids, err := offerbook.CurrentTextBook(input.SellingContractAddress, input.BuyingContractAddress, input.Limit)
+	if err != nil {
+		return orderBookSummary, &bantupayerrors.ErrorTemporaryServerError{}
+	}
+	for _, l := range asks {
+		orderBookSummary.Asks = append(orderBookSummary.Asks, PriceLevel{Price: l.Price, Amount: l.Amount})
+	}
+	for _, l := range bids {
+		orderBookSummary.Bids = append(orderBookSummary.Bids, PriceLevel{Price: l.Price, Amount: l.Amount})
+	}
+	return orderBookSummary, nil
 }
 
 // GetDollarAskPrice dollar ask price using USDB

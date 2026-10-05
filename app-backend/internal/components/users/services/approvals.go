@@ -372,7 +372,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			return err
 		}
 
-	} else if p.TransactionType == "SWAP" {
+	} else if p.TransactionType == "SWAP" && opRec == nil {
 		dbTX.SavePoint("SWAP")
 		tbyte := []byte(*p.TransactionInfoStr)
 
@@ -760,8 +760,16 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 			return nil
 
-		} else if p.TransactionType == "PAYMENT" && opRec != nil {
+		} else if (p.TransactionType == "PAYMENT" || p.TransactionType == "SWAP") && opRec != nil {
 			// fees were recorded from the operation (recordOperationFees)
+			dbTX.Commit()
+			notifyApprovalCompleted(signerUser, p, &wallet, gc)
+			return nil
+		} else if p.TransactionType == "DELETE MARKET OFFER" && opRec != nil {
+			var req userModels.DeleteOfferRequest
+			if p.TransactionInfoStr != nil && json.Unmarshal([]byte(*p.TransactionInfoStr), &req) == nil && req.ID != "" {
+				dbTX.Model(&userModels.MarketOffer{}).Where("id = ?", req.ID).Update("canceled", 1)
+			}
 			dbTX.Commit()
 			notifyApprovalCompleted(signerUser, p, &wallet, gc)
 			return nil

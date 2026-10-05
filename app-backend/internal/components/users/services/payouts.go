@@ -1,7 +1,7 @@
 package users
 
 import (
-	"fmt"
+	"context"
 	"log"
 	"time"
 	"trovo-wallet-api/internal/basetxn"
@@ -11,6 +11,7 @@ import (
 
 	// db "trovo-wallet-api/internal/db"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm/clause"
@@ -60,15 +61,23 @@ type BasicBalance struct {
 	Balance float64
 }
 
-// fetchInitialAccounts enumerated every Stellar account holding the KGM
-// asset via Horizon's global "accounts holding this asset" query. Base
-// has no equivalent enumeration API for a B20 (ERC-20-shaped) token -
-// finding every holder needs indexing Transfer event logs (e.g. via a
-// subgraph or a log-scanning service), a follow-up out of scope for this
-// alteration pass. Stubbed to return no accounts rather than crash;
-// currently unreferenced (the one call site is commented out).
-func fetchInitialAccounts(gc *sharedconfig.GlobalConfig) ([]BasicBalance, error) {
-	return nil, fmt.Errorf("holder enumeration is not available on Base yet - needs an event-log indexer")
+// fetchInitialAccounts lists every holder of token (a tokenized asset's
+// contract) with its balance in whole tokens, from the token's Transfer
+// events since fromBlock (see network.TokenHolders).
+func fetchInitialAccounts(ctx context.Context, gc *sharedconfig.GlobalConfig, token common.Address, fromBlock uint64) ([]BasicBalance, error) {
+	dec, err := network.AssetDecimals(ctx, gc.BantuExpansionClient, basetxn.CreditAsset{Code: "TOKEN", Issuer: token.Hex()})
+	if err != nil {
+		return nil, err
+	}
+	holders, err := network.TokenHolders(ctx, gc.BantuExpansionClient, token, fromBlock)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]BasicBalance, 0, len(holders))
+	for a, b := range holders {
+		out = append(out, BasicBalance{Address: a.Hex(), Balance: decimal.NewFromBigInt(b, -int32(dec)).InexactFloat64()})
+	}
+	return out, nil
 }
 
 // parseBalance converts a balance string to float64

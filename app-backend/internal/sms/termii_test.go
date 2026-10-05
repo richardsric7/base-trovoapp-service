@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestTermiiAPIKeyIsNotLogged(t *testing.T) {
+func TestTermiiSecretsAreNotLogged(t *testing.T) {
 	// a port nobody listens on: the request fails with a transport error,
 	// which normally repeats the whole URL
 	l, err := net.Listen("tcp", "127.0.0.1:0")
@@ -32,6 +32,9 @@ func TestTermiiAPIKeyIsNotLogged(t *testing.T) {
 	}
 	if strings.Contains(buf.String(), key) {
 		t.Fatalf("the API key was logged:\n%s", buf.String())
+	}
+	if strings.Contains(buf.String(), "123456") {
+		t.Fatalf("the one-time code was logged:\n%s", buf.String())
 	}
 	if !strings.Contains(buf.String(), "api_key=REDACTED") || !strings.Contains(buf.String(), "send sms has error") {
 		t.Fatalf("expected the redacted URL and the error to be logged:\n%s", buf.String())

@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 	"trovo-wallet-api/internal/basetxn"
-	swapModels "trovo-wallet-api/internal/components/swaps/models"
 	db "trovo-wallet-api/internal/db"
 	"trovo-wallet-api/internal/evmkeypair"
 
@@ -25,7 +24,6 @@ import (
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -2492,21 +2490,6 @@ func getInternalBalanceIssuingSigners() ([]*evmkeypair.Full, error) {
 	return signers, nil
 }
 
-// GetStrictSendPaths gets Strict Send Paths for Strict Send Path Payment request
-func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *ethclient.Client) (paths []basetxn.Asset, swappedEstimate string, err error) {
-	// Stellar's native on-chain DEX path-finding has no Base equivalent
-	// (see internal/sharedconfig/order_book_summary.go's doc) - real
-	// swap routing on Base needs a specific DEX router (e.g. Uniswap v3)
-	// wired into internal/network, tracked as a follow-up. Stubbed with
-	// the same low-liquidity error this function's callers already know
-	// how to surface to the user.
-	return paths, "", &tErrors.CustomError{
-		Param:      "destinationAssetCode",
-		Err:        "error-low-liquidity",
-		ErrMessage: "Swaps are not yet available on Base - no DEX route source is configured.",
-	}
-}
-
 func ExpressInterest(subscriber *userModels.User, ta *userModels.TokenizedAsset, input *userModels.ExpressionOfInterestInput, gc *sharedconfig.GlobalConfig) (expressedInterest userModels.ExpressionOfInterest, err error) {
 
 	if ta.AssetTokenizationStatus != 4 {
@@ -2892,24 +2875,17 @@ func generateTokenizationFeeXdr(wallet *userModels.UserWallet, ato *userModels.T
 
 }
 
+// GetSwapEstimate is what swapping amount of the source asset for the
+// destination asset receives on the offer book now ("0" when it cannot).
 func GetSwapEstimate(sourceAssetCode, sourceContractAddress, amount, destinationAssetCode, destinationContractAddress string, gc *sharedconfig.GlobalConfig) (swappedEstimate string) {
-	destAsset := ""
-
-	if len(destinationContractAddress) > 10 {
-		destAsset = fmt.Sprintf("%s:%s", destinationAssetCode, destinationContractAddress)
-	}
-	pathInput := swapModels.SwapSendPathInput{
-		DestinationAssets:     destAsset,
-		SourceAssetCode:       sourceAssetCode,
-		SourceContractAddress: sourceContractAddress,
-		SourceAmount:          amount,
-	}
-	_, swappedEstimate, err := GetStrictSendPaths(pathInput, gc.BantuExpansionClient)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	got, err := QuoteSwap(ctx, sourceAssetCode, sourceContractAddress, amount, destinationAssetCode, destinationContractAddress, gc)
 	if err != nil {
-		log.Println("[GetSwapEstimate]error fetching valid swap Path ", err)
+		log.Println("[GetSwapEstimate] quoting the swap:", err)
 		return "0"
 	}
-	return swappedEstimate
+	return got.String()
 }
 
 func fitsInInt32(x *big.Int) bool {

@@ -6,15 +6,15 @@ import (
 	"time"
 	announcementServices "trovo-wallet-api/internal/components/announcements/services"
 	blockchain "trovo-wallet-api/internal/components/assets/blockchain"
+	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/middleware"
 	"trovo-wallet-api/internal/sharedconfig"
 
-	"context"
-	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -41,13 +41,12 @@ type StreamObject struct {
 // UserWebSocketAPI handles websocket connections
 func UserWebSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
-	_, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	messageChan := make(chan map[string]interface{}, 200)
 	if err != nil {
 		log.Println("error get WS connection")
+		return
 	}
 	defer ws.Close()
+	messageChan := make(chan map[string]interface{}, 20)
 
 	type actionData struct {
 		ID              string `json:"id"`
@@ -144,34 +143,12 @@ func UserWebSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 
 	}
 
-	// Live operation/effect streaming (payment/swap/trustline notifications
-	// pushed over this socket) used Horizon's SSE streams
-	// (client.StreamOperations/StreamEffects), keyed by a Stellar
-	// account's ledger cursor. Base has no equivalent account-keyed event
-	// stream - the Base-native way to get this is subscribing to
-	// eth_subscribe("logs") filtered by the user's address/curated B20
-	// token contracts (go-ethereum's ethclient.SubscribeFilterLogs),
-	// which needs a WS-capable RPC endpoint and a real event-decoding
-	// design, tracked as a follow-up out of scope for this alteration
-	// pass. This connection still authenticates and stays open (clients
-	// get the auth/notice/keep-alive messages below), it just does not
-	// push live blockchain events yet.
-	message = gin.H{"stream": "Live event streaming is not yet available on Base for this connection.", "streamType": "notice"}
-	messageChan <- message
-
-	//try to read from ws and exit if cannot read.
-	go func() {
-		log.Println("@@@@@@started ws connection keepalive......")
-		for {
-			time.Sleep(30 * time.Second)
-			auth.Auth = true
-			auth.Message = "keep-alive"
-			message := gin.H{"stream": "keep-alive", "streamType": "keep-alive"}
-			messageChan <- message
-
-		}
-
-	}()
+	// Live payments: the user's wallets' new payment history (recorded by
+	// payment-history-engine), pushed as it appears.
+	done := make(chan struct{})
+	defer close(done)
+	go streamUserPayments(done, &user, data.Cursor, messageChan, gc)
+	go keepAlive(done, messageChan)
 
 	for {
 		var v map[string]interface{}
@@ -179,169 +156,212 @@ func UserWebSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 		case v = <-messageChan:
 		case v = <-p2pStreamChan:
 		}
-		err = ws.WriteJSON(v)
-		if err != nil {
+		if err = ws.WriteJSON(v); err != nil {
 			log.Printf("Error Sending stream: %v\nError %v\n", v, err)
-			ws.Close()
-			cancel()
-			break
+			return
 		}
 	}
-	// wg.Wait()
-
 }
 
-// OrderBookSocketAPI handles websocket connections
+// send hands msg to a connection's writer unless the connection is done.
+func send(done <-chan struct{}, out chan<- map[string]interface{}, msg map[string]interface{}) bool {
+	select {
+	case out <- msg:
+		return true
+	case <-done:
+		return false
+	}
+}
+
+// keepAlive sends a keep-alive every 30s until done.
+func keepAlive(done <-chan struct{}, out chan<- map[string]interface{}) {
+	t := time.NewTicker(30 * time.Second)
+	defer t.Stop()
+	for {
+		select {
+		case <-done:
+			return
+		case <-t.C:
+			if !send(done, out, gin.H{"stream": "keep-alive", "streamType": "keep-alive"}) {
+				return
+			}
+		}
+	}
+}
+
+// streamUserPayments pushes the user's wallets' payments recorded after
+// cursor (RFC 3339 or unix seconds; default: now) every few seconds, as
+// "payment" messages ("swap" for swaps), until done.
+func streamUserPayments(done <-chan struct{}, user *userModels.User, cursor string, out chan<- map[string]interface{}, gc *sharedconfig.GlobalConfig) {
+	since := time.Now().UTC()
+	if t, err := time.Parse(time.RFC3339, strings.TrimSpace(cursor)); err == nil {
+		since = t
+	} else if n, err := strconv.ParseInt(strings.TrimSpace(cursor), 10, 64); err == nil && n > 0 {
+		since = time.Unix(n, 0).UTC()
+	}
+	seen := map[string]bool{}
+	t := time.NewTicker(5 * time.Second)
+	defer t.Stop()
+	var addresses []string
+	for tick := 0; ; tick++ {
+		select {
+		case <-done:
+			return
+		case <-t.C:
+		}
+		// the wallet list changes rarely: re-read it once a minute
+		if tick%12 == 0 {
+			addresses = addresses[:0]
+			for _, w := range user.GetAllWallets(gc) {
+				addresses = append(addresses, strings.ToUpper(w.ID))
+			}
+		}
+		if len(addresses) == 0 {
+			continue
+		}
+		var rows []paymentModels.PaymentHistory
+		err := gc.DB.Where("(UPPER(from_address) IN ? OR UPPER(to_address) IN ?) AND transaction_date >= ?", addresses, addresses, since).
+			Order("transaction_date ASC").Limit(100).Find(&rows).Error
+		if err != nil {
+			continue
+		}
+		for _, r := range rows {
+			key := r.TransactionID + "|" + r.PT + "|" + r.SourceAccountSequence + "|" + r.TransactionType
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+			kind := "payment"
+			if strings.EqualFold(r.TransactionType, "SWAP") {
+				kind = "swap"
+			}
+			if !send(done, out, gin.H{"stream": r, "streamType": kind}) {
+				return
+			}
+			if r.TransactionDate.After(since) {
+				since = r.TransactionDate
+			}
+		}
+		if len(seen) > 5000 {
+			seen = map[string]bool{}
+		}
+	}
+}
+
+// OrderBookSocketAPI streams an order book (offers on the offer book) as it
+// changes.
 func OrderBookSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
-
-	_, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	messageChan := make(chan map[string]interface{}, 200)
 	if err != nil {
 		log.Println("error get WS connection")
+		return
 	}
 	defer ws.Close()
 
 	var data userModels.OrderBookStream
-	var auth userModels.Handshake
-	err = ws.ReadJSON(&data)
-	defer ws.Close()
-	if err != nil {
+	if err = ws.ReadJSON(&data); err != nil {
 		log.Println("error read json")
-		ws.Close()
 		return
 	}
 	log.Printf("received subscriptionMessage: %+v\n", data)
+	auth := userModels.Handshake{Auth: true, Message: "success"}
+	if err = ws.WriteJSON(gin.H{"stream": auth, "streamType": "auth"}); err != nil {
+		return
+	}
 
-	auth.Auth = true
-	auth.Message = "success"
-	message := gin.H{"stream": auth, "streamType": "auth"}
-	ws.WriteJSON(message)
-
-	// Order-book streaming used Horizon's client.StreamOrderBooks against
-	// Stellar's native DEX order book. Base has no native on-chain order
-	// book to stream from - a real implementation needs a DEX/AMM router
-	// integration (e.g. indexing swap events from a specific router
-	// contract), tracked as a follow-up out of scope for this alteration
-	// pass. This connection still authenticates and stays open.
-	message = gin.H{"stream": "Order book streaming is not yet available on Base for this connection.", "streamType": "notice"}
-	messageChan <- message
-
-	//try to read from ws and exit if cannot read.
+	messageChan := make(chan map[string]interface{}, 20)
+	done := make(chan struct{})
+	defer close(done)
+	go keepAlive(done, messageChan)
 	go func() {
-		log.Println("@@@@@@started ws connection keepalive......")
-		for {
-			time.Sleep(30 * time.Second)
-			auth.Auth = true
-			auth.Message = "keep-alive"
-			message := gin.H{"stream": "keep-alive", "streamType": "keep-alive"}
-			messageChan <- message
-
+		if !send(done, messageChan, gin.H{"stream": "Started Orderbook Stream", "streamType": "notice"}) {
+			return
 		}
-
+		var last string
+		t := time.NewTicker(5 * time.Second)
+		defer t.Stop()
+		for {
+			book, err := blockchain.GetOrderBook(data.AssetCode, data.ContractAddress, data.CurrencyCode, data.CurrencyIssuer)
+			if err == nil {
+				if b, _ := json.Marshal(book); string(b) != last {
+					last = string(b)
+					if !send(done, messageChan, gin.H{"stream": book, "streamType": "orderBook"}) {
+						return
+					}
+				}
+			}
+			select {
+			case <-done:
+				return
+			case <-t.C:
+			}
+		}
 	}()
 
 	for {
 		v := <-messageChan
-		err = ws.WriteJSON(v)
-		if err != nil {
+		if err = ws.WriteJSON(v); err != nil {
 			log.Printf("Error Sending stream: %v\nError %v\n", v, err)
-			ws.Close()
-			cancel()
-			break
+			return
 		}
 	}
-
 }
 
-// TradeChartSocketAPI handles websocket connections
+// TradeChartSocketAPI streams a pair's trade chart (fills on the offer
+// book) as it changes.
 func TradeChartSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
-
-	// _, cancel := context.WithCancel(context.Background())
-	// defer cancel()
-	messageChan := make(chan map[string]interface{}, 200)
 	if err != nil {
 		log.Println("error get WS connection")
+		return
 	}
 	defer ws.Close()
 
 	var data userModels.ChartStream
-	var auth userModels.Handshake
-	err = ws.ReadJSON(&data)
-	defer ws.Close()
-	if err != nil {
+	if err = ws.ReadJSON(&data); err != nil {
 		log.Println("error read json")
-		ws.Close()
 		return
 	}
 	log.Printf("[TradeChartSocketAPI]received subscriptionMessage: %+v\n", data)
+	auth := userModels.Handshake{Auth: true, Message: "success"}
+	if err = ws.WriteJSON(gin.H{"stream": auth, "streamType": "auth"}); err != nil {
+		return
+	}
 
-	auth.Auth = true
-	auth.Message = "success"
-	message := gin.H{"stream": auth, "streamType": "auth"}
-	ws.WriteJSON(message)
-	var oldTradeChartStr string
-	exit := false
+	messageChan := make(chan map[string]interface{}, 20)
+	done := make(chan struct{})
+	defer close(done)
+	go keepAlive(done, messageChan)
 	go func() {
-		fmt.Println("Started Streaming trade chart")
-		message := gin.H{"stream": "Started Trade Chart Stream", "streamType": "notice"}
-		messageChan <- message
+		if !send(done, messageChan, gin.H{"stream": "Started Trade Chart Stream", "streamType": "notice"}) {
+			return
+		}
+		var last string
+		t := time.NewTicker(30 * time.Second)
+		defer t.Stop()
 		for {
-
 			tradeChart, err := blockchain.GetChartRecords(data.AssetCode, data.ContractAddress, data.CurrencyCode, data.CurrencyIssuer, "", "", data.Order, "", data.ChartPeriod, "")
-			if err != nil {
-				log.Printf("Error fetching chart. Error %v\n", err)
-				exit = true
-				message = gin.H{"stream": "Closing Trade Chart Stream", "streamType": "notice"}
-				messageChan <- message
-
-				break
+			if err == nil {
+				if b, _ := json.Marshal(tradeChart); string(b) != last {
+					last = string(b)
+					if !send(done, messageChan, gin.H{"stream": tradeChart, "streamType": "tradeChart"}) {
+						return
+					}
+				}
 			}
-			bChart, _ := json.Marshal(tradeChart)
-			if string(bChart) != oldTradeChartStr {
-				message := gin.H{"stream": tradeChart, "streamType": "tradeChart"}
-				messageChan <- message
-				oldTradeChartStr = string(bChart)
+			select {
+			case <-done:
+				return
+			case <-t.C:
 			}
-
-			time.Sleep(30 * time.Second)
-
 		}
-
-	}()
-
-	//try to read from ws and exit if cannot read.
-	go func() {
-		log.Println("@@@@@@started ws connection keepalive......")
-		for {
-			if exit {
-				break
-			}
-			time.Sleep(30 * time.Second)
-			auth.Auth = true
-			auth.Message = "keep-alive"
-			message := gin.H{"stream": "keep-alive", "streamType": "keep-alive"}
-			messageChan <- message
-
-		}
-
 	}()
 
 	for {
-		if exit {
-			ws.Close()
-			break
-		}
 		v := <-messageChan
-
-		err = ws.WriteJSON(v)
-		if err != nil {
+		if err = ws.WriteJSON(v); err != nil {
 			log.Printf("Error Sending stream: %v\nError %v\n", v, err)
-			ws.Close()
-			break
+			return
 		}
 	}
-
 }

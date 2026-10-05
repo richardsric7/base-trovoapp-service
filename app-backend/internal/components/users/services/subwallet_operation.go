@@ -178,8 +178,8 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 	var fees []sharedconfig.FeeCollection
 	creationFee := primary.GetSubwalletCreationFee(gc)
 	// the fee is set in USD (fee_fixed) and paid in the fee asset; the
-	// platform's tokenization issuing profile pays none
-	if creationFee.Inactive == 0 && creationFee.FeeFixed > 0 && !feeExemptProfile(accountOwner.Username) {
+	// platform's fee-exempt accounts pay none
+	if creationFee.Inactive == 0 && creationFee.FeeFixed > 0 && !feeExemptProfile(accountOwner.Username, gc) {
 		feeAddr, err := feeWalletAddress(creationFee.FeeWalletSecretKey, "sub-wallet creation fee wallet", gc)
 		if err != nil {
 			return subWalletInfo, err

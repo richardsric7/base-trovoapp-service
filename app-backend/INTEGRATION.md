@@ -210,8 +210,7 @@ replacing the old flat `assetCode`/`contractAddress`/`amount` fields:
 }
 ```
 
-For a plain payment (everything today, since Base has no live on-chain
-swap integration yet) the two sides are identical — that's not a
+For a plain payment the two sides are identical — that's not a
 placeholder, it's the correct representation of "the same asset left and
 arrived." A row where `sourceAssetCode`/`sourceNetwork` differ from
 `destinationAssetCode`/`destinationNetwork` is, by definition, a swap.
@@ -290,7 +289,9 @@ now" signal.
 If you're the first client integrating this (`app-web`/`app-mobile`
 haven't wired it up yet as of this writing), the backend side is fully
 built and tested — you just need to open the connection and handle
-`streamType: "p2pEvent"` messages as described above.
+`streamType: "p2pEvent"` messages as described above. The same
+connection also carries live payments (see "Live payments over the
+websocket").
 
 ---
 
@@ -426,8 +427,9 @@ user profile carries it as `gasFeeAsset`.
   mined transaction's hash (the reconciliation sweep finishes deposits
   that take longer than the request).
 
-Swaps still need a DEX route and are not available yet. (Closed-group
-creation had no endpoint; its unused transaction builder was removed.)
+Swaps fill market offers on the offer book - see "Swaps and market-making
+offers" below. (Closed-group creation had no endpoint; its unused
+transaction builder was removed.)
 
 **What app-backend calls.** The bundler (`BUNDLER_URL`:
 `eth_estimateUserOperationGas`, `eth_sendUserOperation`,
@@ -436,6 +438,64 @@ creation had no endpoint; its unused transaction builder was removed.)
 [`paymaster/INTEGRATION.md`](../paymaster/INTEGRATION.md)). A background
 loop follows submitted operations to inclusion (`wallet_operations`
 table) and marks wallets activated.
+
+## Swaps and market-making offers
+
+Swaps and market-making offers trade on `TrovoOfferBook`
+(`OFFER_BOOK_ADDRESS`, [market/](../market/README.md)), the same contract
+tokenized assets are sold through. Only tokens trade there: a swap or
+offer with the native asset (ETH) answers `error-asset-not-swappable` /
+`error-asset-not-tradable`.
+
+**Market-making offers** (`POST /v1/users/trades`) place an offer with the
+wallet's own funds, as one wallet operation the user signs:
+
+- `SELL` *quantity* of the asset at *pricePerUnit* (in the currency):
+  escrows the asset, priced in the currency.
+- `BUY` *quantity* of the asset at *pricePerUnit*: escrows
+  quantity x price of the currency, priced in the asset.
+
+Like payments it takes two calls: without `transactionSignature` the
+response carries `transaction` (sign it as for a payment) and messages;
+send it back with `transactionSignature` to submit (shared wallets with
+approvers send `commit: 1` and get an approval request). The offer keeps
+the escrowed funds until it is filled or cancelled; proceeds go straight
+to the wallet. `GET /v1/users/trades` lists the wallet's offers with what
+each still sells and whether it is open; `DELETE /v1/users/trades/:id`
+cancels one in the same two steps, returning what is left.
+
+**Swaps** (`POST /v1/users/swap`, `POST /v1/shared-access/swap`) buy the
+destination token with the source token from the offers that sell it,
+cheapest first (up to 8 offers per swap), in one wallet operation: the
+swap fee and VAT transfers, allowing the book to take the payment, then
+the fills. Every fill is authorized by the platform
+(`OFFER_AUTHORIZER_PRIVATE_KEY`) for exactly that wallet and amount, and
+the price is fixed when the swap is built: if an offer changes or runs out
+before it is submitted, the operation reverts and nothing moves. The first
+call returns `transaction`, `swappedEstimate` (what it receives),
+`feeAmount`/`vatAmount` and messages (including any source amount too
+small to buy more, which stays in the wallet); the second, with
+`transactionSignature`, submits it. A swap larger than the book answers
+`error-low-liquidity` with what is on offer.
+
+**The order book, prices and charts** come from app-backend's index of the
+offer book (`offer_book_*` tables, kept up to date by one instance at a
+time): the order book of an asset against a currency has asks (offers
+selling the asset; amount in the asset) and bids (offers buying it with
+the currency; amount in the currency), both priced in the currency per
+asset, as Stellar's order book had. Trade candles aggregate the fills.
+The websockets `GET /v1/stream/orderbook` (`streamType: "orderBook"`) and
+`GET /v1/stream/tradechart` (`"tradeChart"`) push them as they change.
+
+## Live payments over the websocket
+
+Besides `p2pEvent`, `GET /v1/users/websocket/:identifier` pushes the
+user's wallets' new payments as they are recorded (by
+payment-history-engine): `streamType` `"payment"`, or `"swap"` for swaps,
+with a payment history record as `stream`. Send `cursor` (RFC 3339 time
+or unix seconds) in the handshake to also get those since then. Like
+`p2pEvent`, it is a live nudge; the payment history endpoints stay the
+source of truth.
 
 ## Tokenized assets: token, issuing and distribution wallets, sale offer
 

@@ -341,7 +341,7 @@ func loadOwnRecoveryOperation(tx, kind string, user *userModels.User, gc *shared
 // recovery fee (ACCOUNT_RECOVERY_FEE, set in USD, paid in its stablecoin).
 func recoveryFeeCalls(ctx context.Context, user *userModels.User, primary *userModels.UserWallet, gc *sharedconfig.GlobalConfig) ([]aa.Call, []sharedconfig.FeeCollection, []string, error) {
 	fee := primary.GetAccountRecoveryFee(gc)
-	if fee.Inactive != 0 || fee.FeeFixed <= 0 || feeExemptProfile(user.Username) {
+	if fee.Inactive != 0 || fee.FeeFixed <= 0 || feeExemptProfile(user.Username, gc) {
 		return nil, nil, nil, nil
 	}
 	feeAddr, err := feeWalletAddress(fee.FeeWalletSecretKey, "account recovery fee wallet", gc)

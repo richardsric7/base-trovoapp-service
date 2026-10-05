@@ -7,12 +7,13 @@
 // The one place this cannot be a faithful drop-in: a Stellar transaction
 // atomically bundles multiple operations, each with its own source
 // account/signer, into one signed envelope. A plain Base/EVM transaction
-// is always exactly one call from exactly one signer. Rather than require
-// deploying new multisig/multicall contracts (out of scope for an
-// alteration pass), a basetxn.Transaction with N operations becomes N
-// ordered, independently-signed-and-submitted native transactions -
-// application-atomic (we stop at the first failure and report how far we
-// got), not chain-atomic. See Transaction.Submit.
+// is always exactly one call from exactly one signer. A basetxn.Transaction
+// with N operations becomes N ordered, independently-signed-and-submitted
+// native transactions - application-atomic (we stop at the first failure
+// and report how far we got), not chain-atomic. See Transaction.Submit.
+// Users' wallets do not send this way: they are Safes, and their sends are
+// atomic Safe operations (internal/aa); basetxn remains for the older
+// platform-key paths.
 //
 // A second, narrower divergence: Stellar's trustline system
 // (ChangeTrust/SetTrustLineFlags) is an on-chain, per-account opt-in a
@@ -208,16 +209,12 @@ type Signer struct {
 }
 
 // SetOptions.Signer added/removed a co-signer on a Stellar account -
-// Stellar's native weighted multisig, which a plain Base EOA has no
-// equivalent for. As the user/PLAN notes: doing this properly on Base
-// needs every wallet to be a smart-contract account (e.g. a Safe), not a
-// plain EOA - out of scope for this alteration pass. Until then, this is
-// resolved as an app-layer signer registry (internal/network's
-// AccountSigner - the same DB-backed-authorization pattern used for B20
-// wallet authorization) rather than a real on-chain capability: it lets
-// account-recovery/subwallet flows that check "is this address a signer
-// for that account" keep working meaningfully, without granting any
-// actual on-chain signing power.
+// Stellar's native weighted multisig. Trovo's wallets are Safes now and
+// their real co-signers are the Safe's owners, changed by wallet
+// operations (internal/aa; users/services shared access). This remains an
+// app-layer signer registry (internal/network's AccountSigner) that the
+// older account-recovery/subwallet code paths still consult for "is this
+// address a signer for that account"; it grants no on-chain signing power.
 type SetOptions struct {
 	Signer     *Signer
 	HomeDomain *string // vestigial (Stellar-only), kept for compatibility

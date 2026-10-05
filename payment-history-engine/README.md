@@ -18,11 +18,18 @@ returns:
 2. **Backfill tracked addresses** — for every address in RoachDB's
    `tracked_addresses`, replays its historical Base logs (`eth_getLogs`,
    chunked in ranges of 5,000 blocks) to catch up on B20/ERC-20 `Transfer`
-   events involving it, resuming from a saved per-address cursor.
+   events involving it and, for Trovo wallets (Safes), their ETH: what the
+   Safe received (its `SafeReceived` events) and sent (its user operations,
+   found by the EntryPoint's `UserOperationEvent`), resuming from a saved
+   per-address cursor.
 3. **Monitor the payment stream** — walks new Base blocks one at a time
    (there is no account-agnostic push feed on Base, unlike Stellar Horizon's
    `StreamPayments`), and for each block:
-   - records plain native-currency transfers (`processNativeTransfer`), and
+   - records ETH transfers (`nativeTransfersOfTx` in `userops.go`): a
+     transaction's own value, the ETH Trovo wallets send inside their
+     ERC-4337 user operations (decoded from the EntryPoint's `handleOps`,
+     batches included, only for operations that succeeded), and ETH a Safe
+     receives from other contracts (`SafeReceived`), and
    - decodes B20/ERC-20 `Transfer` event logs (`processB20TransferLog`),
      classifying `MINT TOKEN` / `BURN TOKEN` transfers to/from the zero
      address.
@@ -88,7 +95,8 @@ was checked and ruled out.
 ```
 payment-history-engine/
 ├── main.go                     Entry point: DB setup, the 4 worker loops, block/log processing
-├── main_test.go                 Tests for main.go (some pre-existing/legacy, see note below)
+├── main_test.go                 Manual scripts against a live server (build tag livetests; not run by `go test`)
+├── userops.go                   ETH sent/received by Safe wallets: user operation and SafeReceived decoding
 ├── docs/                         Generated Swagger/OpenAPI spec (swag init output — do not hand-edit)
 ├── internal/
 │   ├── basetxn/                  Base transaction building/signing helpers

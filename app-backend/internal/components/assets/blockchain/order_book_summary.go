@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/offerbook"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/ecnepsnai/discord"
@@ -113,26 +114,61 @@ type PriceCache struct {
 	PriceType string `json:"priceType,omitempty"`
 }
 
-// getTradeAggregate is a stub: like GetBantuOrderBookSummary below,
-// Stellar's trade-aggregation (candlestick chart) data is a native ledger
-// feature with no Base/EVM equivalent - Base price/volume history comes
-// from indexing on-chain swap events (a follow-up, out of scope for this
-// alteration pass), not a network-native aggregation endpoint. Always
-// returns an empty page so GetChartRecords' existing handling renders an
-// empty chart rather than crashing.
+// getTradeAggregate buckets the trades between the base and counter assets
+// (fills on the offer book, from internal/offerbook) into candles.
+// Resolution and Offset are in milliseconds as Horizon took them; a
+// resolution under a minute is read as minutes (5 by default).
 func getTradeAggregate(input TradeAggregateInput) (tds TradeAggregationsPage, err error) {
-	return tds, &tErrors.ErrorTemporaryServerError{}
+	res := time.Duration(input.Resolution)
+	switch {
+	case res >= 60000:
+		res *= time.Millisecond
+	case res > 0:
+		res *= time.Minute
+	default:
+		res = 5 * time.Minute
+	}
+	offset := time.Duration(input.Offset) * time.Millisecond
+	candles, err := offerbook.CurrentCandles(input.BaseContractAddress, input.CounterContractAddress, input.StartTime, input.EndTime, res, offset)
+	if err != nil {
+		return tds, &tErrors.ErrorTemporaryServerError{}
+	}
+	if strings.EqualFold(input.Order, "desc") {
+		for i, j := 0, len(candles)-1; i < j; i, j = i+1, j-1 {
+			candles[i], candles[j] = candles[j], candles[i]
+		}
+	}
+	if n, e := strconv.Atoi(input.Limit); e == nil && n > 0 && len(candles) > n {
+		candles = candles[:n]
+	}
+	for _, c := range candles {
+		tds.Embedded.Records = append(tds.Embedded.Records, TradeAggregationRecord{
+			Timestamp: c.Start.UnixMilli(), TradeCount: c.Count,
+			BaseVolume: c.BaseVolume.String(), CounterVolume: c.CounterVolume.String(),
+			Average: c.Average.String(), High: c.High.String(), Low: c.Low.String(), Open: c.Open.String(), Close: c.Close.String(),
+		})
+	}
+	return tds, nil
 }
 
-// GetBantuOrderBookSummary is a stub: Base has no native on-chain order
-// book to query (see OrderBookSummary's doc). Wire this to a real Base
-// DEX price source (e.g. a Uniswap-v3 Quoter contract call for the
-// asset/currency pair) when swap/price-display features need it to be
-// more than unavailable - every caller in this file already falls back
-// to a cached price or "0"/temporary-error on a non-nil err, so this
-// degrades gracefully rather than crashing.
+// GetBantuOrderBookSummary reads the order book of the selling asset
+// against the buying asset from the offer book index (internal/offerbook).
+// Only tokens trade there: a native-asset side has no book (an error), and
+// every caller in this file falls back to a cached price or "0".
 func GetBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary OrderBookSummary, err error) {
-	return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
+	asks, bids, err := offerbook.CurrentTextBook(input.SellingContractAddress, input.BuyingContractAddress, input.Limit)
+	if err != nil {
+		return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
+	}
+	orderBookSummary.Selling = Asset{AssetCode: input.SellingAssetCode, ContractAddress: input.SellingContractAddress}
+	orderBookSummary.Buying = Asset{AssetCode: input.BuyingAssetCode, ContractAddress: input.BuyingContractAddress}
+	for _, l := range asks {
+		orderBookSummary.Asks = append(orderBookSummary.Asks, PriceLevel{Price: l.Price, Amount: l.Amount})
+	}
+	for _, l := range bids {
+		orderBookSummary.Bids = append(orderBookSummary.Bids, PriceLevel{Price: l.Price, Amount: l.Amount})
+	}
+	return orderBookSummary, nil
 }
 
 // GetGASDollarAskPrice dollar ask price using USDB

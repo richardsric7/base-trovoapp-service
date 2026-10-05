@@ -1686,10 +1686,8 @@ func (u *UserWallet) GetWalletOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig) 
 func (u *UserWallet) GetSwapFee(gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
 	// var serviceFee ServiceFee
 	gc.DB.Where("id = ? AND inactive = 0", "SWAP_FEE").First(&serviceFee)
-	if serviceFee.Inactive == 0 {
-
-		//TODO: check if user has zero swap fees and modify the swap fee
-
+	if serviceFee.Inactive == 0 && u.feeExempt(gc) {
+		serviceFee.FeePercent, serviceFee.FeeFixed = 0, 0
 	}
 	serviceFee.FeeWalletSecretKey = os.Getenv("SWAP_FEE_WALLET")
 
@@ -1699,11 +1697,6 @@ func (u *UserWallet) GetSwapFee(gc *sharedconfig.GlobalConfig) (serviceFee Servi
 func (u *UserWallet) GetPaymentFeeWallet(gc *sharedconfig.GlobalConfig) (wallet string) {
 	var serviceFee ServiceFee
 	gc.DB.Where("id = ? AND inactive = 0", "PAYMENT_FEE").First(&serviceFee)
-	if serviceFee.Inactive == 0 {
-
-		//TODO: check if user has zero swap fees and modify the swap fee
-
-	}
 	serviceFee.FeeWalletSecretKey = os.Getenv("PAYMENT_FEE_WALLET")
 
 	return serviceFee.FeeWalletSecretKey
@@ -1726,10 +1719,8 @@ func (u *UserWallet) GetSharedAccessPaymentFee(gc *sharedconfig.GlobalConfig) (s
 		return
 	}
 	gc.DB.Where("id = ? AND inactive = 0", "SHARED_ACCESS_PAYMENT_FEE").First(&serviceFee)
-	if serviceFee.Inactive == 0 {
-
-		//TODO: check if user has zero fees and modify the fee
-
+	if serviceFee.Inactive == 0 && u.feeExempt(gc) {
+		serviceFee.FeePercent, serviceFee.FeeFixed = 0, 0
 	}
 	serviceFee.FeeWalletSecretKey = os.Getenv("SHARED_ACCESS_PAYMENT_FEE_WALLET")
 
@@ -1740,10 +1731,8 @@ func (u *UserWallet) GetPatronFee(gc *sharedconfig.GlobalConfig) (serviceFee Ser
 	// var serviceFee ServiceFee
 
 	gc.DB.Where("id = ? AND inactive = 0", "PATRON_FEE").First(&serviceFee)
-	if serviceFee.Inactive == 0 {
-
-		//TODO: check if user has zero fees and modify the fee
-
+	if serviceFee.Inactive == 0 && u.feeExempt(gc) {
+		serviceFee.FeePercent, serviceFee.FeeFixed = 0, 0
 	}
 	serviceFee.FeeWalletSecretKey = os.Getenv("PATRON_FEE_WALLET")
 
@@ -1754,10 +1743,8 @@ func (u *UserWallet) GetAccountRecoveryFee(gc *sharedconfig.GlobalConfig) (servi
 	// var serviceFee ServiceFee
 
 	gc.DB.Where("id = ? AND inactive = 0", "ACCOUNT_RECOVERY_FEE").First(&serviceFee)
-	if serviceFee.Inactive == 0 {
-
-		//TODO: check if user has zero fees and modify the fee
-
+	if serviceFee.Inactive == 0 && u.feeExempt(gc) {
+		serviceFee.FeePercent, serviceFee.FeeFixed = 0, 0
 	}
 	serviceFee.FeeWalletSecretKey = os.Getenv("ACCOUNT_RECOVERY_FEE_WALLET")
 
@@ -1768,10 +1755,8 @@ func (u *UserWallet) GetSubwalletCreationFee(gc *sharedconfig.GlobalConfig) (ser
 	// var serviceFee ServiceFee
 
 	gc.DB.Where("id = ? AND inactive = 0", "SUBWALLET_CREATION_FEE").First(&serviceFee)
-	if serviceFee.Inactive == 0 {
-
-		//TODO: check if user has zero fees and modify the fee
-
+	if serviceFee.Inactive == 0 && u.feeExempt(gc) {
+		serviceFee.FeePercent, serviceFee.FeeFixed = 0, 0
 	}
 	// SUBWALLET_CREATION_FEE_WALLET
 	serviceFee.FeeWalletSecretKey = os.Getenv("SUBWALLET_CREATION_FEE_WALLET")
@@ -1782,10 +1767,8 @@ func (u *UserWallet) GetTokenizationApplicationFee(gc *sharedconfig.GlobalConfig
 	// var serviceFee ServiceFee
 
 	gc.DB.Where("id = ? AND inactive = 0", "TOKENIZATION_APPLICATION_FEE").First(&serviceFee)
-	if serviceFee.Inactive == 0 {
-
-		//TODO: check if user has zero fees and modify the fee
-
+	if serviceFee.Inactive == 0 && u.feeExempt(gc) {
+		serviceFee.FeePercent, serviceFee.FeeFixed = 0, 0
 	}
 	serviceFee.FeeWalletSecretKey = os.Getenv("TOKENIZATION_APPLICATION_FEE_WALLET")
 
@@ -1796,11 +1779,6 @@ func (t *TokenizedAsset) GetTokenizationFeeWallet(gc *sharedconfig.GlobalConfig)
 	// var serviceFee ServiceFee
 
 	gc.DB.Where("id = ? AND inactive = 0", "TOKENIZATION_FEE").First(&serviceFee)
-	if serviceFee.Inactive == 0 {
-
-		//TODO: check if user has zero fees and modify the fee
-
-	}
 	serviceFee.FeeWalletSecretKey = os.Getenv("TOKENIZATION_FEE_WALLET")
 
 	return
@@ -1810,10 +1788,8 @@ func (u *UserWallet) GetClosedGroupFee(gc *sharedconfig.GlobalConfig) (serviceFe
 	// var serviceFee ServiceFee
 
 	gc.DB.Where("id = ? AND inactive = 0", "CLOSED_GROUP_FEE").First(&serviceFee)
-	if serviceFee.Inactive == 0 {
-
-		//TODO: check if user has zero fees and modify the fee
-
+	if serviceFee.Inactive == 0 && u.feeExempt(gc) {
+		serviceFee.FeePercent, serviceFee.FeeFixed = 0, 0
 	}
 	serviceFee.FeeWalletSecretKey = os.Getenv("CLOSED_GROUP_FEE_WALLET")
 
@@ -1823,10 +1799,8 @@ func (u *UserWallet) GetClosedGroupFee(gc *sharedconfig.GlobalConfig) (serviceFe
 func (u *UserWallet) GetServiceFee(serviceFeeID string, gc *sharedconfig.GlobalConfig) (serviceFee ServiceFee) {
 	// var serviceFee ServiceFee
 	gc.DB.Where("id = ? AND inactive = 0", serviceFeeID).First(&serviceFee)
-	if serviceFee.Inactive == 0 {
-
-		//TODO: check if user has zero swap fees and modify the swap fee
-
+	if serviceFee.Inactive == 0 && u.feeExempt(gc) {
+		serviceFee.FeePercent, serviceFee.FeeFixed = 0, 0
 	}
 
 	return
@@ -1835,11 +1809,6 @@ func (u *UserWallet) GetServiceFee(serviceFeeID string, gc *sharedconfig.GlobalC
 func (u *UserWallet) GetActivationFee(activationFeeID string, gc *sharedconfig.GlobalConfig) (activationAmount ActivationAmount) {
 	// var serviceFee ServiceFee
 	gc.DB.Where("id = ? AND inactive = 0", activationFeeID).First(&activationAmount)
-	if activationAmount.Inactive == 0 {
-
-		//TODO: check if user has zero swap fees and modify the swap fee
-
-	}
 
 	return
 }
@@ -3016,4 +2985,11 @@ func (w UserWallet) CreateCryptoSubwalletRequest(currency string, gc *sharedconf
 
 	return wdlResp.Data, nil
 
+}
+
+// feeExempt reports whether the wallet's owner pays no platform service
+// fees (see GlobalConfig.FeeExemptUsername).
+func (u *UserWallet) feeExempt(gc *sharedconfig.GlobalConfig) bool {
+	owner, err := u.GetWalletOwner(gc.DB, gc)
+	return err == nil && gc.FeeExemptUsername(owner.Username)
 }

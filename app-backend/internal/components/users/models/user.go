@@ -487,3 +487,10 @@ type ActivationAmount struct {
 	ContractAddress string    `gorm:"default:'GAS'" json:"contractAddress"`
 	Inactive        int       `gorm:"default:0" json:"inactive"`
 }
+
+// PaymentWatchCursor is where the cache refresher continues reading the
+// payment history: the newest transaction time it has handled.
+type PaymentWatchCursor struct {
+	ID string `gorm:"size:40;primaryKey"`
+	At time.Time
+}

@@ -134,6 +134,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	// market making
 	{
 		router.POST("/v1/users/trades", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersTradesHandler(callBackRetryChan, gc))
+		router.GET("/v1/users/trades", middleware.AuthenticationMiddlewareUsingTimestamp(), getUsersTradesHandler(gc))
+		router.DELETE("/v1/users/trades/:id", middleware.AuthenticationMiddlewareUsingTimestamp(), deleteUsersTradesIDHandler(gc))
 
 	}
 	//CRYPTO

@@ -34,12 +34,8 @@ func usdAmountIn(usd float64, assetCode, contract string, gc *sharedconfig.Globa
 	return decimal.Zero, &tErrors.CustomError{Param: "assetCode", Err: "error-asset-not-priceable", ErrMessage: "This fee can currently be paid only in a dollar or naira stablecoin.", Code: http.StatusBadRequest}
 }
 
-// feeExemptProfile reports whether username is the platform's tokenization
-// issuing profile, which pays no platform service fees.
-func feeExemptProfile(username string) bool {
-	p := strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))
-	if p == "" {
-		p = "atprofile"
-	}
-	return strings.EqualFold(username, p)
+// feeExemptProfile reports whether username pays no platform service fees
+// (see GlobalConfig.FeeExemptUsername).
+func feeExemptProfile(username string, gc *sharedconfig.GlobalConfig) bool {
+	return gc.FeeExemptUsername(username)
 }

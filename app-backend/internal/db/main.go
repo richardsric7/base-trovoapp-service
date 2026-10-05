@@ -16,6 +16,7 @@ import (
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	users "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/dynamiclinks"
+	"trovo-wallet-api/internal/offerbook"
 	sharedConfig "trovo-wallet-api/internal/sharedconfig"
 	SMS "trovo-wallet-api/internal/sms"
 
@@ -392,6 +393,18 @@ func runSchemaMigration(gormDB *gorm.DB) {
 		errMigrate = gormDB.AutoMigrate(&users.WalletOperation{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error migrating WalletOperation:", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&sharedConfig.FeeExemptUser{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error migrating FeeExemptUser:", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.PaymentWatchCursor{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error migrating PaymentWatchCursor:", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(offerbook.Models()...)
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error migrating the offer book index:", errMigrate)
 		}
 
 		errMigrate = gormDB.AutoMigrate(&users.PendingTransactionSignature{})

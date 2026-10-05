@@ -1,3 +1,11 @@
+//go:build livetests
+
+// The tests in this file are manual scripts against a running server
+// (staging or production), not unit tests: they register accounts and send
+// requests as real users. They build only with -tags livetests, so a plain
+// `go test` never touches a live server - and their hardcoded Stellar
+// seeds must be replaced with Base keys first.
+
 package main
 
 import (

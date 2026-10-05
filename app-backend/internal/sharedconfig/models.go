@@ -1350,11 +1350,6 @@ type ServiceFee struct {
 func (gc *GlobalConfig) GetVATWallet() string {
 	var serviceFee ServiceFee
 	gc.DB.Where("id = ? AND inactive = 0", "VAT").First(&serviceFee)
-	if serviceFee.Inactive == 0 {
-
-		//TODO: check if user has zero swap fees and modify the swap fee
-
-	}
 	// set the VAT FEE WALLET IN ENV
 	serviceFee.FeeWalletSecretKey = os.Getenv("VAT_WALLET")
 	return serviceFee.FeeWalletSecretKey
@@ -1539,3 +1534,37 @@ func (gc *GlobalConfig) ConvertUsdToCngn(usdAmount float64) (result decimal.Deci
 
 // priceAPIHTTP calls the cNGN price API, with a timeout.
 var priceAPIHTTP = &http.Client{Timeout: 15 * time.Second}
+
+// FeeExemptUser is an account that pays no platform service fees - the
+// platform's own trading or operations accounts. Admins manage the list
+// in tm-web (tm-api writes this table).
+type FeeExemptUser struct {
+	Username  string    `gorm:"primaryKey;size:100" json:"username"`
+	Reason    string    `gorm:"size:255" json:"reason"`
+	AddedBy   string    `gorm:"size:255" json:"addedBy"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+// FeeExemptUsername reports whether username pays no platform service
+// fees: the tokenization issuing profile (TOKENIZATION_ISSUING_PROFILE,
+// default atprofile) and every account on the fee-exempt list
+// (fee_exempt_users).
+func (gc *GlobalConfig) FeeExemptUsername(username string) bool {
+	username = strings.TrimSpace(username)
+	if username == "" {
+		return false
+	}
+	p := strings.TrimSpace(os.Getenv("TOKENIZATION_ISSUING_PROFILE"))
+	if p == "" {
+		p = "atprofile"
+	}
+	if strings.EqualFold(username, p) {
+		return true
+	}
+	if gc == nil || gc.DB == nil {
+		return false
+	}
+	var n int64
+	gc.DB.Model(&FeeExemptUser{}).Where("LOWER(username) = ?", strings.ToLower(username)).Count(&n)
+	return n > 0
+}
