@@ -56,6 +56,7 @@ import P2PDispute from '../pages/dashboard/p2p/dispute';
 import P2PMyOrders from '../pages/dashboard/p2p/myOrders';
 import P2PMyOffers from '../pages/dashboard/p2p/myOffers';
 import P2PMyRefunds from '../pages/dashboard/p2p/myRefunds';
+import BankView from '../pages/dashboard/bank';
 import P2PPaymentMethods from '../pages/dashboard/p2p/paymentMethods';
 import PayLanding from '../pages/pay/payLanding';
 import Settings from '../pages/dashboard/settings/settings';
@@ -125,6 +126,7 @@ export default function AppRouter() {
             <Route path="p2p/my-orders" element={<P2PMyOrders />} />
             <Route path="p2p/my-offers" element={<P2PMyOffers />} />
             <Route path="p2p/my-refunds" element={<P2PMyRefunds />} />
+            <Route path="bank" element={<BankView />} />
             <Route path="p2p/payment-methods" element={<P2PPaymentMethods />} />
             <Route path="shared-access" element={<SharedAccessLanding />} />
             <Route

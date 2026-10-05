@@ -29,6 +29,7 @@ const String SwapAssetsViewPath = '/SwapAssetsView';
 const String ConfirmSwapViewPath = '/ConfirmSwapView';
 const String SwapSuccessViewPath = '/SwapSuccessView';
 const String P2PMarketplaceViewPath = '/p2pMarketplaceView';
+const String BankTransferViewPath = '/bankTransferView';
 const String P2POfferDetailViewPath = '/p2pOfferDetailView';
 const String P2PCreateOfferViewPath = '/p2pCreateOfferView';
 const String P2PCreateOrderViewPath = '/p2pCreateOrderView';
@@ -285,6 +286,7 @@ enum Pages {
   EarlyExitSummaryView,
   AppImageViewer,
   P2PMarketplaceView,
+  BankTransferView,
   P2POfferDetailView,
   P2PCreateOfferView,
   P2PCreateOrderView,
@@ -1057,6 +1059,12 @@ PageConfiguration AppImageViewerPageConfig = PageConfiguration(
   key: 'AppImageViewer',
   path: AppImageViewerPath,
   uiPage: Pages.AppImageViewer,
+  currentPageAction: null,
+);
+PageConfiguration BankTransferViewPageConfig = PageConfiguration(
+  key: 'BankTransferView',
+  path: BankTransferViewPath,
+  uiPage: Pages.BankTransferView,
   currentPageAction: null,
 );
 PageConfiguration P2PMarketplaceViewPageConfig = PageConfiguration(

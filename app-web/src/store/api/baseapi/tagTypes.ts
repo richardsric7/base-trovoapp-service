@@ -5,5 +5,6 @@ export const tagTypes = {
   p2pRefund: 'p2pRefund',
   p2pMerchant: 'p2pMerchant',
   p2pPaymentMethod: 'p2pPaymentMethod',
+  bankWithdrawal: 'bankWithdrawal',
   };
   

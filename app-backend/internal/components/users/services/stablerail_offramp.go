@@ -1,109 +1,71 @@
 package users
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
-	"log"
-	"net/http"
 	"strings"
 	"time"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/sharedconfig"
 )
 
-// Function to initiate offramp
+// StableRailInitiateOfframp asks Stablerail to pay cNGN held in the user's
+// Stablerail wallet to their bank account (/cngnofframp).
 func StableRailInitiateOfframp(reqData userModels.StablerailOfframpRequest, gc *sharedconfig.GlobalConfig) (*userModels.StableRailOfframpResponse, error) {
-	// get config
-	var config userModels.StablerailConfig
-	gc.DB.First(&config)
-	if len(config.ApiKey) == 0 {
-		log.Println("[StableRailInitiateOfframp] Stablerail configuration not found.")
-		return nil, fmt.Errorf("no stablerail config found: %v", 404)
-	}
-	if config.EnableStablerail == 0 {
-		return nil, fmt.Errorf("stablerail not enabled: %v", 202)
-	}
-	apiKey, baseUrl := config.ApiKey, config.BaseUrl
-
-	if len(baseUrl) == 0 {
-		baseUrl = "https://beta.stablesrail.io/v1"
-	}
-	url := baseUrl + "/cngnofframp"
-
-	// Convert request struct to JSON
-	jsonData, err := json.Marshal(reqData)
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling request: %w", err)
-	}
-
-	// Create HTTP request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	// Set headers
-	req.Header.Set("x-api-key", apiKey)
-	req.Header.Set("Content-Type", "application/json")
-
-	// HTTP client
-	client := &http.Client{
-		Timeout: 15 * time.Second,
-	}
-
-	// Send request
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("error making request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	// Read response body
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("error reading response: %w", err)
-	}
-
-	// Parse JSON response
 	var offrampResp userModels.StableRailOfframpResponse
-	if err := json.Unmarshal(body, &offrampResp); err != nil {
-		return nil, fmt.Errorf("error unmarshaling response: %w", err)
-	}
-
-	// record it, so UpdateOfframpStatuses follows it to the end
-	if id := offrampResp.Data.RequestID; id != "" {
-		rec := userModels.StablerailOfframp{
-			ID: id, BankCode: reqData.BankCode, AccountNumber: reqData.AccountNumber, BaseAmount: float64(reqData.Amount),
-			Ticker: reqData.Ticker, Status: nonEmpty(offrampResp.Data.Status, "PENDING"), TrovoUsername: reqData.UserID,
-		}
-		if e := gc.DB.Create(&rec).Error; e != nil {
-			log.Printf("[StableRailInitiateOfframp] recording offramp %v: %v", id, e)
-		}
+	if err := stablerailPost("/cngnofframp", reqData, &offrampResp, gc); err != nil {
+		return nil, err
 	}
 	return &offrampResp, nil
 }
 
+// offrampFinalStatuses are the final offramp statuses (lower case);
+// DEPOSIT_FAILED is final too (nothing left the wallet).
+var offrampFinalStatuses = []string{"completed", "complete", "success", "successful", "failed", "failure", "cancelled", "canceled", "rejected", "reversed", "deposit_failed"}
+
 // offrampFinal reports whether an offramp status is final.
 func offrampFinal(status string) bool {
-	switch strings.ToUpper(strings.TrimSpace(status)) {
-	case "COMPLETED", "COMPLETE", "SUCCESS", "SUCCESSFUL", "FAILED", "FAILURE", "CANCELLED", "CANCELED", "REJECTED", "REVERSED":
-		return true
+	s := strings.ToLower(strings.TrimSpace(status))
+	for _, f := range offrampFinalStatuses {
+		if s == f {
+			return true
+		}
 	}
 	return false
 }
 
-// UpdateOfframpStatuses asks Stablerail for the status of every offramp not
-// yet finished, records it, and tells the user when one finishes.
+// UpdateOfframpStatuses moves bank withdrawals along: transfers to the
+// Stablerail wallet that failed are marked so, deposited ones are paid out,
+// and Stablerail is asked for the status of the rest until they finish, when
+// the user is told.
 func UpdateOfframpStatuses(gc *sharedconfig.GlobalConfig) {
 	var pending []userModels.StablerailOfframp
-	gc.DB.Where("created_at > ?", time.Now().Add(-30*24*time.Hour)).Order("created_at").Limit(100).Find(&pending)
+	// finished ones are left out here, so they cannot crowd out the rest
+	gc.DB.Where("created_at > ? AND LOWER(status) NOT IN ?", time.Now().Add(-30*24*time.Hour), offrampFinalStatuses).Order("created_at").Limit(200).Find(&pending)
 	for _, o := range pending {
+		switch o.Status {
+		case userModels.OfframpDepositing:
+			checkOfframpDeposit(o, gc)
+			continue
+		case userModels.OfframpDeposited, userModels.OfframpRequestFailed:
+			if o.Attempts < maxOfframpRequestAttempts {
+				requestOfframpPayout(o.ID, gc)
+			}
+			continue
+		case userModels.OfframpRequesting:
+			// an instance stopped while asking; ask again (Stablerail will not
+			// pay the same deposit twice)
+			if time.Since(o.UpdatedAt) > 5*time.Minute {
+				gc.DB.Model(&userModels.StablerailOfframp{}).Where("id = ? AND status = ?", o.ID, userModels.OfframpRequesting).Update("status", userModels.OfframpRequestFailed)
+			}
+			continue
+		case userModels.OfframpDepositFailed:
+			continue
+		}
 		if offrampFinal(o.Status) {
 			continue
 		}
-		res, err := GetOfframpStatus(o.ID, gc)
+		requestID := nonEmpty(o.RequestID, o.ID)
+		res, err := GetOfframpStatus(requestID, gc)
 		if err != nil || res == nil || res.Data.Status == "" {
 			continue
 		}
@@ -122,8 +84,43 @@ func UpdateOfframpStatuses(gc *sharedconfig.GlobalConfig) {
 		title, body := "Bank withdrawal completed", fmt.Sprintf("Your withdrawal of %v %v to your bank account has been paid.", o.BaseAmount, o.Ticker)
 		if f := strings.ToUpper(status); f != "COMPLETED" && f != "COMPLETE" && f != "SUCCESS" && f != "SUCCESSFUL" {
 			title, body = "Bank withdrawal failed", fmt.Sprintf("Your withdrawal of %v %v to your bank account could not be completed (%v). Please contact support.", o.BaseAmount, o.Ticker, status)
-			gc.LogDiscordFailedRequest(fmt.Sprintf("[UpdateOfframpStatuses] offramp %v of %v ended %v", o.ID, o.TrovoUsername, status))
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[UpdateOfframpStatuses] offramp %v (%v) of %v ended %v", o.ID, requestID, o.TrovoUsername, status))
 		}
 		u.SendPushMessage(title, body, "", map[string]string{"route": "basicTransactionHistory"}, gc)
 	}
+}
+
+// checkOfframpDeposit marks a withdrawal whose transfer to the Stablerail
+// wallet failed (a mined transfer is recorded by recordBankWithdrawalDeposit).
+func checkOfframpDeposit(o userModels.StablerailOfframp, gc *sharedconfig.GlobalConfig) {
+	if o.UserOpHash == nil {
+		return
+	}
+	var op userModels.WalletOperation
+	if gc.DB.Where("user_op_hash = ?", *o.UserOpHash).First(&op).Error != nil {
+		return
+	}
+	mined := op.Status == userModels.WalletOperationIncluded && op.Success != nil
+	if mined && *op.Success {
+		// mined, but the hook did not record it (e.g. the instance stopped)
+		gc.DB.Model(&userModels.StablerailOfframp{}).Where("id = ? AND status = ?", o.ID, userModels.OfframpDepositing).
+			Updates(map[string]interface{}{"status": userModels.OfframpDeposited, "tx_hash": derefString(op.TxHash)})
+		return
+	}
+	failed := op.Status == userModels.WalletOperationFailed || mined
+	if !failed {
+		return
+	}
+	gc.DB.Model(&userModels.StablerailOfframp{}).Where("id = ? AND status = ?", o.ID, userModels.OfframpDepositing).
+		Updates(map[string]interface{}{"status": userModels.OfframpDepositFailed, "error": derefString(op.Error)})
+	if u, err := userModels.Username(o.TrovoUsername).GetSimpleUser(gc.DB, gc); err == nil {
+		u.SendPushMessage("Bank withdrawal failed", fmt.Sprintf("Your withdrawal of NGN %v did not go through and nothing left your wallet.", o.BaseAmount), "", map[string]string{"route": "basicTransactionHistory"}, gc)
+	}
+}
+
+func derefString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }

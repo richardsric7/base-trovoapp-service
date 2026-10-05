@@ -362,9 +362,11 @@ class _AssetDetailsState extends State<AssetDetails>
                     page: SendAssetViewPageConfig,
                   );
                 }),
-                if (curatedAsset != null &&
-                    (curatedAsset!.isWithdrawable ||
-                        curatedAsset!.canGenerateDepositAddresses == 1)) ...[
+                // cNGN also moves to and from bank accounts (Stablerail)
+                if ((curatedAsset != null &&
+                        (curatedAsset!.isWithdrawable ||
+                            curatedAsset!.canGenerateDepositAddresses == 1)) ||
+                    asset!.assetCode == 'CNGN') ...[
                   actionButton(
                     "assets/images/dep-with-button.png",
                     'Deposit/Withdraw',

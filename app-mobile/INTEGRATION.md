@@ -80,6 +80,19 @@ until the recovery completes after its waiting period. See
 [recovery/INTEGRATION.md](../recovery/INTEGRATION.md) and
 [app-backend/INTEGRATION.md](../app-backend/INTEGRATION.md#account-recovery-opt-in-guardian).
 
+### Bank (NGN) deposits and withdrawals
+
+cNGN moves to and from Nigerian bank accounts through Stablerail
+(`lib/network/fiat_requests.dart`, `lib/screens/fiat/bank_transfer_view.dart`).
+It is reached from an asset's existing **Deposit/Withdraw** sheet
+(`wrapped_asset.dart`): for cNGN a "Bank account (NGN)" row (Deposit,
+Withdraw, History) appears when `GET /v1/users/stablerail/profile` says
+Stablerail is enabled. There is no BVN screen: the backend onboards the user
+when KYC level 1 completes, and until then the bank screen points to the KYC
+screen. A withdrawal is built, shown, confirmed (biometrics where available),
+signed with `signBase64Txn` and submitted, like a payment. See
+`app-backend/INTEGRATION.md` ("Bank deposits and withdrawals").
+
 ## Shared code with the rest of the monorepo: `wallet-core`
 
 This app is **not** fully code-isolated — it's meant to share its

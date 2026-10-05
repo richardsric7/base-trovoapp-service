@@ -1242,58 +1242,6 @@ func getUsersStablerailBanksHandler(callBackRetryChan chan userModels.RetryCallb
 	}
 }
 
-// postUsersStablerailOnboarduserBvnHandler godoc
-// @Summary POST /v1/users/stablerail/onboarduser/:bvn
-// @Tags users
-// @Produce json
-// @Param bvn path string true "BVN (11 digits)"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
-// @Router /v1/users/stablerail/onboarduser/{bvn} [post]
-func postUsersStablerailOnboarduserBvnHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var err error
-
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
-
-		if err != nil {
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(tErrors.GenericError)
-			if ok {
-				c.JSON(http.StatusBadRequest, ex.JSONError())
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-			}
-			return
-		}
-		// check BVN that it has 11 digits
-		bvn := c.Param("bvn")
-		if len(bvn) != 11 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid-bvn-format", "message": "BVN format is invalid"})
-			return
-		}
-		//get amount for activation
-		msg, err := userServices.StablerailInitiateOnboardUser(&user, bvn, gc)
-		if err != nil {
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(tErrors.GenericError)
-			if ok {
-				c.JSON(http.StatusBadRequest, ex.JSONError())
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-			}
-			return
-		}
-
-		c.JSON(http.StatusOK, msg)
-	}
-}
-
 // postUsersStablerailOnrampcngnAmountHandler godoc
 // @Summary POST /v1/users/stablerail/onrampcngn/:amount
 // @Tags users

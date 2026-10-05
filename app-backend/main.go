@@ -877,6 +877,7 @@ func main() {
 
 			for {
 				sharedconfig.WithSingletonLock(&globalConfig, "stablerail-onboarding-onramp", time.Minute, func() {
+					userServices.ProcessStablerailOnboardingRetries(&globalConfig)
 					userServices.ProcessUpdateStablerailOnboardingStatus(&globalConfig)
 					time.Sleep(10 * time.Second)
 					userServices.ProcessUpdateStablerailCNGNOnrampStatus(&globalConfig)

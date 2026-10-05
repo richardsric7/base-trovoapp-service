@@ -66,20 +66,17 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	router.GET("/v1/users/settings/gas-fee-assets", middleware.AuthenticationMiddlewareUsingTimestamp(), getUsersGasFeeAssetsHandler(gc))
 	router.PUT("/v1/users/settings/gas-fee-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), middleware.RateLimitMiddleware(gc, "gas-fee-asset", 20, time.Minute), putUsersGasFeeAssetHandler(gc))
 
-	// get config
-	var config userModels.StablerailConfig
-	gc.DB.First(&config)
+	// Stablerail (bank deposits and withdrawals): the routes always exist and
+	// answer 503 while Stablerail is not configured and enabled, so turning
+	// it on in the database needs no restart. Users are onboarded with
+	// Stablerail by the KYC callback when KYC level 1 (BVN) completes; there
+	// is no route to submit a BVN directly.
+	router.GET("/v1/users/stablerail/profile", middleware.AuthenticationMiddlewareUsingTimestamp(), getUsersStablerailProfileHandler(gc))
+	router.GET("/v1/users/stablerail/banks", middleware.AuthenticationMiddlewareUsingTimestamp(), stablerailAvailable(gc), getUsersStablerailBanksHandler(callBackRetryChan, gc))
+	router.POST("/v1/users/stablerail/onrampcngn/:amount", middleware.AuthenticationMiddlewareUsingTimestamp(), stablerailAvailable(gc), middleware.RateLimitMiddleware(gc, "stablerail-onramp", 10, time.Minute), postUsersStablerailOnrampcngnAmountHandler(callBackRetryChan, gc))
+	router.POST("/v1/users/stablerail/withdraw", middleware.AuthenticationMiddlewareUsingTimestamp(), stablerailAvailable(gc), middleware.RateLimitMiddleware(gc, "stablerail-withdraw", 10, time.Minute), postUsersStablerailWithdrawHandler(gc))
+	router.GET("/v1/users/stablerail/withdrawals", middleware.AuthenticationMiddlewareUsingTimestamp(), getUsersStablerailWithdrawalsHandler(gc))
 
-	if len(config.ApiKey) == 1 && config.EnableStablerail == 1 {
-		//STABLERAIL ENDPOINTS
-		log.Println("<<<<<<<< STABLERAIL ENDPOINTS ACTIVATED >>>>>>>>>")
-		router.GET("/v1/users/stablerail/banks", middleware.AuthenticationMiddlewareUsingTimestamp(), getUsersStablerailBanksHandler(callBackRetryChan, gc))
-
-		router.POST("/v1/users/stablerail/onboarduser/:bvn", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersStablerailOnboarduserBvnHandler(callBackRetryChan, gc))
-
-		router.POST("/v1/users/stablerail/onrampcngn/:amount", middleware.AuthenticationMiddlewareUsingTimestamp(), postUsersStablerailOnrampcngnAmountHandler(callBackRetryChan, gc))
-
-	}
 	router.GET("/v1/users/payment/generate/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), getUsersPaymentGenerateTargetUserHandler(callBackRetryChan, gc))
 
 	router.POST("/v1/security-questions", middleware.AuthenticationMiddlewareUsingTimestamp(), postSecurityQuestionsHandler(callBackRetryChan, gc))

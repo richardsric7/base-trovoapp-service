@@ -116,6 +116,36 @@
                 }
             }
         },
+        "/v1/account/recovery/status/{targetUser}": {
+            "get": {
+                "description": "For the device recovering an account (whose new key is not active yet): the status (PENDING, CANCELED, COMPLETED, FAILED; empty when none) of the recovery onto the key that signed the request, and when it takes effect.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "GET /v1/account/recovery/status/:targetUser - state of a recovery onto a new key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username",
+                        "name": "targetUser",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/account/recovery/verify-email-otp/{targetUser}/{otp}": {
             "post": {
                 "produces": [
@@ -6973,6 +7003,48 @@
                 }
             }
         },
+        "/v1/users/account/recovery/cancel": {
+            "post": {
+                "description": "Two steps: without transactionSignatures it returns the operations to sign (one per wallet being recovered); with them it submits them. Signed with the current key.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "POST /v1/users/account/recovery/cancel - cancel a pending account recovery",
+                "parameters": [
+                    {
+                        "description": "Cancel payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.UserAccountRecoveryPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users/activate/fiat": {
             "get": {
                 "produces": [
@@ -7721,49 +7793,6 @@
                 }
             }
         },
-        "/v1/users/stablerail/onboarduser/{bvn}": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "POST /v1/users/stablerail/onboarduser/:bvn",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "BVN (11 digits)",
-                        "name": "bvn",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/v1/users/stablerail/onrampcngn/{amount}": {
             "post": {
                 "produces": [
@@ -7799,6 +7828,109 @@
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/stablerail/profile": {
+            "get": {
+                "description": "Whether bank deposits and withdrawals are available, whether the user's BVN is verified for them, and the smallest bank withdrawal.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "GET /v1/users/stablerail/profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/users.StablerailProfile"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/stablerail/withdraw": {
+            "post": {
+                "description": "Withdraws cNGN from the wallet to a Nigerian bank account. Like a payment it takes two calls: the first (amount, accountNumber, bankCode) returns the transaction to sign; the second (the same body plus transaction and transactionSignature, or commit for shared wallets) submits it. The cNGN goes to the user's Stablerail wallet, which then pays the bank account; follow it with GET /v1/users/stablerail/withdrawals.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "POST /v1/users/stablerail/withdraw",
+                "parameters": [
+                    {
+                        "description": "Withdrawal",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.BankWithdrawalRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/users.BankWithdrawalRequest"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/stablerail/withdrawals": {
+            "get": {
+                "description": "The user's bank withdrawals, newest first, with their status: DEPOSITING, DEPOSITED, REQUESTING, DEPOSIT_FAILED, REQUEST_FAILED, then Stablerail's (pending, processing, bank_verification, transfer_pending, transfer_confirmed, payout_pending, completed, failed, cancelled).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "GET /v1/users/stablerail/withdrawals",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -7904,6 +8036,32 @@
             }
         },
         "/v1/users/trades": {
+            "get": {
+                "description": "The wallet's market-making offers, with what each still sells and whether it is open on the offer book.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "GET /v1/users/trades",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -7943,6 +8101,54 @@
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/trades/{id}": {
+            "delete": {
+                "description": "Cancels a market-making offer, returning what is left of it to the wallet. Like placing one it takes two calls: the first returns the transaction to sign, the second (with transaction and transactionSignature, or commit for shared wallets) submits it.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "DELETE /v1/users/trades/:id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Market offer id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Signed transaction",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/users.DeleteOfferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -8632,6 +8838,10 @@
                 "emailOtp": {
                     "type": "string"
                 },
+                "executeAfter": {
+                    "description": "ExecuteAfter is when the recovery takes effect, unless canceled.",
+                    "type": "string"
+                },
                 "messages": {
                     "type": "array",
                     "items": {
@@ -8649,6 +8859,12 @@
                 },
                 "username": {
                     "type": "string"
+                },
+                "wallets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -8668,6 +8884,48 @@
                     "type": "string"
                 },
                 "transactionSignature": {
+                    "type": "string"
+                }
+            }
+        },
+        "users.BankWithdrawalRequest": {
+            "type": "object",
+            "properties": {
+                "accountNumber": {
+                    "type": "string"
+                },
+                "amount": {
+                    "description": "cNGN, which is Naira 1:1",
+                    "type": "string"
+                },
+                "bankCode": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "commit": {
+                    "type": "integer"
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "signatureRequired": {
+                    "type": "integer"
+                },
+                "transaction": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "transactionSignature": {
+                    "type": "string"
+                },
+                "withdrawalId": {
                     "type": "string"
                 }
             }
@@ -8736,6 +8994,41 @@
                 },
                 "networkPassPhrase": {
                     "type": "string"
+                },
+                "transaction": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "transactionSignature": {
+                    "type": "string"
+                }
+            }
+        },
+        "users.DeleteOfferRequest": {
+            "type": "object",
+            "properties": {
+                "Id": {
+                    "type": "string"
+                },
+                "commit": {
+                    "type": "integer"
+                },
+                "memo": {
+                    "type": "string"
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "networkPassPhrase": {
+                    "type": "string"
+                },
+                "signatureRequired": {
+                    "type": "integer"
                 },
                 "transaction": {
                     "type": "string"
@@ -9702,6 +9995,24 @@
                 "walletType": {
                     "description": "0=normal, 1= assetIssuing (if issuing wallet, then linkedWalletAddress is required). Required for initial Call",
                     "type": "integer"
+                }
+            }
+        },
+        "users.StablerailProfile": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "minimumWithdrawal": {
+                    "type": "string"
+                },
+                "onboarded": {
+                    "type": "boolean"
+                },
+                "onboardingStatus": {
+                    "description": "the last onboarding request's status, if any",
+                    "type": "string"
                 }
             }
         },
@@ -11507,6 +11818,25 @@
                 },
                 "transactionSignature": {
                     "type": "string"
+                },
+                "transactionSignatures": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "transactions": {
+                    "description": "Transactions are the operations to sign, one per covered wallet\n(Wallets, same order); Transaction is the first, for older clients.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "wallets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

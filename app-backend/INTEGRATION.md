@@ -671,6 +671,49 @@ its address.
 
 ---
 
+## Bank deposits and withdrawals (Stablerail)
+
+Naira moves in and out of the platform as cNGN through Stablerail. All
+routes are request-signed (like payments) and answer `503
+error-fiat-unavailable` while Stablerail is not configured and enabled (see
+`CONFIGURATION.md`).
+
+- **Onboarding.** There is no route for it. When KYC level 1 completes with
+  a BVN, the KYC callback starts the user's Stablerail onboarding; if
+  Stablerail cannot be reached the callback saves a retry
+  (`stablerail_onboard_user_retries`) that the `stablerail-onboarding-onramp`
+  loop retries every 5 minutes (24 times, then a Discord alert; BVNs are
+  masked in alerts). A repeated callback does not onboard twice.
+  `GET /v1/users/stablerail/profile` tells the apps whether Stablerail is
+  enabled, whether the user is onboarded (or the last onboarding's status)
+  and the smallest withdrawal.
+- **Deposit.** `POST /v1/users/stablerail/onrampcngn/:amount` (Naira)
+  returns a virtual account to pay into; the cNGN is sent to the calling
+  wallet once Stablerail sees the payment.
+- **Withdraw.** `POST /v1/users/stablerail/withdraw` with `amount`,
+  `accountNumber` (10 digits) and `bankCode` (from
+  `GET /v1/users/stablerail/banks`) takes two calls, like a payment: the
+  first returns `transaction` to sign and `messages` to show; the second
+  (same body plus `transaction` and `transactionSignature`, or `commit` for a
+  shared wallet, whose approvers then sign it as any other operation)
+  submits a wallet operation (kind `BANK WITHDRAWAL`) sending the cNGN to the
+  user's own Stablerail wallet (from `/getuserdetails`, cached). Once it is
+  mined Stablerail is asked to pay the bank account (`/cngnofframp`); the
+  `stablerail-offramp-status` loop retries that (10 times) and follows the
+  payout to its end, and the user gets a push notification when it is paid
+  or fails.
+- **History.** `GET /v1/users/stablerail/withdrawals` lists the user's
+  withdrawals with their status: `DEPOSITING` (transfer submitted),
+  `DEPOSITED`, `REQUESTING`, `DEPOSIT_FAILED` (nothing left the wallet),
+  `REQUEST_FAILED` (the cNGN is in the user's Stablerail wallet; support is
+  alerted), then Stablerail's own statuses (`pending` ... `completed`,
+  `failed`). The transfer itself also appears in normal payment history as a
+  cNGN send to the Stablerail wallet.
+
+Bank accounts are entered per withdrawal (Stablerail supports a fixed list
+of banks); they are not the P2P payment methods, which accept any bank or
+channel name.
+
 ## Swagger UI: the per-endpoint reference
 
 Once the server is running, every documented endpoint — request

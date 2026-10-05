@@ -17,6 +17,9 @@ type StablerailUser struct {
 	UpdatedAt     time.Time
 	ID            string
 	TrovoUsername string
+	// EvmWallet is the user's Strails smart wallet on Base, where cNGN being
+	// withdrawn to a bank is sent first (cached from /getuserdetails).
+	EvmWallet string `gorm:"size:68"`
 }
 type StablerailOnboardUserRetry struct {
 	CreatedAt     time.Time
@@ -24,7 +27,7 @@ type StablerailOnboardUserRetry struct {
 	ID            uint64
 	TrovoUsername string
 	BVN           string // xx...xxx
-
+	Attempts      int    `gorm:"default:0"`
 }
 
 type StablerailRequest struct {
@@ -51,18 +54,81 @@ type StablerailOnramp struct {
 	AutoSwapEnabled int
 	TrovoUsername   string
 }
+
+// StablerailOfframp is a withdrawal of cNGN to a Nigerian bank account. The
+// user's wallet first sends the cNGN to their Strails smart wallet (a wallet
+// operation they sign, UserOpHash); once that is mined Strails is asked to
+// pay it out (/cngnofframp, RequestID) and its status is followed to the end.
 type StablerailOfframp struct {
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	ID            string
-	BankCode      string
-	AccountNumber string
-	BaseAmount    float64
-	Fee           float64
-	ActualAmount  float64
-	Ticker        string //CNGN
-	Status        string
-	TrovoUsername string
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+	ID             string    `json:"id"`
+	RequestID      string    `gorm:"size:100;index" json:"requestId"` // Strails offramp request id
+	BankCode       string    `json:"bankCode"`
+	BankName       string    `json:"bankName"`
+	AccountNumber  string    `json:"accountNumber"`
+	BaseAmount     float64   `json:"amount"`
+	Fee            float64   `json:"fee"`
+	ActualAmount   float64   `json:"actualAmount"`
+	Ticker         string    `json:"ticker"` //CNGN
+	Status         string    `gorm:"index" json:"status"`
+	TrovoUsername  string    `gorm:"index" json:"-"`
+	WalletAddress  string    `gorm:"size:68" json:"walletAddress"`  // the Trovo wallet it was sent from
+	DepositAddress string    `gorm:"size:68" json:"depositAddress"` // the user's Strails smart wallet
+	UserOpHash     *string   `gorm:"size:68;index" json:"userOpHash"`
+	TxHash         string    `gorm:"size:68" json:"txHash"`
+	Attempts       int       `json:"-"` // payout requests made to Strails
+	Error          string    `json:"error,omitempty"`
+}
+
+// Stages of a bank withdrawal before Strails reports its own statuses
+// (pending, processing, bank_verification, ..., completed, failed).
+const (
+	OfframpDepositing    = "DEPOSITING"     // the transfer to the Strails wallet was submitted
+	OfframpDeposited     = "DEPOSITED"      // it was mined; the payout is to be requested
+	OfframpRequesting    = "REQUESTING"     // the payout is being requested from Strails
+	OfframpDepositFailed = "DEPOSIT_FAILED" // the transfer failed; nothing left the wallet
+	OfframpRequestFailed = "REQUEST_FAILED" // Strails would not take the payout; the cNGN is in the user's Strails wallet
+)
+
+// BankWithdrawalRequest withdraws cNGN to a bank account. Like a payment it
+// takes two calls: the first returns the wallet operation to sign
+// (Transaction), the second submits it with TransactionSignature (or Commit
+// for shared wallets).
+type BankWithdrawalRequest struct {
+	Amount               string   `json:"amount"` // cNGN, which is Naira 1:1
+	AccountNumber        string   `json:"accountNumber"`
+	BankCode             string   `json:"bankCode"`
+	Transaction          string   `json:"transaction"`
+	TransactionSignature string   `json:"transactionSignature"`
+	TransactionID        string   `json:"transactionId"`
+	Messages             []string `json:"messages"`
+	Commit               int      `json:"commit"`
+	Multiparty           int      `json:"-"`
+	SignatureRequired    int      `json:"signatureRequired"`
+	BankName             string   `json:"bankName"`
+	WithdrawalID         string   `json:"withdrawalId"`
+}
+
+// StablerailProfile is what the apps need to offer fiat deposits and bank
+// withdrawals.
+type StablerailProfile struct {
+	Enabled           bool   `json:"enabled"`
+	Onboarded         bool   `json:"onboarded"`
+	OnboardingStatus  string `json:"onboardingStatus"` // the last onboarding request's status, if any
+	MinimumWithdrawal string `json:"minimumWithdrawal"`
+}
+
+// StablerailUserDetailsResponse is /getuserdetails.
+type StablerailUserDetailsResponse struct {
+	Status       string `json:"status"`
+	ResponseCode string `json:"response_code"`
+	Message      string `json:"message"`
+	Data         struct {
+		WalletDetails struct {
+			EvmWallet string `json:"evmWallet"`
+		} `json:"walletDetails"`
+	} `json:"data"`
 }
 
 // Request payload
@@ -124,11 +190,11 @@ type StablerailGetBanksResponse struct {
 
 // Request payload struct
 type StablerailOfframpRequest struct {
-	UserID        string `json:"userId"`
-	Amount        int    `json:"amount"`
-	AccountNumber string `json:"accountNumber"`
-	BankCode      string `json:"bankCode"`
-	Ticker        string `json:"ticker"`
+	UserID        string  `json:"userId"`
+	Amount        float64 `json:"amount"` // Naira
+	AccountNumber string  `json:"accountNumber"`
+	BankCode      string  `json:"bankCode"`
+	Ticker        string  `json:"ticker"`
 }
 
 // Request payload struct

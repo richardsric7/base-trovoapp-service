@@ -376,7 +376,7 @@ func postCallbacksDojaWebhookHandler(gc *sharedconfig.GlobalConfig) gin.HandlerF
 					sriomsg, srierr := userServices.StablerailInitiateOnboardUser(&user, event.Value, gc)
 					if srierr != nil {
 						//perform operation trigger for stable rail for user
-						gc.LogDiscordFailedRequest(fmt.Sprintf("FAILED to trigger stablerail onboarding for user %v with BVN %v", user.Username, event.Value))
+						gc.LogDiscordFailedRequest(fmt.Sprintf("FAILED to trigger stablerail onboarding for user %v (BVN %v): %v. Retried automatically.", user.Username, userServices.MaskBVN(event.Value), srierr))
 						//TODO: save the detail for retry later,
 						retryLater := userModels.StablerailOnboardUserRetry{
 							TrovoUsername: user.Username,
@@ -384,7 +384,7 @@ func postCallbacksDojaWebhookHandler(gc *sharedconfig.GlobalConfig) gin.HandlerF
 						}
 						e := dbTx.Omit(clause.Associations).Save(&retryLater).Error
 						if e != nil {
-							errMsg := fmt.Sprintf("[KYC WEBHOOK ERROR] Unable to save stablrail later retry task for [%v] due to [%v]\nRetry data: [%+v]", user.Username, e, retryLater)
+							errMsg := fmt.Sprintf("[KYC WEBHOOK ERROR] Unable to save stablrail later retry task for [%v] due to [%v]", user.Username, e)
 							gc.LogDiscordFailedRequest(errMsg)
 							log.Println(errMsg)
 

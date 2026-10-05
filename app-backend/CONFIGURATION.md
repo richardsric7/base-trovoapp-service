@@ -586,17 +586,24 @@ Opt-in account recovery (see [INTEGRATION.md](INTEGRATION.md#account-recovery-op
 
 ---
 
-## Stablerail (fiat onramp for cNGN)
+## Stablerail (bank deposits and withdrawals for cNGN)
 
 **`CNGN_PRICE_API_URL`**
 - Example: `https://api.example.com/cngn/price`
 - What it does: URL the app polls for the current cNGN (Nigerian Naira stablecoin) price. Required to boot.
 - How to get a real value: your cNGN price-feed provider's endpoint.
 
-Note: Stablerail's own API key/config (bank onboarding, onramp) is stored
-in the database (`StablerailConfig` table), not read from environment
-variables — set it up via whatever admin tooling manages that table (see
-`tm-api`), not `.env`.
+**`STABLERAIL_MIN_WITHDRAWAL`**
+- Example: `1000`
+- What it does: the smallest bank withdrawal (cNGN, which is Naira 1:1) a user may request. Optional; defaults to `1000`.
+- How to get a real value: Stablerail's minimum payout for your account, or a higher business minimum.
+
+Note: Stablerail's own API key/config (bank onboarding, onramp, offramp) is
+stored in the database (`stablerail_configs` table: `api_key`, `base_url`,
+`enable_stablerail`), not read from environment variables, and is read on
+every request — enabling or disabling it needs no restart. There is no admin
+screen for it yet; set the row directly. Users are onboarded with Stablerail
+automatically by the KYC callback when KYC level 1 (BVN) completes.
 
 ---
 

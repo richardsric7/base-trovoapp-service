@@ -760,7 +760,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 			return nil
 
-		} else if (p.TransactionType == "PAYMENT" || p.TransactionType == "SWAP") && opRec != nil {
+		} else if (p.TransactionType == "PAYMENT" || p.TransactionType == "SWAP" || p.TransactionType == OperationBankWithdrawal) && opRec != nil {
 			// fees were recorded from the operation (recordOperationFees)
 			dbTX.Commit()
 			notifyApprovalCompleted(signerUser, p, &wallet, gc)

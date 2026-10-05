@@ -107,9 +107,9 @@ func StablerailInitiateCNGNOnrampRequest(trovoUser *userModels.User, wallet *use
 	//stablerail onramp
 	stablerailOnramp := userModels.StablerailOnramp{
 		ID:                 cr.Data.RequestID,
-		WalletAddress:      rv.Data.WalletAddress,
+		WalletAddress:      cr.Data.WalletAddress,
 		TrovoWalletAddress: wallet.ID,
-		TotalAmount:        rv.Data.VirtualAccount.Amount,
+		TotalAmount:        cr.Data.FeeBreakdown.TotalAmount,
 		TargetAsset:        "USDC",
 		Status:             cr.Data.Status,
 		AutoSwapEnabled:    0,
@@ -124,7 +124,7 @@ func StablerailInitiateCNGNOnrampRequest(trovoUser *userModels.User, wallet *use
 	dataPayload := make(map[string]string)
 	dataPayload["route"] = ""
 	trovoUser.SendPushMessage("fiat funding initiated", fmt.Sprintf("Fiat funding for NGN %v has been initiated. Please use the account to be displayed to make payment.", decimal.NewFromFloat(amount).String()), "", dataPayload, gc)
-	time.Sleep(5)
+	time.Sleep(5 * time.Second) // let Stablerail create the virtual account
 	//get virtual account info
 
 	rv, err = GetCNGNOnrampVirtualAccount(cr.Data.RequestID, gc)
@@ -157,8 +157,7 @@ func StablerailGetPendingCNGNOnrampRequest(trovoUser *userModels.User, gc *share
 	}
 
 	//check if username already exists
-	var stablerailUserOnramp userModels.StablerailOnramp
-	e := gc.DB.Where("trovo_username = ? AND status = ?", trovoUsername, "%"+"created"+"%").First(&stablerailUserOnramp).Error
+	e := gc.DB.Where("trovo_username = ? AND status LIKE ?", trovoUsername, "%created%").Order("created_at DESC").First(&rv).Error
 	if e != nil {
 		//error getting the stablerail user onramp
 		return rv, fmt.Errorf("no pending user fiat deposit: %v", 404)

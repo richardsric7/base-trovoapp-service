@@ -105,6 +105,7 @@ import 'package:trovo_app/screens/page_view/pdf_view.dart';
 import 'package:trovo_app/screens/page_view/success_view.dart';
 import 'package:trovo_app/screens/page_view/web_view.dart';
 import 'package:trovo_app/screens/p2p/p2p_marketplace_view.dart';
+import 'package:trovo_app/screens/fiat/bank_transfer_view.dart';
 import 'package:trovo_app/screens/p2p/p2p_offer_detail_view.dart';
 import 'package:trovo_app/screens/p2p/p2p_create_offer_view.dart';
 import 'package:trovo_app/screens/p2p/p2p_create_order_view.dart';
@@ -683,6 +684,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.P2PMarketplaceView:
           _addPageData(P2PMarketplaceView(), P2PMarketplaceViewPageConfig);
           break;
+        case Pages.BankTransferView:
+          _addPageData(BankTransferView(), BankTransferViewPageConfig);
+          break;
         case Pages.P2POfferDetailView:
           _addPageData(P2POfferDetailView(), P2POfferDetailViewPageConfig);
           break;
@@ -1040,6 +1044,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.P2PMarketplaceView:
         P2PMarketplaceViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.BankTransferView:
+        BankTransferViewPageConfig.currentPageAction = action;
         break;
       case Pages.P2POfferDetailView:
         P2POfferDetailViewPageConfig.currentPageAction = action;

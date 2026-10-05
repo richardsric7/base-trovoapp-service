@@ -113,6 +113,16 @@ meanwhile), and only then does the page send the user to import the
 account with the new key. See
 [app-backend/INTEGRATION.md](../app-backend/INTEGRATION.md#account-recovery-opt-in-guardian).
 
+### Bank (NGN) deposits and withdrawals
+
+The wallet panel's **Deposit/Withdraw** button opens `/dashboard/bank`
+(`src/pages/dashboard/bank.tsx`, `src/store/api/bankApis.ts`) for the active
+wallet: deposit Naira into a virtual account for cNGN, withdraw cNGN to a
+Nigerian bank account (build, confirm, `signBase64Txn`, submit - like a
+payment) and see past withdrawals. Users are onboarded with Stablerail when
+KYC level 1 completes in the mobile app; there is no BVN step on the web. See
+`app-backend/INTEGRATION.md` ("Bank deposits and withdrawals").
+
 ## (b) Using `wallet-core` (WASM)
 
 Yes — confirmed by code, not inferred. `app-web` vendors the compiled
