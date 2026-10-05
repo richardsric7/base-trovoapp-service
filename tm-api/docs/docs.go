@@ -8377,6 +8377,2604 @@ const docTemplate = `{
                 }
             }
         },
+        "/public-markets/assets": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Public Market assets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "NGX or FMDQ",
+                        "name": "market",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "EQUITY or BOND",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "SETUP, LIVE or HALTED",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Custodian",
+                        "name": "custodianId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Code, ticker, ISIN or name",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/publicmarkets.AssetRow"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Creates the asset in SETUP. Register its token, set a price and record the Custodian position before taking it live.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Add a Public Market asset",
+                "parameters": [
+                    {
+                        "description": "assetCode, market, assetType, isin, instrumentName, custodianId, dealingMemberId, ...",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.AssetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.Asset"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/assets/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "The asset with supply, Custodian position, beneficial owners (substantial holders flagged), reconciliation runs, prices, corporate actions and its setup steps.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "A Public Market asset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset id or code",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.AssetDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Edit a Public Market asset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset id or code",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fields to change",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.AssetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.Asset"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/assets/{id}/contract": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Verified on Base: the token's owner must be the issuing Safe and nothing may be minted yet. Its decimals are read from the contract.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Register an asset's token contract",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset id or code",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "contractAddress and issuingSafeAddress",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ContractRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.Asset"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/assets/{id}/go-live": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Opens creation and redemption once the asset's setup steps are done.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Take an asset live",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset id or code",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.Asset"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/assets/{id}/halt": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Stops creation and redemption (holders' balances are not frozen).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Halt an asset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset id or code",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "reason",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ReasonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.Asset"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/assets/{id}/position": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "From the Custodian's statement (MANUAL Custodians, or a correction). Reconciliation uses the latest position.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Record the Custodian's position",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset id or code",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "unitsHeld, asOf (YYYY-MM-DD), reference",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.PositionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.CustodianPosition"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/assets/{id}/price": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Set a manual reference price",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset id or code",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "price (NGN)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.PriceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.Asset"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/assets/{id}/prices": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "An asset's price history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset id or code",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 100,
+                        "description": "Snapshots",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/publicmarkets.PriceSnapshot"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/assets/{id}/resume": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Asks the engine to reconcile the asset now and reopen it only if the run matches.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Resume a halted asset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset id or code",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.JobRequest"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/batches": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Net batches",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "AWAITING_APPROVAL, RELEASED, EXECUTED, SETTLED, PROCESSED, REJECTED, FAILED, INTERNAL",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Asset code",
+                        "name": "asset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/batches/{id}/approve": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Only Net Creation Approvers; the engine releases the batch once enough have approved.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Approve a net batch above the threshold",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Batch id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.BatchView"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/batches/{id}/reject": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "The engine refunds its orders.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Reject a net batch",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Batch id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "reason",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ReasonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.NetBatch"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/batches/{id}/roll": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "For a released batch that was not executed (e.g. the market was closed): its orders wait for the next session's batch.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Roll a batch to the next session",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Batch id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "reason",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ReasonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.NetBatch"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/confirmations": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Exchange confirmations of dividend.paid",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/publicmarkets.ConfirmationRow"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/corporate-actions": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Corporate actions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ANNOUNCED, SNAPSHOTTED, APPROVED, PAYING, DISTRIBUTED, NEEDS_MANUAL, CANCELLED",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Asset code",
+                        "name": "asset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Recorded for the engine, which declares it as it would a Custodian's notice. Dividends and coupons are distributed automatically; bonus, rights and split need manual handling.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Declare a corporate action",
+                "parameters": [
+                    {
+                        "description": "assetCode, eventType, recordDate, payDate, amountPerUnit",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.DeclareRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.PartnerEvent"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/corporate-actions/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "A corporate action with its distribution",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Corporate action id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Entitlement status filter",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.ActionDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/corporate-actions/{id}/approve": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Only Dividend Approvers; the approval is on the snapshot's checksum.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Approve a distribution",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Corporate action id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.ActionDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/corporate-actions/{id}/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Cancel a corporate action",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Corporate action id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "reason",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ReasonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.CorporateAction"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/custodians": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Approved Asset Custodians with their Public Markets integration.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Custodians",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/publicmarkets.CustodianRow"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/custodians/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Its partner code (X-Partner-Code), nominee, mode (MOCK, REST, MANUAL), REST base URL, auth scheme and credentials reference.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Configure a Custodian for Public Markets",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Approved Asset Custodian id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Integration settings",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.PartnerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.Custodian"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/dealing-members": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Dealing Members",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/publicmarkets.DealingMemberRow"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Add or edit a Dealing Member",
+                "parameters": [
+                    {
+                        "description": "name, code, country, CSCS member code, fees, integration",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.PartnerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.DealingMember"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/dealing-members/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Add or edit a Dealing Member",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Dealing Member id (PUT)",
+                        "name": "id",
+                        "in": "path"
+                    },
+                    {
+                        "description": "name, code, country, CSCS member code, fees, integration",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.PartnerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.DealingMember"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/exchanges": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Exchange partners",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "active or suspended",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Makes a verified service link an exchange partner. The signing secret is in the response once; hand it to the exchange securely.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Onboard an exchange",
+                "parameters": [
+                    {
+                        "description": "serviceLinkId, callbackUrl, fundingAddress, environment, tiers",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ExchangeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/exchanges/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "An exchange partner",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service link id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Delivery status filter (PENDING, DELIVERED, DEAD_LETTER)",
+                        "name": "deliveries",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.ExchangeDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "A rate-limit tier change updates the service link's rate limit.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Edit an exchange partner",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service link id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fields to change",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ExchangeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.ExchangeRow"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/exchanges/{id}/activate": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Reactivate an exchange",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service link id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.ExchangeRow"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/exchanges/{id}/replay-dead-letters": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Replay an exchange's dead-lettered webhooks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service link id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/exchanges/{id}/rotate-secret": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "The new secret is in the response once; the previous one keeps working for 24 hours.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Rotate an exchange's signing secret",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service link id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/exchanges/{id}/suspend": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Suspend an exchange",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service link id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.ExchangeRow"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/exchanges/{id}/withdrawals": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Asks the engine to transfer the amount from the treasury to the exchange's funding wallet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Pay an exchange's balance back",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service link id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "amount",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.AmountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.JobRequest"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/health": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "The engine's background jobs (last run, status), recent job requests and queue depths.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Public Markets engine health",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.Health"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/instructions": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Outbound instructions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PENDING, ACCEPTED, EXECUTED, SETTLED, ESCALATED, HANDLED, REJECTED",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Asset code",
+                        "name": "asset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Batch id",
+                        "name": "batch",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/instructions/{id}/handled": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Closes it (no more retries or alerts). Record the partner's outcome so its batch moves on.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Mark an instruction handled",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Instruction id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "reason: how it was handled",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ReasonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.Instruction"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/instructions/{id}/outcome": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "For a MANUAL partner (or a webhook that never arrived): a Dealing Member's fill or a Custodian's settlement, applied by the engine as if the partner had sent it.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Record a partner's outcome",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Instruction id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "status and the fill / settlement details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.OutcomeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.PartnerEvent"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/instructions/{id}/retry": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Retry an escalated instruction",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Instruction id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.Instruction"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/jobs": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "What was asked of the engine from Trovo Manager, and the results.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Job requests",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/publicmarkets.JobRequest"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/me": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "My Public Markets permissions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/orders": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Public Markets orders",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CREATION or REDEMPTION",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "A state, or open",
+                        "name": "state",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "TROVO_APP or EXCHANGE",
+                        "name": "channel",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "FAST, SLOW or NETTED",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Asset code",
+                        "name": "asset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Net batch id",
+                        "name": "batch",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Service link id",
+                        "name": "exchange",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Order id, wallet, username or external ref",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "YYYY-MM-DD",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "YYYY-MM-DD",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/orders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "An order with its timeline",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.OrderDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/overview": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Asset, order and value totals, what needs attention (approvals, escalations, dead letters, late confirmations, disclosures, halts, drift), the engine's jobs and today's batches.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Public Markets overview",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.Overview"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/partner-events": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Webhooks from Custodians and Dealing Members, and what Operations recorded (source MANUAL), with the engine's result.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Inbound partner events",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source prefix: MANUAL, CUSTODIAN, DEALING_MEMBER",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "settlement, execution, position-feed, corporate-action",
+                        "name": "kind",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/position-feed": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Request a mock Custodian's position feed",
+                "parameters": [
+                    {
+                        "description": "target: the Custodian's code",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.TargetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.JobRequest"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/prices": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Each asset's reference price, source and freshness, and recent Dealing Member executions against the reference.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Price oracle",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/reconciliation": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Each asset's latest run, with likely causes of a drift.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Reconciliation",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.Reconciliation"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/reconciliation/run": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Run reconciliation now",
+                "parameters": [
+                    {
+                        "description": "target: an asset code, or ALL",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.TargetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.JobRequest"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/reconciliation/runs": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Reconciliation history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset code",
+                        "name": "asset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/settings": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Public Markets settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.Settings"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Thresholds, approvers, fees, withholding tax, market hours and holidays, rate-limit tiers. Needs MANAGE_SETTINGS.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Change Public Markets settings",
+                "parameters": [
+                    {
+                        "description": "Fields to change",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.SettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.Settings"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/wallets": {
+            "get": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "description": "Wallets exchanges opened for their customers. Legal names and tax IDs are masked unless the admin holds VIEW_PUBLIC_MARKETS_PII.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Wallet provisioning",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service link id",
+                        "name": "exchange",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "active or rejected",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "External user ref, wallet id or address",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/public-markets/webhooks/{id}/replay": {
+            "post": {
+                "security": [
+                    {
+                        "JwtTokenAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Replay a dead-lettered webhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Delivery id (evt_...)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/publicmarkets.WebhookDelivery"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/public/tokenization": {
             "get": {
                 "security": [
@@ -22125,6 +24723,2685 @@ const docTemplate = `{
             ],
             "properties": {
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.ActionDetail": {
+            "type": "object",
+            "properties": {
+                "amountPerUnit": {
+                    "type": "string"
+                },
+                "approvals": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.DividendApproval"
+                    }
+                },
+                "approvalsRequired": {
+                    "type": "integer"
+                },
+                "approvedAt": {
+                    "type": "string"
+                },
+                "approvers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetId": {
+                    "type": "string"
+                },
+                "byChannel": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.ChannelTotals"
+                    }
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "declaredBy": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "eligibleUnits": {
+                    "type": "string"
+                },
+                "entitlements": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.Entitlement"
+                    }
+                },
+                "eventType": {
+                    "type": "string"
+                },
+                "fundedAt": {
+                    "type": "string"
+                },
+                "grossAmount": {
+                    "type": "string"
+                },
+                "holderCount": {
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "CA-...",
+                    "type": "string"
+                },
+                "netAmount": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "payDate": {
+                    "type": "string"
+                },
+                "recordBlock": {
+                    "type": "integer"
+                },
+                "recordDate": {
+                    "description": "YYYY-MM-DD (Africa/Lagos)",
+                    "type": "string"
+                },
+                "retainedUnits": {
+                    "description": "platform wallets (inventory): not paid out",
+                    "type": "string"
+                },
+                "snapshotAt": {
+                    "type": "string"
+                },
+                "snapshotChecksum": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "sourceReference": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "totalEntitlements": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "whtAmount": {
+                    "type": "string"
+                },
+                "whtTxHash": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.AmountRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.Asset": {
+            "type": "object",
+            "properties": {
+                "assetCode": {
+                    "description": "e.g. MTNN-T",
+                    "type": "string"
+                },
+                "assetType": {
+                    "description": "EQUITY | BOND",
+                    "type": "string"
+                },
+                "contractAddress": {
+                    "description": "the token",
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "coupon": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "createdBy": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "custodianId": {
+                    "description": "custody and execution",
+                    "type": "integer"
+                },
+                "dayHigh": {
+                    "type": "string"
+                },
+                "dayLow": {
+                    "type": "string"
+                },
+                "dayVolume": {
+                    "type": "string"
+                },
+                "dealingMemberId": {
+                    "description": "approved_dealing_members.id",
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dividendYield": {
+                    "type": "string"
+                },
+                "feePercent": {
+                    "description": "empty: the settings' trade fee",
+                    "type": "string"
+                },
+                "haltReason": {
+                    "type": "string"
+                },
+                "haltedAt": {
+                    "type": "string"
+                },
+                "haltedBy": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "instrumentName": {
+                    "type": "string"
+                },
+                "inventoryTargetUnits": {
+                    "type": "string"
+                },
+                "isin": {
+                    "type": "string"
+                },
+                "issuingSafeAddress": {
+                    "description": "owns the token, holds redeemed tokens until burnt",
+                    "type": "string"
+                },
+                "lastPrice": {
+                    "description": "latest reference price (also in PriceSnapshot), kept here for listing",
+                    "type": "string"
+                },
+                "logoBackground": {
+                    "description": "display",
+                    "type": "string"
+                },
+                "logoForeground": {
+                    "type": "string"
+                },
+                "logoInitials": {
+                    "type": "string"
+                },
+                "logoUrl": {
+                    "type": "string"
+                },
+                "market": {
+                    "description": "NGX | FMDQ",
+                    "type": "string"
+                },
+                "marketCap": {
+                    "description": "key statistics shown in the apps (free text from the data vendor or ops)",
+                    "type": "string"
+                },
+                "maturityDate": {
+                    "type": "string"
+                },
+                "minimumBuy": {
+                    "description": "trading rules",
+                    "type": "string"
+                },
+                "omnibusReference": {
+                    "description": "trovotechAccountReference, e.g. POOL-DANGCEM-01",
+                    "type": "string"
+                },
+                "peRatio": {
+                    "type": "string"
+                },
+                "previousClose": {
+                    "type": "string"
+                },
+                "priceAt": {
+                    "type": "string"
+                },
+                "priceSource": {
+                    "type": "string"
+                },
+                "sector": {
+                    "type": "string"
+                },
+                "shortName": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "status",
+                    "type": "string"
+                },
+                "ticker": {
+                    "description": "e.g. MTNN",
+                    "type": "string"
+                },
+                "tokenDecimals": {
+                    "type": "integer"
+                },
+                "unitDescription": {
+                    "description": "UnitDescription says what one token stands for (one share, or\n100 NGN face value of a bond).",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.AssetDetail": {
+            "type": "object",
+            "properties": {
+                "assetCode": {
+                    "description": "e.g. MTNN-T",
+                    "type": "string"
+                },
+                "assetType": {
+                    "description": "EQUITY | BOND",
+                    "type": "string"
+                },
+                "contractAddress": {
+                    "description": "the token",
+                    "type": "string"
+                },
+                "corporateActions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.CorporateAction"
+                    }
+                },
+                "country": {
+                    "type": "string"
+                },
+                "coupon": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "createdBy": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "custodian": {
+                    "$ref": "#/definitions/publicmarkets.Custodian"
+                },
+                "custodianId": {
+                    "description": "custody and execution",
+                    "type": "integer"
+                },
+                "custodianName": {
+                    "type": "string"
+                },
+                "dayHigh": {
+                    "type": "string"
+                },
+                "dayLow": {
+                    "type": "string"
+                },
+                "dayVolume": {
+                    "type": "string"
+                },
+                "dealingMember": {
+                    "$ref": "#/definitions/publicmarkets.DealingMember"
+                },
+                "dealingMemberId": {
+                    "description": "approved_dealing_members.id",
+                    "type": "integer"
+                },
+                "dealingMemberName": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dividendYield": {
+                    "type": "string"
+                },
+                "feePercent": {
+                    "description": "empty: the settings' trade fee",
+                    "type": "string"
+                },
+                "haltReason": {
+                    "type": "string"
+                },
+                "haltedAt": {
+                    "type": "string"
+                },
+                "haltedBy": {
+                    "type": "string"
+                },
+                "holders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.Holder"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "instrumentName": {
+                    "type": "string"
+                },
+                "inventoryTargetUnits": {
+                    "type": "string"
+                },
+                "isin": {
+                    "type": "string"
+                },
+                "issuingSafeAddress": {
+                    "description": "owns the token, holds redeemed tokens until burnt",
+                    "type": "string"
+                },
+                "lastPrice": {
+                    "description": "latest reference price (also in PriceSnapshot), kept here for listing",
+                    "type": "string"
+                },
+                "lastReconAt": {
+                    "type": "string"
+                },
+                "lastReconResult": {
+                    "type": "string"
+                },
+                "logoBackground": {
+                    "description": "display",
+                    "type": "string"
+                },
+                "logoForeground": {
+                    "type": "string"
+                },
+                "logoInitials": {
+                    "type": "string"
+                },
+                "logoUrl": {
+                    "type": "string"
+                },
+                "market": {
+                    "description": "NGX | FMDQ",
+                    "type": "string"
+                },
+                "marketCap": {
+                    "description": "key statistics shown in the apps (free text from the data vendor or ops)",
+                    "type": "string"
+                },
+                "marketOpen": {
+                    "type": "boolean"
+                },
+                "marketValue": {
+                    "type": "string"
+                },
+                "maturityDate": {
+                    "type": "string"
+                },
+                "minimumBuy": {
+                    "description": "trading rules",
+                    "type": "string"
+                },
+                "omnibusReference": {
+                    "description": "trovotechAccountReference, e.g. POOL-DANGCEM-01",
+                    "type": "string"
+                },
+                "openOrders": {
+                    "type": "integer"
+                },
+                "owners": {
+                    "type": "integer"
+                },
+                "peRatio": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "string"
+                },
+                "positionAsOf": {
+                    "type": "string"
+                },
+                "positionSource": {
+                    "type": "string"
+                },
+                "previousClose": {
+                    "type": "string"
+                },
+                "priceAt": {
+                    "type": "string"
+                },
+                "priceFresh": {
+                    "type": "boolean"
+                },
+                "priceSource": {
+                    "type": "string"
+                },
+                "prices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.PriceSnapshot"
+                    }
+                },
+                "reconciliationRuns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.ReconciliationRun"
+                    }
+                },
+                "sector": {
+                    "type": "string"
+                },
+                "setupSteps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.SetupStep"
+                    }
+                },
+                "shortName": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "status",
+                    "type": "string"
+                },
+                "supply": {
+                    "description": "Σ ledger",
+                    "type": "string"
+                },
+                "ticker": {
+                    "description": "e.g. MTNN",
+                    "type": "string"
+                },
+                "tokenDecimals": {
+                    "type": "integer"
+                },
+                "unitDescription": {
+                    "description": "UnitDescription says what one token stands for (one share, or\n100 NGN face value of a bond).",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.AssetRequest": {
+            "type": "object",
+            "properties": {
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetType": {
+                    "type": "string"
+                },
+                "coupon": {
+                    "type": "string"
+                },
+                "custodianId": {
+                    "type": "integer"
+                },
+                "dealingMemberId": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dividendYield": {
+                    "type": "string"
+                },
+                "feePercent": {
+                    "type": "string"
+                },
+                "instrumentName": {
+                    "type": "string"
+                },
+                "inventoryTargetUnits": {
+                    "type": "string"
+                },
+                "isin": {
+                    "type": "string"
+                },
+                "logoBackground": {
+                    "type": "string"
+                },
+                "logoForeground": {
+                    "type": "string"
+                },
+                "logoInitials": {
+                    "type": "string"
+                },
+                "logoUrl": {
+                    "type": "string"
+                },
+                "market": {
+                    "type": "string"
+                },
+                "marketCap": {
+                    "type": "string"
+                },
+                "maturityDate": {
+                    "type": "string"
+                },
+                "minimumBuy": {
+                    "type": "string"
+                },
+                "omnibusReference": {
+                    "type": "string"
+                },
+                "peRatio": {
+                    "type": "string"
+                },
+                "sector": {
+                    "type": "string"
+                },
+                "shortName": {
+                    "type": "string"
+                },
+                "ticker": {
+                    "type": "string"
+                },
+                "unitDescription": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.AssetRow": {
+            "type": "object",
+            "properties": {
+                "assetCode": {
+                    "description": "e.g. MTNN-T",
+                    "type": "string"
+                },
+                "assetType": {
+                    "description": "EQUITY | BOND",
+                    "type": "string"
+                },
+                "contractAddress": {
+                    "description": "the token",
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "coupon": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "createdBy": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "custodianId": {
+                    "description": "custody and execution",
+                    "type": "integer"
+                },
+                "custodianName": {
+                    "type": "string"
+                },
+                "dayHigh": {
+                    "type": "string"
+                },
+                "dayLow": {
+                    "type": "string"
+                },
+                "dayVolume": {
+                    "type": "string"
+                },
+                "dealingMemberId": {
+                    "description": "approved_dealing_members.id",
+                    "type": "integer"
+                },
+                "dealingMemberName": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dividendYield": {
+                    "type": "string"
+                },
+                "feePercent": {
+                    "description": "empty: the settings' trade fee",
+                    "type": "string"
+                },
+                "haltReason": {
+                    "type": "string"
+                },
+                "haltedAt": {
+                    "type": "string"
+                },
+                "haltedBy": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "instrumentName": {
+                    "type": "string"
+                },
+                "inventoryTargetUnits": {
+                    "type": "string"
+                },
+                "isin": {
+                    "type": "string"
+                },
+                "issuingSafeAddress": {
+                    "description": "owns the token, holds redeemed tokens until burnt",
+                    "type": "string"
+                },
+                "lastPrice": {
+                    "description": "latest reference price (also in PriceSnapshot), kept here for listing",
+                    "type": "string"
+                },
+                "lastReconAt": {
+                    "type": "string"
+                },
+                "lastReconResult": {
+                    "type": "string"
+                },
+                "logoBackground": {
+                    "description": "display",
+                    "type": "string"
+                },
+                "logoForeground": {
+                    "type": "string"
+                },
+                "logoInitials": {
+                    "type": "string"
+                },
+                "logoUrl": {
+                    "type": "string"
+                },
+                "market": {
+                    "description": "NGX | FMDQ",
+                    "type": "string"
+                },
+                "marketCap": {
+                    "description": "key statistics shown in the apps (free text from the data vendor or ops)",
+                    "type": "string"
+                },
+                "marketOpen": {
+                    "type": "boolean"
+                },
+                "marketValue": {
+                    "type": "string"
+                },
+                "maturityDate": {
+                    "type": "string"
+                },
+                "minimumBuy": {
+                    "description": "trading rules",
+                    "type": "string"
+                },
+                "omnibusReference": {
+                    "description": "trovotechAccountReference, e.g. POOL-DANGCEM-01",
+                    "type": "string"
+                },
+                "owners": {
+                    "type": "integer"
+                },
+                "peRatio": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "string"
+                },
+                "positionAsOf": {
+                    "type": "string"
+                },
+                "positionSource": {
+                    "type": "string"
+                },
+                "previousClose": {
+                    "type": "string"
+                },
+                "priceAt": {
+                    "type": "string"
+                },
+                "priceFresh": {
+                    "type": "boolean"
+                },
+                "priceSource": {
+                    "type": "string"
+                },
+                "sector": {
+                    "type": "string"
+                },
+                "shortName": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "status",
+                    "type": "string"
+                },
+                "supply": {
+                    "description": "Σ ledger",
+                    "type": "string"
+                },
+                "ticker": {
+                    "description": "e.g. MTNN",
+                    "type": "string"
+                },
+                "tokenDecimals": {
+                    "type": "integer"
+                },
+                "unitDescription": {
+                    "description": "UnitDescription says what one token stands for (one share, or\n100 NGN face value of a bond).",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.AttentionItem": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "description": "approval | escalation | dead-letter | confirmation | disclosure | halt | drift",
+                    "type": "string"
+                },
+                "target": {
+                    "description": "an id the page links to",
+                    "type": "string"
+                },
+                "text": {
+                    "type": "string"
+                },
+                "where": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.BatchApproval": {
+            "type": "object",
+            "properties": {
+                "approver": {
+                    "type": "string"
+                },
+                "at": {
+                    "type": "string"
+                },
+                "batchId": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.BatchView": {
+            "type": "object",
+            "properties": {
+                "approvals": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.BatchApproval"
+                    }
+                },
+                "approvalsRequired": {
+                    "type": "integer"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "creationOrders": {
+                    "type": "integer"
+                },
+                "executedAt": {
+                    "type": "string"
+                },
+                "executedPrice": {
+                    "type": "string"
+                },
+                "executedQuantity": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "NB-2026-09-29-1015-MTNN-T",
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "string"
+                },
+                "redemptionOrders": {
+                    "type": "integer"
+                },
+                "referencePrice": {
+                    "type": "string"
+                },
+                "sessionDate": {
+                    "type": "string"
+                },
+                "settledAt": {
+                    "type": "string"
+                },
+                "side": {
+                    "description": "BUY | SELL | NONE",
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "threshold": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.ChannelTotals": {
+            "type": "object",
+            "properties": {
+                "channel": {
+                    "type": "string"
+                },
+                "failed": {
+                    "type": "integer"
+                },
+                "gross": {
+                    "type": "string"
+                },
+                "net": {
+                    "type": "string"
+                },
+                "paid": {
+                    "type": "integer"
+                },
+                "recipients": {
+                    "type": "integer"
+                },
+                "wht": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.ConfirmationRow": {
+            "type": "object",
+            "properties": {
+                "assetCode": {
+                    "type": "string"
+                },
+                "confirmed": {
+                    "type": "integer"
+                },
+                "escalated": {
+                    "type": "integer"
+                },
+                "exchangeName": {
+                    "type": "string"
+                },
+                "oldestDueAt": {
+                    "type": "string"
+                },
+                "outstanding": {
+                    "type": "integer"
+                },
+                "serviceLinkId": {
+                    "type": "string"
+                },
+                "walletsPaid": {
+                    "type": "integer"
+                }
+            }
+        },
+        "publicmarkets.ContractRequest": {
+            "type": "object",
+            "properties": {
+                "contractAddress": {
+                    "type": "string"
+                },
+                "issuingSafeAddress": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.CorporateAction": {
+            "type": "object",
+            "properties": {
+                "amountPerUnit": {
+                    "type": "string"
+                },
+                "approvalsRequired": {
+                    "type": "integer"
+                },
+                "approvedAt": {
+                    "type": "string"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetId": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "declaredBy": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "eligibleUnits": {
+                    "type": "string"
+                },
+                "eventType": {
+                    "type": "string"
+                },
+                "fundedAt": {
+                    "type": "string"
+                },
+                "grossAmount": {
+                    "type": "string"
+                },
+                "holderCount": {
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "CA-...",
+                    "type": "string"
+                },
+                "netAmount": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "payDate": {
+                    "type": "string"
+                },
+                "recordBlock": {
+                    "type": "integer"
+                },
+                "recordDate": {
+                    "description": "YYYY-MM-DD (Africa/Lagos)",
+                    "type": "string"
+                },
+                "retainedUnits": {
+                    "description": "platform wallets (inventory): not paid out",
+                    "type": "string"
+                },
+                "snapshotAt": {
+                    "type": "string"
+                },
+                "snapshotChecksum": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "sourceReference": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "whtAmount": {
+                    "type": "string"
+                },
+                "whtTxHash": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.Custodian": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "authScheme": {
+                    "description": "HMAC | MTLS | NONE",
+                    "type": "string"
+                },
+                "baseUrl": {
+                    "type": "string"
+                },
+                "code": {
+                    "description": "sent as X-Partner-Code on callbacks",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "credentialsRef": {
+                    "description": "CredentialsRef names where the partner's credentials live: an\nenvironment variable (env:NAME) or a Vault path (vault://...).",
+                    "type": "string"
+                },
+                "custodianId": {
+                    "type": "integer"
+                },
+                "feePercent": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "nomineeName": {
+                    "type": "string"
+                },
+                "transport": {
+                    "description": "label, e.g. \"REST + webhooks\", \"SFTP (end of day file)\"",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.CustodianPosition": {
+            "type": "object",
+            "properties": {
+                "asOf": {
+                    "type": "string"
+                },
+                "assetId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "realUnitsHeld": {
+                    "type": "string"
+                },
+                "recordedBy": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.CustodianRow": {
+            "type": "object",
+            "properties": {
+                "assets": {
+                    "type": "integer"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "feePercent": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "integration": {
+                    "$ref": "#/definitions/publicmarkets.Custodian"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.DealingMember": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "authScheme": {
+                    "type": "string"
+                },
+                "baseUrl": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "credentialsRef": {
+                    "type": "string"
+                },
+                "cscsMemberCode": {
+                    "type": "string"
+                },
+                "dealingMemberAddress": {
+                    "type": "string"
+                },
+                "dealingMemberCountry": {
+                    "type": "string"
+                },
+                "dealingMemberName": {
+                    "type": "string"
+                },
+                "feeFixed": {
+                    "type": "number"
+                },
+                "feePercent": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "requirementDocument": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.DealingMemberRow": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "assets": {
+                    "type": "integer"
+                },
+                "authScheme": {
+                    "type": "string"
+                },
+                "baseUrl": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "credentialsRef": {
+                    "type": "string"
+                },
+                "cscsMemberCode": {
+                    "type": "string"
+                },
+                "dealingMemberAddress": {
+                    "type": "string"
+                },
+                "dealingMemberCountry": {
+                    "type": "string"
+                },
+                "dealingMemberName": {
+                    "type": "string"
+                },
+                "feeFixed": {
+                    "type": "number"
+                },
+                "feePercent": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "requirementDocument": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.DeclareRequest": {
+            "type": "object",
+            "properties": {
+                "amountPerUnit": {
+                    "type": "string"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "eventType": {
+                    "type": "string"
+                },
+                "payDate": {
+                    "type": "string"
+                },
+                "recordDate": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.DividendApproval": {
+            "type": "object",
+            "properties": {
+                "approver": {
+                    "type": "string"
+                },
+                "at": {
+                    "type": "string"
+                },
+                "checksum": {
+                    "type": "string"
+                },
+                "corporateActionId": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.Entitlement": {
+            "type": "object",
+            "properties": {
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetId": {
+                    "type": "string"
+                },
+                "channel": {
+                    "type": "string"
+                },
+                "corporateActionId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "grossAmount": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "netAmount": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "paidAt": {
+                    "type": "string"
+                },
+                "partnerWalletId": {
+                    "type": "string"
+                },
+                "serviceLinkId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "taxResidency": {
+                    "type": "string"
+                },
+                "txHash": {
+                    "type": "string"
+                },
+                "units": {
+                    "description": "tokens held at the record date",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "walletAddress": {
+                    "type": "string"
+                },
+                "whtAmount": {
+                    "type": "string"
+                },
+                "whtPercent": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.ExchangeDetail": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "string"
+                },
+                "callbackUrl": {
+                    "type": "string"
+                },
+                "confirmationSlaHours": {
+                    "description": "0: the settings' SLA",
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deadLetters": {
+                    "type": "integer"
+                },
+                "deliveries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.WebhookDelivery"
+                    }
+                },
+                "environment": {
+                    "type": "string"
+                },
+                "fundingAddress": {
+                    "description": "the exchange's prefunded CNGN balance with Trovotech: creation orders\nare paid from it, redemption proceeds and dividends credited to it",
+                    "type": "string"
+                },
+                "ledger": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.ExchangeLedgerEntry"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "orders30d": {
+                    "type": "integer"
+                },
+                "pendingWebhooks": {
+                    "type": "integer"
+                },
+                "previousSecretValidUntil": {
+                    "type": "string"
+                },
+                "rateLimitPerMinute": {
+                    "type": "integer"
+                },
+                "rateLimitTier": {
+                    "type": "string"
+                },
+                "recentOrders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.Order"
+                    }
+                },
+                "reserved": {
+                    "type": "string"
+                },
+                "revenueShareTier": {
+                    "type": "string"
+                },
+                "serviceLinkId": {
+                    "type": "string"
+                },
+                "shortName": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "active | suspended",
+                    "type": "string"
+                },
+                "techContact": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "wallets": {
+                    "type": "integer"
+                },
+                "withdrawals": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.JobRequest"
+                    }
+                }
+            }
+        },
+        "publicmarkets.ExchangeLedgerEntry": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "signed",
+                    "type": "string"
+                },
+                "balanceAfter": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "createdBy": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "kind": {
+                    "description": "DEPOSIT | ORDER | REFUND | REDEMPTION | DIVIDEND | WITHDRAWAL | ADJUSTMENT",
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "serviceLinkId": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.ExchangeRequest": {
+            "type": "object",
+            "properties": {
+                "callbackUrl": {
+                    "type": "string"
+                },
+                "confirmationSlaHours": {
+                    "type": "integer"
+                },
+                "environment": {
+                    "description": "sandbox | production",
+                    "type": "string"
+                },
+                "fundingAddress": {
+                    "type": "string"
+                },
+                "rateLimitTier": {
+                    "type": "string"
+                },
+                "revenueShareTier": {
+                    "type": "string"
+                },
+                "serviceLinkId": {
+                    "type": "string"
+                },
+                "techContact": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.ExchangeRow": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "string"
+                },
+                "callbackUrl": {
+                    "type": "string"
+                },
+                "confirmationSlaHours": {
+                    "description": "0: the settings' SLA",
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deadLetters": {
+                    "type": "integer"
+                },
+                "environment": {
+                    "type": "string"
+                },
+                "fundingAddress": {
+                    "description": "the exchange's prefunded CNGN balance with Trovotech: creation orders\nare paid from it, redemption proceeds and dividends credited to it",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "orders30d": {
+                    "type": "integer"
+                },
+                "pendingWebhooks": {
+                    "type": "integer"
+                },
+                "previousSecretValidUntil": {
+                    "type": "string"
+                },
+                "rateLimitPerMinute": {
+                    "type": "integer"
+                },
+                "rateLimitTier": {
+                    "type": "string"
+                },
+                "reserved": {
+                    "type": "string"
+                },
+                "revenueShareTier": {
+                    "type": "string"
+                },
+                "serviceLinkId": {
+                    "type": "string"
+                },
+                "shortName": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "active | suspended",
+                    "type": "string"
+                },
+                "techContact": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "wallets": {
+                    "type": "integer"
+                }
+            }
+        },
+        "publicmarkets.Health": {
+            "type": "object",
+            "properties": {
+                "jobs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.JobRun"
+                    }
+                },
+                "pendingEvents": {
+                    "type": "integer"
+                },
+                "pendingMockEvents": {
+                    "type": "integer"
+                },
+                "pendingWebhooks": {
+                    "type": "integer"
+                },
+                "requests": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.JobRequest"
+                    }
+                }
+            }
+        },
+        "publicmarkets.Holder": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "string"
+                },
+                "channel": {
+                    "type": "string"
+                },
+                "exchangeName": {
+                    "type": "string"
+                },
+                "percentOfSupply": {
+                    "type": "string"
+                },
+                "serviceLinkId": {
+                    "type": "string"
+                },
+                "substantial": {
+                    "description": "above the disclosure threshold (CAMA s.120)",
+                    "type": "boolean"
+                },
+                "walletAddress": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.Instruction": {
+            "type": "object",
+            "properties": {
+                "acceptedAt": {
+                    "type": "string"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetId": {
+                    "type": "string"
+                },
+                "attempts": {
+                    "type": "integer"
+                },
+                "batchId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "executedAt": {
+                    "type": "string"
+                },
+                "handledBy": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "also the Idempotency-Key and instructionId/orderId",
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "lastError": {
+                    "type": "string"
+                },
+                "lastStatusCode": {
+                    "type": "integer"
+                },
+                "maxAttempts": {
+                    "type": "integer"
+                },
+                "nextAttemptAt": {
+                    "type": "string"
+                },
+                "partnerId": {
+                    "type": "integer"
+                },
+                "partnerName": {
+                    "type": "string"
+                },
+                "partnerRef": {
+                    "description": "custodianReference",
+                    "type": "string"
+                },
+                "partnerType": {
+                    "description": "CUSTODIAN | DEALING_MEMBER",
+                    "type": "string"
+                },
+                "payload": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "string"
+                },
+                "settledAt": {
+                    "type": "string"
+                },
+                "side": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.JobRequest": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "doneAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "job": {
+                    "type": "string"
+                },
+                "requestedBy": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": "string"
+                },
+                "target": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.JobRun": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string"
+                },
+                "job": {
+                    "type": "string"
+                },
+                "lastRunAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "up | degraded | down",
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.NetBatch": {
+            "type": "object",
+            "properties": {
+                "approvalsRequired": {
+                    "type": "integer"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "creationOrders": {
+                    "type": "integer"
+                },
+                "executedAt": {
+                    "type": "string"
+                },
+                "executedPrice": {
+                    "type": "string"
+                },
+                "executedQuantity": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "NB-2026-09-29-1015-MTNN-T",
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "string"
+                },
+                "redemptionOrders": {
+                    "type": "integer"
+                },
+                "referencePrice": {
+                    "type": "string"
+                },
+                "sessionDate": {
+                    "type": "string"
+                },
+                "settledAt": {
+                    "type": "string"
+                },
+                "side": {
+                    "description": "BUY | SELL | NONE",
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.Order": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "creation: what the buyer pays (incl. fee); redemption: gross proceeds",
+                    "type": "string"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetId": {
+                    "type": "string"
+                },
+                "batchId": {
+                    "type": "string"
+                },
+                "channel": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "executedPrice": {
+                    "type": "string"
+                },
+                "externalOrderRef": {
+                    "type": "string"
+                },
+                "fee": {
+                    "description": "Trovo fee",
+                    "type": "string"
+                },
+                "feePercent": {
+                    "type": "string"
+                },
+                "fundingAssetCode": {
+                    "description": "payment (creation) / proceeds (redemption), in the funding currency",
+                    "type": "string"
+                },
+                "fundingContract": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "PM-CR-..., PM-RD-...",
+                    "type": "string"
+                },
+                "netAmount": {
+                    "description": "creation: invested; redemption: paid out",
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "partnerWalletId": {
+                    "description": "exchange-provisioned wallet",
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "paymentConfirmedAt": {
+                    "type": "string"
+                },
+                "paymentOperationId": {
+                    "description": "on-chain trail",
+                    "type": "string"
+                },
+                "paymentTxHash": {
+                    "type": "string"
+                },
+                "payoutTxHash": {
+                    "type": "string"
+                },
+                "priceSource": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "description": "tokens (estimated until settled for slow creations)",
+                    "type": "string"
+                },
+                "referencePrice": {
+                    "type": "string"
+                },
+                "serviceLinkId": {
+                    "type": "string"
+                },
+                "settledAt": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "tokenTxHash": {
+                    "description": "mint (creation) or burn (redemption)",
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "walletAddress": {
+                    "type": "string"
+                },
+                "walletAlias": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.OrderDetail": {
+            "type": "object",
+            "properties": {
+                "attempts": {
+                    "type": "integer"
+                },
+                "batch": {
+                    "$ref": "#/definitions/publicmarkets.NetBatch"
+                },
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.OrderEvent"
+                    }
+                },
+                "exchangeName": {
+                    "type": "string"
+                },
+                "instructions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.Instruction"
+                    }
+                },
+                "lastError": {
+                    "type": "string"
+                },
+                "order": {
+                    "$ref": "#/definitions/publicmarkets.Order"
+                }
+            }
+        },
+        "publicmarkets.OrderEvent": {
+            "type": "object",
+            "properties": {
+                "at": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.OutcomeRequest": {
+            "type": "object",
+            "properties": {
+                "custodianReference": {
+                    "type": "string"
+                },
+                "executedPrice": {
+                    "type": "string"
+                },
+                "executedQuantity": {
+                    "type": "string"
+                },
+                "settledQuantity": {
+                    "type": "string"
+                },
+                "settlementDate": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "DM: FILLED | PARTIALLY_FILLED | REJECTED; Custodian: settlement_final | failed",
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.Overview": {
+            "type": "object",
+            "properties": {
+                "assets": {
+                    "type": "integer"
+                },
+                "attention": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.AttentionItem"
+                    }
+                },
+                "batchesToday": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.NetBatch"
+                    }
+                },
+                "creationsToday": {
+                    "type": "integer"
+                },
+                "fastPercent": {
+                    "description": "of today's creations",
+                    "type": "string"
+                },
+                "halted": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.Asset"
+                    }
+                },
+                "haltedAssets": {
+                    "type": "integer"
+                },
+                "inProgress": {
+                    "type": "integer"
+                },
+                "inProgressValue": {
+                    "type": "string"
+                },
+                "jobs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.JobRun"
+                    }
+                },
+                "liveAssets": {
+                    "type": "integer"
+                },
+                "marketValue": {
+                    "type": "string"
+                },
+                "nettedPercent": {
+                    "description": "of today's redemptions",
+                    "type": "string"
+                },
+                "redemptionsToday": {
+                    "type": "integer"
+                },
+                "settledToday": {
+                    "type": "integer"
+                },
+                "settledTodayValue": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.PartnerEvent": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "payload": {
+                    "type": "string"
+                },
+                "processedAt": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": "string"
+                },
+                "source": {
+                    "description": "CUSTODIAN:\u003ccode\u003e, DEALING_MEMBER:\u003ccode\u003e, EXCHANGE:\u003cid\u003e",
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.PartnerRequest": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "address": {
+                    "type": "string"
+                },
+                "authScheme": {
+                    "description": "HMAC | MTLS | NONE",
+                    "type": "string"
+                },
+                "baseUrl": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "credentialsRef": {
+                    "type": "string"
+                },
+                "cscsMemberCode": {
+                    "type": "string"
+                },
+                "feeFixed": {
+                    "type": "number"
+                },
+                "feePercent": {
+                    "type": "number"
+                },
+                "mode": {
+                    "description": "MOCK | REST | MANUAL",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nomineeName": {
+                    "type": "string"
+                },
+                "requirementDocument": {
+                    "type": "string"
+                },
+                "transport": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.PositionRequest": {
+            "type": "object",
+            "properties": {
+                "asOf": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "unitsHeld": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.PriceRequest": {
+            "type": "object",
+            "properties": {
+                "price": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.PriceSnapshot": {
+            "type": "object",
+            "properties": {
+                "asOf": {
+                    "description": "the vendor's time",
+                    "type": "string"
+                },
+                "assetId": {
+                    "type": "string"
+                },
+                "capturedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "marketHours": {
+                    "type": "boolean"
+                },
+                "price": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.ReasonRequest": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.ReconRow": {
+            "type": "object",
+            "properties": {
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetId": {
+                    "type": "string"
+                },
+                "assetStatus": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "custodianName": {
+                    "type": "string"
+                },
+                "custodianPosition": {
+                    "type": "string"
+                },
+                "delta": {
+                    "description": "supply - position when positive",
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "halted": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "inventory": {
+                    "description": "position - supply: units held but not tokenized",
+                    "type": "string"
+                },
+                "ledgerDelta": {
+                    "type": "string"
+                },
+                "ledgerTotal": {
+                    "type": "string"
+                },
+                "ordersSince": {
+                    "description": "settled after the position's as-of: likely causes of a drift",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.Order"
+                    }
+                },
+                "positionAsOf": {
+                    "type": "string"
+                },
+                "positionSource": {
+                    "type": "string"
+                },
+                "priceStale": {
+                    "type": "boolean"
+                },
+                "result": {
+                    "type": "string"
+                },
+                "tokenSupply": {
+                    "type": "string"
+                },
+                "triggeredBy": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.Reconciliation": {
+            "type": "object",
+            "properties": {
+                "checked": {
+                    "type": "integer"
+                },
+                "drift": {
+                    "type": "integer"
+                },
+                "lastRunAt": {
+                    "type": "string"
+                },
+                "matched": {
+                    "type": "integer"
+                },
+                "nextRunAt": {
+                    "type": "string"
+                },
+                "rows": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.ReconRow"
+                    }
+                },
+                "stalePrices": {
+                    "type": "integer"
+                }
+            }
+        },
+        "publicmarkets.ReconciliationRun": {
+            "type": "object",
+            "properties": {
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "custodianPosition": {
+                    "type": "string"
+                },
+                "delta": {
+                    "description": "supply - position when positive",
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "halted": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "inventory": {
+                    "description": "position - supply: units held but not tokenized",
+                    "type": "string"
+                },
+                "ledgerDelta": {
+                    "type": "string"
+                },
+                "ledgerTotal": {
+                    "type": "string"
+                },
+                "positionAsOf": {
+                    "type": "string"
+                },
+                "positionSource": {
+                    "type": "string"
+                },
+                "priceStale": {
+                    "type": "boolean"
+                },
+                "result": {
+                    "type": "string"
+                },
+                "tokenSupply": {
+                    "type": "string"
+                },
+                "triggeredBy": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.Settings": {
+            "type": "object",
+            "properties": {
+                "approvalsRequired": {
+                    "type": "integer"
+                },
+                "aumFeePercent": {
+                    "type": "string"
+                },
+                "batchIntervalMinutes": {
+                    "type": "integer"
+                },
+                "confirmationSlaHours": {
+                    "description": "0 = not set (OI-CONS-10)",
+                    "type": "integer"
+                },
+                "dividendApprovers": {
+                    "type": "string"
+                },
+                "feeWallet": {
+                    "type": "string"
+                },
+                "fmdqClose": {
+                    "type": "string"
+                },
+                "fmdqOpen": {
+                    "type": "string"
+                },
+                "fundingAssetCode": {
+                    "type": "string"
+                },
+                "fxSpreadPercent": {
+                    "type": "string"
+                },
+                "instructionMaxAttempts": {
+                    "type": "integer"
+                },
+                "marketHolidays": {
+                    "description": "comma-separated YYYY-MM-DD",
+                    "type": "string"
+                },
+                "netCreationApprovers": {
+                    "description": "comma-separated admin emails",
+                    "type": "string"
+                },
+                "netCreationThreshold": {
+                    "description": "per asset per day, NGN",
+                    "type": "string"
+                },
+                "ngxClose": {
+                    "type": "string"
+                },
+                "ngxOpen": {
+                    "type": "string"
+                },
+                "priceStaleMinutes": {
+                    "type": "integer"
+                },
+                "rateLimitTiers": {
+                    "description": "JSON {\"Tier 1\": 1200, ...} requests/minute",
+                    "type": "string"
+                },
+                "reconciliationHour": {
+                    "description": "WAT",
+                    "type": "integer"
+                },
+                "revenueShareTiers": {
+                    "type": "string"
+                },
+                "settlementSlaHours": {
+                    "type": "integer"
+                },
+                "substantialHoldingPercent": {
+                    "type": "string"
+                },
+                "tradeFeePercent": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updatedBy": {
+                    "type": "string"
+                },
+                "webhookMaxAttempts": {
+                    "type": "integer"
+                },
+                "whtMissingTaxIdPercent": {
+                    "type": "string"
+                },
+                "whtNonResidentPercent": {
+                    "type": "string"
+                },
+                "whtResidentPercent": {
+                    "type": "string"
+                },
+                "whtWallet": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.SettingsRequest": {
+            "type": "object",
+            "properties": {
+                "approvalsRequired": {
+                    "type": "integer"
+                },
+                "aumFeePercent": {
+                    "type": "string"
+                },
+                "batchIntervalMinutes": {
+                    "type": "integer"
+                },
+                "confirmationSlaHours": {
+                    "type": "integer"
+                },
+                "dividendApprovers": {
+                    "type": "string"
+                },
+                "feeWallet": {
+                    "type": "string"
+                },
+                "fmdqClose": {
+                    "type": "string"
+                },
+                "fmdqOpen": {
+                    "type": "string"
+                },
+                "fxSpreadPercent": {
+                    "type": "string"
+                },
+                "instructionMaxAttempts": {
+                    "type": "integer"
+                },
+                "marketHolidays": {
+                    "type": "string"
+                },
+                "netCreationApprovers": {
+                    "type": "string"
+                },
+                "netCreationThreshold": {
+                    "type": "string"
+                },
+                "ngxClose": {
+                    "type": "string"
+                },
+                "ngxOpen": {
+                    "type": "string"
+                },
+                "priceStaleMinutes": {
+                    "type": "integer"
+                },
+                "rateLimitTiers": {
+                    "type": "string"
+                },
+                "reconciliationHour": {
+                    "type": "integer"
+                },
+                "revenueShareTiers": {
+                    "type": "string"
+                },
+                "settlementSlaHours": {
+                    "type": "integer"
+                },
+                "substantialHoldingPercent": {
+                    "type": "string"
+                },
+                "tradeFeePercent": {
+                    "type": "string"
+                },
+                "webhookMaxAttempts": {
+                    "type": "integer"
+                },
+                "whtMissingTaxIdPercent": {
+                    "type": "string"
+                },
+                "whtNonResidentPercent": {
+                    "type": "string"
+                },
+                "whtResidentPercent": {
+                    "type": "string"
+                },
+                "whtWallet": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.SetupStep": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string"
+                },
+                "done": {
+                    "type": "boolean"
+                },
+                "label": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.TargetRequest": {
+            "type": "object",
+            "properties": {
+                "target": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.WebhookDelivery": {
+            "type": "object",
+            "properties": {
+                "assetCode": {
+                    "type": "string"
+                },
+                "attempts": {
+                    "type": "integer"
+                },
+                "confirmationDueAt": {
+                    "type": "string"
+                },
+                "confirmedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deliveredAt": {
+                    "type": "string"
+                },
+                "escalatedAt": {
+                    "type": "string"
+                },
+                "event": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "evt_...",
+                    "type": "string"
+                },
+                "lastError": {
+                    "type": "string"
+                },
+                "lastResponseCode": {
+                    "type": "integer"
+                },
+                "needsConfirmation": {
+                    "type": "boolean"
+                },
+                "nextAttemptAt": {
+                    "type": "string"
+                },
+                "payload": {
+                    "type": "string"
+                },
+                "reference": {
+                    "description": "order id / entitlement id",
+                    "type": "string"
+                },
+                "serviceLinkId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "walletId": {
                     "type": "string"
                 }
             }

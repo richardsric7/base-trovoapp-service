@@ -159,7 +159,7 @@ names on the Docker network**; the browser never contacts them directly (see
 
 | Variable | Example | Effect | How to get a real value |
 |---|---|---|---|
-| `BASE_RPC_URL` | `https://mainnet.base.org` | RPC endpoint used by `internal/network` for on-chain reads. | An RPC provider URL for the chain you're targeting (e.g. a Base RPC provider). |
+| `BASE_RPC_URL` | `https://mainnet.base.org` | RPC endpoint used by `internal/network` for on-chain reads, including the Public Markets token check when a contract is registered (without it, contracts cannot be registered). | An RPC provider URL for the chain you're targeting (e.g. a Base RPC provider). |
 | `BASE_CHAIN_ID` | `8453` | Numeric chain ID matching `BASE_RPC_URL`. | The chain ID for whichever network `BASE_RPC_URL` points at. |
 | `RPC_TIMEOUT` | `30s` (default) | Longest a single request to `BASE_RPC_URL` may take. The process shares one RPC client; after 3 failed requests in a row it refuses RPC calls at once for 10 seconds at a time until one gets through, so a stalled RPC does not pile up requests and memory. | Leave unset unless your provider is legitimately slow. |
 | `BLOCKCHAIN_NETWORK_PASSPHRASE` | *(network-specific)* | Network passphrase used when constructing/validating blockchain transactions. | Ask the wallet-core/blockchain team for the correct value per network. |

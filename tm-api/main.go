@@ -18,6 +18,7 @@ import (
 	health "admin-panel-dashboard/internal/components/health/controllers"
 	orgControllers "admin-panel-dashboard/internal/components/organizations/controllers"
 	proceedPayouts "admin-panel-dashboard/internal/components/proceedpayouts/controllers"
+	publicMarkets "admin-panel-dashboard/internal/components/publicmarkets/controllers"
 	stakeholder "admin-panel-dashboard/internal/components/stakeholder/controllers"
 	swagger "admin-panel-dashboard/internal/components/swagger/controllers"
 	userMetrics "admin-panel-dashboard/internal/components/usermetrics/controllers"
@@ -216,6 +217,8 @@ func main() {
 	log.Println("##stakeholder services initialized##")
 	proceedPayouts.Init(router, s)
 	log.Println("##proceed payout services initialized##")
+	publicMarkets.Init(router, s)
+	log.Println("##public markets services initialized##")
 	vaultsigner.Init(router, s)
 	log.Println("##vaultsigner services initialized##")
 

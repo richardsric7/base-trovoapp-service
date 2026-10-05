@@ -248,6 +248,10 @@ func (e *Engine) onPositionFeed(ev *pm.PartnerEvent) (string, error) {
 			asOf = e.now()
 		}
 	}
+	source := pm.PositionFeed
+	if strings.HasPrefix(ev.Source, "MANUAL") { // recorded by Operations in Trovo Manager
+		source = pm.PositionManual
+	}
 	n := 0
 	for _, p := range b.Positions {
 		var a pm.Asset
@@ -261,7 +265,7 @@ func (e *Engine) onPositionFeed(ev *pm.PartnerEvent) (string, error) {
 		if units.IsNegative() {
 			continue
 		}
-		e.DB.Create(&pm.CustodianPosition{AssetID: a.ID, RealUnitsHeld: units.String(), AsOf: asOf, Source: pm.PositionFeed,
+		e.DB.Create(&pm.CustodianPosition{AssetID: a.ID, RealUnitsHeld: units.String(), AsOf: asOf, Source: source,
 			Reference: ev.Source + " feed " + b.AsOf, CreatedAt: e.now()})
 		n++
 	}

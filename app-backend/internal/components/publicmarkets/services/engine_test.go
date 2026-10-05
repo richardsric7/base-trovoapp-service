@@ -698,3 +698,56 @@ func testDB(t *testing.T) *gorm.DB {
 	}
 	return db
 }
+
+// Trovo Manager records MANUAL partners' outcomes and declared corporate
+// actions as unprocessed partner events ("MANUAL:<admin>"); the engine
+// applies them like webhooks.
+func TestManualPartnersThroughTrovoManager(t *testing.T) {
+	f := newFixture(t)
+	f.e.DB.Model(&pm.Custodian{}).Where("code = ?", "CUSTA").Update("mode", pm.ModeManual)
+	f.e.DB.Model(&pm.DealingMember{}).Where("code = ?", "BP2").Update("mode", pm.ModeManual)
+	f.deposit("400000")
+	w := f.wallet("plm_usr_m")
+	o, _ := f.e.PlaceExchangeCreation(context.Background(), f.link, ExchangeOrderRequest{WalletID: w.ID, AssetCode: "MTNN-T", Amount: "300000"})
+	f.run(3)
+	var ins []pm.Instruction
+	f.e.DB.Where("batch_id = ?", f.order(o.ID).BatchID).Order("kind").Find(&ins)
+	if len(ins) != 2 || ins[0].Status != pm.InstrAccepted || ins[1].Status != pm.InstrAccepted {
+		t.Fatalf("instructions %+v", ins)
+	}
+	var dm, ci pm.Instruction
+	for _, in := range ins {
+		if in.Kind == pm.InstrDealingOrder {
+			dm = in
+		} else {
+			ci = in
+		}
+	}
+	record := func(kind, ref string, body map[string]string) {
+		payload, _ := json.Marshal(body)
+		f.e.DB.Create(&pm.PartnerEvent{Source: "MANUAL:ops@trovotech.io", Kind: kind, Reference: ref, Payload: string(payload), CreatedAt: f.now})
+	}
+	record(EventExecution, "tm:"+dm.ID+":FILLED", map[string]string{"orderId": dm.ID, "status": "FILLED", "executedQuantity": dm.Quantity, "executedPrice": "221.10"})
+	f.run(2)
+	if got := f.order(o.ID); got.State != pm.StateExecuted {
+		t.Fatalf("after the recorded fill: %s", got.State)
+	}
+	record(EventSettlement, "tm:"+ci.ID+":settlement_final", map[string]string{"instructionId": ci.ID, "status": "settlement_final",
+		"settledQuantity": ci.Quantity, "settlementDate": "2026-10-02", "custodianReference": "CSD-77"})
+	f.run(6)
+	if got := f.order(o.ID); got.State != pm.StateComplete || got.ExecutedPrice != "221.1" {
+		t.Fatalf("after the recorded settlement: %s at %s (%s)", got.State, got.ExecutedPrice, got.LastError)
+	}
+	record(EventCorporateAction, "tm:MTNN-T:DIVIDEND:2026-10-10", map[string]string{"assetCode": "MTNN-T", "eventType": "DIVIDEND",
+		"recordDate": "2026-10-10", "payDate": "2026-10-24", "amountPerUnit": "1.5", "currency": "NGN"})
+	f.e.ProcessPendingEvents()
+	var ca pm.CorporateAction
+	if f.e.DB.First(&ca, "asset_id = ?", f.asset.ID).Error != nil || ca.Source != pm.SourceManualCA || ca.DeclaredBy != "ops@trovotech.io" || ca.Status != pm.ActionAnnounced {
+		t.Fatalf("declared %+v", ca)
+	}
+	var pending int64
+	f.e.DB.Model(&pm.PartnerEvent{}).Where("processed_at IS NULL").Count(&pending)
+	if pending != 0 {
+		t.Fatalf("%d events left unprocessed", pending)
+	}
+}

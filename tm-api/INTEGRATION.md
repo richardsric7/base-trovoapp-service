@@ -65,6 +65,27 @@ the same as it does for its own `AdminDB` tables. Concretely:
   - the payouts and payout fee / VAT reports.
 
   All of these are Trovo admins only and audited (`payout.*`, `payout_item.*`, `payout_engine.*`). Each change is a conditional status update, after which tm-api publishes a wake-up on Redis `payout-engine:commands`. `payout-engine` (no HTTP) does the work; see its [INTEGRATION.md](../payout-engine/INTEGRATION.md).
+- **Public Markets** (`internal/components/publicmarkets/`): the `public_market_*` tables and their companions (`approved_dealing_members`, `custodian_positions`, `beneficial_ownership_*`, `price_oracle_snapshots`, `wallet_provisioning_requests`). app-backend runs the engine and owns the tables; the models mirror app-backend's `publicmarkets/models/models.go` and are never migrated here (see app-backend's [PUBLIC_MARKETS.md](../app-backend/PUBLIC_MARKETS.md)). Trovo admins operate it through `/public-markets`:
+  - **Assets:** add (in SETUP), edit, register the token contract, take live, halt, resume, set a manual price, record the Custodian's position. A contract is verified on Base before it is accepted: the issuing Safe must be its owner and nothing may be minted yet. This needs `BASE_RPC_URL`.
+  - **Orders and batches:** approve or reject a net batch above the threshold (Net Creation Approvers only). Roll an unexecuted batch to the next session.
+  - **Escalations:** retry an instruction, mark it handled, or record the partner's outcome (a fill or a settlement) for a MANUAL partner.
+  - **Reconciliation:** see the latest runs, run reconciliation now, ask a mock Custodian for its position feed.
+  - **Corporate actions:** declare, approve a distribution (Dividend Approvers only; the approval binds to the snapshot's checksum), cancel, and follow exchanges' `dividend.paid` confirmations.
+  - **Exchange partners:**
+    - onboard a verified service link (the signing secret is shown once);
+    - edit it — the rate-limit tier sets the service link's `rate_limit_per_minute`;
+    - rotate the secret (the old one is valid for 24 hours);
+    - suspend or activate;
+    - pay a balance back;
+    - replay dead-lettered webhooks.
+  - **Wallet provisioning:** legal names and tax IDs are masked without `VIEW_PUBLIC_MARKETS_PII`.
+  - **Prices, system health and settings:** settings include thresholds, approvers, fees, withholding tax, market hours and holidays, rate-limit tiers, Dealing Members and Custodian integrations.
+
+  tm-api changes rows with conditional updates. Work for the engine goes through two tables:
+  - `public_market_job_requests`: RECONCILE, RESUME, POSITION_FEED and EXCHANGE_WITHDRAWAL. The engine checks every minute.
+  - unprocessed `public_market_partner_events` with source `MANUAL:<admin email>`: recorded outcomes and declared corporate actions. The engine processes these within seconds.
+
+  Reads need any Trovo admin. Changes need `MANAGE_PUBLIC_MARKETS`, and settings and partners need `MANAGE_SETTINGS`. Every change is audited as `public_markets.*`.
 - **`kyc_configs`, `faucet_configs`, `doja_widgets`, `kyc_levels`** (`internal/models/configs.go`) — third-party KYC/faucet provider configuration and KYC-level definitions, managed via `/kyc/configs`, `/faucet/configs`, `/doja/widgets`, `/kyc/levels`.
 
 These writes go straight through `s.TrovoWalletDB` with plain GORM calls —
@@ -150,6 +171,15 @@ A route is gated in one of three ways:
 1. **Any authenticated admin** — `middleware.JwtTokenAuthMiddleware(s.AdminDB)`. Confirms the caller is *some* known `AdminUser`, without checking role or a specific permission. This is the most common gate (most of `usermetrics`, `users`, etc).
 2. **Super-admin only** — `middleware.AuthenticateSuperAdmin(s.AdminDB)`. Same JWT verification, plus an explicit `Role == SuperAdmin` check. Used for admin-management routes (`/admin/invite`, `/admin/remove`, `/admin/list`, the stakeholder portal's `/stakeholder/admin/*` routes, `/audit-trail`, etc).
 3. **A specific named permission** — a handler calls `models.HasPermission(db, &adminUser, "PERMISSION_NAME")` itself after the base JWT check, rather than relying on role alone. The clearest example is the P2P Market Reports endpoints (`/p2p/reports/*`): `checkReportsAccess` (`internal/components/usermetrics/services/reports_handler.go`) checks the caller holds `ACCESS_REPORTS` — which `EDIT_LEVEL_ADMIN` and `SUPER_ADMIN` are seeded with, but `VIEW_ONLY_ADMIN` is not.
+
+Public Markets (`/public-markets`) uses this third pattern with its own
+permissions:
+- `MANAGE_PUBLIC_MARKETS` (SUPER_ADMIN, EDIT_LEVEL_ADMIN) to change anything;
+- `MANAGE_SETTINGS` for its settings and partners;
+- `VIEW_PUBLIC_MARKETS_PII` (SUPER_ADMIN) to see exchange customers' legal names and tax IDs.
+
+On top of these, batch and dividend approvals are limited to the admins
+listed in the settings' approver lists.
 
 Separately, **organization members** (white-label partner org staff using
 the Organization Portal, not Trovo admins) are gated by

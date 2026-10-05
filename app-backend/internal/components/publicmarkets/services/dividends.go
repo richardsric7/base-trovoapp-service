@@ -53,7 +53,11 @@ func (e *Engine) onCorporateAction(ev *pm.PartnerEvent) (string, error) {
 	if code := strings.TrimPrefix(ev.Source, "CUSTODIAN:"); code != ev.Source && code != e.custodianCode(a.CustodianID) {
 		return "", refuse(http.StatusForbidden, "error-wrong-partner", "assetCode", "This asset is not held by you.")
 	}
-	ca, err := e.DeclareCorporateAction(a, n, pm.SourceCustodianCA, ev.Reference, ev.Source)
+	source, by := pm.SourceCustodianCA, ev.Source
+	if strings.HasPrefix(ev.Source, "MANUAL") { // declared in Trovo Manager ("MANUAL:<admin>")
+		source, by = pm.SourceManualCA, strings.TrimPrefix(strings.TrimPrefix(ev.Source, "MANUAL"), ":")
+	}
+	ca, err := e.DeclareCorporateAction(a, n, source, ev.Reference, by)
 	if err != nil {
 		return "", err
 	}
