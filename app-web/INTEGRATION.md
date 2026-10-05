@@ -123,6 +123,29 @@ payment) and see past withdrawals. Users are onboarded with Stablerail when
 KYC level 1 completes in the mobile app; there is no BVN step on the web. See
 `app-backend/INTEGRATION.md` ("Bank deposits and withdrawals").
 
+### Public Markets (tokenized NGX stocks and FMDQ bonds)
+
+The **Public Markets** sidebar item and the home page strip open
+`/dashboard/public-markets` (`src/pages/dashboard/publicMarkets/`,
+`src/store/api/publicMarketsApis.ts`, types in `src/types/publicMarkets.ts`):
+
+| Route | Page | Calls |
+| --- | --- | --- |
+| `public-markets` | catalogue with search and All / Equities / Bonds / Top gainers | `GET /v1/public-markets` (unsigned) |
+| `public-markets/asset/:code` | price, chart (inline SVG), position, key figures, custody chain, session, corporate actions | `GET .../assets/:code`, `.../prices?range=` (unsigned); portfolio (signed) |
+| `public-markets/asset/:code/trade` | buy (amount of cNGN) or sell (quantity) from one of the user's own wallets, live quote | `GET .../quote`, `POST .../buy` / `.../sell` |
+| `public-markets/order/:orderId` | order progress, refreshed every 5 s until final | `GET /v1/public-markets/orders/:id` |
+| `public-markets/portfolio` | "My Stocks": value, returns, income, holdings, orders, activity | `GET .../portfolio`, `GET .../orders` |
+| `public-markets/dividends` | dividends and coupons, net of withholding tax | `GET .../dividends` |
+
+A trade is two calls, as with bank withdrawals: the unsigned `buy`/`sell`
+returns `{quote, transaction, messages}`; after the user confirms, the
+transaction is signed with `signBase64Txn(secretKey, transaction, '')` and
+the same call is repeated with `transaction` and `transactionSignature`,
+returning `{quote, order}`. Shared wallets are not offered for trading.
+Dividends are paid by Public Markets' own distribution engine, not the
+tokenized-asset proceeds payout. See `app-backend/PUBLIC_MARKETS.md`.
+
 ## (b) Using `wallet-core` (WASM)
 
 Yes — confirmed by code, not inferred. `app-web` vendors the compiled

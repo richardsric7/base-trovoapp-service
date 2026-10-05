@@ -44,6 +44,7 @@ import {
   setTokenizationData,
 } from '../../store/appStateSlice';
 import { TokenizationData } from '../../types/tokenizationData';
+import PMHomeSection from './publicMarkets/homeSection';
 import { ExpressedInterest } from '../../types/expressedInterest';
 import {
   BuyTokenModal,
@@ -516,6 +517,7 @@ export default function Home() {
                     </div>
                   )}
                 </div>
+                <PMHomeSection />
                 <div className="md:px-5 pb-10 w-full space-y-5">
                   <div className="flex items-center w-full justify-between">
                     <p className="font-montserratSemiBold text-md">

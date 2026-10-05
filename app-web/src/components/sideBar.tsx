@@ -109,6 +109,19 @@ function SideBar({ mobileMode = false }: Props) {
             }}
           />
           <SideBarItem
+            label="Public Markets"
+            icon={
+              activeItem === 14
+                ? '/images/publicMarketsWhite.svg'
+                : '/images/publicMarkets.svg'
+            }
+            url="/dashboard/public-markets"
+            isActive={activeItem === 14}
+            onSidebarClicked={() => {
+              setActiveItem(14);
+            }}
+          />
+          <SideBarItem
             label="Trovo Patron"
             icon={
               activeItem === 7

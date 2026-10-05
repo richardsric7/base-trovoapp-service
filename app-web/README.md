@@ -2,7 +2,8 @@
 
 `app-web` is the end-user web client for **Trovo Wallet** — the customer-facing
 app people use to manage their wallet, send and receive payments, swap
-assets, trade on the P2P marketplace, and hold tokenized assets.
+assets, trade on the P2P marketplace, hold tokenized assets, and buy and
+sell tokenized Nigerian stocks and bonds (Public Markets).
 
 It is a **pure frontend**: it has no server of its own and exposes no API.
 Every piece of data it shows comes from HTTP (and WebSocket) calls to the
@@ -55,6 +56,7 @@ src/
 │   ├── api/             RTK Query "API slices" per backend domain:
 │   │                      authApi.ts, walletApis.ts, p2pApis.ts,
 │   │                      tokenizationApis.ts, sharedAccessApis.ts,
+│   │                      bankApis.ts, publicMarketsApis.ts,
 │   │                      cacheApi.ts, and baseapi/ (the shared
 │   │                      axios-backed baseQuery + auth/signing headers)
 │   ├── reduxStore/       Store configuration (configureStore, preloaded
