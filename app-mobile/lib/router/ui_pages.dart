@@ -29,6 +29,12 @@ const String SwapAssetsViewPath = '/SwapAssetsView';
 const String ConfirmSwapViewPath = '/ConfirmSwapView';
 const String SwapSuccessViewPath = '/SwapSuccessView';
 const String P2PMarketplaceViewPath = '/p2pMarketplaceView';
+const String PublicMarketsViewPath = '/publicMarketsView';
+const String PMAssetViewPath = '/pmAssetView';
+const String PMTradeViewPath = '/pmTradeView';
+const String PMOrderViewPath = '/pmOrderView';
+const String PMPortfolioViewPath = '/pmPortfolioView';
+const String PMDividendsViewPath = '/pmDividendsView';
 const String BankTransferViewPath = '/bankTransferView';
 const String P2POfferDetailViewPath = '/p2pOfferDetailView';
 const String P2PCreateOfferViewPath = '/p2pCreateOfferView';
@@ -286,6 +292,12 @@ enum Pages {
   EarlyExitSummaryView,
   AppImageViewer,
   P2PMarketplaceView,
+  PublicMarketsView,
+  PMAssetView,
+  PMTradeView,
+  PMOrderView,
+  PMPortfolioView,
+  PMDividendsView,
   BankTransferView,
   P2POfferDetailView,
   P2PCreateOfferView,
@@ -1065,6 +1077,42 @@ PageConfiguration BankTransferViewPageConfig = PageConfiguration(
   key: 'BankTransferView',
   path: BankTransferViewPath,
   uiPage: Pages.BankTransferView,
+  currentPageAction: null,
+);
+PageConfiguration PublicMarketsViewPageConfig = PageConfiguration(
+  key: 'PublicMarketsView',
+  path: PublicMarketsViewPath,
+  uiPage: Pages.PublicMarketsView,
+  currentPageAction: null,
+);
+PageConfiguration PMAssetViewPageConfig = PageConfiguration(
+  key: 'PMAssetView',
+  path: PMAssetViewPath,
+  uiPage: Pages.PMAssetView,
+  currentPageAction: null,
+);
+PageConfiguration PMTradeViewPageConfig = PageConfiguration(
+  key: 'PMTradeView',
+  path: PMTradeViewPath,
+  uiPage: Pages.PMTradeView,
+  currentPageAction: null,
+);
+PageConfiguration PMOrderViewPageConfig = PageConfiguration(
+  key: 'PMOrderView',
+  path: PMOrderViewPath,
+  uiPage: Pages.PMOrderView,
+  currentPageAction: null,
+);
+PageConfiguration PMPortfolioViewPageConfig = PageConfiguration(
+  key: 'PMPortfolioView',
+  path: PMPortfolioViewPath,
+  uiPage: Pages.PMPortfolioView,
+  currentPageAction: null,
+);
+PageConfiguration PMDividendsViewPageConfig = PageConfiguration(
+  key: 'PMDividendsView',
+  path: PMDividendsViewPath,
+  uiPage: Pages.PMDividendsView,
   currentPageAction: null,
 );
 PageConfiguration P2PMarketplaceViewPageConfig = PageConfiguration(

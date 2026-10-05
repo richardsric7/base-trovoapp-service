@@ -105,6 +105,39 @@ token contract, and show what was paid, with its transaction on Basescan,
 and what is scheduled but not yet paid. The payouts themselves are made by
 `payout-engine`; see `app-backend/INTEGRATION.md` ("Proceeds payouts").
 
+### Public Markets (tokenized NGX equities and FMDQ bonds)
+
+`lib/network/public_markets_requests.dart` calls app-backend's
+`/v1/public-markets`. The asset list, an asset's page and its price chart
+are unsigned requests. The quote, buy, sell, portfolio, orders and
+dividends are signed requests from the primary wallet.
+
+The screens live in `lib/screens/public_markets/`:
+
+- the home screen's Public Markets block;
+- the list (search, and filters for equities, bonds and top gainers);
+- an asset's page (chart, the user's position, key statistics, how the
+  tokens are owned and backed, the trading session, corporate actions);
+- the trade screen;
+- the order's status page, which refreshes until the order is final;
+- My Stocks;
+- dividend history and details.
+
+Buying and selling follow the usual wallet flow:
+
+1. Without a signature, the buy or sell call returns the quote and the
+   operation to sign.
+2. The review sheet shows what happens: whether the order fills now or
+   at the next session, the fee and the amounts. The user confirms with
+   biometrics.
+3. The signed operation (`TrovoWalletSDK().signBase64Txn`) is sent back
+   and the order opens.
+
+Only the user's own wallets can trade. Shared wallets with approvers
+cannot. Pushes carry `route: publicMarketsOrder` (with `orderId`) or
+`publicMarketsDividend` (with `assetCode`), and tapping one opens the
+order or the dividends.
+
 ## Shared code with the rest of the monorepo: `wallet-core`
 
 This app is **not** fully code-isolated — it's meant to share its
