@@ -55,6 +55,11 @@ export const SideBar = () => {
       icon: VaultSignerIcon,
       link: "/servicelinks",
     },
+    {
+      title: "Fee Exemptions",
+      icon: Revenue,
+      link: "/feeexemptions",
+    },
 
     { title: "Revenue", icon: Revenue, link: "/revenue" },
 

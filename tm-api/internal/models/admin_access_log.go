@@ -79,12 +79,14 @@ const (
 	EventPersonalEnvDelete      = "personal_env.delete"
 
 	// config
-	EventConfigBulkUpdate = "config.bulk_update"
-	EventConfigDelete     = "config.delete"
-	EventFeeConfigChange  = "fee_config.change"
-	EventFeeConfigDelete  = "fee_config.delete"
-	EventKycConfigChange  = "kyc_config.change"
-	EventKycLevelChange   = "kyc_level.change"
+	EventConfigBulkUpdate   = "config.bulk_update"
+	EventConfigDelete       = "config.delete"
+	EventFeeConfigChange    = "fee_config.change"
+	EventFeeConfigDelete    = "fee_config.delete"
+	EventFeeExemptionAdd    = "fee_exemption.add"
+	EventFeeExemptionRemove = "fee_exemption.remove"
+	EventKycConfigChange    = "kyc_config.change"
+	EventKycLevelChange     = "kyc_level.change"
 
 	// org
 	EventOrgCreate       = "organization.create"

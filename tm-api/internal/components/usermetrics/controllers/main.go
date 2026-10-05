@@ -64,6 +64,11 @@ func Init(router *gin.Engine, s *serverModels.Server) {
 	apiV1.GET("/fee/configs/:id", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetServiceLinkServiceFeeByIDHandler(s.TrovoWalletDB))
 	apiV1.POST("/fee/configs", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventFeeConfigChange, models.AccessCategoryConfig, accesslog.BodyField("service_link_id")), userMetricServices.SaveServiceLinkServiceFeeHandler(s.TrovoWalletDB))
 	apiV1.DELETE("/fee/configs/:id", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventFeeConfigDelete, models.AccessCategoryConfig, accesslog.Param("id")), userMetricServices.DeleteServiceLinkServiceFeeHandler(s.TrovoWalletDB))
+	// Fee-exempt accounts (app-backend's fee_exempt_users): platform-run
+	// accounts that pay no service fees. Trovo admins only.
+	apiV1.GET("/fee/exempt-users", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetFeeExemptUsersHandler(s.TrovoWalletDB))
+	apiV1.POST("/fee/exempt-users", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventFeeExemptionAdd, models.AccessCategoryConfig, accesslog.BodyField("username")), userMetricServices.AddFeeExemptUserHandler(s.TrovoWalletDB))
+	apiV1.DELETE("/fee/exempt-users/:username", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventFeeExemptionRemove, models.AccessCategoryConfig, accesslog.Param("username")), userMetricServices.RemoveFeeExemptUserHandler(s.TrovoWalletDB))
 
 	// Service Link endpoints - white-label partner integration accounts.
 	// app-backend has never exposed a create/edit endpoint for these

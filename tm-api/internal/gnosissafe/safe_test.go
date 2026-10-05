@@ -1,6 +1,7 @@
 package gnosissafe
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"math/big"
 	"testing"
@@ -86,7 +87,9 @@ func TestSignAndConcatSignatures(t *testing.T) {
 	addrs := []common.Address{addr1, addr2, addr3}
 	for i := 0; i < len(addrs); i++ {
 		for j := i + 1; j < len(addrs); j++ {
-			if addrs[i].Hex() > addrs[j].Hex() {
+			// by address value (byte order), as the Safe requires: the
+			// mixed-case checksummed Hex() strings do not sort that way
+			if bytes.Compare(addrs[i].Bytes(), addrs[j].Bytes()) > 0 {
 				addrs[i], addrs[j] = addrs[j], addrs[i]
 			}
 		}

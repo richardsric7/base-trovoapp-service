@@ -60,6 +60,7 @@ src/
 │   │   ├── complaince-and-aml/ #   compliance / AML review workflows
 │   │   ├── vault-signer/       #   vault-signer secret management UI
 │   │   ├── servicelinks/       #   service link config
+│   │   ├── feeexemptions/      #   accounts exempt from platform service fees
 │   │   ├── payment/, revenue/, dividendandyield/, earlyexit/, ...
 │   │   └── settings/, audit-trail/, system-health/, notification/, ...
 │   ├── organisation/           # SEPARATE stakeholder portal (external orgs), own auth (see INTEGRATION.md)
