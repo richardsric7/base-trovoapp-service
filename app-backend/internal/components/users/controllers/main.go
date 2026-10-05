@@ -234,6 +234,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		router.GET("/v1/tokenization/subscriptions", middleware.AuthenticationMiddlewareUsingTimestamp(), getTokenizationSubscriptionsHandler(callBackRetryChan, gc))
 
+		router.GET("/v1/tokenization/payouts", middleware.AuthenticationMiddlewareUsingTimestamp(), middleware.RateLimitMiddleware(gc, "tokenization-payouts", 60, time.Minute), getTokenizationPayoutsHandler(gc))
+
 		router.POST("/v1/tokenization", middleware.AuthenticationMiddlewareUsingTimestamp(), postTokenizationHandler(callBackRetryChan, gc))
 
 		router.PUT("/v1/trovo-manager/tokenization/update/:tid", middleware.JwtTokenAuthMiddleware(), putTrovoManagerTokenizationUpdateTidHandler(callBackRetryChan, gc))

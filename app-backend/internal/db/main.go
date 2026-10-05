@@ -358,6 +358,12 @@ func runSchemaMigration(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetPayoutEngineTask: ", errMigrate)
 		}
 
+		// proceeds payouts (payout-engine; tm-api)
+		errMigrate = gormDB.AutoMigrate(&users.ProceedPayoutBatch{}, &users.ProceedPayoutApproval{}, &users.PayoutTokenIndex{}, &users.PayoutTokenBalance{}, &users.PayoutEngineState{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating proceeds payout tables: ", errMigrate)
+		}
+
 		errMigrate = gormDB.AutoMigrate(&users.UserAccountRecoveryLog{}, &users.RecoveryWatchCursor{}, &sharedConfig.CallbackDelivery{}, &sharedConfig.NonceReservation{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserAccountRecoveryLog: ", errMigrate)

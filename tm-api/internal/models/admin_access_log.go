@@ -108,6 +108,24 @@ const (
 
 	// partner (white-label service link integrations)
 	EventServiceLinkChange = "service_link.change"
+
+	// proceeds payouts (payout-engine controls)
+	EventPayoutPrepare     = "payout.prepare"
+	EventPayoutFee         = "payout.fee"
+	EventPayoutApprove     = "payout.approve"
+	EventPayoutReject      = "payout.reject"
+	EventPayoutFund        = "payout.confirm_funding"
+	EventPayoutPause       = "payout.pause"
+	EventPayoutResume      = "payout.resume"
+	EventPayoutCancel      = "payout.cancel"
+	EventPayoutRetry       = "payout.retry_failed"
+	EventPayoutItemExclude = "payout_item.exclude"
+	EventPayoutItemInclude = "payout_item.include"
+	EventPayoutItemPaid    = "payout_item.mark_paid"
+	EventPayoutFeeConfig   = "payout_fee_config.change"
+	EventPayoutEngineHalt  = "payout_engine.halt"
+	EventPayoutEngineRun   = "payout_engine.unhalt"
+	EventPayoutSweep       = "payout_engine.sweep"
 )
 
 // Access-log status values (canonical lowercase; the UI filter's title-case is
@@ -126,4 +144,5 @@ const (
 	AccessCategoryOrg     = "org"
 	AccessCategoryAsset   = "asset"
 	AccessCategoryConfig  = "config"
+	AccessCategoryPayout  = "payout"
 )

@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"admin-panel-dashboard/internal/components/accesslog"
+	"admin-panel-dashboard/internal/components/proceedpayouts"
+	payoutControllers "admin-panel-dashboard/internal/components/proceedpayouts/controllers"
 	stakeholderDB "admin-panel-dashboard/internal/components/stakeholder/db"
 	"admin-panel-dashboard/internal/components/stakeholder/handlers"
 	"admin-panel-dashboard/internal/components/stakeholder/models"
@@ -24,7 +26,8 @@ func Init(router *gin.Engine, s *serverModels.Server) {
 	assetService := services.NewAssetService(s.AdminDB, tokenizationClient, auditService)
 	profileService := services.NewProfileService(s.AdminDB, auditService)
 	documentStorage := services.NewWalletDocumentStorageClient(s.GC.ServiceLink)
-	distributionPayouts := services.NewWalletDistributionPayoutClient(s.GC.ServiceLink)
+	// authorizing a distribution registers its payout for payout-engine
+	distributionPayouts := proceedpayouts.DistributionClient{Service: payoutControllers.Service(s)}
 	documentService := services.NewDocumentService(s.AdminDB, assetService, auditService, documentStorage)
 	fundReleaseService := services.NewFundReleaseService(s.AdminDB, assetService, auditService, notificationService, authorizationService, documentService)
 	dueDiligenceService := services.NewDueDiligenceService(s.AdminDB, assetService, documentService, auditService, notificationService)

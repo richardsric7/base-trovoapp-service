@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
-	"fmt"
 	"log"
 	"math/big"
 	"os"
@@ -104,10 +103,10 @@ type TokenizedAsset struct {
 	// OfferBookOfferID is the asset's primary-sale offer on TrovoOfferBook
 	// (OFFER_BOOK_ADDRESS), recorded once the mint operation that creates
 	// it is mined; the asset counts as minted from then on.
-	OfferBookOfferID                   *string                    `gorm:"size:80" json:"offerBookOfferId"`
+	OfferBookOfferID *string `gorm:"size:80" json:"offerBookOfferId"`
 	// SalesNotificationPending is 1 once primary sales start, until the
 	// sale-start push notifications to interested users have been sent.
-	SalesNotificationPending int `gorm:"default:0;index" json:"-"`
+	SalesNotificationPending           int                        `gorm:"default:0;index" json:"-"`
 	MarketMakingWallet                 *string                    `json:"marketMakingWallet"`
 	AssetDescription                   *string                    `json:"assetDescription"`
 	AssetCountryLocation               *string                    `gorm:"not null;size:2;default'NG'" json:"assetCountryLocation"`
@@ -2116,13 +2115,21 @@ type NonExistingAssetValidationAssetTokenInfo struct {
 	ID uint64 `gorm:"" json:"-" form:"-"`
 }
 
+// ProceedPayout is one distribution of an asset's proceeds to its token
+// holders. tm-api registers it when a trustee authorizes a stakeholder
+// distribution (DistributionID); Trovo admins then move it through its
+// stages (Status, see ProceedPayoutStatus*) and payout-engine does the work:
+// it snapshots the holders (TokenizedAssetPayoutSchedule rows), checks the
+// payout Safe is funded and pays them in batches (ProceedPayoutBatch).
+// Amounts in *Units are exact base-unit integers (decimal strings); the
+// float fields are kept for older readers.
 type ProceedPayout struct {
-	ID                          uint64         `gorm:"" json:"-" form:"-"`
+	ID                          uint64         `gorm:"" json:"id" form:"-"`
 	CreatedAt                   time.Time      `json:"createdAt"`
 	UpdatedAt                   time.Time      `json:"updatedAt"`
-	TokenizedAssetID            string         `gorm:"not null;size:100" json:"tokenizedAssetId"`
+	TokenizedAssetID            string         `gorm:"not null;size:100;index" json:"tokenizedAssetId"`
 	TokenizedAsset              TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizedAssetInfo"`
-	Batch                       string         `gorm:"not null;size:100;index:,unique" json:"batch"` //asset code + payout cycle + month + year
+	Batch                       string         `gorm:"not null;size:100;index:,unique" json:"batch"` // asset code + "-" + distribution id (unique per distribution)
 	DepositedProceedAmount      float64        `json:"DepositedProceedAmount"`                       //fiat Amount in tokenized asset quote currency
 	PlatformFee                 float64        `json:"PlatformFee"`                                  //fiat Amount in tokenized asset quote currency
 	ProceedPayoutAmount         float64        `json:"proceedPayoutAmount"`                          //fiat Amount in tokenized asset quote currency
@@ -2130,22 +2137,95 @@ type ProceedPayout struct {
 	PaymentScheduleReady        int            `gorm:"default:0" json:"paymentScheduleReady"`        //tracks if payment schedule is ready
 	PayoutCompleted             int            `gorm:"default:0" json:"PayoutCompleted"`             //tracks if payment is completed
 
+	DistributionID string `gorm:"size:64;index" json:"distributionId"` // tm-api stakeholder distribution
+	Status         string `gorm:"size:32;not null;default:'REGISTERED';index" json:"status"`
+	// the token paid out (a tokenization currency, e.g. CNGN) and the asset's token
+	PayoutAssetCode       string `gorm:"size:12" json:"payoutAssetCode"`
+	PayoutContractAddress string `gorm:"size:100" json:"payoutContractAddress"`
+	PayoutDecimals        int    `json:"payoutDecimals"`
+	TokenContractAddress  string `gorm:"size:100" json:"tokenContractAddress"`
+	TokenDecimals         int    `json:"tokenDecimals"`
+	PayoutSafeAddress     string `gorm:"size:100" json:"payoutSafeAddress"`
+	TotalAmount           string `gorm:"size:80" json:"totalAmount"` // as authorized, in the payout token (human units)
+	TotalUnits            string `gorm:"size:80" json:"totalUnits"`
+	AmountPerToken        string `gorm:"size:80" json:"amountPerToken"` // TotalAmount / SupplyUnits (human units)
+	// the holder snapshot
+	SnapshotStartBlock uint64 `json:"snapshotStartBlock"`
+	SnapshotBlock      uint64 `json:"snapshotBlock"` // balances are as of this block
+	ScannedBlock       uint64 `json:"scannedBlock"`  // preparation progress
+	SupplyUnits        string `gorm:"size:80" json:"supplyUnits"`
+	EligibleUnits      string `gorm:"size:80" json:"eligibleUnits"`
+	PayableUnits       string `gorm:"size:80" json:"payableUnits"`  // what the schedule pays
+	RetainedUnits      string `gorm:"size:80" json:"retainedUnits"` // excluded holders' share and rounding dust
+	PaidUnits          string `gorm:"size:80" json:"paidUnits"`
+	HolderCount        int    `json:"holderCount"`
+	PaidCount          int    `json:"paidCount"`
+	FailedCount        int    `json:"failedCount"`
+	ExcludedCount      int    `json:"excludedCount"`
+	ScheduleChecksum   string `gorm:"size:80" json:"scheduleChecksum"` // of the locked schedule; approvals are for this
+	ApprovalsRequired  int    `json:"approvalsRequired"`
+	// who did what
+	PreparedBy             string     `gorm:"size:150" json:"preparedBy"`
+	PreparationRequestedAt *time.Time `json:"preparationRequestedAt"`
+	LockedAt               *time.Time `json:"lockedAt"`
+	ApprovedAt             *time.Time `json:"approvedAt"`
+	FundingRequestedBy     string     `gorm:"size:150" json:"fundingRequestedBy"`
+	FundingCheckedAt       *time.Time `json:"fundingCheckedAt"`
+	StartedAt              *time.Time `json:"startedAt"`
+	CompletedAt            *time.Time `json:"completedAt"`
+	StatusBeforePause      string     `gorm:"size:32" json:"statusBeforePause"`
+	Note                   string     `gorm:"size:1000" json:"note"` // the engine's last message (e.g. why funding was not confirmed)
+
+	// the payout processing fee, set per payout by an admin (defaults from
+	// the PROCEED_PAYOUT_FEE service fee) and approved with the schedule
+	// (it is part of ScheduleChecksum). It and the VAT on it (the asset
+	// country's VAT rate) come out of TotalAmount before the holders' share
+	// and are paid from the payout Safe to the fee and VAT wallets as the
+	// schedule's FEE and VAT items.
+	FeeType       string `gorm:"size:10;not null;default:'FIXED'" json:"feeType"` // FIXED or PERCENT
+	FeeValue      string `gorm:"size:40;not null;default:'0'" json:"feeValue"`    // payout token amount (FIXED) or percent (PERCENT)
+	FeeCap        string `gorm:"size:40;not null;default:'0'" json:"feeCap"`      // PERCENT only: largest fee, 0 = no cap
+	FeeSetBy      string `gorm:"size:150" json:"feeSetBy"`
+	FeeUnits      string `gorm:"size:80" json:"feeUnits"` // computed when the schedule is locked
+	VatPercent    string `gorm:"size:20" json:"vatPercent"`
+	VatUnits      string `gorm:"size:80" json:"vatUnits"`
+	FeeWallet     string `gorm:"size:100" json:"feeWallet"`
+	VatWallet     string `gorm:"size:100" json:"vatWallet"`
+	HolderPayable string `gorm:"size:80" json:"holderPayableUnits"` // TotalUnits less fee and VAT: what the holders share
 }
 
+// TokenizedAssetPayoutSchedule is one holder in a ProceedPayout's schedule.
 type TokenizedAssetPayoutSchedule struct {
-	ID                             string         `gorm:"" json:"-" form:"-"`
+	ID                             string         `gorm:"" json:"id" form:"-"`
 	CreatedAt                      time.Time      `json:"createdAt"`
+	UpdatedAt                      time.Time      `json:"updatedAt"`
 	TokenizedAssetID               string         `gorm:"not null;size:100" json:"tokenizedAssetId"`
-	TokenizedAsset                 TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizedAssetInfo"`
-	Batch                          string         `gorm:"not null;size:100;index:," json:"batch"` //asset code + payout cycle + month + year
+	TokenizedAsset                 TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
+	Batch                          string         `gorm:"not null;size:100;index:," json:"batch"` // the ProceedPayout's Batch
 	PayoutAssetCode                string         `gorm:"not null;size:12" json:"payoutAssetCode"`
 	PayoutContractAddress          string         `gorm:"not null;size:100" json:"payoutContractAddress"`
-	BeneficiaryAddress             string         `gorm:"not null;size:100" json:"beneficiaryAddress"`
+	BeneficiaryAddress             string         `gorm:"not null;size:100;index:idx_payout_schedule_beneficiary,unique,priority:2" json:"beneficiaryAddress"`
 	ConfirmedTokenizedAssetBalance float64        `json:"confirmedTokenizedAssetBalance"` //asset balance at the time of preparing schedule
 	AmountToReceive                float64        `json:"amountToReceive"`
 	CannotReceiveAsset             int            `gorm:"default:0" json:"CannotReceiveAsset"` //checks if the beneficiary can receive the asset or not.
+
+	ProceedPayoutID uint64     `gorm:"index:idx_payout_schedule_beneficiary,unique,priority:1;index" json:"proceedPayoutId"`
+	BalanceUnits    string     `gorm:"size:80" json:"balanceUnits"` // token base units at the snapshot block
+	AmountUnits     string     `gorm:"size:80" json:"amountUnits"`  // payout token base units
+	Status          string     `gorm:"size:16;not null;default:'PENDING';index" json:"status"`
+	Reason          string     `gorm:"size:300" json:"reason"`        // why excluded / skipped / failed
+	Username        string     `gorm:"size:70;index" json:"username"` // the Trovo user owning the wallet, if any
+	BatchID         uint64     `gorm:"index" json:"batchId"`
+	TxHash          string     `gorm:"size:70" json:"txHash"`
+	PaidAt          *time.Time `json:"paidAt"`
+	Notified        int        `gorm:"default:0" json:"-"`
+	ActionBy        string     `gorm:"size:150" json:"actionBy"`                           // admin who excluded / marked it paid
+	Kind            string     `gorm:"size:8;not null;default:'HOLDER';index" json:"kind"` // HOLDER, or the payout's FEE / VAT
 }
 
+// TokenizedAssetPayoutEngineTask predates payout-engine and was never
+// written; payouts are tracked on TokenizedAssetPayoutSchedule and
+// ProceedPayoutBatch instead. Kept so its table is not dropped.
 type TokenizedAssetPayoutEngineTask struct {
 	ID                             uint64    `gorm:"" json:"-" form:"-"`
 	TokenizedAssetPayoutScheduleID string    `gorm:"size:100;index:,unique" json:"tokenizedAssetPayoutScheduleID"`
@@ -2156,24 +2236,6 @@ type TokenizedAssetPayoutEngineTask struct {
 	BeneficiaryAddress             string    `gorm:"not null;size:100" json:"beneficiaryAddress"`
 	AmountToReceive                string    `json:"amountToReceive"`
 	Paid                           int       `gorm:"default:0" json:"paid"`
-}
-
-func (p *ProceedPayout) CreateBatch() error {
-	if len(p.TokenizedAssetID) == 0 {
-		return &tErrors.CustomError{Err: "error invalid tokenizedAssetId", ErrMessage: "tokenized asset identification is invalid"}
-	}
-	if p.TokenizedAsset.ProceedCycle == nil {
-		return &tErrors.CustomError{Err: "error proceed-cycle-not-set", ErrMessage: "Proceed Cycle was not set for this project"}
-
-	}
-	if *p.TokenizedAsset.ProceedCycle != "None" {
-		return &tErrors.CustomError{Err: "error proceed-cycle-not-set", ErrMessage: "Proceed Cycle was not set for this project"}
-
-	}
-	//asset code + payout cycle + month + year
-	t := time.Now()
-	p.Batch = fmt.Sprintf("%v%v%v%v", p.TokenizedAsset.AssetCode, *p.TokenizedAsset.ProceedCycle, t.Month().String(), t.Year())
-	return nil
 }
 
 type TokenizedAssetCode string
