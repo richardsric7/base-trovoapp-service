@@ -101,7 +101,7 @@ paymaster/
 ## Running the tests
 
 ```bash
-cd contracts && npm ci && npm test          # 20 Hardhat tests
+cd contracts && npm ci && npm test          # 24 Hardhat tests
 cd quote-service && go test ./...           # includes a check against the contract's own getHash
 ```
 

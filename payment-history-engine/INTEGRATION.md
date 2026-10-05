@@ -1,133 +1,160 @@
-# Integration with the rest of the monorepo
+# Integration
 
-## Summary
+Everything `payment-history-engine` connects to, and how. The engine makes
+**no calls to app-backend or tm-api, and they make none to it**: they are
+connected only through two shared databases. It is closer to a data
+pipeline that shares tables with them than to an API.
 
-`payment-history-engine` makes **no outbound HTTP calls to `app-backend` or
-`tm-api`**, and neither of them calls it over HTTP either — grepped this
-repo and both of theirs for `http.NewRequest`, `http.Get`, `sling.New` /
-`dghubble/sling` usage, and any hardcoded base URL pointing at another Trovo
-service, and found none. All coupling between the three is **indirect**,
-through two shared SQL databases. This is worth being explicit about because
-it's easy to assume a "payment history engine" calls or is called by the
-main wallet API — it doesn't; it's closer to a fully decoupled ETL/indexer
-that happens to share tables with two other services.
+| Connects to | Direction | Through | Needed? |
+|---|---|---|---|
+| [app-backend's main database](#1-app-backends-main-database) | engine reads wallets, writes payment history | Postgres | yes |
+| [The tracking database ("RoachDB")](#2-the-tracking-database-roachdb) | engine and app-backend both write tracked wallets; engine keeps its scan position | CockroachDB / Postgres | yes |
+| [app-backend and tm-api (readers)](#3-app-backend-and-tm-api-the-readers) | they read what the engine writes | the main database | — |
+| [Base blockchain](#4-base-blockchain) | engine reads | JSON-RPC over HTTPS | yes |
+| [Redis](#5-redis) | engine reads and writes | Redis | optional |
+| [Discord](#6-discord-alerts) | engine posts alerts | webhooks | optional |
+| [Your hosting platform](#7-health-checks) | platform checks the engine | HTTP `/health`, `/ready` | recommended |
 
-## What was checked
+---
 
-- `grep -rn "http.NewRequest\|http.Get\|http.Client{" payment-history-engine/` —
-  only hits are `internal/components/payments/db/geo.go` (an IP-geolocation
-  lookup, unrelated to other Trovo services) and
-  `internal/components/health/health.go`'s own outbound ping to
-  `BASE_RPC_URL` (the blockchain node, not another Trovo service).
-- `grep -rln "payment-history" app-backend/ tm-api/` — the only substantive
-  hits are:
-  - `app-backend/main.go`: a comment noting the CI migration step
-    deliberately doesn't configure `CDB_CONNECTION_STRING` because "RoachDB
-    belongs to the payment-history service".
-  - `app-backend/internal/components/servicelinks/controllers/handlers_impl.go`
-    and `main.go`: the `GET /v1/trovo-api/users/payment-history/:walletAddress`
-    endpoint, which reads the `payment_history` table this engine writes
-    into (details below) — **via its own database connection, not by calling
-    this engine**.
-- `grep -rln "gin.New(\|gin.Default(\|gin.Engine" payment-history-engine/` —
-  no hits. This confirms this service, despite importing
-  `github.com/gin-gonic/gin` transitively (for vestigial error/middleware
-  types copied from `app-backend`), never actually starts a Gin server. Its
-  only HTTP server is the plain `net/http` one in
-  `internal/components/health/server.go`.
+## 1. app-backend's main database
 
-## The actual coupling: two shared databases
+- **What it is and why:** the same Postgres database app-backend uses for
+  accounts and wallets. The engine finds the wallets to watch there and
+  writes the payment history users see.
+- **Direction:** the engine reads and writes.
+  - **`user_wallets`** (owned by app-backend): the engine reads it to find
+    wallets not yet tracked, registers them for tracking, and sets their
+    `Tracked` flag.
+  - **`payment_history`** (created by app-backend; written by the engine):
+    every transfer the engine finds touching a tracked wallet is written
+    here by `SavePaymentHistory`
+    (`internal/components/payments/services/procedure.go`). The engine does
+    not create this table: app-backend must have started against the
+    database first.
+- **How they connect:** a direct database connection.
+- **Settings on this side:** [`DB_CONNECTION_STRING`](CONFIGURATION.md#db_connection_string)
+  (example `postgres://trovo:change-me@db.internal:5432/trovo?sslmode=require`),
+  [`DB_TYPE`](CONFIGURATION.md#db_type).
+- **Settings on the other side:** the same value as app-backend's
+  `DB_CONNECTION_STRING` ([app-backend/CONFIGURATION.md](../app-backend/CONFIGURATION.md)).
+- **How to check it works:** after a test transfer to a Trovo wallet, a new
+  row appears in `payment_history`.
+- **When it is down:** the engine cannot record transfers; it resumes from
+  its saved block when the database is back.
 
-### 1. Primary "wallet" database (`DB_CONNECTION_STRING`)
+**Each row** has a source side (`SourceNetwork`, `SourceAssetCode`,
+`SourceContractAddress`, `SourceAmount`: what left `FromAddress`) and a
+destination side (the same `Destination*` fields: what arrived at
+`ToAddress`). The engine sees one leg of each transfer, so it writes the
+same values on both sides; a row where they differ would be a swap, which
+the engine does not produce today. `SourceNetwork` is `base`.
 
-This is the same Postgres database `app-backend` uses for user accounts and
-wallets.
+**If you change `PaymentHistory`** (`internal/components/payments/models/payment_history.go`),
+change the matching structs in app-backend and tm-api too: three projects
+map Go structs onto the same table, with nothing enforcing they agree.
 
-- **`user_wallets`** — owned and written by `app-backend`. This engine only
-  reads it (`main.go`'s "track new user wallets" loop) to discover wallets
-  that need to be registered for monitoring, and writes back a `Tracked`
-  flag once it has processed one.
-- **`payment_history`** — **written by this engine** (`SavePaymentHistory`
-  in `internal/components/payments/services/procedure.go`), every time it
-  detects a native transfer or B20/ERC-20 `Transfer` event touching a
-  tracked wallet. Its schema is migrated by `app-backend`
-  (`app-backend/internal/db/main.go` calls
-  `gormDB.AutoMigrate(&paymentModels.PaymentHistory{})`) — this engine's own
-  `main.go` does **not** migrate this table, it assumes app-backend already
-  created it. Read by:
-  - `app-backend`'s `GET /v1/trovo-api/users/payment-history/:walletAddress`
-    (`app-backend/internal/components/payments/services/history.go`'s
-    `GetPaymentHistory`, queried against `gc.DB`, i.e. the same primary DB).
-  - `tm-api`'s (the admin dashboard) `GET /payment/history`
-    (`tm-api/internal/components/general/services/payment_history.go`,
-    queried against its own `walletDB` handle — same physical database).
+## 2. The tracking database ("RoachDB")
 
-### 2. RoachDB / CockroachDB (`CDB_CONNECTION_STRING`)
+- **What it is and why:** a separate CockroachDB (or Postgres) database that
+  holds the list of wallets and addresses to watch, and how far the engine
+  has scanned.
+- **Direction:**
+  - **`tracked_wallets`, `tracked_addresses`:** written by app-backend when a
+    user creates or gets approved for a wallet (`gc.RoachDB.Create(...)` in
+    app-backend's `registration.go`, `subwallets.go`, `approvals.go`) and by
+    the engine itself; read by the engine to know what to watch. Both
+    projects create these tables' structure (`AutoMigrate`).
+  - **`monitored_cursors`, `monitored_account_cursors`:** the engine's own
+    record of the last block scanned, overall and per address. Nothing else
+    touches them.
+- **How they connect:** a direct database connection (Postgres protocol).
+- **Settings on this side:** [`CDB_CONNECTION_STRING`](CONFIGURATION.md#cdb_connection_string)
+  (example `postgresql://root@roach.internal:26257/payment_history?sslmode=require`),
+  [`ROACH_DB_TYPE`](CONFIGURATION.md#roach_db_type).
+- **Settings on the other side:** app-backend's `CDB_CONNECTION_STRING` must
+  point to the same database.
+- **How to check it works:** `/ready` lists the tracking database as `up`,
+  and `tracked_wallets` gains a row when a test user signs up.
+- **When it is down:** the engine cannot start or save its position.
 
-A separate database, referred to throughout both repos as "RoachDB" — this
-engine's own coordination store, kept apart from the main app's business
-data.
+## 3. app-backend and tm-api (the readers)
 
-- **`tracked_wallets`**, **`tracked_addresses`** — written by `app-backend`
-  when a user's wallet is created/approved for monitoring
-  (`app-backend/internal/components/users/services/subwallets.go`,
-  `approvals.go`, `registration.go` all call `gc.RoachDB.Create(...)` on
-  these), and also written by **this engine itself** in its "track new user
-  wallets" loop. Both services migrate these two tables' schema
-  independently (`app-backend/main.go` and this repo's `main.go` both call
-  `AutoMigrate` on them) — a bit of duplicated ownership worth knowing about
-  if the schema ever needs to change. Read continuously by this engine to
-  know what to poll.
-- **`monitored_cursors`**, **`monitored_account_cursors`** — written and
-  read **only by this engine**. Pure internal bookkeeping: how far into the
-  Base chain the global stream and each per-address backfill have gotten.
-  Nothing else in the monorepo touches these two tables.
+- **What it is and why:** they show the history the engine writes.
+  - app-backend: `GET /v1/trovo-api/users/payment-history/:walletAddress`
+    (and the apps' history screens), reading `payment_history` through its
+    own database connection.
+  - tm-api: `GET /payment/history` for Trovo Manager, reading the same table
+    through its connection to that database.
+- **Direction:** they read the main database; nobody calls the engine.
+- **Settings:** nothing to match beyond using the same database.
+- **When the engine is down:** their history endpoints keep working and
+  show what has been recorded so far; new transfers appear once the engine
+  catches up.
 
-## What this means in practice
+For those endpoints' details see app-backend's and tm-api's Swagger docs
+(`app-backend/docs/`, `tm-api/docs/`).
 
-- If you change the shape of `PaymentHistory` in
-  `internal/components/payments/models/payment_history.go`, you must also
-  update the matching struct in `app-backend` (and check `tm-api`'s reads),
-  since three codebases independently define Go structs mapped onto the same
-  table — there is no shared Go module or schema registry enforcing this.
-- `PaymentHistory` splits each row into a **source** side (`SourceNetwork`,
-  `SourceAssetCode`, `SourceContractAddress`, `SourceAmount` — what left
-  `FromAddress`) and a **destination** side (the equivalent `Destination*`
-  fields — what arrived at `ToAddress`). `SavePaymentHistory`
-  (`internal/components/payments/services/procedure.go`) takes a `network`
-  parameter and, since every current caller in `main.go` only ever observes
-  one leg of a transfer, writes it to both sides identically — a plain
-  payment genuinely has the same asset/network on both ends. `NetworkBase =
-  "base"` is the only network this engine watches today; it's a real column
-  (not left implicit) so a future second network or a Base-native bridge
-  is a new value here, not another schema change. A row where source and
-  destination differ would be a swap — this engine doesn't produce one
-  today (Base has no live DEX/AMM integration; `swapTransactionType()` in
-  `main.go` has zero callers), but the schema is ready for whoever builds
-  that correlation later.
-- If this engine is down, `app-backend`'s and `tm-api`'s payment-history
-  endpoints keep serving whatever rows already exist — they degrade to
-  "stale data", not "erroring out", because they don't depend on this
-  engine being reachable, only on the database being reachable.
-- If `app-backend` stops writing to `tracked_wallets`/`tracked_addresses`
-  (e.g. it's down), this engine simply has nothing new to track — its
-  `GET /ready` probe reports `stream.status: "idle"` in that case (see
-  `internal/components/health/health.go`'s `hasWork` handling), not an
-  error.
-- There is no message queue, event bus, or webhook connecting these
-  services either — the polling loops in `main.go` (`time.Sleep` between
-  passes) are the only mechanism moving data from "app-backend wrote a row"
-  to "this engine notices it".
+## 4. Base blockchain
 
-## Canonical per-endpoint reference
+- **What it is and why:** the network where transfers happen.
+- **Direction:** the engine reads only.
+- **What it does:**
+  1. **Fills in history** for each tracked address: replays its past token
+     `Transfer` logs (`eth_getLogs`, 5,000 blocks at a time) and, for Trovo
+     wallets (Safes), the ETH they received (`SafeReceived` events) and sent
+     (their user operations, found by the EntryPoint's
+     `UserOperationEvent`), resuming from the address's saved cursor.
+  2. **Follows new blocks** one at a time. For each block it records ETH
+     transfers (a transaction's own value, ETH Trovo wallets send inside
+     their user operations, decoded from the EntryPoint's `handleOps`, and
+     ETH a Safe receives from contracts) and token `Transfer` logs (marking
+     transfers from or to the zero address as `MINT TOKEN` / `BURN TOKEN`).
+     Only transfers involving a tracked wallet are kept.
+- **How they connect:** JSON-RPC over HTTPS, with a per-request timeout and
+  a short pause after repeated failures.
+- **Settings on this side:** [`BASE_RPC_URL`](CONFIGURATION.md#base_rpc_url),
+  [`BASE_CHAIN_ID`](CONFIGURATION.md#base_chain_id),
+  [`ENTRYPOINT_ADDRESS`](CONFIGURATION.md#entrypoint_address) (must equal
+  app-backend's), [`RPC_TIMEOUT`](CONFIGURATION.md#rpc_timeout),
+  [`TRACK_ADDRESS_CONCURRENCY`](CONFIGURATION.md#track_address_concurrency).
+- **How to check it works:** `/ready` lists the node as `up`, and its scan
+  progress moves.
+- **When it is down:** scanning pauses; nothing is skipped, and it catches
+  up when the node is back.
 
-This engine's own HTTP surface (`GET /health`, `GET /ready`) is documented
-via Swagger — see [README.md](./README.md#swagger--api-docs). Once running:
+## 5. Redis
 
-- Swagger UI: http://localhost:8080/swagger/index.html
-- Raw spec: http://localhost:8080/swagger/doc.json
+- **What it is and why:** an optional cache.
+- **Settings:** [`ENABLE_CACHING`](CONFIGURATION.md#enable_caching),
+  [`REDIS_HOST`](CONFIGURATION.md#redis_host),
+  [`REDIS_PORT`](CONFIGURATION.md#redis_port),
+  [`REDIS_PASSWORD`](CONFIGURATION.md#redis_password),
+  [`CACHING_PARAMETER`](CONFIGURATION.md#caching_parameter).
+- **When it is down:** with caching on, the engine refuses to start if Redis
+  does not answer at start.
 
-For the endpoints that actually serve this engine's *output* (payment
-history) to end users, see `app-backend`'s and `tm-api`'s own Swagger docs
-(`app-backend/docs/`, `tm-api/docs/`) — this repo does not duplicate their
-annotations here, since it isn't the service that owns those routes.
+## 6. Discord alerts
+
+- **What it is and why:** chat alerts for a full database connection pool,
+  node errors and failed payment records.
+- **Settings:** [`CONNECTION_WARNING_WEBHOOK`](CONFIGURATION.md#connection_warning_webhook),
+  [`EXPANSION_NETWORK_ERROR_WEBHOOK`](CONFIGURATION.md#expansion_network_error_webhook),
+  [`FAILED_PAYMENT_ERROR_WEBHOOK`](CONFIGURATION.md#failed_payment_error_webhook).
+  Each falls back to a built-in webhook when unset.
+
+## 7. Health checks
+
+- **What it is and why:** the engine's only HTTP server, for your hosting
+  platform.
+  - `GET /health`: answers while the process runs (liveness).
+  - `GET /ready`: checks each dependency and reports the scan's progress
+    (readiness). With no wallets tracked yet the scan reports `idle`, which
+    is not an error.
+  - `GET /swagger/index.html`: the reference for these two.
+- **Settings:** [`HEALTH_PORT`](CONFIGURATION.md#health_port) (default
+  `8080`).
+
+There is no message queue or event bus between the projects: the engine's
+polling loops are the only thing moving data from "app-backend added a
+wallet" to "the engine records its transfers".

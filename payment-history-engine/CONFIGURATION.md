@@ -1,308 +1,380 @@
 # Configuration
 
-Every environment variable read by this service, found via:
+Every parameter `payment-history-engine` reads. Each one says what it is,
+why it is needed, whether you must set it, an example and how to get a real
+value. Examples are never real secrets.
 
-```bash
-grep -rn "os.Getenv\|os.LookupEnv" --include="*.go" . | grep -v _test.go
-```
+## How to set them
 
-Loaded from a `.env` file at startup via `godotenv.Load()` (see `main.go`) if
-one exists; otherwise real process environment variables are used. A sample
-file is at `.env.example` — copy it to `.env` and fill it in.
+The engine reads **environment variables**:
 
-Variables marked **Required** must be set (mostly checked explicitly in
-`main.go`'s startup validation) or the process logs an error and exits
-immediately without serving anything.
+- **A `.env` file** in the directory you run it from. Start from the
+  template: `cp .env.example .env`, then edit it. It is loaded
+  automatically at start.
+- **Or the container / hosting platform's environment settings** (for
+  example `docker run --env-file .env`). Use this for secrets in
+  production.
 
-## Database
+If a required value is missing, the engine prints
+`Required environment variable is missing <NAME>` and stops.
 
-### `DB_TYPE`
-- **Required**: no (defaults to `postgres`)
-- **Example**: `postgres` or `sqlite`
-- **What it is**: which GORM driver to use for the primary "wallet" database
-  — the same database `app-backend` uses for `user_wallets` and
-  `payment_history`.
-- **How to get a real value**: use `postgres` against a real Postgres
-  instance for anything beyond local development; use `sqlite` locally/in CI
-  to avoid needing Postgres at all.
+## The minimum to start
+
+| Parameter | Why |
+|---|---|
+| [`DB_CONNECTION_STRING`](#db_connection_string) | where wallets are read and payment history is written (app-backend's database) |
+| [`CDB_CONNECTION_STRING`](#cdb_connection_string) | the engine's own tracking database |
+| [`BASE_RPC_URL`](#base_rpc_url) | the blockchain node it watches |
+| [`NATIVE_ASSET_CODE`](#native_asset_code) | the label for ETH transfers |
+| [`ENABLE_CACHING`](#enable_caching) | must be set (`0` to run without Redis) |
+
+---
+
+## Main database (shared with app-backend)
 
 ### `DB_CONNECTION_STRING`
-- **Required**: yes
-- **Example (postgres)**: `postgres://wallet_user:wallet_pass@localhost:5432/trovo_wallet?sslmode=disable`
-- **Example (sqlite)**: `./local-wallet.db`
-- **What it is**: the connection string (or, for SQLite, a file path) for the
-  primary wallet database.
-- **How to get a real value**: for Postgres, the shape is
-  `postgres://<user>:<password>@<host>:<port>/<database>?sslmode=disable`.
-  Stand up a local instance with Docker:
+
+- **What it is:** The address and login of app-backend's main database.
+- **Why it's needed:** The engine reads `user_wallets` there to learn which
+  wallets to watch, and writes every transfer it finds into
+  `payment_history`, which the apps and Trovo Manager show. Without it the
+  engine stops at start.
+- **Required:** Yes.
+- **Example:** `postgres://trovo:change-me@db.internal:5432/trovo?sslmode=require`
+  (Postgres) or `./local-wallet.db` (SQLite, local only)
+- **How to get it:** Use the same database as app-backend's
+  [`DB_CONNECTION_STRING`](../app-backend/CONFIGURATION.md). Deploy
+  app-backend first: it creates the `payment_history` table. For a local
+  test database:
   ```bash
   docker run --name wallet-db -e POSTGRES_USER=wallet_user -e POSTGRES_PASSWORD=wallet_pass -e POSTGRES_DB=trovo_wallet -p 5432:5432 -d postgres:16
   ```
-  then use `postgres://wallet_user:wallet_pass@localhost:5432/trovo_wallet?sslmode=disable`.
-  For local/CI use, skip Postgres entirely: set `DB_TYPE=sqlite` and point
-  this at any writable file path, e.g. `./local-wallet.db`.
+  then `postgres://wallet_user:wallet_pass@localhost:5432/trovo_wallet?sslmode=disable`.
+
+### `DB_TYPE`
+
+- **What it is:** Which kind of database `DB_CONNECTION_STRING` is:
+  `postgres` or `sqlite`.
+- **Why it's needed:** Production uses Postgres; `sqlite` lets you run
+  locally against a file without a database server.
+- **Required:** No, default `postgres`.
+- **Example:** `postgres`
+- **How to get it:** Leave unset in real deployments; `sqlite` only for
+  local tests.
 
 ### `DB_MAX_OPEN_CONNECTIONS`
-- **Required**: no (defaults to `50`)
-- **Example**: `50`
-- **What it is**: max open connections in the primary DB's connection pool
-  (Postgres mode only).
-- **How to get a real value**: tune based on your Postgres instance's
-  `max_connections` and how many other services share it; the default of 50
-  is a reasonable starting point.
+
+- **What it is:** The most connections the engine keeps open to the main
+  database (Postgres only).
+- **Why it's needed:** The database has a connection limit shared with
+  app-backend, tm-api and payout-engine.
+- **Required:** No, default `50`.
+- **Example:** `20`
+- **How to get it:** Ask your database administrator what share of the
+  database's `max_connections` this service may use.
 
 ### `DB_MAX_IDLE_CONNECTIONS`
-- **Required**: no (defaults to `50`)
-- **Example**: `50`
-- **What it is**: max idle connections kept open in the pool (Postgres mode
-  only).
-- **How to get a real value**: usually matched to `DB_MAX_OPEN_CONNECTIONS`;
-  lower it if you see connection churn become a bottleneck.
 
-### `ROACH_DB_TYPE`
-- **Required**: no
-- **Example**: `sqlite` (unset/anything else means "use Postgres wire
-  protocol against CockroachDB", via `gorm.io/driver/postgres`)
-- **What it is**: escape hatch to point RoachDB at a local SQLite file
-  instead of a real CockroachDB cluster.
-- **How to get a real value**: set to `sqlite` for local dev/CI; leave unset
-  in any real environment.
+- **What it is:** How many unused connections are kept open, ready for
+  reuse (Postgres only).
+- **Why it's needed:** Reusing connections is faster than opening new ones.
+- **Required:** No, default `50`.
+- **Example:** `20`
+- **How to get it:** Usually the same as `DB_MAX_OPEN_CONNECTIONS`.
+
+## Tracking database ("RoachDB")
 
 ### `CDB_CONNECTION_STRING`
-- **Required**: yes (the process calls `log.Fatal` inside `OpenRoachDB` if
-  this is unusable)
-- **Example (CockroachDB/Postgres)**: `postgresql://root@localhost:26257/payment_history?sslmode=disable`
-- **Example (sqlite mode)**: `./local-roach.db`
-- **What it is**: connection string for "RoachDB" — this engine's own
-  CockroachDB database, used for `tracked_wallets`, `tracked_addresses`,
-  `monitored_cursors` and `monitored_account_cursors` (see
-  [INTEGRATION.md](./INTEGRATION.md)). Despite the name, it's read with the
-  Postgres driver (`gorm.io/driver/postgres`), since CockroachDB speaks the
-  Postgres wire protocol.
-- **How to get a real value**: run a local single-node CockroachDB (see
-  [DEPLOYMENT.md](./DEPLOYMENT.md#standing-up-a-local-cockroachdb-if-you-want-the-real-thing-instead-of-sqlite)):
+
+- **What it is:** The address of the engine's own tracking database (a
+  CockroachDB or Postgres database, called "RoachDB" in the code).
+- **Why it's needed:** It holds the list of tracked wallets and addresses
+  (`tracked_wallets`, `tracked_addresses`, which app-backend also adds to
+  when users create wallets) and how far the engine has scanned
+  (`monitored_cursors`, `monitored_account_cursors`). Without it the engine
+  stops at start.
+- **Required:** Yes.
+- **Example:** `postgresql://root@roach.internal:26257/payment_history?sslmode=require`
+  or `./local-roach.db` (with `ROACH_DB_TYPE=sqlite`)
+- **How to get it:** Use the same value as app-backend's
+  `CDB_CONNECTION_STRING`. For a local CockroachDB:
   ```bash
   cockroach start-single-node --insecure --listen-addr=localhost:26257 --background
   cockroach sql --insecure -e "CREATE DATABASE payment_history;"
   ```
-  then use `postgresql://root@localhost:26257/payment_history?sslmode=disable`.
-  Or set `ROACH_DB_TYPE=sqlite` and point this at a file path instead.
+  then `postgresql://root@localhost:26257/payment_history?sslmode=disable`.
+  A managed CockroachDB (CockroachDB Cloud) shows its connection string on
+  the cluster's **Connect** page.
+
+### `ROACH_DB_TYPE`
+
+- **What it is:** Set to `sqlite` to use a local file as the tracking
+  database instead of CockroachDB.
+- **Why it's needed:** Lets you run locally without CockroachDB.
+- **Required:** No. Unset means CockroachDB/Postgres.
+- **Example:** `sqlite`
+- **How to get it:** Only for local tests; leave unset in real deployments.
 
 ### `PURGE_TABLES`
-- **Required**: no
-- **Example**: `1`
-- **What it is**: a destructive one-shot switch. If set to exactly `1`, the
-  process drops `tracked_wallets`, `tracked_addresses` and
-  `monitored_cursors` from RoachDB and exits immediately — it does **not**
-  start the worker loops. Use with care; there is no confirmation prompt.
-- **How to get a real value**: leave unset. Only set to `1` deliberately,
-  e.g. to reset a broken local dev RoachDB.
 
-## Base (blockchain) connection
+- **What it is:** A destructive reset switch.
+- **Why it's needed:** To wipe a broken local tracking database. With `1`,
+  the engine deletes `tracked_wallets`, `tracked_addresses` and
+  `monitored_cursors` from the tracking database and exits without doing
+  anything else. There is no confirmation.
+- **Required:** No. Leave unset.
+- **Example:** `1`
+- **How to get it:** Never set it in production.
+
+## Blockchain
 
 ### `BASE_RPC_URL`
-- **Required**: yes
-- **Example**: `https://sepolia.base.org` (testnet) or your own/provider
-  mainnet endpoint
-- **What it is**: the JSON-RPC endpoint this engine polls for blocks and
-  `eth_getLogs` queries. Also used by the `GET /ready` probe to confirm the
-  node is reachable.
-- **How to get a real value**: for testing, Base Sepolia's public endpoint
-  (`https://sepolia.base.org`) needs no signup. For production, get an
-  API key from a provider like Alchemy (https://www.alchemy.com/) or
-  Infura (https://www.infura.io/), or run your own `base-node`
-  (https://docs.base.org/tools/node-providers).
 
-### `RPC_TIMEOUT`
-- **Required**: no (defaults to `30s`)
-- **Example**: `30s`
-- **What it is**: the longest any single request to `BASE_RPC_URL` may
-  take. If the RPC stops answering, requests give up after this long, and
-  after 3 failures in a row the client refuses RPC calls at once for 10
-  seconds at a time until a request gets through again. A block whose
-  data could not be read is retried on the next poll, never skipped.
-- **How to get a real value**: leave unset unless your provider is slow
-  for large `eth_getLogs` ranges.
-
-### `TRACK_ADDRESS_CONCURRENCY`
-- **Required**: no (defaults to `8`)
-- **Example**: `8`
-- **What it is**: how many tracked addresses are back-filled from the
-  chain at the same time. Each back-fill holds RPC requests and memory, so
-  this caps both when many addresses are tracked at once.
-- **How to get a real value**: leave unset; raise it only if your RPC
-  plan allows more parallel requests.
-
-### `ENTRYPOINT_ADDRESS`
-- **Required**: no (defaults to the ERC-4337 v0.7 EntryPoint,
-  `0x0000000071727De22E5E9d8BAf0edAc6f37da032`)
-- **What it is**: the EntryPoint Trovo wallets' user operations go
-  through. The engine decodes its `handleOps` transactions to record the
-  ETH wallets send (internal transfers no top-level scan sees). Must match
-  app-backend's `ENTRYPOINT_ADDRESS`.
-- **How to get a real value**: leave unset on Base and Base Sepolia; on a
-  local chain use the address `paymaster/contracts/scripts/local-stack.js`
-  prints.
+- **What it is:** The web address of a Base blockchain node.
+- **Why it's needed:** The engine reads every new block and the token
+  transfer logs from it. The `/ready` check also uses it.
+- **Required:** Yes.
+- **Example:** `https://base-mainnet.g.alchemy.com/v2/your-api-key` (or
+  `https://sepolia.base.org` for the test network)
+- **How to get it:** For testing, `https://sepolia.base.org` needs no
+  sign-up. For production, create an app for Base Mainnet with a provider
+  such as Alchemy, Infura or QuickNode and copy its HTTPS URL. The engine
+  makes many log queries, so a paid plan is advisable.
 
 ### `BASE_CHAIN_ID`
-- **Required**: no (defaults to `84532`, Base Sepolia)
-- **Example**: `8453` (Base mainnet) or `84532` (Base Sepolia)
-- **What it is**: the chain ID used to build the EIP-1559 transaction signer
-  (`types.LatestSignerForChainID`) when recovering a transaction's sender.
-- **How to get a real value**: use `8453` for Base mainnet, `84532` for Base
-  Sepolia testnet — see https://chainlist.org/?search=base.
+
+- **What it is:** The network number.
+- **Why it's needed:** Used to work out the sender of each transaction.
+  It must match the network of `BASE_RPC_URL`.
+- **Required:** No, default `84532` (Base Sepolia). **Set `8453` on
+  mainnet.**
+- **Example:** `8453`
+- **How to get it:** `8453` for Base Mainnet, `84532` for Base Sepolia.
+
+### `ENTRYPOINT_ADDRESS`
+
+- **What it is:** The address of the ERC-4337 EntryPoint that Trovo
+  wallets' operations go through.
+- **Why it's needed:** Trovo wallets send ETH inside these operations, which
+  a simple block scan does not see; the engine decodes them to record those
+  transfers.
+- **Required:** No, default `0x0000000071727De22E5E9d8BAf0edAc6f37da032`
+  (the official v0.7 EntryPoint on Base and Base Sepolia).
+- **Example:** `0x0000000071727De22E5E9d8BAf0edAc6f37da032`
+- **How to get it:** Keep the default; it must equal app-backend's
+  `ENTRYPOINT_ADDRESS`. On a local test chain, use the address the paymaster
+  local stack prints.
 
 ### `NATIVE_ASSET_CODE`
-- **Required**: yes
-- **Example**: `GAS` (per `.env.example`) or `ETH`
-- **What it is**: the display code used for native-currency transfers (Base's
-  gas token) when recording payment history, and as the fallback asset code
-  in `SavePaymentHistory` when none is given.
-- **How to get a real value**: pick whatever label your product wants shown
-  for native transfers — there's no on-chain source for this, it's purely
-  cosmetic.
 
-### `BLOCKCHAIN_NETWORK_PASSPHRASE`, `BLOCKCHAIN_BASE_RESERVE`
-- **Required**: no
-- **Example**: leave empty (see `.env.example`)
-- **What they are**: vestigial. These map to Stellar-era concepts (signature
-  domain separation and per-subentry account reserve) that have no EVM/Base
-  equivalent. The code reads them but handles them being unset gracefully
-  (`network.GetBlockchainNetworkPassPhrase`/`GetBlockchainBaseReserve`'s doc
-  comments say so explicitly), and `main.go` no longer requires them.
-- **How to get a real value**: don't set them.
+- **What it is:** The asset code recorded for ETH transfers.
+- **Why it's needed:** Every payment history row has an asset code; ETH has
+  no token contract to read one from, so this label is used.
+- **Required:** Yes.
+- **Example:** `ETH`
+- **How to get it:** Use the same code app-backend uses for the native
+  asset, so the apps show it consistently (`ETH` on Base).
 
-### `BLOCKCHAIN_SWAP_DESTINATION_MIN`
-- **Required**: no
-- **Example**: `0`
-- **What it is**: a decimal minimum used by `network.GetBlockchainSwapDestinationMin`;
-  parsed with `decimal.NewFromString`, falling back to `0` if unset/invalid.
-- **How to get a real value**: only relevant if/when swap support is wired
-  up; leave unset otherwise.
+### `RPC_TIMEOUT`
+
+- **What it is:** The longest one request to the node may take.
+- **Why it's needed:** A stuck node must not freeze the engine. After 3
+  failures in a row, the engine pauses node calls for 10 seconds at a time
+  until one succeeds. A block that could not be read is retried, never
+  skipped.
+- **Required:** No, default `30s`.
+- **Example:** `30s`
+- **How to get it:** Keep the default; raise it if your provider is slow
+  for large log queries.
+
+### `TRACK_ADDRESS_CONCURRENCY`
+
+- **What it is:** How many tracked addresses have their history filled in
+  at the same time.
+- **Why it's needed:** Each fill-in uses node requests and memory; this
+  caps both.
+- **Required:** No, default `8`.
+- **Example:** `8`
+- **How to get it:** Keep the default; raise it only if your node plan
+  allows more requests at once.
+
+### `LAST_CURSOR`
+
+- **What it is:** A block number to resume the live scan from.
+- **Why it's needed:** Normally the engine resumes from where it stopped
+  (saved in the tracking database). This forces a different start, for
+  example after a manual fix. The more recent of this and the saved cursor
+  wins.
+- **Required:** No.
+- **Example:** `21000000`
+- **How to get it:** The block number from
+  [basescan.org](https://basescan.org); leave unset normally.
+
+### `BLOCKCHAIN_NETWORK_PASSPHRASE`, `BLOCKCHAIN_BASE_RESERVE`, `BLOCKCHAIN_SWAP_DESTINATION_MIN`
+
+- **What they are:** Leftovers from the platform's previous blockchain
+  (Stellar). They have no meaning on Base.
+- **Why they're needed:** They aren't. The code reads them but works
+  without them.
+- **Required:** No.
+- **Example:** (leave unset)
+- **How to get them:** Don't set them.
 
 ## Caching (Redis)
 
 ### `ENABLE_CACHING`
-- **Required**: yes (must be set, even if to a value other than `1`)
-- **Example**: `1` (on) or `0` (off)
-- **What it is**: toggles Redis caching. When `1`, `REDIS_HOST`,
-  `REDIS_PORT` and `CACHING_PARAMETER` become required and the process
-  `log.Fatal`s if the initial `PING`/test-write fails.
-- **How to get a real value**: `0` for local dev unless you specifically want
-  to test the caching path.
 
-### `REDIS_HOST`, `REDIS_PORT`
-- **Required**: only if `ENABLE_CACHING=1`
-- **Example**: `localhost`, `6379`
-- **What they are**: Redis connection host/port.
-- **How to get a real value**: run Redis locally with
-  `docker run --name redis -p 6379:6379 -d redis:7`, then use
-  `REDIS_HOST=localhost`, `REDIS_PORT=6379`.
+- **What it is:** Turns Redis caching on (`1`) or off (`0`).
+- **Why it's needed:** It must be set to something: the engine refuses to
+  start if it is empty. With `1`, the Redis settings below become required
+  and the engine stops if Redis does not answer.
+- **Required:** Yes (`0` or `1`).
+- **Example:** `0`
+- **How to get it:** `0` unless you run Redis for this service.
+
+### `REDIS_HOST`
+
+- **What it is:** The Redis server's host name.
+- **Why it's needed:** Where the cache lives.
+- **Required:** Only with `ENABLE_CACHING=1`.
+- **Example:** `redis.internal`
+- **How to get it:** Your Redis server (the same one app-backend uses is
+  fine). Locally: `docker run --name redis -p 6379:6379 -d redis:7`, then
+  `localhost`.
+
+### `REDIS_PORT`
+
+- **What it is:** The Redis server's port.
+- **Why it's needed:** To connect to Redis.
+- **Required:** Only with `ENABLE_CACHING=1`.
+- **Example:** `6379`
+- **How to get it:** `6379` unless your Redis says otherwise.
 
 ### `REDIS_PASSWORD`
-- **Required**: no
-- **Example**: empty for a local unauthenticated Redis
-- **What it is**: Redis `AUTH` password.
-- **How to get a real value**: whatever your Redis instance is configured
-  with; leave empty for the local Docker command above.
+
+- **What it is:** The Redis password.
+- **Why it's needed:** A protected Redis refuses connections without it.
+- **Required:** No (only if your Redis has a password).
+- **Example:** `change-me`
+- **How to get it:** From whoever runs your Redis.
 
 ### `CACHING_PARAMETER`
-- **Required**: only if `ENABLE_CACHING=1`
-- **Example**: `v1`
-- **What it is**: a string mixed into every cache key (`internal/cache/main.go`),
-  letting you invalidate all cached entries by changing it.
-- **How to get a real value**: any short string; bump it whenever you want to
-  invalidate the whole cache (e.g. after a schema change to cached payloads).
 
-## Monitoring / health server
+- **What it is:** A short text added to every cache key.
+- **Why it's needed:** Changing it makes all old cache entries unused at
+  once (for example after the cached data's shape changes).
+- **Required:** Only with `ENABLE_CACHING=1`.
+- **Example:** `v1`
+- **How to get it:** Any short text; change it to clear the cache.
+
+## Health server
 
 ### `HEALTH_PORT`
-- **Required**: no (defaults to `8080`)
-- **Example**: `8080`
-- **What it is**: the port the `GET /health`, `GET /ready` and
-  `GET /swagger/*` endpoints are served on.
-- **How to get a real value**: leave at the default unless it conflicts with
-  something else on the host.
+
+- **What it is:** The port the health endpoints (`/health`, `/ready`) and
+  the API reference (`/swagger/index.html`) are served on.
+- **Why it's needed:** Your hosting platform checks `/health` and `/ready`
+  to know the engine is alive and working.
+- **Required:** No, default `8080`.
+- **Example:** `8080`
+- **How to get it:** Keep the default unless the port is taken.
 
 ### `APP_VERSION`
-- **Required**: no
-- **Example**: a short git SHA, e.g. `a1b2c3d`
-- **What it is**: reported as `version` in the health/readiness responses.
-  Normally stamped at build time via the Dockerfile's `-ldflags -X` (see
-  [DEPLOYMENT.md](./DEPLOYMENT.md)); this env var is a fallback read only if
-  that build-time stamp is empty.
-- **How to get a real value**: `git rev-parse --short HEAD`.
 
-## Cursors (manual override / resume)
+- **What it is:** The version reported by `/health` and `/ready`.
+- **Why it's needed:** Tells you which build is running. Normally stamped
+  into the image when it is built (the Dockerfile's `APP_VERSION` build
+  argument); this variable is only used if that stamp is empty.
+- **Required:** No.
+- **Example:** `a1b2c3d`
+- **How to get it:** `git rev-parse --short HEAD`.
 
-### `LAST_CURSOR`
-- **Required**: no
-- **Example**: a Base block number as a string, e.g. `12345678`
-- **What it is**: an override for the payment-stream resume cursor,
-  compared against the DB-stored cursor and whichever is more recent wins
-  (`GetLastCursor` in `main.go`).
-- **How to get a real value**: normally leave unset and let the DB-stored
-  cursor (`monitored_cursors`) drive resumption; only set this to force a
-  specific starting block (e.g. after a manual intervention).
+## Alerts (Discord)
 
-## Email validation
-
-### `ENABLE_EMAIL_VALIDATION`
-- **Required**: no
-- **Example**: `1` or `0`
-- **What it is**: if `1`, requires `MAILGUN_VALIDATOR_API_KEY` to be set.
-- **How to get a real value**: `0` unless you specifically need Mailgun email
-  validation exercised.
-
-### `MAILGUN_VALIDATOR_API_KEY`
-- **Required**: only if `ENABLE_EMAIL_VALIDATION=1`
-- **Example**: `key-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
-- **What it is**: Mailgun's email-validation API key.
-- **How to get a real value**: create a free Mailgun account
-  (https://www.mailgun.com/) and copy the API key from its dashboard.
-
-## Payments
-
-### `MIN_SENDABLE_AMOUNT`
-- **Required**: no
-- **Example**: `1` (any value other than empty or `"0"` enables the check)
-- **What it is**: used by
-  `internal/components/payments/errors/payment_amount_below_min_allowed.go`
-  to report a minimum sendable amount in error messages — part of the
-  vestigial Gin-error package (see [README.md](./README.md)), not currently
-  reachable through this service's live HTTP surface.
-- **How to get a real value**: leave unset unless this code path becomes
-  reachable.
-
-## Third-party / misc
-
-### `IPAPI_HOST`, `IPAPI_KEY`
-- **Required**: no
-- **Example**: empty (per `.env.example`)
-- **What they are**: read by `internal/components/payments/db/geo.go`'s
-  `GetGeoInfo`, an IP-geolocation lookup helper. Not called from anywhere in
-  `main.go`'s worker loops — appears to be leftover/unused in this service.
-- **How to get a real value**: leave unset unless you wire this helper into
-  something. If needed, ip-api.com (https://ip-api.com/) is a common free
-  option for `IPAPI_HOST`.
+The engine posts some errors to Discord. Each has a built-in fallback
+webhook in the code; set your own so the alerts reach your team.
 
 ### `CONNECTION_WARNING_WEBHOOK`
-- **Required**: no
-- **Example**: a Discord webhook URL
-- **What it is**: overrides the hardcoded fallback Discord webhook URL in
-  `internal/db/main.go` used to post a warning when the DB connection pool
-  fills up (`PrintDBStats`). **The hardcoded fallback in source has been
-  committed to git history and should be treated as leaked/rotated** — set
-  this explicitly rather than relying on the fallback.
-- **How to get a real value**: create a Discord webhook on the channel you
-  want alerts in (Server Settings → Integrations → Webhooks → New Webhook),
-  copy its URL.
 
-### `EXPANSION_NETWORK_ERROR_WEBHOOK`, `FAILED_PAYMENT_ERROR_WEBHOOK`
-- **Required**: no
-- **Example**: a Discord webhook URL (must be longer than 50 characters to
-  override the built-in default — see `internal/network/main.go`)
-- **What they are**: Discord webhooks for network-expansion and
-  failed-payment error alerts respectively.
-- **How to get a real value**: same as `CONNECTION_WARNING_WEBHOOK` above —
-  create a Discord webhook per channel you want each alert type posted to.
+- **What it is:** A Discord webhook for "database connection pool is full"
+  warnings.
+- **Why it's needed:** A full pool means the engine is falling behind; your
+  team should know.
+- **Required:** No (a built-in webhook is used otherwise).
+- **Example:** `https://discord.com/api/webhooks/123456789012345678/abcdefghijklmnopqrstuvwxyz`
+- **How to get it:** In Discord: the channel's **Edit Channel →
+  Integrations → Webhooks → New Webhook → Copy Webhook URL**.
+
+### `EXPANSION_NETWORK_ERROR_WEBHOOK`
+
+- **What it is:** A Discord webhook for errors reaching the blockchain node.
+- **Why it's needed:** So your team notices when the node is down.
+- **Required:** No. It must be longer than 50 characters to replace the
+  built-in one.
+- **Example:** `https://discord.com/api/webhooks/123456789012345678/abcdefghijklmnopqrstuvwxyz`
+- **How to get it:** As above.
+
+### `FAILED_PAYMENT_ERROR_WEBHOOK`
+
+- **What it is:** A Discord webhook for errors recording a payment.
+- **Why it's needed:** A failed record means a user's history is missing a
+  transfer.
+- **Required:** No. It must be longer than 50 characters to replace the
+  built-in one.
+- **Example:** `https://discord.com/api/webhooks/123456789012345678/abcdefghijklmnopqrstuvwxyz`
+- **How to get it:** As above.
+
+## Optional and unused
+
+These are read by code paths the engine does not currently use. Leave them
+unset unless that changes.
+
+### `ENABLE_EMAIL_VALIDATION`
+
+- **What it is:** Turns on Mailgun email validation (`1`).
+- **Why it's needed:** Not used by the engine's work; with `1`,
+  `MAILGUN_VALIDATOR_API_KEY` becomes required at start.
+- **Required:** No.
+- **Example:** `0`
+- **How to get it:** Leave unset.
+
+### `MAILGUN_VALIDATOR_API_KEY`
+
+- **What it is:** Mailgun's email validation API key.
+- **Why it's needed:** Only with `ENABLE_EMAIL_VALIDATION=1`.
+- **Required:** Only with `ENABLE_EMAIL_VALIDATION=1`.
+- **Example:** `key-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` (placeholder)
+- **How to get it:** Mailgun dashboard → **API Keys**.
+
+### `MIN_SENDABLE_AMOUNT`
+
+- **What it is:** A minimum amount quoted in one error message.
+- **Why it's needed:** Not reachable through this engine.
+- **Required:** No.
+- **Example:** `1`
+- **How to get it:** Leave unset.
+
+### `IPAPI_HOST`, `IPAPI_KEY`
+
+- **What they are:** An IP-geolocation service's address and key.
+- **Why they're needed:** Read by a helper the engine never calls.
+- **Required:** No.
+- **Example:** `ip-api.com`, `abc123`
+- **How to get them:** Leave unset.
+
+### `ENABLE_AUTH_MIDDLEWARE`
+
+- **What it is:** `0` turns off request-signature checks in an
+  authentication middleware.
+- **Why it's needed:** The middleware is not attached to any route (the
+  engine only serves health endpoints), so this has no effect.
+- **Required:** No.
+- **Example:** (leave unset)
+- **How to get it:** Leave unset.
+
+## Used only by tests
+
+`AA_LOCAL_STACK` (the local blockchain deployment file from the paymaster
+project) and `AA_SAFE_ETH_TX_FILE` point the end-to-end tests at a local
+chain; see [DEPLOYMENT.md](DEPLOYMENT.md#run-the-tests). The engine itself
+never reads them.

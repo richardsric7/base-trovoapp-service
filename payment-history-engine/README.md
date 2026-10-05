@@ -1,10 +1,22 @@
 # Payment History Engine
 
-A Go background worker that watches the Base blockchain (an Ethereum L2) for
-transfers touching Trovo Wallet's user addresses, and records them as payment
-history. It is **not** a request/response API — it has no business-logic
-routes at all. The only HTTP surface it exposes is a pair of monitoring
-endpoints (liveness/readiness probes), documented below via Swagger.
+## What this project does
+
+When money moves in or out of a Trovo wallet, users expect to see it in
+their transaction history. Transfers happen on the Base blockchain, often
+without going through Trovo at all (someone sending from an exchange, for
+example). `payment-history-engine` watches the blockchain for every
+transfer to or from a Trovo user's wallet and records it in the payment
+history that the Trovo apps and Trovo Manager show.
+
+It runs in the background with no user-facing API: it reads the list of
+wallets from app-backend's database and writes the history back there.
+Without it, transfers that did not go through Trovo would never appear in
+users' history.
+
+- How to deploy: [DEPLOYMENT.md](DEPLOYMENT.md)
+- Every setting: [CONFIGURATION.md](CONFIGURATION.md)
+- What it connects to: [INTEGRATION.md](INTEGRATION.md)
 
 ## What it actually does
 
@@ -67,7 +79,7 @@ was checked and ruled out.
 
 ## Tech stack
 
-- **Language**: Go 1.22 (toolchain pinned to `go1.24.7` in `go.mod`)
+- **Language**: Go 1.26 (the version in `go.mod`)
 - **HTTP**: plain `net/http` + `http.ServeMux` — **not** Gin, despite Gin
   being a dependency (`github.com/gin-gonic/gin` is pulled in only because
   `internal/errors`, `internal/components/payments/errors` and
@@ -119,7 +131,7 @@ payment-history-engine/
 
 ## Running it locally
 
-You need Go 1.22+ and access to a Postgres-compatible primary DB and a
+You need Go 1.26+ and access to a Postgres-compatible primary DB and a
 CockroachDB (or Postgres, via the driver) RoachDB — or use the SQLite escape
 hatches to avoid standing up either. See
 [CONFIGURATION.md](./CONFIGURATION.md) for what every variable means and how
