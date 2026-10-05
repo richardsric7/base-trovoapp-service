@@ -1,6 +1,27 @@
 # market
 
-The contracts Trovo's tokenized assets are issued and sold with.
+## What this project does
+
+On Trovo, a real-world asset (for example a property) can be split into
+digital tokens that people buy and hold. This project holds the
+**blockchain contracts** that make that work on Base:
+
+- the **token** of each asset, which only that asset's issuing wallet can
+  create, and
+- the **offer book**, a simple marketplace where tokens are offered at a
+  fixed price and bought. Every purchase needs a signed permission from
+  Trovo's backend, so only people who pass Trovo's checks (identity, sale
+  window, purchase limit) can buy.
+
+Trovo's backend (app-backend) uses these contracts to issue assets, sell
+them and run swaps; payout-engine reads them when paying proceeds. Without
+them, tokenized assets cannot be issued or sold.
+
+- How to deploy: [DEPLOYMENT.md](DEPLOYMENT.md)
+- Every setting: [CONFIGURATION.md](CONFIGURATION.md)
+- How other projects use it: [INTEGRATION.md](INTEGRATION.md)
+
+## The contracts
 
 | Contract | What it is |
 |---|---|

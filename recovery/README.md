@@ -1,13 +1,28 @@
 # recovery
 
+## What this project does
+
+Trovo wallets are **non-custodial**: only the user holds the secret key,
+so if they lose it, nobody can normally get them back in. This project
+adds **optional account recovery**. A user who turns it on lets Trovo's
+**recovery guardian** replace their lost key with a new one, but only after
+a waiting period (for example 7 days) during which the user can cancel it,
+and the guardian can never move their money.
+
+It is one blockchain contract (Candide's Social Recovery Module v0.2.0,
+used unmodified) that Trovo deploys once per network. app-backend talks
+to it, and the apps show the recovery screens. Without it, recovery is unavailable and
+everything else works as before.
+
+- How to deploy: [DEPLOYMENT.md](DEPLOYMENT.md)
+- Every setting: [CONFIGURATION.md](CONFIGURATION.md)
+- How other projects use it: [INTEGRATION.md](INTEGRATION.md)
+
+## In more detail
+
 Opt-in account recovery for Trovo wallets, on
 [Candide's Social Recovery Module](contracts/src/candide/README.md)
 **v0.2.0**, vendored unmodified (GPL-3.0) and deployed by Trovo.
-
-Trovo is non-custodial: users keep their secret key and the platform holds
-no key that controls their wallets. A user who opts in to recovery adds one
-narrow exception: the platform's **recovery guardian** may *replace the
-key* on their wallets, after a waiting period, never move funds.
 
 | | |
 |---|---|
