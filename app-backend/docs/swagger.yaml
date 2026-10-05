@@ -188,6 +188,552 @@ definitions:
       vatAmount:
         type: string
     type: object
+  publicmarkets.Activity:
+    properties:
+      at:
+        type: string
+      detail:
+        type: string
+      kind:
+        description: BUY | SELL | DIVIDEND | COUPON
+        type: string
+      received:
+        type: string
+      reference:
+        type: string
+      spent:
+        type: string
+      title:
+        type: string
+    type: object
+  publicmarkets.AssetView:
+    properties:
+      assetCode:
+        type: string
+      assetType:
+        type: string
+      contractAddress:
+        type: string
+      corporateActions:
+        items:
+          $ref: '#/definitions/publicmarkets.CorporateAction'
+        type: array
+      coupon:
+        type: string
+      currency:
+        type: string
+      custody:
+        additionalProperties: true
+        type: object
+      dayChangePercent:
+        type: string
+      dayHigh:
+        type: string
+      dayLow:
+        type: string
+      dayVolume:
+        type: string
+      description:
+        type: string
+      dividendYield:
+        type: string
+      feePercent:
+        type: string
+      fundingAsset:
+        type: string
+      id:
+        type: string
+      isin:
+        type: string
+      logo:
+        additionalProperties:
+          type: string
+        type: object
+      market:
+        type: string
+      marketCap:
+        type: string
+      maturityDate:
+        type: string
+      minimumBuy:
+        type: string
+      name:
+        type: string
+      peRatio:
+        type: string
+      previousClose:
+        type: string
+      price:
+        type: string
+      priceAt:
+        type: string
+      priceLive:
+        type: boolean
+      priceSource:
+        type: string
+      sector:
+        type: string
+      session:
+        additionalProperties: true
+        type: object
+      shortName:
+        type: string
+      status:
+        description: open | halted | coming-soon
+        type: string
+      ticker:
+        type: string
+      tokenDecimals:
+        type: integer
+      tokensInCirculation:
+        type: string
+      unitDescription:
+        type: string
+    type: object
+  publicmarkets.ConfirmationRequest:
+    properties:
+      confirmedAt:
+        type: string
+      event:
+        type: string
+      eventId:
+        type: string
+      walletId:
+        type: string
+    type: object
+  publicmarkets.CorporateAction:
+    properties:
+      amountPerUnit:
+        type: string
+      approvalsRequired:
+        type: integer
+      approvedAt:
+        type: string
+      assetCode:
+        type: string
+      assetId:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      currency:
+        type: string
+      declaredBy:
+        type: string
+      description:
+        type: string
+      eligibleUnits:
+        type: string
+      eventType:
+        type: string
+      fundedAt:
+        type: string
+      grossAmount:
+        type: string
+      holderCount:
+        type: integer
+      id:
+        description: CA-...
+        type: string
+      netAmount:
+        type: string
+      note:
+        type: string
+      payDate:
+        type: string
+      recordBlock:
+        type: integer
+      recordDate:
+        description: YYYY-MM-DD (Africa/Lagos)
+        type: string
+      retainedUnits:
+        description: 'platform wallets (inventory): not paid out'
+        type: string
+      snapshotAt:
+        type: string
+      snapshotChecksum:
+        type: string
+      source:
+        type: string
+      sourceReference:
+        type: string
+      status:
+        type: string
+      updatedAt:
+        type: string
+      whtAmount:
+        type: string
+      whtTxHash:
+        type: string
+    type: object
+  publicmarkets.ExchangeOrderRequest:
+    properties:
+      amount:
+        type: string
+      amountCurrency:
+        type: string
+      assetCode:
+        type: string
+      externalOrderRef:
+        type: string
+      quantity:
+        type: string
+      walletId:
+        type: string
+    type: object
+  publicmarkets.ExchangeOrderView:
+    properties:
+      amount:
+        type: string
+      assetCode:
+        type: string
+      createdAt:
+        type: string
+      externalOrderRef:
+        type: string
+      fee:
+        type: string
+      price:
+        type: string
+      quantity:
+        type: string
+      reason:
+        type: string
+      settledAt:
+        type: string
+      status:
+        description: pending | settled | rejected | failed
+        type: string
+      trovotechOrderId:
+        type: string
+      type:
+        type: string
+      walletId:
+        type: string
+    type: object
+  publicmarkets.Holding:
+    properties:
+      asset:
+        $ref: '#/definitions/publicmarkets.AssetView'
+      averageCost:
+        type: string
+      costBasis:
+        type: string
+      incomeReceived:
+        type: string
+      marketValue:
+        type: string
+      quantity:
+        type: string
+      returnPercent:
+        type: string
+      todayChange:
+        type: string
+      totalReturn:
+        type: string
+      wallets:
+        additionalProperties:
+          type: string
+        description: wallet address -> quantity
+        type: object
+    type: object
+  publicmarkets.Order:
+    properties:
+      amount:
+        description: 'creation: what the buyer pays (incl. fee); redemption: gross
+          proceeds'
+        type: string
+      assetCode:
+        type: string
+      assetId:
+        type: string
+      batchId:
+        type: string
+      channel:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      executedPrice:
+        type: string
+      externalOrderRef:
+        type: string
+      fee:
+        description: Trovo fee
+        type: string
+      feePercent:
+        type: string
+      fundingAssetCode:
+        description: payment (creation) / proceeds (redemption), in the funding currency
+        type: string
+      fundingContract:
+        type: string
+      id:
+        description: PM-CR-..., PM-RD-...
+        type: string
+      netAmount:
+        description: 'creation: invested; redemption: paid out'
+        type: string
+      note:
+        type: string
+      partnerWalletId:
+        description: exchange-provisioned wallet
+        type: string
+      path:
+        type: string
+      paymentConfirmedAt:
+        type: string
+      paymentOperationId:
+        description: on-chain trail
+        type: string
+      paymentTxHash:
+        type: string
+      payoutTxHash:
+        type: string
+      priceSource:
+        type: string
+      quantity:
+        description: tokens (estimated until settled for slow creations)
+        type: string
+      referencePrice:
+        type: string
+      serviceLinkId:
+        type: string
+      settledAt:
+        type: string
+      state:
+        type: string
+      tokenTxHash:
+        description: mint (creation) or burn (redemption)
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+      username:
+        type: string
+      walletAddress:
+        type: string
+      walletAlias:
+        type: string
+    type: object
+  publicmarkets.OrderEvent:
+    properties:
+      at:
+        type: string
+      note:
+        type: string
+      state:
+        type: string
+    type: object
+  publicmarkets.OrderView:
+    properties:
+      amount:
+        description: 'creation: what the buyer pays (incl. fee); redemption: gross
+          proceeds'
+        type: string
+      assetCode:
+        type: string
+      assetId:
+        type: string
+      batchId:
+        type: string
+      channel:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      events:
+        items:
+          $ref: '#/definitions/publicmarkets.OrderEvent'
+        type: array
+      executedPrice:
+        type: string
+      externalOrderRef:
+        type: string
+      fee:
+        description: Trovo fee
+        type: string
+      feePercent:
+        type: string
+      fundingAssetCode:
+        description: payment (creation) / proceeds (redemption), in the funding currency
+        type: string
+      fundingContract:
+        type: string
+      id:
+        description: PM-CR-..., PM-RD-...
+        type: string
+      netAmount:
+        description: 'creation: invested; redemption: paid out'
+        type: string
+      note:
+        type: string
+      partnerWalletId:
+        description: exchange-provisioned wallet
+        type: string
+      path:
+        type: string
+      paymentConfirmedAt:
+        type: string
+      paymentOperationId:
+        description: on-chain trail
+        type: string
+      paymentTxHash:
+        type: string
+      payoutTxHash:
+        type: string
+      priceSource:
+        type: string
+      quantity:
+        description: tokens (estimated until settled for slow creations)
+        type: string
+      referencePrice:
+        type: string
+      serviceLinkId:
+        type: string
+      settledAt:
+        type: string
+      state:
+        type: string
+      tokenTxHash:
+        description: mint (creation) or burn (redemption)
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+      username:
+        type: string
+      walletAddress:
+        type: string
+      walletAlias:
+        type: string
+    type: object
+  publicmarkets.Portfolio:
+    properties:
+      activity:
+        items:
+          $ref: '#/definitions/publicmarkets.Activity'
+        type: array
+      costBasis:
+        type: string
+      holdings:
+        items:
+          $ref: '#/definitions/publicmarkets.Holding'
+        type: array
+      income:
+        type: string
+      openOrders:
+        items:
+          $ref: '#/definitions/publicmarkets.Order'
+        type: array
+      returnPercent:
+        type: string
+      todayChange:
+        type: string
+      totalReturn:
+        type: string
+      value:
+        type: string
+    type: object
+  publicmarkets.ProvisionRequest:
+    properties:
+      externalUserRef:
+        type: string
+      legalName:
+        type: string
+      nationality:
+        type: string
+      ndpaConsent:
+        type: boolean
+      residencyCountry:
+        type: string
+      taxIdentifier:
+        type: string
+    type: object
+  publicmarkets.Quote:
+    properties:
+      amount:
+        type: string
+      assetCode:
+        type: string
+      currency:
+        type: string
+      custodianName:
+        type: string
+      fee:
+        type: string
+      feePercent:
+        type: string
+      fundingAsset:
+        type: string
+      marketOpen:
+        type: boolean
+      minimumBuy:
+        type: string
+      netAmount:
+        type: string
+      nextSessionAt:
+        type: string
+      note:
+        type: string
+      path:
+        type: string
+      price:
+        type: string
+      priceSource:
+        type: string
+      quantity:
+        type: string
+      settlementNote:
+        type: string
+      side:
+        description: BUY | SELL
+        type: string
+    type: object
+  publicmarkets.TradeRequest:
+    properties:
+      amount:
+        description: 'buy: funding currency to spend (fee included)'
+        type: string
+      quantity:
+        description: 'sell: tokens'
+        type: string
+      transaction:
+        type: string
+      transactionSignature:
+        type: string
+      walletAddress:
+        type: string
+    type: object
+  publicmarkets.TradeResponse:
+    properties:
+      messages:
+        items:
+          type: string
+        type: array
+      order:
+        $ref: '#/definitions/publicmarkets.OrderView'
+      quote:
+        $ref: '#/definitions/publicmarkets.Quote'
+      transaction:
+        type: string
+    type: object
+  publicmarkets.WalletView:
+    properties:
+      externalUserRef:
+        type: string
+      publicKey:
+        type: string
+      status:
+        type: string
+      walletId:
+        type: string
+    type: object
   servicelinks.ServiceLinkEventRequestInput:
     properties:
       callbackUrl:
@@ -4286,6 +4832,251 @@ paths:
       summary: POST /v1/patron
       tags:
       - users
+  /v1/public-markets:
+    get:
+      description: Tokenized NGX equities and FMDQ bonds with their reference prices
+        and market session. Filter by market (NGX, FMDQ), type (EQUITY, BOND) and
+        a search.
+      parameters:
+      - description: NGX or FMDQ
+        in: query
+        name: market
+        type: string
+      - description: EQUITY or BOND
+        in: query
+        name: type
+        type: string
+      - description: Code or name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List Public Markets assets
+      tags:
+      - Public Markets
+  /v1/public-markets/assets/{assetCode}:
+    get:
+      description: Price, key statistics, custody chain, market session and corporate
+        actions.
+      parameters:
+      - description: Asset code (MTNN-T) or ticker (MTNN)
+        in: path
+        name: assetCode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/publicmarkets.AssetView'
+      summary: A Public Markets asset
+      tags:
+      - Public Markets
+  /v1/public-markets/assets/{assetCode}/buy:
+    post:
+      consumes:
+      - application/json
+      description: 'Two calls, like every wallet operation. Without transactionSignature:
+        returns the quote and the operation (transaction) to sign - the wallet pays
+        the amount to the Public Markets treasury. With transaction and transactionSignature:
+        submits it and places the order, which fills once the payment is mined (instantly
+        from Custodian inventory, or at the next session).'
+      parameters:
+      - description: Asset code
+        in: path
+        name: assetCode
+        required: true
+        type: string
+      - description: walletAddress and amount; then transaction and transactionSignature
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.TradeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/publicmarkets.TradeResponse'
+      security:
+      - SignatureAuth: []
+      summary: Buy a Public Markets asset
+      tags:
+      - Public Markets
+  /v1/public-markets/assets/{assetCode}/prices:
+    get:
+      parameters:
+      - description: Asset code
+        in: path
+        name: assetCode
+        required: true
+        type: string
+      - default: 1D
+        description: 1D, 1W, 1M, 3M, 1Y or All
+        in: query
+        name: range
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Price chart of an asset
+      tags:
+      - Public Markets
+  /v1/public-markets/assets/{assetCode}/quote:
+    get:
+      description: Price, Trovo fee, estimated quantity or proceeds, and whether it
+        fills instantly (fast / netted) or at the next session (slow).
+      parameters:
+      - description: Asset code
+        in: path
+        name: assetCode
+        required: true
+        type: string
+      - description: buy or sell
+        in: query
+        name: side
+        required: true
+        type: string
+      - description: 'buy: amount to spend (funding currency, fee included)'
+        in: query
+        name: amount
+        type: string
+      - description: 'sell: tokens'
+        in: query
+        name: quantity
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/publicmarkets.Quote'
+      security:
+      - SignatureAuth: []
+      summary: Quote a buy or sell
+      tags:
+      - Public Markets
+  /v1/public-markets/assets/{assetCode}/sell:
+    post:
+      consumes:
+      - application/json
+      description: Two calls. The wallet sends the tokens to the asset's issuing Safe;
+        the sale is netted against the day's demand and paid at once, or sold by the
+        Dealing Member and paid after the Custodian settles.
+      parameters:
+      - description: Asset code
+        in: path
+        name: assetCode
+        required: true
+        type: string
+      - description: walletAddress and quantity; then transaction and transactionSignature
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.TradeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/publicmarkets.TradeResponse'
+      security:
+      - SignatureAuth: []
+      summary: Sell a Public Markets asset
+      tags:
+      - Public Markets
+  /v1/public-markets/dividends:
+    get:
+      description: 'Each with its breakdown: units on the record date, gross, withholding
+        tax and the net paid.'
+      parameters:
+      - description: Only this asset
+        in: query
+        name: assetCode
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - SignatureAuth: []
+      summary: My dividends and coupons
+      tags:
+      - Public Markets
+  /v1/public-markets/orders:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - SignatureAuth: []
+      summary: My Public Markets orders
+      tags:
+      - Public Markets
+  /v1/public-markets/orders/{orderID}:
+    get:
+      parameters:
+      - description: Order ID (PM-CR-..., PM-RD-...)
+        in: path
+        name: orderID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/publicmarkets.OrderView'
+      security:
+      - SignatureAuth: []
+      summary: One of my orders, with its timeline
+      tags:
+      - Public Markets
+  /v1/public-markets/portfolio:
+    get:
+      description: Holdings across the user's wallets with average cost, returns,
+        income, open orders and recent activity.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/publicmarkets.Portfolio'
+      security:
+      - SignatureAuth: []
+      summary: My Stocks
+      tags:
+      - Public Markets
   /v1/public/tokenization:
     get:
       produces:
@@ -6281,6 +7072,265 @@ paths:
       summary: GET /v1/trovo-api/payment/request/:targetUser
       tags:
       - servicelinks
+  /v1/trovo-api/public-markets/account:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: The exchange's prefunded balance and its movements
+      tags:
+      - Public Markets (exchange partners)
+  /v1/trovo-api/public-markets/assets:
+    get:
+      description: Assets an exchange can offer its customers, with reference prices
+        and whether they accept orders.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Public Markets assets (exchange partners)
+      tags:
+      - Public Markets (exchange partners)
+  /v1/trovo-api/public-markets/assets/{assetCode}:
+    get:
+      parameters:
+      - description: Asset code
+        in: path
+        name: assetCode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/publicmarkets.AssetView'
+      security:
+      - ApiKeyAuth: []
+      summary: A Public Markets asset with its reference price (exchange partners)
+      tags:
+      - Public Markets (exchange partners)
+  /v1/trovo-api/public-markets/confirmations:
+    post:
+      consumes:
+      - application/json
+      description: 'Required for every dividend.paid: the exchange confirms it passed
+        the (already withheld) amount on. Unconfirmed events past the SLA are escalated.'
+      parameters:
+      - description: The exchange's idempotency key
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: eventId, or event and walletId; confirmedAt
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.ConfirmationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Confirm receipt of a webhook (§6.4.3)
+      tags:
+      - Public Markets (exchange partners)
+  /v1/trovo-api/public-markets/creation:
+    post:
+      consumes:
+      - application/json
+      description: Buys for a customer's wallet, paid from the exchange's prefunded
+        balance. Answers 202 pending; a creation.settled webhook follows once the
+        Custodian confirms settlement. Runs on the same engine as Trovo App orders.
+      parameters:
+      - description: The exchange's idempotency key
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: walletId, assetCode, amount, amountCurrency (NGN), externalOrderRef
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.ExchangeOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/publicmarkets.ExchangeOrderView'
+      security:
+      - ApiKeyAuth: []
+      summary: Place a creation order (§6.3.2)
+      tags:
+      - Public Markets (exchange partners)
+  /v1/trovo-api/public-markets/deposits:
+    post:
+      consumes:
+      - application/json
+      description: After sending the funding stablecoin from the registered funding
+        wallet to the Public Markets treasury, submit the transaction hash to have
+        it credited.
+      parameters:
+      - description: The exchange's idempotency key
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: txHash
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Credit a deposit to the prefunded balance
+      tags:
+      - Public Markets (exchange partners)
+  /v1/trovo-api/public-markets/orders/{orderID}:
+    get:
+      description: pending, settled, rejected or failed (internal states are not exposed).
+      parameters:
+      - description: trovotechOrderId
+        in: path
+        name: orderID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/publicmarkets.ExchangeOrderView'
+      security:
+      - ApiKeyAuth: []
+      summary: An order's status (exchange partners)
+      tags:
+      - Public Markets (exchange partners)
+  /v1/trovo-api/public-markets/redemption:
+    post:
+      consumes:
+      - application/json
+      description: 'Sells from a customer''s wallet: quantity (tokens) or amount (NGN).
+        Answers 202 pending; redemption.settled follows, with the proceeds credited
+        to the exchange''s balance.'
+      parameters:
+      - description: The exchange's idempotency key
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: walletId, assetCode, quantity or amount, externalOrderRef
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.ExchangeOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/publicmarkets.ExchangeOrderView'
+      security:
+      - ApiKeyAuth: []
+      summary: Place a redemption order (§6.3.3)
+      tags:
+      - Public Markets (exchange partners)
+  /v1/trovo-api/public-markets/wallets:
+    post:
+      consumes:
+      - application/json
+      description: Opens an individually addressed wallet for one of the exchange's
+        customers, from the minimum identity and tax data Trovotech needs (full KYC
+        stays with the exchange). A repeated externalUserRef returns the same wallet.
+        A missing field is refused with a field-level error.
+      parameters:
+      - description: The exchange's idempotency key
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: externalUserRef, legalName, taxIdentifier, residencyCountry,
+          nationality, ndpaConsent
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.ProvisionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/publicmarkets.WalletView'
+        "400":
+          description: field-level error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Provision a customer wallet (§6.3.1)
+      tags:
+      - Public Markets (exchange partners)
+  /v1/trovo-api/public-markets/wallets/{walletID}:
+    get:
+      parameters:
+      - description: walletId
+        in: path
+        name: walletID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: A customer wallet's holdings (exchange partners)
+      tags:
+      - Public Markets (exchange partners)
   /v1/trovo-api/stakeholder-documents:
     post:
       consumes:

@@ -607,6 +607,87 @@ automatically by the KYC callback when KYC level 1 (BVN) completes.
 
 ---
 
+## Public Markets (tokenized NGX equities and FMDQ bonds)
+
+See [PUBLIC_MARKETS.md](PUBLIC_MARKETS.md) for how the engine works.
+Thresholds, fees, approvers, market hours and withholding-tax rates are
+**not** environment variables. They live in the `public_market_settings`
+row and are edited in Trovo Manager. Partner endpoints and modes live in
+`public_market_custodians` and `approved_dealing_members`, also edited in
+Trovo Manager. Without `BASE_RPC_URL` the engine only does database work:
+no wallets, mints or payments.
+
+**`PUBLIC_MARKETS_SIGNERS`**
+- Example: `key1;key2;key3`
+- What it does: A `;`-separated list of the private keys or mnemonics
+  that own the Public Markets Safes:
+  - each asset's issuing Safe;
+  - the treasury;
+  - every exchange customer's wallet.
+
+  The first signer submits the transactions and pays their gas.
+- How to get a real value: managed secret (Vault), one key per signing
+  officer/HSM. For local development, any test-only keys.
+
+**`PUBLIC_MARKETS_TREASURY_SAFE`**
+- Example: `0x3333333333333333333333333333333333333333`
+- What it does: The Safe (owned by the signers above) that receives
+  buyers' CNGN and exchange deposits, and pays sellers, dividends, fees and
+  withholding tax. Exchanges are told to deposit here.
+- How to get a real value: deploy a Safe owned by the Public Markets
+  signers on the target network.
+
+**`PUBLIC_MARKETS_PARTNER_WALLET_THRESHOLD`**
+- Example: `` (default: the smaller of 3 and the number of signers)
+- What it does: How many signers must sign for an exchange customer's
+  wallet Safe. It only applies to wallets deployed after it changes.
+- How to get a real value: leave empty unless your signing policy differs.
+
+**`SAFE_FALLBACK_HANDLER_ADDRESS`**
+- Example: `` (default `0xfd0732Dc9E303f09fCEf3a7388Ad10A83459Ec99`, the
+  Safe v1.4.1 CompatibilityFallbackHandler)
+- What it does: The fallback handler set on the exchange customer wallets
+  the engine deploys.
+- How to get a real value: leave empty unless your network's Safe
+  deployment uses another address.
+
+**`PUBLIC_MARKETS_MOCK_EXECUTION_SECONDS`** / **`PUBLIC_MARKETS_MOCK_SETTLEMENT_SECONDS`**
+- Example: `20` / `60`
+- What it does: How long the mock Dealing Member takes to fill an order,
+  and how long the mock Custodian takes to confirm settlement (the real
+  cycle is T+2). These apply only to partners in `MOCK` mode.
+- How to get a real value: the defaults suit development. Use larger
+  values to demo pending states.
+
+**`PUBLIC_MARKETS_PRICE_FEED`** / **`PUBLIC_MARKETS_PRICE_FEED_URL`** / **`PUBLIC_MARKETS_PRICE_FEED_AUTH`** / **`PUBLIC_MARKETS_PRICE_FEED_CREDENTIALS`**
+- Example: `rest` / `https://prices.example.com` / `hmac` / `env:PRICE_VENDOR`
+- What it does: With `rest`, prices come from a vendor's
+  `GET /v1/quotes/{isin}`. Otherwise a mock feed moves prices in small
+  steps during market hours, within NGX's ±10% daily band. AUTH is `hmac`
+  or `mtls`. CREDENTIALS is a credentials reference (below).
+- How to get a real value: the contracted price vendor's details. Until
+  then, leave PUBLIC_MARKETS_PRICE_FEED empty.
+
+**Partner credentials references** (the `credentialsRef` of a Custodian,
+Dealing Member or the price feed, set in Trovo Manager)
+- Example: `env:CUSTODIAN_A` or `vault://secret/public-markets/custodian-a#CUSTODIAN_A`
+- What it does: Names the environment variable that holds the partner's
+  credentials:
+  - `NAME` holds `keyId:secret` for HMAC signing, both outbound and to
+    verify the partner's webhooks;
+  - `NAME_CERT` / `NAME_KEY` are PEM file paths, for mTLS.
+
+  A `vault://path#FIELD` reference reads `FIELD`, which the deployment
+  injects from Vault like every other managed secret.
+- How to get a real value: issued by the partner during onboarding.
+
+**`PUBLIC_MARKETS_TEST_POSTGRES`** (tests only)
+- Example: `host=localhost user=trovo dbname=trovo_test sslmode=disable`
+- What it does: Runs the Public Markets tests against this Postgres
+  database, each test in its own schema, instead of SQLite.
+
+---
+
 ## Email (Mailgun)
 
 **`MAILGUN_PRIVATE_API_KEY`**

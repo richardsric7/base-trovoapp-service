@@ -738,6 +738,89 @@ The processing fee and its VAT on each payout are paid to the fee and VAT
 wallets and recorded in `fee_collections` as `PROCEED_PAYOUT_FEE` /
 `PROCEED_PAYOUT_FEE_VAT`.
 
+## Public Markets (tokenized equities and bonds)
+
+How the engine works is in [PUBLIC_MARKETS.md](PUBLIC_MARKETS.md). There
+are three surfaces.
+
+### The apps (`/v1/public-markets`)
+
+The listing and prices are public (rate limited). Everything else uses
+the request signature, like every other app route.
+
+| Route | What it returns |
+|---|---|
+| `GET /v1/public-markets?market=&type=&search=` | Assets with price, day change, market session and whether they accept orders |
+| `GET /v1/public-markets/assets/:assetCode` | One asset: statistics, custody chain, corporate actions |
+| `GET /v1/public-markets/assets/:assetCode/prices?range=1D\|1W\|1M\|3M\|1Y\|All` | Chart points |
+| `GET /v1/public-markets/assets/:assetCode/quote?side=buy&amount=` / `?side=sell&quantity=` | Fee, quantity or proceeds, and path (fast / netted / slow) |
+| `POST /v1/public-markets/assets/:assetCode/buy` / `.../sell` | Two calls. With `walletAddress` and `amount` (or `quantity`), returns the quote and the wallet operation to sign. Called again with `transaction` and `transactionSignature`, it submits the operation and returns the order |
+| `GET /v1/public-markets/portfolio` | Holdings, average cost, returns, income, open orders, activity |
+| `GET /v1/public-markets/orders`, `GET /v1/public-markets/orders/:orderID` | Orders, and one order with its timeline |
+| `GET /v1/public-markets/dividends?assetCode=` | Dividends and coupons: units at the record date, gross, withholding tax, net |
+
+The order's status changes arrive as push notifications, and over the
+user websocket as `publicMarketsEvent`. Trading needs KYC. Shared wallets
+(wallets with approvers) cannot trade Public Markets.
+
+### Exchanges (`/v1/trovo-api/public-markets`)
+
+The exchange must be a verified service link that Trovo Manager has
+onboarded for Public Markets. Every request carries:
+
+- the API key, as `X-TW-SERVICE-LINK-API-KEY` or
+  `Authorization: HMAC {apiKey}:{signature}`;
+- `X-Trovotech-Timestamp` (Unix seconds, within 5 minutes);
+- the signature, as `hex(HMAC-SHA256(signingSecret, timestamp + "." + body))`,
+  in the `Authorization` header or `X-Trovotech-Signature`.
+
+After a secret rotation, the previous secret is accepted until its expiry.
+Every `POST` requires an `Idempotency-Key`:
+
+- a repeat returns the original response with `Idempotent-Replayed: true`;
+- the same key with a different body gets `422`;
+- a key whose request is still running gets `409`;
+- a `5xx` is not recorded, so it can be retried.
+
+| Route | Purpose |
+|---|---|
+| `GET /assets`, `GET /assets/:assetCode` | Assets and reference prices |
+| `POST /wallets` | Provision a customer wallet: `externalUserRef`, `legalName`, `taxIdentifier`, `residencyCountry`, `nationality`, `ndpaConsent`. Answers `201`, or `200` for a known `externalUserRef`. A missing field gets `400` with `field` |
+| `GET /wallets/:walletID` | A wallet's holdings |
+| `POST /creation` | `walletId`, `assetCode`, `amount` (NGN), `externalOrderRef`. Paid from the prefunded balance. Answers `202 pending` |
+| `POST /redemption` | `walletId`, `assetCode`, `quantity` or `amount`, `externalOrderRef`. Proceeds go to the balance. Answers `202 pending` |
+| `GET /orders/:orderID` | `pending`, `settled`, `rejected` or `failed` |
+| `POST /confirmations` | Confirm a webhook (`eventId`, or `event` + `walletId`). Required for every `dividend.paid` |
+| `GET /account` | Balance, deposit address (the treasury), the registered funding wallet and recent movements |
+| `POST /deposits` | `txHash` of a CNGN transfer from the funding wallet to the treasury, which is verified on-chain and credited |
+
+Webhooks go to the exchange's URL:
+
+- events: `creation.settled`, `redemption.settled`, `order.rejected`,
+  `dividend.paid`;
+- headers: `X-Trovotech-Event`, `X-Trovotech-Delivery` (the event id),
+  `X-Trovotech-Timestamp` and `X-Trovotech-Signature`, signed like the
+  requests.
+
+Failed deliveries are retried with backoff and then dead-lettered.
+Trovo Manager can replay them.
+
+### Custodian and Dealing Member callbacks
+
+| Route | Sent by |
+|---|---|
+| `POST /v1/custodian-partners/callbacks/settlement` | Custodian: `instructionId`, `status` (`settlement_final` / `failed`), `settledQuantity`, `settlementDate`, `custodianReference` |
+| `POST /v1/custodian-partners/callbacks/positions` | Custodian: `asOf`, `positions[]` (`assetCode`, `unitsHeld`) |
+| `POST /v1/custodian-partners/callbacks/corporate-action` | Custodian: `assetCode`, `eventType`, `recordDate`, `payDate`, `amountPerUnit`, `currency` |
+| `POST /v1/dealing-member-partners/callbacks/execution` | Dealing Member: `orderId`, `status` (`FILLED` / `PARTIAL` / `REJECTED`), `executedQuantity`, `executedPrice`, `executionTime` |
+
+The partner names itself in `X-Partner-Code` and signs the body the same
+way, with the secret from its credentials reference
+(`X-Trovotech-Timestamp` + `X-Partner-Signature`). A redelivery answers
+`{"status":"duplicate"}`. These payloads follow the integration
+document's proposal and will be adjusted when the partners' specifications
+are final. Until then, partners run as mocks.
+
 ## Swagger UI: the per-endpoint reference
 
 Once the server is running, every documented endpoint — request

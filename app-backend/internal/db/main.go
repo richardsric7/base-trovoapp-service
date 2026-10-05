@@ -13,6 +13,7 @@ import (
 	assetModels "trovo-wallet-api/internal/components/assets/models"
 	p2pModels "trovo-wallet-api/internal/components/p2p/models"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
+	pmModels "trovo-wallet-api/internal/components/publicmarkets/models"
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	users "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/dynamiclinks"
@@ -191,6 +192,12 @@ func runSchemaMigration(gormDB *gorm.DB) {
 		errMigrate := gormDB.AutoMigrate(&sharedConfig.ChannelAccount{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating ChannelAccount: ", errMigrate)
+		}
+	}
+	{
+		// Public Markets (internal/components/publicmarkets)
+		if errMigrate := gormDB.AutoMigrate(pmModels.All()...); errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating Public Markets tables: ", errMigrate)
 		}
 	}
 	{

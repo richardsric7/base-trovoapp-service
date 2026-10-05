@@ -22,6 +22,9 @@ links at the bottom to the deeper docs.
   real-world assets (see `TOKENIZATION_PLAN.md` and
   `TOKENIZED_ASSET_PURCHASE_BY_FIAT.md` in this directory for the original
   design notes).
+- **Public Markets** — tokenized NGX equities and FMDQ bonds, backed by
+  units a Custodian holds at CSCS, bought and sold by Trovo App users and
+  partner exchanges (see [PUBLIC_MARKETS.md](PUBLIC_MARKETS.md)).
 - **KYC** — identity verification via third-party providers (Sumsub, Doja).
 - **Service links** — API-key-based integrations that let white-label
   partners (and Trovo's own admin backend) act on behalf of users, mint
@@ -174,3 +177,6 @@ requests you try from the Swagger UI or elsewhere.
   this service reads, what it does, and how to get a real value for it.
 - **[INTEGRATION.md](INTEGRATION.md)** — how `app-web`, `app-mobile`,
   `tm-api`, and white-label partners each integrate with this API.
+- **[PUBLIC_MARKETS.md](PUBLIC_MARKETS.md)** — the Public Markets engine:
+  order paths, net batches, partners (mock/REST/manual), reconciliation,
+  exchanges and dividends.
