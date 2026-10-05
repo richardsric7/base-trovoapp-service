@@ -29,8 +29,11 @@ deploy script and a local deployment for end-to-end tests.
    fills the offer with the buyer's wallet as recipient.
 
 The book has no order matching and no price discovery: every fill is at the
-seller's price. Market-making wallets can use the same contract for their
-own offers (not wired into app-backend yet).
+seller's price. Users' market-making offers (app-backend
+`POST /v1/users/trades`) are offers on the same book, and swaps
+(`POST /v1/users/swap`) fill them, cheapest first, each fill authorized
+by the platform like a purchase - see app-backend's INTEGRATION.md
+"Swaps and market-making offers".
 
 ## Safety properties
 

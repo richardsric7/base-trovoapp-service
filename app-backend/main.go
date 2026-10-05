@@ -10,6 +10,7 @@ import (
 	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/gnosissafe"
 	"trovo-wallet-api/internal/network"
+	"trovo-wallet-api/internal/offerbook"
 	pns "trovo-wallet-api/internal/pns"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -784,6 +785,31 @@ func main() {
 	}
 
 	{
+		// Index TrovoOfferBook (offers, prices, fills) for swaps, the order
+		// book, prices and trade charts.
+		offerbook.Use(globalConfig.DB, globalConfig.BantuExpansionClient)
+		if book, err := offerbook.BookAddress(); err == nil {
+			go func() {
+				for {
+					caughtUp := true
+					sharedconfig.WithSingletonLock(&globalConfig, "index-offer-book", time.Minute, func() {
+						ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+						defer cancel()
+						done, err := offerbook.Index(ctx, globalConfig.DB, globalConfig.BantuExpansionClient, book, 20)
+						if err != nil {
+							log.Printf("[offerbook] indexing %v: %v", book.Hex(), err)
+						}
+						caughtUp = done || err != nil
+					})
+					if caughtUp {
+						time.Sleep(4 * time.Second)
+					}
+				}
+			}()
+		}
+	}
+
+	{
 		// Finalize account recoveries whose recovery period is over, notice
 		// cancellations and alert on recoveries started outside the backend.
 		go func() {
@@ -806,7 +832,19 @@ func main() {
 				sharedconfig.WithSingletonLock(&globalConfig, "monitor-stream", 20*time.Second, func() {
 					MonitorStream(&globalConfig)
 				})
-				time.Sleep(5 * time.Minute)
+				time.Sleep(5 * time.Second)
+			}
+		}()
+	}
+
+	{
+		// Follow Stablerail offramps (bank withdrawals) to their end.
+		go func() {
+			for {
+				sharedconfig.WithSingletonLock(&globalConfig, "stablerail-offramp-status", 2*time.Minute, func() {
+					userServices.UpdateOfframpStatuses(&globalConfig)
+				})
+				time.Sleep(time.Minute)
 			}
 		}()
 	}
@@ -1057,22 +1095,12 @@ func getUniqueUsernamesSlice(uniqueUsernames map[string]struct{}) []string {
 	return usernames
 }
 
-// MonitorStream watched Horizon's global operation stream
-// (client.StreamOperations, every operation network-wide joined with its
-// transaction) and, for each one, invalidated the cached balance/wallet/
-// user entries of every account it touched (see the former
-// ProcessOperation) so cached reads reflected on-chain state promptly.
-// Base has no equivalent account-agnostic operation feed - the
-// Base-native way to get this is subscribing to eth_subscribe("logs")
-// for the native transfers/B20 token contracts this app cares about and
-// decoding events (go-ethereum's ethclient.SubscribeFilterLogs), which
-// needs a WS-capable RPC endpoint and a real event-decoding design,
-// tracked as a follow-up out of scope for this alteration pass. Until
-// then, each payment/swap call path invalidates its own affected
-// accounts' cache entries directly (see internal/components/*/services),
-// so this is a documented no-op rather than a broken poll loop.
+// MonitorStream keeps cached balances and history fresh: Base has no
+// account-agnostic operation stream like Horizon's, so it follows the
+// payment history payment-history-engine records and clears the caches of
+// the wallets in each new payment, deposits from outside Trovo included.
 func MonitorStream(gc *sharedconfig.GlobalConfig) {
-	log.Println("[MonitorStream] Base has no global operation stream to watch (see doc comment) - idling.")
+	userServices.RefreshCachesForNewPayments(gc)
 }
 
 // mintNextCryptoDeposit mints the oldest crypto deposit not minted yet; it

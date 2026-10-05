@@ -647,13 +647,13 @@ type pendingAuthForSubmit struct {
 }
 
 // SubmitApprovalsXdrWithSignatures submits every approver's contributed
-// raw signed transaction for a pending multi-party approval. Stellar's
-// version let N approvers co-sign ONE multisig-account transaction; Base
-// has no plain-account equivalent (that needs a deployed multisig/Safe
-// contract, out of scope for this alteration pass), so each approver's
-// "signature" is itself a fully signed raw transaction for their own
-// operation, and this submits each in turn - application-sequenced, not
-// chain-atomic multisig.
+// raw signed transaction for a pending multi-party approval of the older
+// kind, where each approver's "signature" is itself a fully signed raw
+// transaction for their own part, submitted in turn. Approvals on Trovo's
+// Safe wallets do not come here: the approvers sign the wallet operation
+// itself and the Safe checks their signatures on-chain (internal/aa,
+// users/services approvals); this path remains only for approval requests
+// that are not backed by a wallet operation.
 func SubmitApprovalsXdrWithSignatures(client *ethclient.Client, approvalID string, db *gorm.DB) (string, error) {
 	type pendingTransactionSignature struct {
 		PendingAuthID            string `gorm:"size:56"`
@@ -757,4 +757,52 @@ func logDiscordFailedPayment(msg string) {
 		discord.WebhookURL = os.Getenv("FAILED_PAYMENT_ERROR_WEBHOOK")
 	}
 	discord.Say(msg)
+}
+
+// transferTopic is keccak256("Transfer(address,address,uint256)").
+var transferTopic = common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
+
+// TokenHolders lists every address holding token now, with its raw
+// balance: the recipients of the token's Transfer events since fromBlock
+// (its deployment), each checked with balanceOf. Base has no "accounts
+// holding this asset" query like Horizon's, so the token's own event log
+// is the list.
+func TokenHolders(ctx context.Context, client *ethclient.Client, token common.Address, fromBlock uint64) (map[common.Address]*big.Int, error) {
+	head, err := client.BlockNumber(ctx)
+	if err != nil {
+		return nil, err
+	}
+	seen := map[common.Address]bool{}
+	const chunk = 5000
+	for from := fromBlock; from <= head; from += chunk {
+		to := from + chunk - 1
+		if to > head {
+			to = head
+		}
+		logs, err := client.FilterLogs(ctx, ethereum.FilterQuery{
+			FromBlock: new(big.Int).SetUint64(from), ToBlock: new(big.Int).SetUint64(to),
+			Addresses: []common.Address{token}, Topics: [][]common.Hash{{transferTopic}},
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, l := range logs {
+			if len(l.Topics) == 3 {
+				seen[common.BytesToAddress(l.Topics[2].Bytes())] = true
+			}
+		}
+	}
+	delete(seen, common.Address{})
+	out := map[common.Address]*big.Int{}
+	for a := range seen {
+		data, _ := erc20ABI.Pack("balanceOf", a)
+		res, err := client.CallContract(ctx, ethereum.CallMsg{To: &token, Data: data}, nil)
+		if err != nil {
+			return nil, err
+		}
+		if b := new(big.Int).SetBytes(res); b.Sign() > 0 {
+			out[a] = b
+		}
+	}
+	return out, nil
 }

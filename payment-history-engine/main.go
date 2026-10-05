@@ -595,23 +595,22 @@ func lookupTrackedWallets(roachDB *gorm.DB, from, to string) (fromAlias, fromNam
 	return fromAlias, fromName, toAlias, toName, true
 }
 
-// processNativeTransfer records a plain Base-native-currency transfer (a
-// transaction with a non-zero Value and no calldata routed to a contract) -
-// the Base equivalent of Horizon's "payment"/"create_account" operations
-// for the native asset.
-func processNativeTransfer(from, to string, weiAmount *big.Int, txHash string, blockNumber, nonce, blockTime uint64, db, roachDB *gorm.DB) {
+// recordNativeTransfer records an ETH transfer touching a tracked wallet
+// under id (unique per transfer) and seq (distinguishing transfers of one
+// transaction).
+func recordNativeTransfer(from, to string, weiAmount *big.Int, txHash string, blockNumber uint64, id, seq string, blockTime uint64, db, roachDB *gorm.DB) {
 	fromAlias, fromName, toAlias, toName, found := lookupTrackedWallets(roachDB, from, to)
 	if !found {
 		return
 	}
-	log.Printf("[processNativeTransfer] found trovo user wallet(s) for tx %v\n", txHash)
+	log.Printf("[recordNativeTransfer] found trovo user wallet(s) for tx %v\n", txHash)
 
 	amount := decimal.NewFromBigInt(weiAmount, -18)
 	pt := fmt.Sprintf("%020d", blockNumber)
 
-	e := paymentServices.SavePaymentHistory(from, fromAlias, fromName, to, toAlias, toName, "", "", os.Getenv("NATIVE_ASSET_CODE"), amount.String(), paymentModels.NetworkBase, txHash, "PAYMENT", pt, txHash, fmt.Sprintf("%d", nonce), time.Unix(int64(blockTime), 0), db)
+	e := paymentServices.SavePaymentHistory(from, fromAlias, fromName, to, toAlias, toName, "", "", os.Getenv("NATIVE_ASSET_CODE"), amount.String(), paymentModels.NetworkBase, txHash, "PAYMENT", pt, id, seq, time.Unix(int64(blockTime), 0), db)
 	if e != nil {
-		log.Println("[processNativeTransfer] unable to save SavePaymentHistory:", e)
+		log.Println("[recordNativeTransfer] unable to save SavePaymentHistory:", e)
 	}
 }
 
@@ -676,26 +675,27 @@ func ProcessBlock(client *ethclient.Client, blockNumber uint64, db, roachDB *gor
 	logs, err := client.FilterLogs(ctx, ethereum.FilterQuery{
 		FromBlock: new(big.Int).SetUint64(blockNumber),
 		ToBlock:   new(big.Int).SetUint64(blockNumber),
-		Topics:    [][]common.Hash{{transferEventSig}},
+		Topics:    [][]common.Hash{{transferEventSig, userOperationEventSig, safeReceivedSig}},
 	})
 	if err != nil {
-		return fmt.Errorf("fetching Transfer logs for block %d: %w", blockNumber, err)
+		return fmt.Errorf("fetching logs for block %d: %w", blockNumber, err)
+	}
+	byTx := map[common.Hash][]types.Log{}
+	for _, lg := range logs {
+		byTx[lg.TxHash] = append(byTx[lg.TxHash], lg)
 	}
 
 	signer := types.LatestSignerForChainID(network.GetBlockchainChainID())
+	entryPoint := entryPointAddress()
 	for _, tx := range block.Transactions() {
-		if tx.To() == nil || tx.Value().Sign() <= 0 {
-			continue // contract creation, or a zero-value contract call - not a native transfer
+		for _, t := range nativeTransfersOfTx(tx, byTx[tx.Hash()], signer, entryPoint) {
+			recordNativeTransfer(t.From.Hex(), t.To.Hex(), t.Value, tx.Hash().Hex(), blockNumber, t.ID, t.Seq, block.Time(), db, roachDB)
 		}
-		from, errSender := types.Sender(signer, tx)
-		if errSender != nil {
-			continue
-		}
-		processNativeTransfer(from.Hex(), tx.To().Hex(), tx.Value(), tx.Hash().Hex(), blockNumber, tx.Nonce(), block.Time(), db, roachDB)
 	}
-
 	for _, lg := range logs {
-		processB20TransferLog(client, lg, block.Time(), db, roachDB)
+		if len(lg.Topics) > 0 && lg.Topics[0] == transferEventSig {
+			processB20TransferLog(client, lg, block.Time(), db, roachDB)
+		}
 	}
 	return nil
 }
@@ -788,8 +788,11 @@ const backfillChunkBlocks = 5000
 // does not need to scan every block. Native-currency history for a single
 // historical account has no equally efficient plain-JSON-RPC equivalent
 // (native transfers emit no logs to filter by address) - that needs a
-// block-indexing service (e.g. an Etherscan/Blockscout-style API), tracked
-// as a follow-up out of scope for this alteration pass. This is the Base
+// block-indexing service (e.g. an Etherscan/Blockscout-style API). Trovo
+// wallets are Safes, though, and a Safe's ETH does leave logs: its own
+// SafeReceived events and the EntryPoint's UserOperationEvents for its
+// sends, so their ETH history is backfilled too (backfillNativeOfSafe) -
+// all but ETH sent to a wallet before it was deployed. This is the Base
 // equivalent of Horizon's per-account client.StreamPayments(ForAccount:...).
 func MonitorAddressPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *sync.WaitGroup) {
 	defer wg.Done()
@@ -868,6 +871,13 @@ func MonitorAddressPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *syn
 			}
 			processB20TransferLog(client, lg, ts, db, roachDB)
 		}
+		// the address's ETH, if it is a Safe: what it received (its
+		// SafeReceived events) and sent (its user operations, from the
+		// EntryPoint's UserOperationEvent indexed by sender)
+		if err := backfillNativeOfSafe(client, common.HexToAddress(publicKey), from, to, blockTimes, db, roachDB); err != nil {
+			log.Printf("[MonitorAddressPaymentStream] error reading ETH history of %v in range [%v,%v]: %v\n", publicKey, from, to, err)
+			return
+		}
 
 		//persist progress so the next periodic pass over tracked_addresses resumes
 		//here instead of re-scanning from genesis.
@@ -882,13 +892,10 @@ func MonitorAddressPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *syn
 // MonitorTradeStream watched Horizon's global trade stream
 // (client.StreamTrades) and, for each trade filling one of this app's
 // market-making offers, built and submitted a fee-collection transaction
-// (see the former ProcessTrade). Base has no native on-chain order book to
-// source a trade event from (the same gap documented in app-backend's
-// internal/basetxn ManageSellOffer/PathPayment* operations and
-// internal/sharedconfig/order_book_summary.go) - market-making on Base
-// needs a real design (a specific DEX/AMM router integration whose swap
-// events this engine could subscribe to), tracked as a follow-up out of
-// scope for this alteration pass.
+// (see the former ProcessTrade). On Base, market-making offers live on
+// TrovoOfferBook and their fills are indexed by app-backend
+// (internal/offerbook); market-making fees are no longer charged, so there
+// is no fee to collect when an offer is filled, and this stays idle.
 func MonitorTradeStream(db, roachDB *gorm.DB, redisCache *cache.RedisCache) {
 	checkExists := db.Where("CAST(remaining_quantity AS REAL) > ? AND canceled = 0", 0).First(&paymentModels.MarketOffer{}).Error
 

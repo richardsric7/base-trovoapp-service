@@ -131,17 +131,19 @@ func SendSMSWithTermiiGateway(destNumber, messageBody string) error {
 
 	senderID := os.Getenv("TERMII_SMS_SENDER_ID")
 	channel := "generic"
-	log.Println("[SendSMSWithTermiiGateway] sending sms to: ", destNumber, " with message: ", text)
+	// the text carries one-time codes: log its length only
+	log.Println("[SendSMSWithTermiiGateway] sending sms to: ", destNumber, " message length: ", len(text))
 	if strings.HasPrefix(destNumber, "234") {
 		senderID = "N-Alert"
 		channel = "dnd"
 		log.Println("[SendSMSWithTermiiGateway] sending sms with sender ID: ", senderID, " through channel: ", channel)
 	}
 
-	// the API key goes in the query string: log the URL without it
+	// the API key and the text go in the query string: log the URL without
+	// them
 	urlFormat := "https://%s/api/sms/send?to=%s&from=%s&sms=%s&type=plain&channel=%s&api_key=%s"
 	reqURL := fmt.Sprintf(urlFormat, os.Getenv("TERMII_SMS_URL"), destNumber, senderID, url.QueryEscape(text), channel, os.Getenv("TERMII_SMS_API_KEY"))
-	log.Println("URL:", fmt.Sprintf(urlFormat, os.Getenv("TERMII_SMS_URL"), destNumber, senderID, url.QueryEscape(text), channel, "REDACTED"))
+	log.Println("URL:", fmt.Sprintf(urlFormat, os.Getenv("TERMII_SMS_URL"), destNumber, senderID, "REDACTED", channel, "REDACTED"))
 
 	resp, err := outboundHTTP.Post(reqURL, "application/json", nil)
 

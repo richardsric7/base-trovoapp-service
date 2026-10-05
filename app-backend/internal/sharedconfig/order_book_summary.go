@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/offerbook"
 
 	"github.com/ecnepsnai/discord"
 	"github.com/shopspring/decimal"
@@ -27,27 +28,31 @@ type PriceLevel struct {
 	Amount string `json:"amount"`
 }
 
-// OrderBookSummary is the Base equivalent of Stellar's
-// horizon.OrderBookSummary. Stellar's DEX order book is a native ledger
-// feature with no Base/EVM equivalent - Base price discovery happens
-// on-chain via AMM pools (e.g. a Uniswap-v3-style quoter), not a native
-// order book. GetBantuOrderBookSummary below is a stub pending that
-// integration (tracked, out of scope for this alteration pass); it
-// always returns an empty book so callers' existing "no
-// asks/bids -> zero/temporary-error" handling degrades gracefully rather
-// than crashing.
+// OrderBookSummary is an order book in the form Stellar's
+// horizon.OrderBookSummary had: asks sell the selling asset (amounts in
+// it), bids buy it with the buying asset (amounts in that), both priced in
+// the buying asset per selling asset. On Base it is read from the offer
+// book index (internal/offerbook): the offers on TrovoOfferBook.
 type OrderBookSummary struct {
 	Bids []PriceLevel `json:"bids"`
 	Asks []PriceLevel `json:"asks"`
 }
 
-// GetBantuOrderBookSummary is a stub: Base has no native on-chain order
-// book to query (see OrderBookSummary doc). Wire this to a real Base DEX
-// price source (e.g. a Uniswap-v3 Quoter contract call for the
-// asset/native pair) when swap pricing needs it to be more than
-// unavailable.
+// GetBantuOrderBookSummary reads the order book of the selling asset
+// against the buying asset. Only tokens trade on the offer book: a
+// native-asset side has no book (an error).
 func GetBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary OrderBookSummary, err error) {
-	return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
+	asks, bids, err := offerbook.CurrentTextBook(input.SellingContractAddress, input.BuyingContractAddress, input.Limit)
+	if err != nil {
+		return orderBookSummary, &tErrors.ErrorTemporaryServerError{}
+	}
+	for _, l := range asks {
+		orderBookSummary.Asks = append(orderBookSummary.Asks, PriceLevel{Price: l.Price, Amount: l.Amount})
+	}
+	for _, l := range bids {
+		orderBookSummary.Bids = append(orderBookSummary.Bids, PriceLevel{Price: l.Price, Amount: l.Amount})
+	}
+	return orderBookSummary, nil
 }
 
 // GetDollarAskPrice dollar ask price using USDB

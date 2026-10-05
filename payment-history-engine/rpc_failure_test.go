@@ -29,7 +29,7 @@ func rpcServer(down *atomic.Bool) *httptest.Server {
 		json.NewDecoder(r.Body).Decode(&req)
 		data := req.Params[0].Data + req.Params[0].Input
 		result := "0x0000000000000000000000000000000000000000000000000000000000000006" // decimals()
-		if strings.HasPrefix(data, "0x95d89b41") {                                       // symbol()
+		if strings.HasPrefix(data, "0x95d89b41") {                                     // symbol()
 			result = "0x0000000000000000000000000000000000000000000000000000000000000020" +
 				"0000000000000000000000000000000000000000000000000000000000000004" +
 				"5553444300000000000000000000000000000000000000000000000000000000"

@@ -43,6 +43,11 @@ var offerBookABI = mustABI(`[
    {"name":"offerId","type":"uint256","indexed":true},{"name":"seller","type":"address","indexed":true},
    {"name":"sellToken","type":"address","indexed":true},{"name":"amount","type":"uint256","indexed":false},
    {"name":"proceedsRecipient","type":"address","indexed":false}]},
+ {"name":"PriceSet","type":"event","anonymous":false,"inputs":[
+   {"name":"offerId","type":"uint256","indexed":true},{"name":"paymentToken","type":"address","indexed":true},
+   {"name":"num","type":"uint128","indexed":false},{"name":"den","type":"uint128","indexed":false}]},
+ {"name":"OfferCancelled","type":"event","anonymous":false,"inputs":[
+   {"name":"offerId","type":"uint256","indexed":true},{"name":"returned","type":"uint256","indexed":false}]},
  {"name":"Filled","type":"event","anonymous":false,"inputs":[
    {"name":"offerId","type":"uint256","indexed":true},{"name":"taker","type":"address","indexed":true},
    {"name":"recipient","type":"address","indexed":true},{"name":"paymentToken","type":"address","indexed":false},
@@ -287,3 +292,93 @@ func ERC20Mint(token, to common.Address, amount *big.Int) Call {
 }
 
 var mintABI = mustABI(`[{"name":"mint","type":"function","inputs":[{"name":"to","type":"address"},{"name":"amount","type":"uint256"}],"outputs":[]}]`)
+
+// BookEvent is one TrovoOfferBook event that changes the book: an offer
+// created, priced, cancelled or filled.
+type BookEvent struct {
+	Kind    string // "created", "price", "cancelled", "filled"
+	OfferID *big.Int
+	Log     types.Log
+
+	// created
+	Seller            common.Address
+	SellToken         common.Address
+	Amount            *big.Int // created: escrowed; filled: sold
+	ProceedsRecipient common.Address
+	// price
+	PaymentToken common.Address // price, filled
+	Price        OfferPrice
+	// filled
+	Taker     common.Address
+	Recipient common.Address
+	Payment   *big.Int
+}
+
+// OfferBookTopics are the topics of the events DecodeBookEvent decodes.
+func OfferBookTopics() []common.Hash {
+	var out []common.Hash
+	for _, n := range []string{"OfferCreated", "PriceSet", "OfferCancelled", "Filled"} {
+		out = append(out, offerBookABI.Events[n].ID)
+	}
+	return out
+}
+
+// DecodeBookEvent decodes a TrovoOfferBook log; ok is false for other logs.
+func DecodeBookEvent(l types.Log) (BookEvent, bool) {
+	if len(l.Topics) < 2 {
+		return BookEvent{}, false
+	}
+	ev := BookEvent{OfferID: new(big.Int).SetBytes(l.Topics[1].Bytes()), Log: l}
+	switch l.Topics[0] {
+	case offerBookABI.Events["OfferCreated"].ID:
+		vals, err := offerBookABI.Events["OfferCreated"].Inputs.NonIndexed().Unpack(l.Data)
+		if err != nil || len(l.Topics) != 4 {
+			return BookEvent{}, false
+		}
+		ev.Kind = "created"
+		ev.Seller = common.BytesToAddress(l.Topics[2].Bytes())
+		ev.SellToken = common.BytesToAddress(l.Topics[3].Bytes())
+		ev.Amount = vals[0].(*big.Int)
+		ev.ProceedsRecipient = vals[1].(common.Address)
+	case offerBookABI.Events["PriceSet"].ID:
+		vals, err := offerBookABI.Events["PriceSet"].Inputs.NonIndexed().Unpack(l.Data)
+		if err != nil || len(l.Topics) != 3 {
+			return BookEvent{}, false
+		}
+		ev.Kind = "price"
+		ev.PaymentToken = common.BytesToAddress(l.Topics[2].Bytes())
+		ev.Price = OfferPrice{Num: vals[0].(*big.Int), Den: vals[1].(*big.Int)}
+	case offerBookABI.Events["OfferCancelled"].ID:
+		ev.Kind = "cancelled"
+	case offerBookABI.Events["Filled"].ID:
+		vals, err := offerBookABI.Events["Filled"].Inputs.NonIndexed().Unpack(l.Data)
+		if err != nil || len(l.Topics) != 4 {
+			return BookEvent{}, false
+		}
+		ev.Kind = "filled"
+		ev.Taker = common.BytesToAddress(l.Topics[2].Bytes())
+		ev.Recipient = common.BytesToAddress(l.Topics[3].Bytes())
+		ev.PaymentToken = vals[0].(common.Address)
+		ev.Amount = vals[1].(*big.Int)
+		ev.Payment = vals[2].(*big.Int)
+	default:
+		return BookEvent{}, false
+	}
+	return ev, true
+}
+
+// SetPriceCall sets (or, with a zero Num, withdraws) an offer's price in
+// token; only the offer's seller can.
+func SetPriceCall(book common.Address, offerID *big.Int, token common.Address, p OfferPrice) (Call, error) {
+	num, den := p.Num, p.Den
+	if num == nil || num.Sign() == 0 {
+		num, den = big.NewInt(0), big.NewInt(0)
+	} else if !p.Valid() {
+		return Call{}, fmt.Errorf("aa: invalid offer price %v/%v", p.Num, p.Den)
+	}
+	data, err := offerBookABI.Pack("setPrice", offerID, token, abiPrice{Num: num, Den: den})
+	if err != nil {
+		return Call{}, err
+	}
+	return Call{To: book, Value: big.NewInt(0), Data: data}, nil
+}

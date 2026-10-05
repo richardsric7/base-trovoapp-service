@@ -1,6 +1,14 @@
 package users
 
-import "testing"
+import (
+	"testing"
+
+	"trovo-wallet-api/internal/sharedconfig"
+
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+)
 
 func TestUSDAmountIn(t *testing.T) {
 	t.Setenv("DOLLAR_ASSET", "USDB:0x0000000000000000000000000000000000000001")
@@ -28,12 +36,25 @@ func TestUSDAmountIn(t *testing.T) {
 }
 
 func TestFeeExemptProfile(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{Logger: logger.Discard})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := db.AutoMigrate(&sharedconfig.FeeExemptUser{}); err != nil {
+		t.Fatal(err)
+	}
+	gc := &sharedconfig.GlobalConfig{DB: db}
 	t.Setenv("TOKENIZATION_ISSUING_PROFILE", "")
-	if !feeExemptProfile("atprofile") || feeExemptProfile("alice") {
+	if !feeExemptProfile("atprofile", gc) || feeExemptProfile("alice", gc) {
 		t.Fatal("default exempt profile is atprofile")
 	}
 	t.Setenv("TOKENIZATION_ISSUING_PROFILE", "issuer")
-	if !feeExemptProfile("ISSUER") || feeExemptProfile("atprofile") {
+	if !feeExemptProfile("ISSUER", gc) || feeExemptProfile("atprofile", gc) {
 		t.Fatal("the configured issuing profile is exempt")
+	}
+	// the admin-managed list (tm-api), case-insensitively
+	db.Create(&sharedconfig.FeeExemptUser{Username: "Treasury", Reason: "platform market maker", AddedBy: "admin@trovo"})
+	if !feeExemptProfile("treasury", gc) || feeExemptProfile("alice", gc) {
+		t.Fatal("listed accounts are exempt, others are not")
 	}
 }

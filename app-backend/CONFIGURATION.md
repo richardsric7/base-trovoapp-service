@@ -458,13 +458,23 @@ network fee.
 
 **`OFFER_BOOK_ADDRESS`**
 - Example: `0x5FbDB2315678afecb367f032d93F642f64180aa3`
-- What it does: The `TrovoOfferBook` contract tokenized assets are sold through. Required when `ENABLE_ASSET_TOKENIZATION=1` (startup fails otherwise).
+- What it does: The `TrovoOfferBook` contract tokenized assets are sold through, and the market swaps and market-making offers trade on (see [INTEGRATION.md](INTEGRATION.md#swaps-and-market-making-offers)). When set, app-backend indexes the book (offers, prices, fills) into its database. Required when `ENABLE_ASSET_TOKENIZATION=1` (startup fails otherwise); without it, swaps and market offers answer `error-swaps-not-configured` / `error-market-not-configured`.
 - How to get a real value: printed by `market/contracts/scripts/deploy.js` and saved in `market/contracts/deployments/<chainId>.json` (see [market/DEPLOYMENT.md](../market/DEPLOYMENT.md)).
 
 **`OFFER_AUTHORIZER_PRIVATE_KEY`**
 - Example: `0x59c6995e...` (hex private key)
-- What it does: Signs the fill authorization of each purchase the platform has checked (KYC, cap, sale window). Its address must be an authorizer on the offer book. A leaked key lets someone buy at the seller's price without those checks; it cannot move anyone's tokens. Required when tokenization is enabled.
+- What it does: Signs the fill authorization of each purchase and swap the platform has checked (KYC, cap, sale window). Its address must be an authorizer on the offer book. A leaked key lets someone buy at the seller's price without those checks; it cannot move anyone's tokens. Required for tokenization and swaps.
 - How to get a real value: a dedicated key from your secrets manager; give its address to the offer book (`AUTHORIZER_ADDRESSES` at deploy, or `setAuthorizer` by the owner Safe).
+
+**`OFFER_BOOK_START_BLOCK`**
+- Example: `23456789`
+- What it does: The block the offer book index starts reading from the first time (it then keeps its own cursor in `offer_book_cursors`). Before it has caught up, the order book, swaps' offer discovery and charts miss older offers.
+- How to get a real value: the block `TrovoOfferBook` was deployed in (its deployment transaction on a block explorer). Unset means block 0, which works but takes long on mainnet.
+
+**`OFFER_BOOK_CONFIRMATIONS`**
+- Example: `2` (the default)
+- What it does: How many blocks behind the chain head the index stays, so a short reorganization cannot leave a fill recorded that never happened. Swaps re-read the offers they use on-chain, so this only delays what the order book and charts show.
+- How to get a real value: leave unset.
 
 **`SAFE_PROXY_FACTORY_ADDRESS`** / **`SAFE_SINGLETON_ADDRESS`** / **`SAFE_MULTISEND_CALL_ONLY_ADDRESS`** (and `SAFE_FALLBACK_HANDLER_ADDRESS`)
 - Example: leave empty for the defaults
@@ -476,6 +486,8 @@ A tokenized asset's **token contract** is not configuration: it is registered pe
 ---
 
 ## Shutdown
+
+**Fee-exempt accounts** are not configuration: accounts that pay no platform service fees (swap, payment, patron, account recovery, sub-wallet creation, tokenization application, closed group) are listed in the `fee_exempt_users` table, which admins manage on tm-web's **Fee Exemptions** page (tm-api `/fee/exempt-users`). The tokenization issuing profile (`TOKENIZATION_ISSUING_PROFILE`) is always exempt.
 
 **`SHUTDOWN_GRACE_PERIOD`**
 - Example: `90s` (default `60s`)

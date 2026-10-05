@@ -21,4 +21,5 @@ export const tagTypes = {
   OBSERVABILITY: "observability",
   CURATED_ASSETS: "curatedAssets",
   SERVICE_LINKS: "serviceLinks",
+  FEE_EXEMPTIONS: "feeExemptions",
 };

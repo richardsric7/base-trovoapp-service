@@ -1,876 +1,487 @@
 package users
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"math"
+	"math/big"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
+	"time"
 
-	// bc "trovo-wallet-api/internal/blockchainalgofuncs"
+	"trovo-wallet-api/internal/aa"
 	"trovo-wallet-api/internal/basetxn"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
+	"trovo-wallet-api/internal/offerbook"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm/clause"
 )
 
-func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModels.UserWallet, offerRequest *userModels.MarketOfferRequest, gc *sharedconfig.GlobalConfig) (err error) {
-	offerRequest.Messages = make([]string, 0)
+// Market-making offers are offers on TrovoOfferBook (market/contracts) a
+// wallet places with its own funds: SELL escrows the asset, priced in the
+// currency; BUY escrows the currency, priced in the asset. Each is one
+// wallet operation the user signs (allow the book to take the escrow, then
+// createOffer); cancelling (cancelOffer) returns what is left. Swaps fill
+// these offers. Only tokens trade on the book.
 
+// Market-making operation kinds.
+const (
+	OperationMarketOffer       = "MAKE MARKET OFFER"
+	OperationCancelMarketOffer = "DELETE MARKET OFFER"
+)
+
+// marketOfferContext is what a market-making operation needs once it is
+// submitted and mined.
+type marketOfferContext struct {
+	Offer userModels.MarketOffer `json:"offer"`
+	Book  string                 `json:"book"`
+}
+
+// inverseOfferPrice is the offer book price, in asset base units per
+// currency base unit, of buying the asset at pricePerToken (currency per
+// whole asset): what a BUY offer, which sells the currency, charges.
+func inverseOfferPrice(pricePerToken decimal.Decimal, assetDecimals, currencyDecimals uint8) (aa.OfferPrice, error) {
+	if !pricePerToken.IsPositive() {
+		return aa.OfferPrice{}, fmt.Errorf("price must be positive")
+	}
+	k := int32(0)
+	if e := pricePerToken.Exponent(); e < 0 {
+		k = -e
+	}
+	// price = P / 10^k, so 1/price = 10^k / P
+	p := pricePerToken.Shift(k).BigInt()
+	num := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(k)+int64(assetDecimals)), nil)
+	den := new(big.Int).Mul(p, new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(currencyDecimals)), nil))
+	g := new(big.Int).GCD(nil, nil, num, den)
+	out := aa.OfferPrice{Num: new(big.Int).Quo(num, g), Den: new(big.Int).Quo(den, g)}
+	if !out.Valid() {
+		return aa.OfferPrice{}, fmt.Errorf("price %v cannot be represented", pricePerToken)
+	}
+	return out, nil
+}
+
+// marketToken is a market side's token, or an error for the native asset.
+func marketToken(code, contract, param string) (common.Address, error) {
+	if contract == "" || strings.EqualFold(code, os.Getenv("NATIVE_ASSET_CODE")) || !common.IsHexAddress(contract) {
+		return common.Address{}, &tErrors.CustomError{Param: param, Err: "error-asset-not-tradable", ErrMessage: fmt.Sprintf("%v cannot be traded. Only tokens can be traded.", nonEmpty(code, os.Getenv("NATIVE_ASSET_CODE")))}
+	}
+	return common.HexToAddress(contract), nil
+}
+
+func errOffersNotConfigured() error {
+	return &tErrors.CustomError{Param: "offerType", Err: "error-market-not-configured", ErrMessage: "Market offers are not available at this time. Please try again later.", Code: http.StatusServiceUnavailable}
+}
+
+// MakeOffer places a BUY or SELL offer from sourceWallet. Like Pay it runs
+// in two steps: without a signature it builds the offer as a wallet
+// operation and returns it (offerRequest.Transaction); with the signature
+// it submits it. Shared wallets with approvers get an approval request on
+// commit.
+func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModels.UserWallet, offerRequest *userModels.MarketOfferRequest, gc *sharedconfig.GlobalConfig) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	offerRequest.Messages = make([]string, 0)
+	offerRequest.NetworkPassPhrase = gc.BantuNetworkPassphrase
 	if sourceWallet.SharedAccessEnabled == 1 && sourceWallet.NumberOfApprovalsNeeded > 0 {
 		offerRequest.Multiparty = 1
 	}
 	if sourceWallet.HasViewOnlyAccess(gc) {
 		offerRequest.SignatureRequired = 1
 	}
-	// mmWallet, err := walletOwner.GetMartketMakingWallet(gc.DB)
-	// if err != nil {
-	// 	log.Printf("[MakeOffer]Error validating Market making wallet: %v", err)
-	// 	return err
-	// }
-	if !strings.EqualFold(offerRequest.OfferType, "BUY") && !strings.EqualFold(offerRequest.OfferType, "SELL") {
-		return &tErrors.CustomError{
-			Param:      "offerType",
-			Err:        "error-invalid-paramter",
-			ErrMessage: "Offer type can only be either BUY or SELL.",
-		}
-	}
-	if len(offerRequest.Quantity) == 0 {
-		return &tErrors.CustomError{
-			Param:      "quantity",
-			Err:        "error-missing-quantity",
-			ErrMessage: "Missing quantity.",
-		}
-	}
-	if !decimal.RequireFromString(offerRequest.Quantity).IsPositive() {
-		return &tErrors.CustomError{
-			Param:      "quantity",
-			Err:        "error-missing-quantity",
-			ErrMessage: "Quantity must be greater than zero.",
-		}
-	}
-	if len(offerRequest.PricePerUnit) == 0 {
-		return &tErrors.CustomError{
-			Param:      "pricePerUnit",
-			Err:        "error-missing-price",
-			ErrMessage: "Missing price.",
-		}
-	}
 
-	if !decimal.RequireFromString(offerRequest.PricePerUnit).IsPositive() {
-		return &tErrors.CustomError{
-			Param:      "pricePerUnit",
-			Err:        "error-missing-price",
-			ErrMessage: "Price must be greater than zero.",
-		}
-	}
-	// mmSignerKeyPair, err := bc.MarketMakingSignerKeypair(walletOwner.Username, mmWallet.ID)
-	// if err != nil {
-
-	// 	return &tErrors.ErrorTemporaryServerError{}
-	// }
-	assetOfMarket := os.Getenv("NATIVE_ASSET_CODE")
-	if len(offerRequest.ContractAddress) == 42 {
-		assetOfMarket = fmt.Sprintf("%v:%v...%v", offerRequest.AssetCode, offerRequest.ContractAddress[0:4], offerRequest.ContractAddress[51:55])
-	}
-	currencyOfMarket := os.Getenv("NATIVE_ASSET_CODE")
-	if len(offerRequest.CurrencyIssuer) == 42 {
-		currencyOfMarket = fmt.Sprintf("%v:%v...%v", offerRequest.CurrencyCode, offerRequest.CurrencyIssuer[0:4], offerRequest.CurrencyIssuer[51:55])
-	}
-
-	if strings.EqualFold(offerRequest.AssetCode, os.Getenv("NATIVE_ASSET_CODE")) {
-		offerRequest.AssetCode = ""
-		offerRequest.ContractAddress = ""
-	}
-
-	if strings.EqualFold(offerRequest.CurrencyCode, os.Getenv("NATIVE_ASSET_CODE")) {
-		offerRequest.CurrencyCode = ""
-		offerRequest.CurrencyIssuer = ""
-	}
-	serviceFee, e := decimal.NewFromString(os.Getenv("MARKET_MAKING_FEE_AMOUNT"))
-	if e != nil || os.Getenv("MARKET_MAKING_FEE_ENABLED") == "0" {
-		serviceFee = decimal.Zero
-	}
-	totalQty := decimal.RequireFromString(offerRequest.Quantity).Truncate(7)
-	// feeQuantity := (totalQty.Mul(serviceFee.Div(decimal.NewFromInt(100)))).Truncate(7)
-	feeQuantity := serviceFee.Div(decimal.NewFromInt(0)) //set to zero since fees r now removed.
-	netQuantity := totalQty.Sub(feeQuantity)
-	offerRequest.NetQuantity = netQuantity.String()
-	offerRequest.FeeChargedOnAsset = serviceFee.String()
-	offerRequest.FeeValue = feeQuantity.String()
-
-	var marketOffer *userModels.MarketOffer
-	xdrBase64, err := generateMakeMarketXdr(sourceWallet, offerRequest, gc)
-	if err != nil {
-		return err
-	}
-
-	//do not overwrite transaction
-	if len(offerRequest.Transaction) == 0 {
-
-		offerRequest.Transaction = xdrBase64
-	}
-
-	offerRequest.NetworkPassPhrase = gc.BantuNetworkPassphrase
-
-	oldTxn := offerRequest.Transaction
-
-	if len(offerRequest.TransactionSignature) == 0 && offerRequest.Commit == 0 {
-		//no signature
-		return nil
-
-	}
-
-	//there was a signature... let's submit
-
-	if oldTxn != xdrBase64 && offerRequest.Commit == 0 {
-		return &tErrors.CustomError{
-			Param:      "transaction",
-			Err:        "transaction mismatch",
-			ErrMessage: "transaction mismatch, please try again",
-			Code:       404,
-		}
-	}
-	var contractAddress, currencyIssuer *string
-	if len(offerRequest.ContractAddress) > 0 {
-		contractAddress = &offerRequest.ContractAddress
-	}
-	if len(offerRequest.CurrencyIssuer) > 0 {
-		currencyIssuer = &offerRequest.CurrencyIssuer
-	}
-	{
-		marketOffer = &userModels.MarketOffer{
-			ID:                        uuid.NewString(),
-			SourceWalletAlias:         sourceWallet.Alias,
-			SourceWalletAddress:       sourceWallet.ID,
-			MarketMakingWalletAddress: sourceWallet.ID,
-			OfferType:                 offerRequest.OfferType,
-			AssetCode:                 offerRequest.AssetCode,
-			ContractAddress:           contractAddress,
-			CurrencyCode:              offerRequest.CurrencyCode,
-			CurrencyIssuer:            currencyIssuer,
-			PricePerUnit:              offerRequest.PricePerUnit,
-			Quantity:                  offerRequest.Quantity,
-			FeeChargedOnAsset:         offerRequest.FeeChargedOnAsset,
-			FeeValue:                  offerRequest.FeeValue,
-			NetQuantity:               offerRequest.NetQuantity,
-			// RemainingQuantity:           offerRequest.NetQuantity,
-			// RemainingFeeValue:           offerRequest.FeeValue,
-		}
-	}
-	var msgs string
-	for i, m := range offerRequest.Messages {
-		msgs = m
-		if i < len(offerRequest.Messages)-1 {
-			msgs = fmt.Sprintf("%s\n", msgs)
-		}
-	}
-	fp := offerRequest.FeeChargedOnAsset + "%"
-	offerRequest.ReturnedDescription = fmt.Sprintf("%v %v %v @ %v %v with %v fee of %v %v", offerRequest.OfferType, offerRequest.NetQuantity, assetOfMarket, offerRequest.PricePerUnit, currencyOfMarket, fp, offerRequest.FeeValue, assetOfMarket)
-	if len(msgs) > 0 {
-		offerRequest.ReturnedDescription = fmt.Sprintf("%s\nMessages: %v", offerRequest.ReturnedDescription, msgs)
-	}
-	if (offerRequest.Commit == 0 && sourceWallet.SharedAccessEnabled == 1 && sourceWallet.NumberOfApprovalsNeeded == 0) || (sourceWallet.SharedAccessEnabled == 0 && offerRequest.Commit == 0) {
-		dbTX := gc.DB.Begin()
-		defer dbTX.Rollback()
-		e = dbTX.Omit(clause.Associations).Create(&marketOffer).Error
-		if e != nil {
-			log.Printf("[MakeOffer]Error creating market offer: %+v\nError: %v\n", marketOffer, e)
-			return &tErrors.ErrorTemporaryServerError{}
-		}
-		txnResult, err := network.SubmitXdrWithSignatureReturnsTrx(gc.BantuExpansionClient, sourceWallet.Signer, xdrBase64, offerRequest.TransactionSignature)
-
+	// step 2: the user signed the operation built in step 1
+	if offerRequest.Multiparty == 0 && len(offerRequest.TransactionSignature) > 0 && len(offerRequest.Transaction) > 0 {
+		rec, p, err := LoadWalletOperation(offerRequest.Transaction, sourceWallet.ID, OperationMarketOffer, gc)
 		if err != nil {
-			log.Printf("[MakeOffer]error submitting txn: %v\n", err)
+			return err
+		}
+		var c marketOfferContext
+		if rec.Context == nil || json.Unmarshal([]byte(*rec.Context), &c) != nil {
 			return &tErrors.ErrorTemporaryServerError{}
 		}
-
-		offerRequest.TransactionID = txnResult.Hash
-		marketOffer.TransactionID = &txnResult.Hash
-		// Market-making DEX offers have no Base equivalent (see basetxn.ManageSellOffer's
-		// doc) - there is no on-chain offer ID to extract from the submitted
-		// transaction's result, so marketOffer.BlockchainOfferID stays unset
-		// pending a real Base market-making design.
-		e = dbTX.Omit(clause.Associations).Save(&marketOffer).Error
-		if e != nil {
-			log.Printf("[MakeOffer]Error saving transactionID on market offer: %+v\nError: %v\n", marketOffer, e)
-			return &tErrors.ErrorTemporaryServerError{}
+		hash, err := SignSingleOwnerOperation(ctx, rec, p, signerUser.PrimarySigner, offerRequest.TransactionSignature, gc)
+		if err != nil {
+			return err
 		}
-		dbTX.Commit()
+		offerRequest.TransactionID = hash
+		c.Offer.TransactionID = &hash
+		if e := gc.DB.Omit(clause.Associations).Create(&c.Offer).Error; e != nil {
+			log.Printf("[MakeOffer] saving market offer %+v: %v", c.Offer, e)
+			gc.LogDiscordFailedRequest(fmt.Sprintf("[MakeOffer] market offer of %v submitted (%v) but not recorded: %v", sourceWallet.ID, hash, e))
+		}
 		walletOwner.InvalidateUserCache(gc)
 		return nil
 	}
-
-	if offerRequest.Multiparty == 1 {
-		offerRequest.TransactionID = "PENDING_AUTH"
-		log.Printf("[MakeOffer]shared access with approver permission enabled for %v \n", sourceWallet.Alias)
-		id := uuid.NewString()
-
-		description := offerRequest.ReturnedDescription
-		//use market offer to be inserted into the table after authorization, instead of constructing again
-		transactionByte, _ := json.Marshal(*marketOffer)
-		transactionStr := string(transactionByte)
-		pendingAuth := userModels.PendingAuth{
-			ID:                     id,
-			Initiator:              signerUser.Username,
-			InitiatorSignerAddress: signerUser.PrimarySigner,
-			WalletAddress:          sourceWallet.ID,
-			TransactionType:        "MAKE MARKET OFFER",
-			Description:            description,
-			TransactionSource:      offerRequest.TransactionSource,
-			ApprovalsNeeded:        sourceWallet.NumberOfApprovalsNeeded,
-			TransactionXdr:         xdrBase64,
-			TransactionInfoStr:     &transactionStr,
-		}
-		//save and commit this to database
-		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
-		if e != nil {
-			log.Printf("[MakeOffer] Error saving MAKE MARKET OFFER txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
-			err = &tErrors.ErrorTemporaryServerError{}
+	// a shared wallet's initiator commits the operation built in step 1
+	if offerRequest.Multiparty == 1 && offerRequest.Commit == 1 && len(offerRequest.Transaction) > 0 {
+		rec, _, err := LoadWalletOperation(offerRequest.Transaction, sourceWallet.ID, OperationMarketOffer, gc)
+		if err != nil {
 			return err
 		}
-		return nil
-
+		var c marketOfferContext
+		if rec.Context == nil || json.Unmarshal([]byte(*rec.Context), &c) != nil {
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		return createMarketOfferApproval(signerUser, sourceWallet, offerRequest, &c.Offer, gc)
 	}
-	log.Println("[MakeOffer]unknown conditions for makr market")
-	return &tErrors.ErrorTemporaryServerError{}
+
+	// step 1: build
+	book, err := offerbook.BookAddress()
+	if err != nil {
+		return errOffersNotConfigured()
+	}
+	offerType := strings.ToUpper(strings.TrimSpace(offerRequest.OfferType))
+	if offerType != "BUY" && offerType != "SELL" {
+		return &tErrors.CustomError{Param: "offerType", Err: "error-invalid-paramter", ErrMessage: "Offer type can only be either BUY or SELL."}
+	}
+	qty, e := decimal.NewFromString(offerRequest.Quantity)
+	if e != nil || !qty.IsPositive() {
+		return &tErrors.CustomError{Param: "quantity", Err: "error-missing-quantity", ErrMessage: "Quantity must be greater than zero."}
+	}
+	price, e := decimal.NewFromString(offerRequest.PricePerUnit)
+	if e != nil || !price.IsPositive() {
+		return &tErrors.CustomError{Param: "pricePerUnit", Err: "error-missing-price", ErrMessage: "Price must be greater than zero."}
+	}
+	asset, err := marketToken(offerRequest.AssetCode, offerRequest.ContractAddress, "assetCode")
+	if err != nil {
+		return err
+	}
+	currency, err := marketToken(offerRequest.CurrencyCode, offerRequest.CurrencyIssuer, "currencyCode")
+	if err != nil {
+		return err
+	}
+	if asset == currency {
+		return &tErrors.CustomError{Param: "currencyCode", Err: "error-invalid-paramter", ErrMessage: "The asset and the currency must differ."}
+	}
+	client := gc.BantuExpansionClient
+	for _, t := range []common.Address{asset, currency} {
+		ok, err := aa.Tradable(ctx, client, book, t)
+		if err != nil {
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		if !ok {
+			return &tErrors.CustomError{Param: "assetCode", Err: "error-asset-not-tradable", ErrMessage: "This market is not open for trading."}
+		}
+	}
+	assetDec, err := offerbook.Decimals(ctx, gc.DB, client, asset)
+	if err != nil {
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	currencyDec, err := offerbook.Decimals(ctx, gc.DB, client, currency)
+	if err != nil {
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+
+	var sellToken, payToken common.Address
+	var sellCode string
+	var sellDec uint8
+	var amount *big.Int
+	var p aa.OfferPrice
+	if offerType == "SELL" {
+		sellToken, payToken, sellCode, sellDec = asset, currency, offerRequest.AssetCode, assetDec
+		amount = qty.Shift(int32(assetDec)).Truncate(0).BigInt()
+		p, err = offerPrice(price, assetDec, currencyDec)
+	} else {
+		sellToken, payToken, sellCode, sellDec = currency, asset, offerRequest.CurrencyCode, currencyDec
+		amount = qty.Mul(price).Shift(int32(currencyDec)).Truncate(0).BigInt()
+		p, err = inverseOfferPrice(price, assetDec, currencyDec)
+	}
+	if err != nil {
+		return &tErrors.CustomError{Param: "pricePerUnit", Err: "error-invalid-price", ErrMessage: "This price cannot be used. Please use fewer decimal places."}
+	}
+	if amount.Sign() <= 0 {
+		return &tErrors.CustomError{Param: "quantity", Err: "error-missing-quantity", ErrMessage: "Quantity is too small."}
+	}
+	sellAsset := basetxn.CreditAsset{Code: sellCode, Issuer: sellToken.Hex()}
+	_, authorized, _, balance, _, err := network.BlockchainAccountProperties(client, sourceWallet.ID, sellAsset)
+	if err != nil {
+		return err
+	}
+	need := decimal.NewFromBigInt(amount, -int32(sellDec))
+	if !authorized || balance.LessThan(need) {
+		return &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. The offer needs %v %v.", need, sellCode)}
+	}
+	create, err := aa.CreateOfferCall(book, sellToken, amount, common.HexToAddress(sourceWallet.ID), []common.Address{payToken}, []aa.OfferPrice{p})
+	if err != nil {
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	calls := []aa.Call{aa.ERC20Approve(sellToken, book, amount), create}
+
+	ca, ci := asset.Hex(), currency.Hex()
+	draft := userModels.MarketOffer{
+		ID:                        uuid.NewString(),
+		SourceWalletAlias:         sourceWallet.Alias,
+		SourceWalletAddress:       sourceWallet.ID,
+		MarketMakingWalletAddress: sourceWallet.ID,
+		OfferType:                 offerType,
+		AssetCode:                 offerRequest.AssetCode,
+		ContractAddress:           &ca,
+		CurrencyCode:              offerRequest.CurrencyCode,
+		CurrencyIssuer:            &ci,
+		PricePerUnit:              price.String(),
+		Quantity:                  qty.String(),
+		FeeChargedOnAsset:         "0",
+		FeeValue:                  "0",
+		NetQuantity:               qty.String(),
+	}
+	offerRequest.NetQuantity, offerRequest.FeeChargedOnAsset, offerRequest.FeeValue = draft.NetQuantity, "0", "0"
+
+	validity := time.Duration(0)
+	if offerRequest.Multiparty == 1 {
+		validity = sharedWalletOperationValidity()
+	}
+	op, err := PrepareWalletOperation(ctx, OperationMarketOffer, signerUser, walletOwner, sourceWallet, calls, validity, marketOfferContext{Offer: draft, Book: book.Hex()}, gc)
+	if err != nil {
+		return err
+	}
+	offerRequest.Transaction = op.Transaction
+	offerRequest.Messages = append(offerRequest.Messages, fmt.Sprintf("%v %v of this wallet is held by the offer until it is filled or cancelled.", need, sellCode))
+	offerRequest.Messages = append(offerRequest.Messages, op.Messages()...)
+	offerRequest.SignatureRequired = 1
+	if offerRequest.Multiparty == 1 && offerRequest.Commit == 1 {
+		return createMarketOfferApproval(signerUser, sourceWallet, offerRequest, &draft, gc)
+	}
+	return nil
 }
 
+func createMarketOfferApproval(signerUser *userModels.User, sourceWallet *userModels.UserWallet, offerRequest *userModels.MarketOfferRequest, offer *userModels.MarketOffer, gc *sharedconfig.GlobalConfig) error {
+	offerRequest.TransactionID = "PENDING_AUTH"
+	description := fmt.Sprintf("%v %v %v @ %v %v", offer.OfferType, offer.Quantity, offer.AssetCode, offer.PricePerUnit, offer.CurrencyCode)
+	if len(offerRequest.Messages) > 0 {
+		description = fmt.Sprintf("%s\nMessages: %v", description, strings.Join(offerRequest.Messages, "\n"))
+	}
+	offerRequest.ReturnedDescription = description
+	// the approvals record the offer once it is submitted
+	raw, _ := json.Marshal(*offer)
+	info := string(raw)
+	pendingAuth := userModels.PendingAuth{
+		ID:                     uuid.NewString(),
+		Initiator:              signerUser.Username,
+		InitiatorSignerAddress: signerUser.PrimarySigner,
+		WalletAddress:          sourceWallet.ID,
+		TransactionType:        OperationMarketOffer,
+		Description:            description,
+		TransactionSource:      sourceWallet.ID,
+		ApprovalsNeeded:        sourceWallet.NumberOfApprovalsNeeded,
+		TransactionXdr:         offerRequest.Transaction,
+		TransactionInfoStr:     &info,
+	}
+	if e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error; e != nil {
+		log.Printf("[MakeOffer] saving approval request for %v: %v", sourceWallet.ID, e)
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	return nil
+}
+
+// marketOfferBookID is a market offer's id on the book: recorded when its
+// operation was mined, else found from that operation's transaction.
+func marketOfferBookID(mo *userModels.MarketOffer, gc *sharedconfig.GlobalConfig) (*big.Int, bool) {
+	if mo.BlockchainOfferID != nil {
+		if id, ok := new(big.Int).SetString(*mo.BlockchainOfferID, 10); ok {
+			return id, true
+		}
+	}
+	if mo.TransactionID == nil {
+		return nil, false
+	}
+	var op userModels.WalletOperation
+	if gc.DB.Where("user_op_hash = ?", *mo.TransactionID).First(&op).Error != nil || op.TxHash == nil {
+		return nil, false
+	}
+	var o offerbook.Offer
+	if gc.DB.Where("created_tx = ? AND seller = ?", *op.TxHash, offerbook.Key(mo.SourceWalletAddress)).First(&o).Error != nil {
+		return nil, false
+	}
+	gc.DB.Model(&userModels.MarketOffer{}).Where("id = ?", mo.ID).Update("blockchain_offer_id", o.ID)
+	mo.BlockchainOfferID = &o.ID
+	id, ok := new(big.Int).SetString(o.ID, 10)
+	return id, ok
+}
+
+// recordMarketOffer stores the book id of the offer a mined market-making
+// operation created.
+func recordMarketOffer(op userModels.WalletOperation, txHash common.Hash, gc *sharedconfig.GlobalConfig) {
+	var c marketOfferContext
+	if op.Context == nil || json.Unmarshal([]byte(*op.Context), &c) != nil || op.UserOpHash == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	rcpt, err := gc.BantuExpansionClient.TransactionReceipt(ctx, txHash)
+	if err != nil {
+		log.Printf("[recordMarketOffer] receipt of %v: %v", txHash.Hex(), err)
+		return // found later from the index (marketOfferBookID)
+	}
+	id, ok := aa.ParseOfferCreated(rcpt.Logs, common.HexToAddress(c.Book), common.HexToAddress(op.WalletAddress))
+	if !ok {
+		return
+	}
+	s := id.String()
+	gc.DB.Model(&userModels.MarketOffer{}).Where("transaction_id = ?", *op.UserOpHash).Update("blockchain_offer_id", s)
+}
+
+// recordMarketOfferCancelled marks a market offer cancelled once its
+// cancellation was mined.
+func recordMarketOfferCancelled(op userModels.WalletOperation, txHash common.Hash, gc *sharedconfig.GlobalConfig) {
+	var c marketOfferContext
+	if op.Context == nil || json.Unmarshal([]byte(*op.Context), &c) != nil || c.Offer.ID == "" {
+		return
+	}
+	gc.DB.Model(&userModels.MarketOffer{}).Where("id = ?", c.Offer.ID).Update("canceled", 1)
+}
+
+func init() {
+	minedHooks[OperationMarketOffer] = recordMarketOffer
+	minedHooks[OperationCancelMarketOffer] = recordMarketOfferCancelled
+}
+
+// MarketOfferStatus is a market offer with its state on the book.
+type MarketOfferStatus struct {
+	userModels.MarketOffer
+	Open      bool   `json:"open"`
+	Remaining string `json:"remaining"` // what the offer still sells (whole tokens)
+}
+
+// ListOffers lists sourceWallet's market offers with their state on the
+// book.
+func ListOffers(sourceWallet *userModels.UserWallet, gc *sharedconfig.GlobalConfig) ([]MarketOfferStatus, error) {
+	var offers []userModels.MarketOffer
+	if err := gc.DB.Where("source_wallet_address = ?", sourceWallet.ID).Order("created_at DESC").Limit(200).Find(&offers).Error; err != nil {
+		return nil, &tErrors.ErrorTemporaryServerError{}
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	out := make([]MarketOfferStatus, 0, len(offers))
+	for i := range offers {
+		s := MarketOfferStatus{MarketOffer: offers[i], Remaining: "0"}
+		if id, ok := marketOfferBookID(&s.MarketOffer, gc); ok {
+			var o offerbook.Offer
+			if gc.DB.First(&o, "id = ?", id.String()).Error == nil {
+				s.Open = o.Open
+				rem, _ := new(big.Int).SetString(o.Remaining, 10)
+				if dec, err := offerbook.Decimals(ctx, gc.DB, gc.BantuExpansionClient, common.HexToAddress(o.SellToken)); err == nil && rem != nil {
+					s.Remaining = decimal.NewFromBigInt(rem, -int32(dec)).String()
+				}
+			}
+		}
+		out = append(out, s)
+	}
+	return out, nil
+}
+
+// CancelOffer cancels one of sourceWallet's market offers, returning what
+// is left of it to the wallet. It runs in the same two steps as MakeOffer.
 func CancelOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModels.UserWallet, deleteOfferRequest *userModels.DeleteOfferRequest, gc *sharedconfig.GlobalConfig) (err error) {
-
-	if len(deleteOfferRequest.ID) == 0 {
-		return &tErrors.ErrorMissingParameter{Parameter: "Id"}
-	}
-
-	marketOffer, err := sourceWallet.GetMarketOfferByID(deleteOfferRequest.ID, gc.DB, gc)
-	if err != nil {
-		return err
-	}
-
-	if marketOffer.Canceled == 1 {
-		return &tErrors.CustomError{
-			Param:      "id",
-			Err:        "error-offer-has been canceled",
-			ErrMessage: "Offer cannot be canceled because it has been already been canceled before.",
-		}
-	}
-
-	// if decimal.RequireFromString(marketOffer.RemainingQuantity).IsZero() {
-	// 	return &tErrors.CustomError{
-	// 		Param:      "id",
-	// 		Err:        "error-offer-has been filled",
-	// 		ErrMessage: "Offer cannot be canceled because it has been filled.",
-	// 	}
-	// }
-	bOffer, err := marketOffer.GetBlockchainOfferDetail(gc)
-	if err != nil {
-		return err
-	}
-	if decimal.RequireFromString(bOffer.Amount).IsZero() {
-		return &tErrors.CustomError{
-			Param:      "id",
-			Err:        "error-offer-has been filled",
-			ErrMessage: "Offer cannot be canceled because it has been filled.",
-		}
-	}
-
-	// mmWallet, err := walletOwner.GetMartketMakingWallet(gc.DB)
-	// if err != nil {
-	// 	log.Printf("[MakeOffer]Error validating Market making wallet: %v", err)
-	// 	return err
-	// }
-
-	// mmSignerKeyPair, err := bc.MarketMakingSignerKeypair(walletOwner.Username, mmWallet.ID)
-	// if err != nil {
-
-	// 	return &tErrors.ErrorTemporaryServerError{}
-	// }
-
-	xdrBase64, transactionSource, err := generateDeleteMarketXdr(sourceWallet, &marketOffer, bOffer, gc)
-	if err != nil {
-		return err
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	deleteOfferRequest.Messages = make([]string, 0)
+	deleteOfferRequest.NetworkPassPhrase = gc.BantuNetworkPassphrase
+	if sourceWallet.SharedAccessEnabled == 1 && sourceWallet.NumberOfApprovalsNeeded > 0 {
+		deleteOfferRequest.Multiparty = 1
 	}
 	if sourceWallet.HasViewOnlyAccess(gc) {
 		deleteOfferRequest.SignatureRequired = 1
 	}
-	deleteOfferRequest.TransactionSource = transactionSource
-	deleteOfferRequest.Transaction = xdrBase64
-	deleteOfferRequest.NetworkPassPhrase = gc.BantuNetworkPassphrase
-
-	oldTxn := deleteOfferRequest.Transaction
-
-	if len(deleteOfferRequest.TransactionSignature) == 0 && deleteOfferRequest.Commit == 0 {
-		//no signature
-		return nil
-
+	if len(deleteOfferRequest.ID) == 0 {
+		return &tErrors.ErrorMissingParameter{Parameter: "Id"}
+	}
+	marketOffer, err := sourceWallet.GetMarketOfferByID(deleteOfferRequest.ID, gc.DB, gc)
+	if err != nil {
+		return err
+	}
+	if marketOffer.Canceled == 1 {
+		return &tErrors.CustomError{Param: "id", Err: "error-offer-has been canceled", ErrMessage: "Offer cannot be canceled because it has been already been canceled before."}
 	}
 
-	//there was a signature... let's submit
-
-	if oldTxn != xdrBase64 && deleteOfferRequest.Commit == 0 {
-		return &tErrors.CustomError{
-			Param:      "transaction",
-			Err:        "transaction mismatch",
-			ErrMessage: "transaction mismatch, please try again",
-			Code:       404,
-		}
-	}
-
-	// deleteOfferRequest.ReturnedDescription = fmt.Sprintf("%v %v %v @ %v %v with %v fee of %v %v", offerRequest.OfferType, offerRequest.NetQuantity, assetOfMarket, offerRequest.PricePerUnit, currencyOfMarket, fp, offerRequest.FeeValue, assetOfMarket)
-	// if len(msgs) > 0 {
-	// 	deleteOfferRequest.ReturnedDescription = fmt.Sprintf("%s\nMessages: %v", deleteOfferRequest.ReturnedDescription, msgs)
-	// }
-	if (deleteOfferRequest.Commit == 0 && sourceWallet.SharedAccessEnabled == 1 && sourceWallet.NumberOfApprovalsNeeded == 0) || (sourceWallet.SharedAccessEnabled == 0 && deleteOfferRequest.Commit == 0) {
-		dbTX := gc.DB.Begin()
-		defer dbTX.Rollback()
-		e := dbTX.Omit(clause.Associations).Create(&marketOffer).Error
-		if e != nil {
-			log.Printf("[DeleteOffer]Error saving market offer: %+v\nError: %v\n", marketOffer, err)
-			return &tErrors.ErrorTemporaryServerError{}
-		}
-		txnResult, err := network.SubmitXdrWithSignatureReturnsTrx(gc.BantuExpansionClient, sourceWallet.Signer, xdrBase64, deleteOfferRequest.TransactionSignature)
-
+	// step 2: the user signed the operation built in step 1
+	if deleteOfferRequest.Multiparty == 0 && len(deleteOfferRequest.TransactionSignature) > 0 && len(deleteOfferRequest.Transaction) > 0 {
+		rec, p, err := LoadWalletOperation(deleteOfferRequest.Transaction, sourceWallet.ID, OperationCancelMarketOffer, gc)
 		if err != nil {
-			log.Printf("[MakeOffer]error submitting txn: %v\n", err)
-			return &tErrors.ErrorTemporaryServerError{}
+			return err
 		}
-
-		deleteOfferRequest.TransactionID = txnResult.Hash
-		marketOffer.TransactionID = &txnResult.Hash
-		// Market-making DEX offers have no Base equivalent (see
-		// basetxn.ManageSellOffer's doc) - marketOffer.BlockchainOfferID
-		// stays unset pending a real Base market-making design.
-		e = dbTX.Omit(clause.Associations).Save(&marketOffer).Error
-		if e != nil {
-			log.Printf("[MakeOffer]Error saving transactionID on market offer: %+v\nError: %v\n", marketOffer, err)
-			return &tErrors.ErrorTemporaryServerError{}
+		hash, err := SignSingleOwnerOperation(ctx, rec, p, signerUser.PrimarySigner, deleteOfferRequest.TransactionSignature, gc)
+		if err != nil {
+			return err
 		}
-		dbTX.Commit()
+		deleteOfferRequest.TransactionID = hash
 		walletOwner.InvalidateUserCache(gc)
 		return nil
 	}
-
-	if deleteOfferRequest.Multiparty == 1 {
-		deleteOfferRequest.TransactionID = "PENDING_AUTH"
-		log.Printf("[MakeOffer]shared access with approver permission enabled for %v \n", sourceWallet.Alias)
-		id := uuid.NewString()
-
-		description := deleteOfferRequest.ReturnedDescription
-		//use market offer to be inserted into the table after authorization, instead of constructing again
-		transactionByte, _ := json.Marshal(*deleteOfferRequest)
-		transactionStr := string(transactionByte)
-		pendingAuth := userModels.PendingAuth{
-			ID:                     id,
-			Initiator:              signerUser.Username,
-			InitiatorSignerAddress: signerUser.PrimarySigner,
-			WalletAddress:          sourceWallet.ID,
-			TransactionType:        "DELETE MARKET OFFER",
-			Description:            description,
-			TransactionSource:      deleteOfferRequest.TransactionSource,
-			ApprovalsNeeded:        sourceWallet.NumberOfApprovalsNeeded,
-			TransactionXdr:         xdrBase64,
-			TransactionInfoStr:     &transactionStr,
-		}
-		//save and commit this to database
-		e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error
-		if e != nil {
-			log.Printf("[MakeOffer] Error saving MAKE MARKET OFFER txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
-			err = &tErrors.ErrorTemporaryServerError{}
+	if deleteOfferRequest.Multiparty == 1 && deleteOfferRequest.Commit == 1 && len(deleteOfferRequest.Transaction) > 0 {
+		if _, _, err := LoadWalletOperation(deleteOfferRequest.Transaction, sourceWallet.ID, OperationCancelMarketOffer, gc); err != nil {
 			return err
 		}
-		return nil
-
+		return createCancelOfferApproval(signerUser, sourceWallet, deleteOfferRequest, &marketOffer, gc)
 	}
 
-	return &tErrors.ErrorTemporaryServerError{}
-
+	// step 1: build
+	book, err := offerbook.BookAddress()
+	if err != nil {
+		return errOffersNotConfigured()
+	}
+	id, ok := marketOfferBookID(&marketOffer, gc)
+	if !ok {
+		return &tErrors.CustomError{Param: "id", Err: "error-offer-not-yet-placed", ErrMessage: "This offer is not on the market yet. Please try again shortly.", Code: http.StatusConflict}
+	}
+	o, err := aa.ReadOffer(ctx, gc.BantuExpansionClient, book, id)
+	if err != nil {
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	if !o.Open {
+		gc.DB.Model(&userModels.MarketOffer{}).Where("id = ?", marketOffer.ID).Update("canceled", 1)
+		return &tErrors.CustomError{Param: "id", Err: "error-offer-has been canceled", ErrMessage: "Offer cannot be canceled because it has been already been canceled before."}
+	}
+	if o.Remaining.Sign() == 0 {
+		return &tErrors.CustomError{Param: "id", Err: "error-offer-has been filled", ErrMessage: "Offer cannot be canceled because it has been filled."}
+	}
+	validity := time.Duration(0)
+	if deleteOfferRequest.Multiparty == 1 {
+		validity = sharedWalletOperationValidity()
+	}
+	op, err := PrepareWalletOperation(ctx, OperationCancelMarketOffer, signerUser, walletOwner, sourceWallet, []aa.Call{aa.CancelOfferCall(book, id)}, validity, marketOfferContext{Offer: marketOffer, Book: book.Hex()}, gc)
+	if err != nil {
+		return err
+	}
+	deleteOfferRequest.Transaction = op.Transaction
+	deleteOfferRequest.Messages = append(deleteOfferRequest.Messages, op.Messages()...)
+	deleteOfferRequest.SignatureRequired = 1
+	if deleteOfferRequest.Multiparty == 1 && deleteOfferRequest.Commit == 1 {
+		return createCancelOfferApproval(signerUser, sourceWallet, deleteOfferRequest, &marketOffer, gc)
+	}
+	return nil
 }
 
-func generateMakeMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *userModels.MarketOfferRequest, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
-	// offerFeePercentage := offerRequest.FeeChargedOnAsset + "%"
-	minBalance := decimal.RequireFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE"))
-	offerRequest.Messages = make([]string, 0)
-	var memo string
-	var currencyAsset, mainAsset basetxn.Asset
-	if offerRequest.AssetCode+offerRequest.ContractAddress == offerRequest.CurrencyCode+offerRequest.CurrencyIssuer {
-		return "", &tErrors.CustomError{
-			Param:      "AssetCode",
-			Err:        "error-asset-and-currency-are-the-same",
-			ErrMessage: "You cannot make a market against same asset",
-		}
+func createCancelOfferApproval(signerUser *userModels.User, sourceWallet *userModels.UserWallet, req *userModels.DeleteOfferRequest, offer *userModels.MarketOffer, gc *sharedconfig.GlobalConfig) error {
+	req.TransactionID = "PENDING_AUTH"
+	req.ReturnedDescription = fmt.Sprintf("Cancel %v %v %v @ %v %v", offer.OfferType, offer.Quantity, offer.AssetCode, offer.PricePerUnit, offer.CurrencyCode)
+	raw, _ := json.Marshal(*req)
+	info := string(raw)
+	pendingAuth := userModels.PendingAuth{
+		ID:                     uuid.NewString(),
+		Initiator:              signerUser.Username,
+		InitiatorSignerAddress: signerUser.PrimarySigner,
+		WalletAddress:          sourceWallet.ID,
+		TransactionType:        OperationCancelMarketOffer,
+		Description:            req.ReturnedDescription,
+		TransactionSource:      sourceWallet.ID,
+		ApprovalsNeeded:        sourceWallet.NumberOfApprovalsNeeded,
+		TransactionXdr:         req.Transaction,
+		TransactionInfoStr:     &info,
 	}
-	offerRequest.OfferType = strings.ToUpper(offerRequest.OfferType)
-	n, d := ToFractionInt32(decimal.RequireFromString(offerRequest.PricePerUnit).InexactFloat64())
-
-	if offerRequest.ContractAddress == "" {
-		mainAsset = basetxn.NativeAsset{}
-	} else {
-		mainAsset = basetxn.CreditAsset{Code: offerRequest.AssetCode, Issuer: offerRequest.ContractAddress}
+	if e := gc.DB.Omit(clause.Associations).Create(&pendingAuth).Error; e != nil {
+		log.Printf("[CancelOffer] saving approval request for %v: %v", sourceWallet.ID, e)
+		return &tErrors.ErrorTemporaryServerError{}
 	}
-
-	if offerRequest.CurrencyIssuer == "" {
-		currencyAsset = basetxn.NativeAsset{}
-	} else {
-		currencyAsset = basetxn.CreditAsset{Code: offerRequest.CurrencyCode, Issuer: offerRequest.CurrencyIssuer}
-	}
-
-	chanAccount, releaseChanAccount, errCheckout := sharedconfig.CheckoutChannelAccount(gc)
-	if errCheckout != nil {
-		return "", errCheckout
-	}
-	defer releaseChanAccount()
-
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), basetxn.NativeAsset{})
-	var sourceAccount *network.AccountInfo
-	var sourceMAccountTrustsAsset bool
-	var nativeMAccountBalance decimal.Decimal
-	if strings.EqualFold(offerRequest.OfferType, "BUY") {
-		_, sourceMAccountTrustsAsset, nativeMAccountBalance, _, sourceAccount, _ = network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, currencyAsset)
-
-		if nativeMAccountBalance.LessThan(minBalance) {
-			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", minBalance.String(), os.Getenv("NATIVE_ASSET_CODE")), Code: http.StatusBadRequest}
-
-		}
-
-		if !mainAsset.IsNative() && !sourceMAccountTrustsAsset {
-
-			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", offerRequest.Quantity, currencyAsset.GetCode()), Code: http.StatusBadRequest}
-
-		}
-	}
-	if strings.EqualFold(offerRequest.OfferType, "SELL") {
-		_, sourceMAccountTrustsAsset, nativeMAccountBalance, _, sourceAccount, _ = network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, mainAsset)
-
-		if nativeMAccountBalance.LessThan(minBalance) {
-			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", minBalance.String(), os.Getenv("NATIVE_ASSET_CODE")), Code: http.StatusBadRequest}
-
-		}
-
-		if !mainAsset.IsNative() && !sourceMAccountTrustsAsset {
-
-			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", offerRequest.Quantity, mainAsset.GetCode()), Code: http.StatusBadRequest}
-
-		}
-	}
-
-	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
-
-	if strings.EqualFold(offerRequest.OfferType, "BUY") {
-		// if !currencyAsset.IsNative() {
-		// 	//check if it has trustline to it and then create it.
-		// 	_, _, _, _, _, _ = network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, currencyAsset)
-		// 	_, mmAccountTrustsAsset, mmnativeAccountBalance, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceAccount.ID, currencyAsset)
-		// 	if mmnativeAccountBalance.LessThan(minBalance) {
-		// 		ops = append(ops, &basetxn.Payment{
-		// 			Asset:         basetxn.NativeAsset{},
-		// 			Destination:   mmWallet.ID,
-		// 			Amount:        minBalance.Mul(decimal.NewFromInt(3)).String(),
-		// 			SourceAccount: sourceWallet.ID,
-		// 		})
-		// 	}
-
-		// 	if !mmAccountTrustsAsset {
-		// 		//establish trustline automatically
-		// 		ops = append(ops, &basetxn.ChangeTrust{
-		// 			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: currencyAsset},
-		// 			Limit:         "900000000000",
-		// 			SourceAccount: mmWallet.ID,
-		// 		})
-		// 	}
-
-		// }
-		// {
-		// 	_, _, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceAccount.ID, mainAsset)
-		// 	if !mmAccountTrustsAsset {
-		// 		//establish trustline automatically
-		// 		ops = append(ops, &basetxn.ChangeTrust{
-		// 			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: mainAsset},
-		// 			Limit:         "900000000000",
-		// 			SourceAccount: mmWallet.ID,
-		// 		})
-		// 	}
-		// }
-		// // move sellinng funds to the MM wallet
-		// ops = append(ops, &basetxn.Payment{
-		// 	Asset:         currencyAsset,
-		// 	Destination:   sourceWallet.ID,
-		// 	Amount:        offerRequest.Quantity,
-		// 	SourceAccount: sourceWallet.ID,
-		// })
-
-		//invert the price fraction
-		ops = append(ops, &basetxn.ManageSellOffer{
-			Selling:       currencyAsset,
-			Buying:        mainAsset,
-			Amount:        offerRequest.NetQuantity,
-			Price:         fmt.Sprintf("%v/%v", n, d),
-			SourceAccount: sourceWallet.ID,
-		})
-		bcode, scode := mainAsset.GetCode(), currencyAsset.GetCode()
-		if mainAsset.IsNative() {
-			bcode = os.Getenv("NATIVE_ASSET_CODE")
-		}
-		if currencyAsset.IsNative() {
-			scode = os.Getenv("NATIVE_ASSET_CODE")
-		}
-		memo = fmt.Sprintf("s%v-b%v", scode, bcode)
-
-	}
-	if strings.EqualFold(offerRequest.OfferType, "SELL") {
-		// if !mainAsset.IsNative() {
-		// 	//check if it has trustline to it and then create it.
-		// 	_, mmAccountTrustsAsset, mmnativeAccountBalance, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, mmWallet.ID, mainAsset)
-		// 	if mmnativeAccountBalance.LessThan(minBalance) {
-		// 		ops = append(ops, &basetxn.Payment{
-		// 			Asset:         basetxn.NativeAsset{},
-		// 			Destination:   mmWallet.ID,
-		// 			Amount:        minBalance.Mul(decimal.NewFromInt(3)).String(),
-		// 			SourceAccount: sourceWallet.ID,
-		// 		})
-		// 	}
-
-		// 	if !mmAccountTrustsAsset {
-		// 		//establish trustline automatically
-		// 		ops = append(ops, &basetxn.ChangeTrust{
-		// 			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: mainAsset},
-		// 			Limit:         "900000000000",
-		// 			SourceAccount: mmWallet.ID,
-		// 		})
-		// 	}
-
-		// }
-		// {
-		// 	_, mmAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, mmWallet.ID, currencyAsset)
-		// 	if !mmAccountTrustsAsset {
-		// 		//establish trustline automatically
-		// 		ops = append(ops, &basetxn.ChangeTrust{
-		// 			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: currencyAsset},
-		// 			Limit:         "900000000000",
-		// 			SourceAccount: mmWallet.ID,
-		// 		})
-		// 	}
-		// }
-		// // move sellinng funds to the MM wallet
-		// ops = append(ops, &basetxn.Payment{
-		// 	Asset:         mainAsset,
-		// 	Destination:   mmWallet.ID,
-		// 	Amount:        offerRequest.Quantity,
-		// 	SourceAccount: sourceWallet.ID,
-		// })
-
-		// make offer with net quantity so that fee can be returned.
-		ops = append(ops, &basetxn.ManageSellOffer{
-			Selling:       mainAsset,
-			Buying:        currencyAsset,
-			Amount:        offerRequest.NetQuantity,
-			Price:         fmt.Sprintf("%v/%v", n, d),
-			SourceAccount: sourceWallet.ID,
-		})
-		scode, bcode := mainAsset.GetCode(), currencyAsset.GetCode()
-		if mainAsset.IsNative() {
-			scode = os.Getenv("NATIVE_ASSET_CODE")
-		}
-		if currencyAsset.IsNative() {
-			bcode = os.Getenv("NATIVE_ASSET_CODE")
-		}
-		memo = fmt.Sprintf("s%v-b%v", scode, bcode)
-	}
-
-	//service fee
-	// signForFeeTrustLine := 0
-	// if decimal.RequireFromString(offerRequest.FeeValue).IsPositive() && os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" {
-
-	// 	//process service fee
-
-	// 	//no need deducting it as we deduct it as market executes
-	// 	feeAssetCode := mainAsset.GetCode()
-	// 	if mainAsset.IsNative() {
-	// 		feeAssetCode = os.Getenv("NATIVE_ASSET_CODE")
-	// 	}
-
-	// 	if !mainAsset.IsNative() {
-	// 		//ensure that the fee address is can accept the asset.
-	// 		// but bcos  fee address needs to sign, it cannot be done here
-	// 		mmfeeKeypair := evmkeypair.MustParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
-	// 		mmFeeAddress := mmfeeKeypair.Address()
-
-	// 		{
-	// 			_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, mmFeeAddress, mainAsset)
-	// 			if !feeAccountTrustsAsset {
-	// 				signForFeeTrustLine = 1
-	// 				//establish trustline automatically
-	// 				ops = append(ops, &basetxn.ChangeTrust{
-	// 					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: mainAsset},
-	// 					Limit:         "900000000000",
-	// 					SourceAccount: mmFeeAddress,
-	// 				})
-
-	// 				//throw error
-	// 				// return "", &tErrors.CustomError{Param: "publicKey", Err: "error-asset-not-configured-for-fee-address", ErrMessage: fmt.Sprintf("Please contact support to configure %v fee for before you can perform this task.", mainAsset.GetCode()), Code: http.StatusBadRequest}
-
-	// 			}
-	// 		}
-	// 		feeAssetCode = mainAsset.GetCode()
-	// 	}
-	// 	offerRequest.Messages = append(offerRequest.Messages, fmt.Sprintf("%v %v (%v) will be deducted from the total quantity as service fee and your offer will be placed with %v %v.", offerRequest.FeeValue, feeAssetCode, offerFeePercentage, offerRequest.NetQuantity, feeAssetCode))
-
-	// }
-
-	// Construct the transaction that holds the operations to execute on the network
-
-	var tx *basetxn.Transaction
-	// Construct the transaction that holds the operations to execute on the network
-	if offerRequest.Multiparty == 1 {
-
-		offerRequest.TransactionSource = chanSourceAccount.Address
-
-		tx, err = basetxn.NewTransaction(
-			basetxn.TransactionParams{
-				SourceAccount:        chanSourceAccount.Address,
-				IncrementSequenceNum: true,
-				Operations:           ops,
-				BaseFee:              2000,
-				Memo:                 memo,
-			},
-		)
-	} else {
-		tx, err = basetxn.NewTransaction(
-			basetxn.TransactionParams{
-				SourceAccount:        sourceAccount.Address,
-				IncrementSequenceNum: true,
-				Operations:           ops,
-				BaseFee:              2000,
-				Memo:                 memo,
-			},
-		)
-	}
-	if err != nil {
-		log.Println("[generateMakeMarketXdr]error constructing transaction", err)
-		return "", &tErrors.ErrorTemporaryServerError{}
-	}
-
-	// tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), mmSignerKeyPair)
-
-	// if err != nil {
-	// 	log.Println("[generateMakeMarketXdr] error signing transaction with custodial signer key ", err)
-	// 	return "", &tErrors.ErrorTemporaryServerError{}
-	// }
-
-	if offerRequest.Multiparty == 1 {
-
-		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
-
-		if err != nil {
-			log.Println("[generateMakeMarketXdr] error signing transaction with channelAccount key ", err)
-			return "", &tErrors.ErrorTemporaryServerError{}
-		}
-	}
-
-	// if signForFeeTrustLine == 1 {
-	// 	mmfeeKeypair := evmkeypair.MustParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
-	// 	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), mmfeeKeypair)
-
-	// 	if err != nil {
-	// 		log.Println("[generateMakeMarketXdr] error signing transaction with market making fee key ", err)
-	// 		return "", &tErrors.ErrorTemporaryServerError{}
-	// 	}
-	// }
-
-	xdrBase64, err := tx.Base64()
-
-	if err != nil {
-		return "", err
-	}
-	offerRequest.Memo = memo
-	return xdrBase64, nil
-
-}
-func generateDeleteMarketXdr(sourceWallet *userModels.UserWallet, offerRequest *userModels.MarketOffer, bOffer userModels.MarketOfferDetail, gc *sharedconfig.GlobalConfig) (txnBase64, transactionSource string, err error) {
-	// offerFeePercentage := offerRequest.FeeChargedOnAsset + "%"
-	minBalance := decimal.RequireFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE"))
-	// offerRequest.Messages = make([]string, 0)
-	var memo string
-	var currencyAsset, mainAsset basetxn.Asset
-
-	offerRequest.OfferType = strings.ToUpper(offerRequest.OfferType)
-	fraction := decimal.RequireFromString(offerRequest.PricePerUnit).Rat()
-	d := int32(fraction.Denom().Int64())
-	n := int32(fraction.Num().Int64())
-	offerIDInt, _ := strconv.ParseInt(bOffer.ID, 10, 64)
-	if offerRequest.ContractAddress == nil {
-		mainAsset = basetxn.NativeAsset{}
-	} else {
-		mainAsset = basetxn.CreditAsset{Code: offerRequest.AssetCode, Issuer: *offerRequest.ContractAddress}
-	}
-
-	if offerRequest.CurrencyIssuer == nil {
-		currencyAsset = basetxn.NativeAsset{}
-	} else {
-		currencyAsset = basetxn.CreditAsset{Code: offerRequest.CurrencyCode, Issuer: *offerRequest.CurrencyIssuer}
-	}
-
-	chanAccount, releaseChanAccount, errCheckout := sharedconfig.CheckoutChannelAccount(gc)
-	if errCheckout != nil {
-		return "", "", errCheckout
-	}
-	defer releaseChanAccount()
-
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), basetxn.NativeAsset{})
-	var sourceAccount *network.AccountInfo
-	var sourceMAccountTrustsAsset bool
-	var nativeMAccountBalance decimal.Decimal
-	if strings.EqualFold(offerRequest.OfferType, "BUY") {
-		_, sourceMAccountTrustsAsset, nativeMAccountBalance, _, sourceAccount, _ = network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, currencyAsset)
-
-		if nativeMAccountBalance.LessThan(minBalance) {
-			return "", "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", minBalance.String(), os.Getenv("NATIVE_ASSET_CODE")), Code: http.StatusBadRequest}
-
-		}
-
-		if !mainAsset.IsNative() && !sourceMAccountTrustsAsset {
-
-			return "", "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", offerRequest.Quantity, currencyAsset.GetCode()), Code: http.StatusBadRequest}
-
-		}
-	}
-	if strings.EqualFold(offerRequest.OfferType, "SELL") {
-		_, sourceMAccountTrustsAsset, nativeMAccountBalance, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, mainAsset)
-
-		if nativeMAccountBalance.LessThan(minBalance) {
-			return "", "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", minBalance.String(), os.Getenv("NATIVE_ASSET_CODE")), Code: http.StatusBadRequest}
-
-		}
-
-		if !mainAsset.IsNative() && !sourceMAccountTrustsAsset {
-
-			return "", "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", offerRequest.Quantity, mainAsset.GetCode()), Code: http.StatusBadRequest}
-
-		}
-	}
-
-	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
-
-	if strings.EqualFold(offerRequest.OfferType, "BUY") {
-
-		//invert the price fraction
-		ops = append(ops, &basetxn.ManageSellOffer{
-			OfferID:       offerIDInt,
-			Selling:       currencyAsset,
-			Buying:        mainAsset,
-			Amount:        "0",
-			Price:         fmt.Sprintf("%v/%v", n, d),
-			SourceAccount: sourceWallet.ID,
-		})
-
-		// // move selling funds from the MM wallet to the wallet it was made from
-		// ops = append(ops, &basetxn.Payment{
-		// 	Asset:         currencyAsset,
-		// 	Destination:   sourceWallet.ID,
-		// 	Amount:        bOffer.Amount,
-		// 	SourceAccount: mmWallet.ID,
-		// })
-		memo = fmt.Sprintf("cancelOffer %v", bOffer.ID)
-
-	}
-	if strings.EqualFold(offerRequest.OfferType, "SELL") {
-
-		// cancel offer with net 0 so that fee can be returned.
-		ops = append(ops, &basetxn.ManageSellOffer{
-			OfferID:       offerIDInt,
-			Selling:       mainAsset,
-			Buying:        currencyAsset,
-			Amount:        "0",
-			Price:         fmt.Sprintf("%v/%v", n, d),
-			SourceAccount: sourceWallet.ID,
-		})
-
-		// // move sellinng funds from the MM wallet to the offer source wallet
-		// ops = append(ops, &basetxn.Payment{
-		// 	Asset:         mainAsset,
-		// 	Destination:   sourceWallet.ID,
-		// 	Amount:        bOffer.Amount,
-		// 	SourceAccount: mmWallet.ID,
-		// })
-		memo = fmt.Sprintf("cancelOffer %v", bOffer.ID)
-	}
-
-	// //service fee
-	// if decimal.RequireFromString(offerRequest.FeeValue).IsPositive() {
-
-	// 	//process service fee
-
-	// 	//no need deducting it as we deduct it as market executes
-	// 	feeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
-	// 	if !mainAsset.IsNative() {
-	// 		feeAssetCode = mainAsset.GetCode()
-	// 	}
-	// 	offerRequest.Messages = append(offerRequest.Messages, fmt.Sprintf("%v %v (%v) will be deducted from the total quantity as service fee and your offer will be placed with %v %v.", offerRequest.FeeValue, feeAssetCode, offerFeePercentage, offerRequest.NetQuantity, feeAssetCode))
-
-	// }
-
-	// Construct the transaction that holds the operations to execute on the network
-
-	var tx *basetxn.Transaction
-	// Construct the transaction that holds the operations to execute on the network
-	if sourceWallet.NumberOfApprovalsNeeded > 0 {
-		transactionSource = chanSourceAccount.Address
-		tx, err = basetxn.NewTransaction(
-			basetxn.TransactionParams{
-				SourceAccount:        chanSourceAccount.Address,
-				IncrementSequenceNum: true,
-				Operations:           ops,
-				BaseFee:              2000,
-				Memo:                 memo,
-			},
-		)
-	} else {
-		tx, err = basetxn.NewTransaction(
-			basetxn.TransactionParams{
-				SourceAccount:        sourceAccount.Address,
-				IncrementSequenceNum: true,
-				Operations:           ops,
-				BaseFee:              2000,
-				Memo:                 memo,
-			},
-		)
-	}
-	if err != nil {
-		log.Println("[generateDeleteMarketXdr]error constructing transaction", err)
-		return "", "", &tErrors.ErrorTemporaryServerError{}
-	}
-
-	// tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), mmSignerKeyPair)
-
-	// if err != nil {
-	// 	log.Println("[generateDeleteMarketXdr] error signing transaction with custodial signer key ", err)
-	// 	return "", "", &tErrors.ErrorTemporaryServerError{}
-	// }
-
-	if sourceWallet.NumberOfApprovalsNeeded > 0 {
-
-		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
-
-		if err != nil {
-			log.Println("[generateDeleteMarketXdr] error signing transaction with channelAccount key ", err)
-			return "", "", &tErrors.ErrorTemporaryServerError{}
-		}
-	}
-
-	xdrBase64, err := tx.Base64()
-
-	if err != nil {
-		return "", "", err
-	}
-	return xdrBase64, transactionSource, nil
-
+	return nil
 }
 
 // ToFractionInt32 approximates a float64 as a fraction with int32 numerator and denominator.

@@ -133,6 +133,17 @@ immediately without serving anything.
 - **How to get a real value**: leave unset; raise it only if your RPC
   plan allows more parallel requests.
 
+### `ENTRYPOINT_ADDRESS`
+- **Required**: no (defaults to the ERC-4337 v0.7 EntryPoint,
+  `0x0000000071727De22E5E9d8BAf0edAc6f37da032`)
+- **What it is**: the EntryPoint Trovo wallets' user operations go
+  through. The engine decodes its `handleOps` transactions to record the
+  ETH wallets send (internal transfers no top-level scan sees). Must match
+  app-backend's `ENTRYPOINT_ADDRESS`.
+- **How to get a real value**: leave unset on Base and Base Sepolia; on a
+  local chain use the address `paymaster/contracts/scripts/local-stack.js`
+  prints.
+
 ### `BASE_CHAIN_ID`
 - **Required**: no (defaults to `84532`, Base Sepolia)
 - **Example**: `8453` (Base mainnet) or `84532` (Base Sepolia)
