@@ -345,13 +345,12 @@ func (e *Engine) lockSchedule(ctx context.Context, p *store.ProceedPayout, idx *
 		if err := tx.CreateInBatches(items, 500).Error; err != nil {
 			return err
 		}
-		perTokenF, _ := perToken.Float64()
 		res := tx.Model(&store.ProceedPayout{}).Where("id = ? AND status = ?", p.ID, store.StatusPreparing).Updates(map[string]interface{}{
 			"status": store.StatusLocked, "snapshot_block": idx.ScannedBlock, "scanned_block": idx.ScannedBlock, "supply_units": supply.String(),
 			"eligible_units": eligible.String(), "payable_units": payable.String(), "retained_units": new(big.Int).Sub(total, payable).String(), // excluded holders' share and rounding dust
 			"paid_units": "0", "holder_count": len(items), "excluded_count": excludedCount, "paid_count": 0, "failed_count": 0,
-			"amount_per_token": perToken.Round(18).String(), "amount_per_tokenized_asset_held": perTokenF,
-			"fee_units": fee.fee.String(), "vat_units": fee.vat.String(), "vat_percent": fee.vatPercent, "fee_wallet": fee.feeWallet,
+			"amount_per_token": perToken.Round(18).String(),
+			"fee_units":        fee.fee.String(), "vat_units": fee.vat.String(), "vat_percent": fee.vatPercent, "fee_wallet": fee.feeWallet,
 			"vat_wallet": fee.vatWallet, "holder_payable": total.String(),
 			"schedule_checksum": checksum, "payment_schedule_ready": 1, "locked_at": now,
 			"note": fmt.Sprintf("%d holders at block %d; %d excluded", len(items), idx.ScannedBlock, excludedCount),

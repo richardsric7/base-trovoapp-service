@@ -16,10 +16,7 @@ import 'package:trovo_app/widgets/popups.dart';
 // signRecoveryTransactions adds the user's signature of every transaction in
 // data (one per wallet) as "transactionSignatures".
 void signRecoveryTransactions(Map data, String secretKey) {
-  List txs = (data['transactions'] as List?) ?? [];
-  if (txs.isEmpty && (data['transaction'] ?? '') != '') {
-    txs = [data['transaction']];
-  }
+  final List txs = (data['transactions'] as List?) ?? [];
   data['transactionSignatures'] = txs
       .map(
         (tx) => TrovoWalletSDK().signBase64Txn(

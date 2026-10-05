@@ -617,7 +617,6 @@ covered wallet removes the guardian in the same operation.
    operations' hashes, comma separated) when submitted. Turning it on again
    later covers wallets created since, without a fee.
 
-`transaction` / `transactionSignature` (single) still work for one wallet.
 `DELETE` answers 200 directly when no wallet still has the guardian.
 
 ### Recovering (the device with the new key)

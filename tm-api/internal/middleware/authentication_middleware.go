@@ -38,6 +38,7 @@ func (a AdminUser) fullName() string {
 	}
 	return name
 }
+
 type Role string
 type AdminStatus string
 
@@ -210,38 +211,6 @@ func tryOrganizationAuth(c *gin.Context, db *gorm.DB, token string) bool {
 			c.Set("member_role", claims.MemberRole)
 			c.Set("organization_name", claims.OrganizationName)
 			return true
-		}
-	}
-
-	// If OrganizationClaims failed, try to parse as MapClaims (legacy format)
-	parsedToken, err = jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(os.Getenv("JWT_SECRET")), nil
-	})
-
-	if err == nil {
-		if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok && parsedToken.Valid {
-			// Extract fields from legacy token format
-			orgID, _ := claims["organization_id"].(string)
-			email, _ := claims["email"].(string)
-			role, _ := claims["role"].(string)
-			userID, _ := claims["user_id"].(string)
-
-			if orgID != "" && email != "" && role != "" && userID != "" {
-				if validateOrganizationSession(db, userID, orgID, email, role, 0) != nil {
-					return false
-				}
-				// Set organization and member info in context (mapping legacy fields)
-				c.Set("organization_id", orgID)
-				c.Set("organization_email", email)
-				c.Set("organization_type", "ASSET_MANAGER") // Default for legacy tokens
-				c.Set("member_id", userID)
-				c.Set("member_email", email)
-				c.Set("member_role", role)
-				return true
-			}
 		}
 	}
 

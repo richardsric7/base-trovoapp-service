@@ -16,8 +16,8 @@ func TestParseSigners(t *testing.T) {
 	if err != nil || len(s) != 3 || s[0].Address.Hex() != "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" {
 		t.Fatalf("%v %v", s, err)
 	}
-	if s, err := ParseSigners(strings.Join(k[:3], ","), "X"); err != nil || len(s) != 3 {
-		t.Fatalf("legacy separator: %v", err)
+	if _, err := ParseSigners(strings.Join(k[:3], ","), "X"); err == nil {
+		t.Fatal("\",\" is not a separator")
 	}
 	if _, err := ParseSigners(strings.Join(k[:2], ";"), "X"); err == nil {
 		t.Fatal("fewer than 3 signers must fail")

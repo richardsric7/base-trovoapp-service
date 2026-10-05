@@ -102,7 +102,7 @@ process environment. Copy `.env.example` to `.env` to start. A missing
 ## Signers
 
 The payout Safe is signed by a managed secret: private keys separated by
-`;` (`,` for older secrets), at least 3. The first three sign every
+`;`, at least 3. The first three sign every
 transaction, and the first one sends it and pays the gas, so keep it funded
 with ETH (the funding check says how much is needed).
 

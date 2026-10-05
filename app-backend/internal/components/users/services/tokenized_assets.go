@@ -2419,12 +2419,11 @@ func GetExpressionOfInterestList(user *userModels.User, gc *sharedconfig.GlobalC
 }
 
 // getInternalBalanceIssuingSigners parses the multisig internal balance issuer's signers from the
-// INTERNAL_BALANCE_ISSUING_SIGNERS env var, a CSV of secret seeds. All parsed signers are returned so
-// the caller can sign with each of them - extra valid signatures beyond the account's multisig threshold
-// are harmless on Stellar.
+// INTERNAL_BALANCE_ISSUING_SIGNERS managed secret (keys separated by ";"). All are returned; the caller
+// signs with as many as the minting Safe's threshold needs.
 func getInternalBalanceIssuingSigners() ([]*evmkeypair.Full, error) {
 	var signers []*evmkeypair.Full
-	for _, v := range strings.Split(os.Getenv("INTERNAL_BALANCE_ISSUING_SIGNERS"), ",") {
+	for _, v := range strings.Split(os.Getenv("INTERNAL_BALANCE_ISSUING_SIGNERS"), ";") {
 		v = strings.TrimSpace(v)
 		if len(v) == 0 {
 			continue

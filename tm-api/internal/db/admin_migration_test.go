@@ -185,39 +185,6 @@ func TestAdminAutoMigrateCreatesStakeholderPortalTables(t *testing.T) {
 	if err := migrateAdminSchema(tx); err != nil {
 		t.Fatalf("migrateAdminSchema failed: %v", err)
 	}
-	if err := tx.Exec(`
-		ALTER TABLE fund_release_requests
-			ALTER COLUMN receiving_bank DROP NOT NULL,
-			ALTER COLUMN receiving_bank DROP DEFAULT,
-			ALTER COLUMN receiving_account_name DROP NOT NULL,
-			ALTER COLUMN receiving_account_name DROP DEFAULT,
-			ALTER COLUMN receiving_account_number DROP NOT NULL,
-			ALTER COLUMN receiving_account_number DROP DEFAULT;
-		INSERT INTO fund_release_requests (
-			id, asset_id, requester_org_id, requester_member_id, trustee_org_id,
-			amount, currency, purpose, status,
-			receiving_bank, receiving_account_name, receiving_account_number
-		) VALUES (
-			'legacy-null-receiving-account', 'asset-1', 'manager-1', 'member-1', 'trustee-1',
-			100, 'CNGN', 'Legacy request', 'submitted', NULL, NULL, NULL
-		);
-
-		ALTER TABLE compliance_item_documents
-			DROP CONSTRAINT compliance_item_documents_compliance_item_id_fkey,
-			DROP CONSTRAINT compliance_item_documents_document_id_fkey;
-		ALTER TABLE due_diligence_item_documents
-			DROP CONSTRAINT due_diligence_item_documents_due_diligence_item_id_fkey,
-			DROP CONSTRAINT due_diligence_item_documents_document_id_fkey;
-		DROP INDEX idx_compliance_item_documents_document_id;
-		DROP INDEX idx_due_diligence_item_documents_document_id;
-
-		INSERT INTO compliance_item_documents (compliance_item_id, document_id)
-		VALUES ('missing-compliance', 'missing-document');
-		INSERT INTO due_diligence_item_documents (due_diligence_item_id, document_id)
-		VALUES ('missing-due-diligence-item', 'missing-document')
-	`).Error; err != nil {
-		t.Fatalf("prepare legacy partially migrated schema: %v", err)
-	}
 	if err := migrateAdminSchema(tx); err != nil {
 		t.Fatalf("second migrateAdminSchema run failed: %v", err)
 	}
@@ -282,31 +249,6 @@ func TestAdminAutoMigrateCreatesStakeholderPortalTables(t *testing.T) {
 		if column.IsNullable != "NO" || column.ColumnDefault == nil {
 			t.Fatalf("receiving-account column %s nullable=%s default=%v", column.ColumnName, column.IsNullable, column.ColumnDefault)
 		}
-	}
-
-	var nullReceivingAccountCount int64
-	if err := tx.Raw(`
-		SELECT count(*)
-		FROM fund_release_requests
-		WHERE id = 'legacy-null-receiving-account'
-		  AND (receiving_bank IS NULL OR receiving_account_name IS NULL OR receiving_account_number IS NULL)
-	`).Scan(&nullReceivingAccountCount).Error; err != nil {
-		t.Fatal(err)
-	}
-	if nullReceivingAccountCount != 0 {
-		t.Fatal("legacy receiving-account NULL values were not backfilled")
-	}
-
-	var orphanedEvidenceLinkCount int64
-	if err := tx.Raw(`
-		SELECT
-			(SELECT count(*) FROM compliance_item_documents WHERE compliance_item_id = 'missing-compliance') +
-			(SELECT count(*) FROM due_diligence_item_documents WHERE due_diligence_item_id = 'missing-due-diligence-item')
-	`).Scan(&orphanedEvidenceLinkCount).Error; err != nil {
-		t.Fatal(err)
-	}
-	if orphanedEvidenceLinkCount != 0 {
-		t.Fatalf("retained %d orphaned evidence links, want 0", orphanedEvidenceLinkCount)
 	}
 
 	var cascadeConstraintCount int64

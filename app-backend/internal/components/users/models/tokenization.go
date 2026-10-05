@@ -2121,21 +2121,16 @@ type NonExistingAssetValidationAssetTokenInfo struct {
 // stages (Status, see ProceedPayoutStatus*) and payout-engine does the work:
 // it snapshots the holders (TokenizedAssetPayoutSchedule rows), checks the
 // payout Safe is funded and pays them in batches (ProceedPayoutBatch).
-// Amounts in *Units are exact base-unit integers (decimal strings); the
-// float fields are kept for older readers.
+// Amounts in *Units are exact base-unit integers (decimal strings).
 type ProceedPayout struct {
-	ID                          uint64         `gorm:"" json:"id" form:"-"`
-	CreatedAt                   time.Time      `json:"createdAt"`
-	UpdatedAt                   time.Time      `json:"updatedAt"`
-	TokenizedAssetID            string         `gorm:"not null;size:100;index" json:"tokenizedAssetId"`
-	TokenizedAsset              TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizedAssetInfo"`
-	Batch                       string         `gorm:"not null;size:100;index:,unique" json:"batch"` // asset code + "-" + distribution id (unique per distribution)
-	DepositedProceedAmount      float64        `json:"DepositedProceedAmount"`                       //fiat Amount in tokenized asset quote currency
-	PlatformFee                 float64        `json:"PlatformFee"`                                  //fiat Amount in tokenized asset quote currency
-	ProceedPayoutAmount         float64        `json:"proceedPayoutAmount"`                          //fiat Amount in tokenized asset quote currency
-	AmountPerTokenizedAssetHeld float64        `json:"amountPerTokenizedAssetHeld"`                  //Amount of proceed for each tokenized asset in quote currency
-	PaymentScheduleReady        int            `gorm:"default:0" json:"paymentScheduleReady"`        //tracks if payment schedule is ready
-	PayoutCompleted             int            `gorm:"default:0" json:"PayoutCompleted"`             //tracks if payment is completed
+	ID                   uint64         `gorm:"" json:"id" form:"-"`
+	CreatedAt            time.Time      `json:"createdAt"`
+	UpdatedAt            time.Time      `json:"updatedAt"`
+	TokenizedAssetID     string         `gorm:"not null;size:100;index" json:"tokenizedAssetId"`
+	TokenizedAsset       TokenizedAsset `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizedAssetInfo"`
+	Batch                string         `gorm:"not null;size:100;index:,unique" json:"batch"` // asset code + "-" + distribution id (unique per distribution)
+	PaymentScheduleReady int            `gorm:"default:0" json:"paymentScheduleReady"`        //tracks if payment schedule is ready
+	PayoutCompleted      int            `gorm:"default:0" json:"PayoutCompleted"`             //tracks if payment is completed
 
 	DistributionID string `gorm:"size:64;index" json:"distributionId"` // tm-api stakeholder distribution
 	Status         string `gorm:"size:32;not null;default:'REGISTERED';index" json:"status"`
@@ -2221,21 +2216,6 @@ type TokenizedAssetPayoutSchedule struct {
 	Notified        int        `gorm:"default:0" json:"-"`
 	ActionBy        string     `gorm:"size:150" json:"actionBy"`                           // admin who excluded / marked it paid
 	Kind            string     `gorm:"size:8;not null;default:'HOLDER';index" json:"kind"` // HOLDER, or the payout's FEE / VAT
-}
-
-// TokenizedAssetPayoutEngineTask predates payout-engine and was never
-// written; payouts are tracked on TokenizedAssetPayoutSchedule and
-// ProceedPayoutBatch instead. Kept so its table is not dropped.
-type TokenizedAssetPayoutEngineTask struct {
-	ID                             uint64    `gorm:"" json:"-" form:"-"`
-	TokenizedAssetPayoutScheduleID string    `gorm:"size:100;index:,unique" json:"tokenizedAssetPayoutScheduleID"`
-	CreatedAt                      time.Time `json:"createdAt"`
-	MemoFromBatch                  string    `gorm:"not null;size:28;index:," json:"batch"` //asset code + payout cycle + month + year
-	PayoutAssetCode                string    `gorm:"not null;size:12" json:"payoutAssetCode"`
-	PayoutContractAddress          string    `gorm:"not null;size:100" json:"payoutContractAddress"`
-	BeneficiaryAddress             string    `gorm:"not null;size:100" json:"beneficiaryAddress"`
-	AmountToReceive                string    `json:"amountToReceive"`
-	Paid                           int       `gorm:"default:0" json:"paid"`
 }
 
 type TokenizedAssetCode string

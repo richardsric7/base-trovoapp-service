@@ -11845,13 +11845,7 @@ const docTemplate = `{
                 "securityAnswers": {
                     "$ref": "#/definitions/users.UserSecurityAnswer"
                 },
-                "transaction": {
-                    "type": "string"
-                },
                 "transactionId": {
-                    "type": "string"
-                },
-                "transactionSignature": {
                     "type": "string"
                 },
                 "transactionSignatures": {
@@ -11861,7 +11855,7 @@ const docTemplate = `{
                     }
                 },
                 "transactions": {
-                    "description": "Transactions are the operations to sign, one per covered wallet\n(Wallets, same order); Transaction is the first, for older clients.",
+                    "description": "Transactions are the operations to sign, one per covered wallet\n(Wallets, same order).",
                     "type": "array",
                     "items": {
                         "type": "string"

@@ -82,12 +82,8 @@ type recoveryGuardian struct {
 
 func loadRecoveryGuardian(ctx context.Context, gc *sharedconfig.GlobalConfig) (*recoveryGuardian, error) {
 	raw := strings.TrimSpace(os.Getenv("ACCOUNT_RECOVERY_GUARDIAN_SIGNERS"))
-	sep := ";"
-	if !strings.Contains(raw, ";") {
-		sep = ","
-	}
 	var keys []*evmkeypair.Full
-	for _, k := range strings.Split(raw, sep) {
+	for _, k := range strings.Split(raw, ";") {
 		if k = strings.TrimSpace(k); k == "" {
 			continue
 		}
@@ -125,7 +121,7 @@ func recoveryGuardianAddress() (common.Address, error) {
 		}
 		return common.HexToAddress(s), nil
 	}
-	keys := strings.FieldsFunc(os.Getenv("ACCOUNT_RECOVERY_GUARDIAN_SIGNERS"), func(r rune) bool { return r == ';' || r == ',' })
+	keys := strings.FieldsFunc(os.Getenv("ACCOUNT_RECOVERY_GUARDIAN_SIGNERS"), func(r rune) bool { return r == ';' })
 	if len(keys) == 0 {
 		return common.Address{}, recoveryNotConfigured()
 	}
@@ -257,12 +253,6 @@ func containsAddress(list []common.Address, a common.Address) bool {
 func recoveryOps(ctx context.Context, kind string, user *userModels.User, wallets []recoveryWallet, callsFor func(rw recoveryWallet, first bool) ([]aa.Call, interface{}, []string, error), payload *userModels.UserAccountRecoveryPayload, gc *sharedconfig.GlobalConfig) (submitted bool, err error) {
 	sigs := payload.TransactionSignatures
 	txs := payload.Transactions
-	if len(sigs) == 0 && payload.TransactionSignature != "" {
-		sigs = []string{payload.TransactionSignature}
-	}
-	if len(txs) == 0 && payload.Transaction != "" {
-		txs = []string{payload.Transaction}
-	}
 	if len(sigs) > 0 {
 		if len(sigs) != len(txs) {
 			return false, &tErrors.CustomError{Param: "transactionSignatures", Err: "error-signatures-missing", ErrMessage: "Sign every transaction (one per wallet).", Code: http.StatusBadRequest}
@@ -314,9 +304,6 @@ func recoveryOps(ctx context.Context, kind string, user *userModels.User, wallet
 		for _, m := range op.Messages() {
 			payload.Messages = append(payload.Messages, fmt.Sprintf("%v: %v", w.Alias, m))
 		}
-	}
-	if len(payload.Transactions) > 0 {
-		payload.Transaction = payload.Transactions[0]
 	}
 	payload.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
 	return false, nil
@@ -433,7 +420,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 			todo = append(todo, rw)
 		}
 	}
-	if len(todo) == 0 && len(payload.TransactionSignatures) == 0 && payload.TransactionSignature == "" {
+	if len(todo) == 0 && len(payload.TransactionSignatures) == 0 {
 		return &tErrors.CustomError{Param: "username", Err: "error account recovery already enabled.", ErrMessage: "Account recovery already covers all your wallets.", Code: http.StatusConflict}
 	}
 	chargeFee := user.AccountRecoveryEnabled == 0
@@ -489,7 +476,7 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 			todo = append(todo, rw)
 		}
 	}
-	if len(todo) == 0 && len(payload.TransactionSignatures) == 0 && payload.TransactionSignature == "" {
+	if len(todo) == 0 && len(payload.TransactionSignatures) == 0 {
 		if user.AccountRecoveryEnabled == 1 {
 			gc.DB.Model(&userModels.User{}).Where("id = ?", user.ID).Update("account_recovery_enabled", 0)
 			user.InvalidateUserCache(gc)

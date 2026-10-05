@@ -350,18 +350,6 @@ var authDB *gorm.DB
 func SetDB(db *gorm.DB) {
 	authDB = db
 	if authDB != nil {
-		// Rename the legacy "asset_issuer" column (Stellar-era name) to
-		// "contract_address" before AutoMigrate, which never renames an
-		// existing column on its own - left alone it would add a new
-		// empty contract_address column while asset_issuer's data sat
-		// unused. No-op if already renamed or the table doesn't exist yet.
-		migrator := authDB.Migrator()
-		const table = "wallet_asset_authorizations"
-		if migrator.HasTable(table) && migrator.HasColumn(table, "asset_issuer") && !migrator.HasColumn(table, "contract_address") {
-			if err := migrator.RenameColumn(table, "asset_issuer", "contract_address"); err != nil {
-				log.Printf("[SetDB] failed to rename %s.asset_issuer -> contract_address: %v\n", table, err)
-			}
-		}
 		authDB.AutoMigrate(&WalletAssetAuthorization{})
 		authDB.AutoMigrate(&AccountSigner{})
 	}

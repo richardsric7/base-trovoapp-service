@@ -108,52 +108,8 @@ func OrganizationAuthMiddleware(db *gorm.DB) gin.HandlerFunc {
 			}
 		}
 
-		// If OrganizationClaims failed, try to parse as MapClaims (legacy format)
-		token, err = jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			}
-			return []byte(os.Getenv("JWT_SECRET")), nil
-		})
-
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, models.ErrorResponse{Error: "Invalid token"})
-			c.Abort()
-			return
-		}
-
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			// Extract fields from legacy token format
-			orgID, _ := claims["organization_id"].(string)
-			email, _ := claims["email"].(string)
-			role, _ := claims["role"].(string)
-			userID, _ := claims["user_id"].(string)
-
-			if orgID == "" || email == "" || role == "" || userID == "" {
-				c.JSON(http.StatusUnauthorized, models.ErrorResponse{Error: "Invalid token claims"})
-				c.Abort()
-				return
-			}
-			if err := validateOrganizationSession(db, userID, orgID, email, role, 0); err != nil {
-				c.JSON(http.StatusUnauthorized, models.ErrorResponse{Error: "Organization session is no longer valid"})
-				c.Abort()
-				return
-			}
-
-			// Set organization and member info in context (mapping legacy fields)
-			c.Set("organization_id", orgID)
-			c.Set("organization_email", email)
-			c.Set("organization_type", "ASSET_MANAGER") // Default for legacy tokens
-			c.Set("member_id", userID)
-			c.Set("member_email", email)
-			c.Set("member_role", role)
-
-			c.Next()
-		} else {
-			c.JSON(http.StatusUnauthorized, models.ErrorResponse{Error: "Invalid token claims"})
-			c.Abort()
-			return
-		}
+		c.JSON(http.StatusUnauthorized, models.ErrorResponse{Error: "Invalid token"})
+		c.Abort()
 	}
 }
 

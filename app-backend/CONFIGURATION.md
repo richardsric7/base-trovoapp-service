@@ -511,7 +511,7 @@ Opt-in account recovery (see [INTEGRATION.md](INTEGRATION.md#account-recovery-op
 - How to get a real value: `recoveryPeriodSeconds` in the module's deployment file (`recovery/contracts/deployments/<chainId>.json`).
 
 **`ACCOUNT_RECOVERY_GUARDIAN_SAFE`** / **`ACCOUNT_RECOVERY_GUARDIAN_SIGNERS`**
-- Example: `0x1234...abcd` / `0x59c6...;0x5de4...` (hex private keys, `;` or `,` separated)
+- Example: `0x1234...abcd` / `0x59c6...;0x5de4...` (hex private keys, `;` separated)
 - What it does: The platform's recovery guardian, made the only guardian of each covered wallet. With `ACCOUNT_RECOVERY_GUARDIAN_SAFE` (recommended) the guardian is that Safe and the backend executes its calls with enough of the `ACCOUNT_RECOVERY_GUARDIAN_SIGNERS` keys to meet its threshold (the first key pays gas); without it the guardian is the first key itself. The guardian can only start replacing a covered wallet's key (finalized after the recovery period, cancellable by the user) - it cannot move funds. Its keys pay the gas of starting and finalizing recoveries, so keep them funded with a little ETH.
 - How to get a real value: create a Safe owned by dedicated keys from your secrets manager (e.g. 2-of-3 with two keys here and one held offline). Changing the guardian later does not move existing wallets to it: users would have to turn recovery off and on again.
 
@@ -537,7 +537,7 @@ Opt-in account recovery (see [INTEGRATION.md](INTEGRATION.md#account-recovery-op
 ## Internal balance authorization / compliance
 
 **`INTERNAL_BALANCE_ISSUING_SIGNERS`**
-- Example: `0xkey1,0xkey2`
+- Example: `0xkey1;0xkey2` (`;` separated, like every managed signer secret)
 - What it does: Owner keys of each country's internal balance minting Safe (`CountryConfig.internalTokenMinterSafe`, which owns the internal balance token `internalTokenIssuer`). For a fiat purchase of a tokenized asset whose payment is confirmed, enough of them sign one Safe transaction that mints the purchase amount to the Safe and buys from the asset's sale offer for the buyer; the first key pays its gas, so it must hold ETH. (`INTERNAL_BALANCE_AUTHORIZER_WALLET` is no longer used.)
 - How to get a real value: the keys of that Safe's owners, from your secrets manager.
 
@@ -557,7 +557,7 @@ Opt-in account recovery (see [INTEGRATION.md](INTEGRATION.md#account-recovery-op
 
 **`P2P_ESCROW_SIGNERS`**
 - Example: `key1;key2;key3`
-- What it does: A `;`-separated (legacy `,`-separated also accepted) list of at least 3 signer private keys/mnemonics for the escrow Safe. The first signer also broadcasts and pays gas for every settlement.
+- What it does: A `;`-separated list of at least 3 signer private keys/mnemonics for the escrow Safe. The first signer also broadcasts and pays gas for every settlement.
 - How to get a real value: the private keys of the Safe's configured owners — for local/testnet dev, create a testnet Safe with test-only owner keys.
 
 **`P2P_ESCROW_MULTISEND_ADDRESS`**

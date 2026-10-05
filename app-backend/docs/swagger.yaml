@@ -2268,11 +2268,7 @@ definitions:
         type: string
       securityAnswers:
         $ref: '#/definitions/users.UserSecurityAnswer'
-      transaction:
-        type: string
       transactionId:
-        type: string
-      transactionSignature:
         type: string
       transactionSignatures:
         items:
@@ -2281,7 +2277,7 @@ definitions:
       transactions:
         description: |-
           Transactions are the operations to sign, one per covered wallet
-          (Wallets, same order); Transaction is the first, for older clients.
+          (Wallets, same order).
         items:
           type: string
         type: array

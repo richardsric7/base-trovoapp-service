@@ -158,15 +158,11 @@ type SignerSource interface {
 	Signers(ctx context.Context) ([]Signer, error)
 }
 
-// ParseSigners parses a managed signer secret: keys separated by ";"
-// (legacy ","), of which the first 3 are returned.
+// ParseSigners parses a managed signer secret: keys separated by ";", of
+// which the first 3 are returned.
 func ParseSigners(raw, name string) ([]Signer, error) {
-	sep := ";"
-	if !strings.Contains(raw, ";") && strings.Contains(raw, ",") {
-		sep = ","
-	}
 	var entries []string
-	for _, p := range strings.Split(raw, sep) {
+	for _, p := range strings.Split(raw, ";") {
 		if p = strings.TrimSpace(p); p != "" {
 			entries = append(entries, p)
 		}
