@@ -56,6 +56,13 @@ import P2PDispute from '../pages/dashboard/p2p/dispute';
 import P2PMyOrders from '../pages/dashboard/p2p/myOrders';
 import P2PMyOffers from '../pages/dashboard/p2p/myOffers';
 import P2PMyRefunds from '../pages/dashboard/p2p/myRefunds';
+import BankView from '../pages/dashboard/bank';
+import PublicMarketsList from '../pages/dashboard/publicMarkets/marketList';
+import PublicMarketsAsset from '../pages/dashboard/publicMarkets/assetDetail';
+import PublicMarketsTrade from '../pages/dashboard/publicMarkets/trade';
+import PublicMarketsOrder from '../pages/dashboard/publicMarkets/orderDetail';
+import PublicMarketsPortfolio from '../pages/dashboard/publicMarkets/portfolio';
+import PublicMarketsDividends from '../pages/dashboard/publicMarkets/dividends';
 import P2PPaymentMethods from '../pages/dashboard/p2p/paymentMethods';
 import PayLanding from '../pages/pay/payLanding';
 import Settings from '../pages/dashboard/settings/settings';
@@ -125,6 +132,13 @@ export default function AppRouter() {
             <Route path="p2p/my-orders" element={<P2PMyOrders />} />
             <Route path="p2p/my-offers" element={<P2PMyOffers />} />
             <Route path="p2p/my-refunds" element={<P2PMyRefunds />} />
+            <Route path="bank" element={<BankView />} />
+            <Route path="public-markets" element={<PublicMarketsList />} />
+            <Route path="public-markets/asset/:code" element={<PublicMarketsAsset />} />
+            <Route path="public-markets/asset/:code/trade" element={<PublicMarketsTrade />} />
+            <Route path="public-markets/order/:orderId" element={<PublicMarketsOrder />} />
+            <Route path="public-markets/portfolio" element={<PublicMarketsPortfolio />} />
+            <Route path="public-markets/dividends" element={<PublicMarketsDividends />} />
             <Route path="p2p/payment-methods" element={<P2PPaymentMethods />} />
             <Route path="shared-access" element={<SharedAccessLanding />} />
             <Route

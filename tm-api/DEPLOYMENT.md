@@ -92,6 +92,14 @@ go run main.go
 # or: make run
 ```
 
+The careers table uses a Postgres enum type, so AutoMigrate does not
+create it. Apply it once to a new database before first using the careers
+pages:
+
+```bash
+psql "$ADMIN_CONNECTION_STRING" -f migrations/create_career_roles.sql
+```
+
 On startup, `main.go`:
 
 1. Loads `.env` (skipped in `GIN_MODE=release`, where real env vars are expected instead).

@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:trovo_app/models/asset.dart';
 import 'package:trovo_app/models/curated_asset.dart';
 import 'package:trovo_app/models/wallet.dart';
+import 'package:trovo_app/network/fiat_requests.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
@@ -48,6 +49,30 @@ class _WrappedAssetState extends State<WrappedAsset>
           asset.assetCode == appState.viewData!['assetCode'] &&
           asset.contractAddress == appState.viewData!['contractAddress'],
     );
+    if (asset!.assetCode == 'CNGN') {
+      FiatApi(appState, walletAddress: wallet.address).profile().then((r) {
+        if (mounted && r['statusCode'] == 200 && r['data']?['enabled'] == true) {
+          setState(() => bankAvailable = true);
+        }
+      });
+    }
+  }
+
+  // bankAvailable: cNGN can also be deposited from and withdrawn to a bank
+  // account (Stablerail), from BankTransferView.
+  bool bankAvailable = false;
+
+  bool get cryptoAvailable =>
+      curatedAsset != null &&
+      (curatedAsset!.isWithdrawable ||
+          curatedAsset!.canGenerateDepositAddresses == 1);
+
+  void openBank(int tab) {
+    appState.viewData = {'walletAddress': wallet.address, 'bankTab': tab};
+    appState.currentAction = PageAction(
+      state: PageState.addPage,
+      page: BankTransferViewPageConfig,
+    );
   }
 
   @override
@@ -75,9 +100,7 @@ class _WrappedAssetState extends State<WrappedAsset>
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (curatedAsset!.realAssetImageUrl
-                      .toString()
-                      .isNotEmpty) ...[
+                  if ((curatedAsset?.realAssetImageUrl ?? '').isNotEmpty) ...[
                     Image.network(
                       curatedAsset!.realAssetImageUrl!,
                       height: 30,
@@ -93,7 +116,7 @@ class _WrappedAssetState extends State<WrappedAsset>
                   ],
                   SizedBox(width: width / 50.0),
                   Text(
-                    getAssetCode(curatedAsset!.assetCode),
+                    getAssetCode(curatedAsset?.assetCode ?? asset!.assetCode),
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -180,7 +203,7 @@ class _WrappedAssetState extends State<WrappedAsset>
                               ),
                               SizedBox(height: height / 90),
                               Text(
-                                curatedAsset!.assetRedemptionInstructions!,
+                                curatedAsset?.assetRedemptionInstructions ?? "bankdepositwithdrawinfo".tr(),
                                 textAlign: TextAlign.justify,
                                 style: TextStyle(
                                   fontSize: 15,
@@ -240,6 +263,36 @@ class _WrappedAssetState extends State<WrappedAsset>
   }
 
   Widget actionButtons() {
+    return Column(
+      children: [
+        if (cryptoAvailable) cryptoActionButtons(),
+        if (bankAvailable) ...[
+          SizedBox(height: height / 60),
+          Text(
+            "bankaccountngn".tr(),
+            style: TextStyle(
+              fontSize: 13,
+              color: notifier.getbluewhitecolor,
+              fontFamily: fontsemibold,
+            ),
+          ),
+          Container(
+            constraints: BoxConstraints(maxWidth: width / 1.3),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                actionButton("assets/images/deposit.png", "deposit".tr(), () => openBank(0)),
+                actionButton("assets/images/withdraw.png", "withdraw".tr(), () => openBank(1)),
+                actionButton("assets/images/history-btn.png", "bankhistory".tr(), () => openBank(2)),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget cryptoActionButtons() {
     return Container(
       constraints: BoxConstraints(maxWidth: width / 1.3),
       child: Row(

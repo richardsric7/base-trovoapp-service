@@ -172,7 +172,7 @@ func getUsersPaymentsTargetAddressForHistoryHandler(callBackRetryChan chan userM
 		cacheDurationInSeconds := 20 //in seconds
 		conDB.PrintDBStats(fmt.Sprintf("/v1/users/payments/%v", targetAddressForHistory), gc.DB)
 
-		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		signerUser, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
@@ -280,7 +280,7 @@ func getUsersPaymentsTargetAddressForHistoryHandler(callBackRetryChan chan userM
 func getCuratedAssetsUsersHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -662,7 +662,7 @@ func postUsersKycSumsubInitiateLevelNameHandler(callBackRetryChan chan userModel
 
 		levelName := c.Param("levelName")
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -711,7 +711,7 @@ func getUsersKycSumsubProgressHandler(callBackRetryChan chan userModels.RetryCal
 	return func(c *gin.Context) {
 		var err error
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -745,7 +745,7 @@ func getUsersKycDojaProgressHandler(callBackRetryChan chan userModels.RetryCallb
 	return func(c *gin.Context) {
 		var err error
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -779,7 +779,7 @@ func getUsersActivateFiatHandler(callBackRetryChan chan userModels.RetryCallback
 	return func(c *gin.Context) {
 		var err error
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -812,7 +812,7 @@ func getUsersFiatPaymentsHandler(callBackRetryChan chan userModels.RetryCallback
 	return func(c *gin.Context) {
 		var err error
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -849,7 +849,7 @@ func postUsersFiatFlutterwaveHandler(callBackRetryChan chan userModels.RetryCall
 	return func(c *gin.Context) {
 		var err error
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -917,7 +917,7 @@ func postUsersKycSumsubCompleteLevelNameHandler(callBackRetryChan chan userModel
 
 		levelName := c.Param("levelName")
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -968,7 +968,7 @@ func getUsersKycSumsubConfigsHandler(callBackRetryChan chan userModels.RetryCall
 
 		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
@@ -1014,7 +1014,7 @@ func getUsersKycDojaConfigsHandler(callBackRetryChan chan userModels.RetryCallba
 
 		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
@@ -1161,7 +1161,7 @@ func putUsersUploadPictureHandler(callBackRetryChan chan userModels.RetryCallbac
 			}
 		}
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1220,7 +1220,7 @@ func getUsersStablerailBanksHandler(callBackRetryChan chan userModels.RetryCallb
 	return func(c *gin.Context) {
 		var err error
 
-		_, err = usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		_, err = usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1242,58 +1242,6 @@ func getUsersStablerailBanksHandler(callBackRetryChan chan userModels.RetryCallb
 	}
 }
 
-// postUsersStablerailOnboarduserBvnHandler godoc
-// @Summary POST /v1/users/stablerail/onboarduser/:bvn
-// @Tags users
-// @Produce json
-// @Param bvn path string true "BVN (11 digits)"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
-// @Router /v1/users/stablerail/onboarduser/{bvn} [post]
-func postUsersStablerailOnboarduserBvnHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var err error
-
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
-
-		if err != nil {
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(tErrors.GenericError)
-			if ok {
-				c.JSON(http.StatusBadRequest, ex.JSONError())
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-			}
-			return
-		}
-		// check BVN that it has 11 digits
-		bvn := c.Param("bvn")
-		if len(bvn) != 11 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid-bvn-format", "message": "BVN format is invalid"})
-			return
-		}
-		//get amount for activation
-		msg, err := userServices.StablerailInitiateOnboardUser(&user, bvn, gc)
-		if err != nil {
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(tErrors.GenericError)
-			if ok {
-				c.JSON(http.StatusBadRequest, ex.JSONError())
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
-			}
-			return
-		}
-
-		c.JSON(http.StatusOK, msg)
-	}
-}
-
 // postUsersStablerailOnrampcngnAmountHandler godoc
 // @Summary POST /v1/users/stablerail/onrampcngn/:amount
 // @Tags users
@@ -1307,7 +1255,7 @@ func postUsersStablerailOnrampcngnAmountHandler(callBackRetryChan chan userModel
 	return func(c *gin.Context) {
 		var err error
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1419,7 +1367,6 @@ func getUsersPaymentGenerateTargetUserHandler(callBackRetryChan chan userModels.
 		{
 			//search cache
 
-			// cacheKeyParameters := fmt.Sprintf("limit=%v&order=%v&cursor=%v&forTransactionHash=%v&includeHash=%v&temp=%v", limit, orderStr, cursor, forTransactionHash, includeHash, temp)
 
 			ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
 
@@ -1506,7 +1453,7 @@ func postSecurityQuestionsHandler(callBackRetryChan chan userModels.RetryCallbac
 			return
 		}
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1845,7 +1792,7 @@ func postUsersAccountRecoveryHandler(callBackRetryChan chan userModels.RetryCall
 			return
 		}
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1920,7 +1867,7 @@ func deleteUsersAccountRecoveryHandler(callBackRetryChan chan userModels.RetryCa
 			return
 		}
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2056,7 +2003,7 @@ func postUsersAccountRecoveryCancelHandler(callBackRetryChan chan userModels.Ret
 			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
 			return
 		}
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 		if err == nil {
 			err = userServices.CancelAccountRecovery(&user, &payload, gc)
 		}
@@ -2176,7 +2123,7 @@ func postSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Retry
 	return func(c *gin.Context) {
 		var err error
 
-		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		signerUser, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -2477,7 +2424,7 @@ func deleteSharedAccessUsersAccountHandler(callBackRetryChan chan userModels.Ret
 				return
 			}
 		}
-		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		signerUser, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -3348,7 +3295,7 @@ func postUsersTradesHandler(callBackRetryChan chan userModels.RetryCallbacks, gc
 			return
 		}
 
-		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		signerUser, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -3469,7 +3416,7 @@ func getCryptoWithdrawalHistoryCurrencyTargetAddressForHistoryHandler(callBackRe
 		cacheDurationInSeconds := 20 //in seconds
 		conDB.PrintDBStats(fmt.Sprintf("/v1/crypto/withdrawal-history/%v/%v", currency, targetAddressForHistory), gc.DB)
 
-		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		signerUser, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
@@ -3609,7 +3556,7 @@ func getCryptoDepositHistoryCurrencyTargetAddressForHistoryHandler(callBackRetry
 		cacheDurationInSeconds := 20 //in seconds
 		conDB.PrintDBStats(fmt.Sprintf("/v1/crypto/deposit-history/%v/%v", currency, targetAddressForHistory), gc.DB)
 
-		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		signerUser, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
@@ -4236,7 +4183,7 @@ func getClosedGroupsHandler(callBackRetryChan chan userModels.RetryCallbacks, gc
 		// countryCode := c.Param("countryCode")
 		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 
-		groupOwner, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		groupOwner, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
@@ -4281,7 +4228,7 @@ func getBanksCountryCodeHandler(callBackRetryChan chan userModels.RetryCallbacks
 		countryCode := c.Param("countryCode")
 		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 
-		_, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		_, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
@@ -4336,7 +4283,7 @@ func getFormsFormIdHandler(callBackRetryChan chan userModels.RetryCallbacks, gc 
 
 		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 
-		_, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		_, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
@@ -4438,7 +4385,7 @@ func getPublicTokenizationHandler(callBackRetryChan chan userModels.RetryCallbac
 
 		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 
-		// _, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		// _, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		// if err != nil {
 		// 	log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
@@ -4496,7 +4443,7 @@ func getTokenizationHandler(callBackRetryChan chan userModels.RetryCallbacks, gc
 
 		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 
-		_, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		_, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
@@ -4780,7 +4727,7 @@ func getTokenizationListHandler(callBackRetryChan chan userModels.RetryCallbacks
 
 		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 		// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
@@ -4939,7 +4886,7 @@ func postTokenizationExpressedInterestsTokenizedAssetIDHandler(callBackRetryChan
 		// var err error//true-client-ip
 
 		tokenizedAssetID := c.Param("tokenizedAssetID")
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
@@ -4978,19 +4925,6 @@ func postTokenizationExpressedInterestsTokenizedAssetIDHandler(callBackRetryChan
 			}
 			return
 		}
-
-		// if temp {
-		// 	errAccountIsTemp := &tErrors.CustomError{
-		// 		Param:      "Username",
-		// 		Err:        "error-account-not-temporary-wallet",
-		// 		ErrMessage: "Only normal/standard wallets are allowed for this request.",
-		// 		Code:       http.StatusForbidden,
-		// 	}
-
-		// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-		// 	return
-
-		// }
 
 		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
 		if err != nil {
@@ -5062,7 +4996,7 @@ func postTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan chan
 		// var err error//true-client-ip
 
 		tokenizedAssetID := c.Param("tokenizedAssetID")
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
@@ -5177,7 +5111,7 @@ func postTokenizationSubscriptionsTokenizedAssetIDHandler(callBackRetryChan chan
 func postTokenizationSubscriptionsFiatTokenizedAssetIDHandler(callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenizedAssetID := c.Param("tokenizedAssetID")
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -5439,7 +5373,7 @@ func getTokenizationExpressedInterestsHandler(callBackRetryChan chan userModels.
 
 		// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
 		// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
@@ -7579,7 +7513,6 @@ func getComplianceWalletAuthorizationHandler(callBackRetryChan chan userModels.R
 // @Param body body userModels.TokenizedAssetEarlyExitInput true "Early exit request (e.g. quantity to exit)"
 // @Success 200 {object} userModels.TokenizedAssetEarlyExitInput
 // @Failure 400 {object} map[string]interface{} "Invalid JSON or request"
-// @Failure 403 {object} map[string]interface{} "Wallet is a temporary wallet, which is not allowed"
 // @Security SignatureAuth
 // @Router /v1/tokenization/early-exit/{tokenizedAssetID} [post]
 func postTokenizationEarlyExitTokenizedAssetIDHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
@@ -7587,7 +7520,7 @@ func postTokenizationEarlyExitTokenizedAssetIDHandler(gc *sharedconfig.GlobalCon
 		// var err error//true-client-ip
 
 		tokenizedAssetID := c.Param("tokenizedAssetID")
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
@@ -7692,7 +7625,7 @@ func postTokenizationEarlyExitTokenizedAssetIDHandler(gc *sharedconfig.GlobalCon
 // @Success 200 {object} userModels.TokenizedAssetEarlyExitInput "Exit executed immediately"
 // @Success 202 {object} userModels.TokenizedAssetEarlyExitInput "Exit pending approver authorization"
 // @Failure 400 {object} map[string]interface{} "Invalid JSON or request"
-// @Failure 403 {object} map[string]interface{} "Wallet is temporary, or caller lacks initiator/owner permission on this shared-access wallet"
+// @Failure 403 {object} map[string]interface{} "Caller lacks initiator/owner permission on this shared-access wallet"
 // @Security SignatureAuth
 // @Router /v1/shared-access/tokenization/early-exit/{tokenizedAssetID} [post]
 func postSharedAccessTokenizationEarlyExitTokenizedAssetIDHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {

@@ -22,6 +22,9 @@ links at the bottom to the deeper docs.
   real-world assets (see `TOKENIZATION_PLAN.md` and
   `TOKENIZED_ASSET_PURCHASE_BY_FIAT.md` in this directory for the original
   design notes).
+- **Public Markets** — tokenized NGX equities and FMDQ bonds, backed by
+  units a Custodian holds at CSCS, bought and sold by Trovo App users and
+  partner exchanges (see [PUBLIC_MARKETS.md](PUBLIC_MARKETS.md)).
 - **KYC** — identity verification via third-party providers (Sumsub, Doja).
 - **Service links** — API-key-based integrations that let white-label
   partners (and Trovo's own admin backend) act on behalf of users, mint
@@ -100,6 +103,25 @@ models), `services/` (business logic), and sometimes `db/` (queries) or
 | `callbacks` | Webhook receivers from external providers (1Liquidity, Doja, Flutterwave) |
 | `announcements` | In-app announcement banners and minimum app-version checks |
 
+### Loading users
+
+A user can be loaded two ways. Pick the lighter one whenever you can:
+
+| Loader | Loads | Use when |
+| --- | --- | --- |
+| `Username(x).GetFullUser`, `usersDB.GetUser`, `usersDB.GetUserFromPrimarySigner` | the `users` row **plus** wallets (with permissions), wallets shared with the user, patron membership, closed groups and fiat payment methods (about seven queries) | the code reads `UserWallets`, `WalletsSharedWithUser` or another association |
+| `Username(x).GetSlimUser` (and `GetSimpleUser`), `usersDB.GetSlimUser`, `usersDB.GetSlimUserFromPrimarySigner` / `userModels.GetSlimUserBySigner` | the `users` row only, with every column, so it can be saved back | only the user's own fields are read (username, push token, KYC, suspension, referrer, fee exemption, ...) |
+
+Both are cached in Redis for 2000 seconds under the user's username, email,
+primary signer and ID. Full users live under `userObj …` and slim users
+under `userLite …`, so a slim object is never served to code that expects
+wallets. `InvalidateUserCache` / `InvalidateUserWalletCache` clear both. On
+a slim user they read the wallet ids from the database to clear the
+wallet-keyed entries too, so you can invalidate through whichever kind you
+hold. Tests: `internal/components/users/db/user_slim_test.go`, which needs a
+Redis at `TEST_REDIS_ADDR` (default `127.0.0.1:6379`) and is skipped
+without one.
+
 ## Running it locally
 
 You'll need Go installed (see `go.mod` for the version) and, for a full
@@ -155,3 +177,6 @@ requests you try from the Swagger UI or elsewhere.
   this service reads, what it does, and how to get a real value for it.
 - **[INTEGRATION.md](INTEGRATION.md)** — how `app-web`, `app-mobile`,
   `tm-api`, and white-label partners each integrate with this API.
+- **[PUBLIC_MARKETS.md](PUBLIC_MARKETS.md)** — the Public Markets engine:
+  order paths, net batches, partners (mock/REST/manual), reconciliation,
+  exchanges and dividends.

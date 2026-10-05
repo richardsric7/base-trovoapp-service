@@ -17,9 +17,9 @@ func TestSplitCSV(t *testing.T) {
 			want: []string{"0xaaa", "0xbbb", "0xccc"},
 		},
 		{
-			name: "legacy comma-separated format falls back",
-			raw:  "0xaaa,0xbbb,0xccc",
-			want: []string{"0xaaa", "0xbbb", "0xccc"},
+			name: "commas are part of an entry",
+			raw:  "0xaaa,0xbbb",
+			want: []string{"0xaaa,0xbbb"},
 		},
 		{
 			name: "single entry, no separators either way",
@@ -27,7 +27,7 @@ func TestSplitCSV(t *testing.T) {
 			want: []string{"0xaaa"},
 		},
 		{
-			name: "semicolons win when both are present - a pasted mnemonic's internal commas stay inside their own entry",
+			name: "a pasted mnemonic's internal commas stay inside their own entry",
 			raw:  "word1,word2,word3;0xbbb",
 			want: []string{"word1,word2,word3", "0xbbb"},
 		},

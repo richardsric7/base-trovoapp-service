@@ -29,6 +29,7 @@ import (
 	callbacks "trovo-wallet-api/internal/components/callbacks/controllers"
 	p2p "trovo-wallet-api/internal/components/p2p/controllers"
 	payments "trovo-wallet-api/internal/components/payments/controllers"
+	publicmarkets "trovo-wallet-api/internal/components/publicmarkets/controllers"
 	rates "trovo-wallet-api/internal/components/rates/controllers"
 	root "trovo-wallet-api/internal/components/root/controllers"
 	serviceLinks "trovo-wallet-api/internal/components/servicelinks/controllers"
@@ -877,6 +878,7 @@ func main() {
 
 			for {
 				sharedconfig.WithSingletonLock(&globalConfig, "stablerail-onboarding-onramp", time.Minute, func() {
+					userServices.ProcessStablerailOnboardingRetries(&globalConfig)
 					userServices.ProcessUpdateStablerailOnboardingStatus(&globalConfig)
 					time.Sleep(10 * time.Second)
 					userServices.ProcessUpdateStablerailCNGNOnrampStatus(&globalConfig)
@@ -961,6 +963,7 @@ func main() {
 	callbacks.Init(router, callBackRetryChan, &globalConfig)
 
 	p2p.Init(router, &globalConfig)
+	publicmarkets.Init(router, &globalConfig)
 	log.Println("##callbacks services initialized##")
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	log.Println("##swagger UI initialized##")

@@ -165,8 +165,6 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
 
     try {
       Map map = {
-        "transaction": '',
-        "transactionSignature": '',
         "transactionId": '',
         "networkPassPhrase": '',
       };

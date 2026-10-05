@@ -348,8 +348,6 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
       // make initial request to the server using the
       // following credentials
       Map map = {
-        "transaction": '',
-        "transactionSignature": '',
         "transactionId": '',
         "networkPassPhrase": '',
         "securityAnswers": {

@@ -24,24 +24,8 @@ const MinCSVEntries = 4
 // mnemonic or hex private key ever contains.
 const Separator = ";"
 
-// legacySeparator is the delimiter every managed secret's CSV used before
-// the Base port (Stellar secret seeds never contained a comma, so it was
-// safe at the time). SplitCSV falls back to it on read so a managed secret
-// registered before the cutover keeps parsing correctly; the next write
-// through WriteAtIndex/CollapseCSV always rejoins with Separator, migrating
-// that one managed secret's CSV in place with no separate migration step.
-const legacySeparator = ","
-
-// SplitCSV splits a managed secret's stored value into its entries. It
-// tries Separator first; only when the value contains no Separator at all
-// but does contain legacySeparator does it fall back to the pre-cutover
-// format - a single entry (hex private key or mnemonic) never legitimately
-// contains either character, so a bare comma with no semicolon anywhere in
-// the value is unambiguously the old format, not part of one entry.
+// SplitCSV splits a managed secret's stored value into its entries.
 func SplitCSV(raw string) []string {
-	if !strings.Contains(raw, Separator) && strings.Contains(raw, legacySeparator) {
-		return strings.Split(raw, legacySeparator)
-	}
 	return strings.Split(raw, Separator)
 }
 

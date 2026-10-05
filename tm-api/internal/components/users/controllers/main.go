@@ -34,7 +34,6 @@ func Init(router *gin.Engine, s *serverModels.Server) {
 		{
 			// search cache
 
-			// cacheKeyParameters := fmt.Sprintf("limit=%v&order=%v&cursor=%v&forTransactionHash=%v&includeHash=%v&temp=%v", limit, orderStr, cursor, forTransactionHash, includeHash, temp)
 
 			ok, status, response := s.GC.Cache.CachedHttpResponse(cacheKey)
 

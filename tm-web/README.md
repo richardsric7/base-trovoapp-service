@@ -61,7 +61,10 @@ src/
 │   │   ├── vault-signer/       #   vault-signer secret management UI
 │   │   ├── servicelinks/       #   service link config
 │   │   ├── feeexemptions/      #   accounts exempt from platform service fees
-│   │   ├── payment/, revenue/, dividendandyield/, earlyexit/, ...
+│   │   ├── dividendandyield/   #   proceeds payouts: stages, approvals, schedule, fee & engine controls, reports (tm-api /proceed-payouts)
+│   │   ├── publicmarkets/      #   Public Markets (tokenized NGX/FMDQ instruments): overview, assets, orders & approvals, escalations,
+│   │   │                       #   reconciliation, corporate actions, exchange partners, wallet provisioning, prices, settings (tm-api /public-markets)
+│   │   ├── payment/, revenue/, earlyexit/, ...
 │   │   └── settings/, audit-trail/, system-health/, notification/, ...
 │   ├── organisation/           # SEPARATE stakeholder portal (external orgs), own auth (see INTEGRATION.md)
 │   ├── external-api-clients/   # Admin UI for managing tm-api's external API client credentials
@@ -72,6 +75,7 @@ src/
 │   ├── api/                    # One folder per domain, each `injectEndpoints`-ing into baseApi, e.g.:
 │   │   ├── auth/                #   login, verifyLogin, logout
 │   │   ├── users/, admin/, organizations/, p2p/, payment/, assettokenization/, ...
+│   │   ├── publicMarkets/       #   Public Markets (tm-api /public-markets)
 │   │   └── vaultSigner/, compliance/, auditTrail/, jobs/, observability/, ...
 │   ├── slices/                 # Plain Redux slices: authSlice (admin session), orgSlice (org session)
 │   ├── store.ts                # configureStore wiring both API slices + both auth slices

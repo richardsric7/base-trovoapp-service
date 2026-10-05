@@ -617,7 +617,6 @@ covered wallet removes the guardian in the same operation.
    operations' hashes, comma separated) when submitted. Turning it on again
    later covers wallets created since, without a fee.
 
-`transaction` / `transactionSignature` (single) still work for one wallet.
 `DELETE` answers 200 directly when no wallet still has the guardian.
 
 ### Recovering (the device with the new key)
@@ -670,6 +669,157 @@ any balance: it rebuilds the primary wallet for the new key, which changes
 its address.
 
 ---
+
+## Bank deposits and withdrawals (Stablerail)
+
+Naira moves in and out of the platform as cNGN through Stablerail. All
+routes are request-signed (like payments) and answer `503
+error-fiat-unavailable` while Stablerail is not configured and enabled (see
+`CONFIGURATION.md`).
+
+- **Onboarding.** There is no route for it. When KYC level 1 completes with
+  a BVN, the KYC callback starts the user's Stablerail onboarding; if
+  Stablerail cannot be reached the callback saves a retry
+  (`stablerail_onboard_user_retries`) that the `stablerail-onboarding-onramp`
+  loop retries every 5 minutes (24 times, then a Discord alert; BVNs are
+  masked in alerts). A repeated callback does not onboard twice.
+  `GET /v1/users/stablerail/profile` tells the apps whether Stablerail is
+  enabled, whether the user is onboarded (or the last onboarding's status)
+  and the smallest withdrawal.
+- **Deposit.** `POST /v1/users/stablerail/onrampcngn/:amount` (Naira)
+  returns a virtual account to pay into; the cNGN is sent to the calling
+  wallet once Stablerail sees the payment.
+- **Withdraw.** `POST /v1/users/stablerail/withdraw` with `amount`,
+  `accountNumber` (10 digits) and `bankCode` (from
+  `GET /v1/users/stablerail/banks`) takes two calls, like a payment: the
+  first returns `transaction` to sign and `messages` to show; the second
+  (same body plus `transaction` and `transactionSignature`, or `commit` for a
+  shared wallet, whose approvers then sign it as any other operation)
+  submits a wallet operation (kind `BANK WITHDRAWAL`) sending the cNGN to the
+  user's own Stablerail wallet (from `/getuserdetails`, cached). Once it is
+  mined Stablerail is asked to pay the bank account (`/cngnofframp`); the
+  `stablerail-offramp-status` loop retries that (10 times) and follows the
+  payout to its end, and the user gets a push notification when it is paid
+  or fails.
+- **History.** `GET /v1/users/stablerail/withdrawals` lists the user's
+  withdrawals with their status: `DEPOSITING` (transfer submitted),
+  `DEPOSITED`, `REQUESTING`, `DEPOSIT_FAILED` (nothing left the wallet),
+  `REQUEST_FAILED` (the cNGN is in the user's Stablerail wallet; support is
+  alerted), then Stablerail's own statuses (`pending` ... `completed`,
+  `failed`). The transfer itself also appears in normal payment history as a
+  cNGN send to the Stablerail wallet.
+
+Bank accounts are entered per withdrawal (Stablerail supports a fixed list
+of banks); they are not the P2P payment methods, which accept any bank or
+channel name.
+
+## Proceeds payouts (dividends and interest)
+
+A tokenized asset's proceeds are paid to its token holders by
+`payout-engine`, a separate worker on this database (see
+[payout-engine/README.md](../payout-engine/README.md)), driven from TM.
+app-backend owns the tables (`proceed_payouts`,
+`tokenized_asset_payout_schedules`, `proceed_payout_batches`,
+`proceed_payout_approvals`, `payout_token_indexes`,
+`payout_token_balances`, `payout_engine_states`) and shows holders their
+payouts:
+
+- `GET /v1/tokenization/payouts[?tokenizedAssetId=]` (request-signed, rate
+  limited) lists the payouts to the user's wallets, newest first. It
+  includes paid ones, with their transaction, and scheduled ones once a
+  payout's holder schedule is locked (status `PENDING` / `QUEUED`), plus
+  ones the engine could not pay yet (`FAILED`). Payouts that were
+  cancelled or are still being prepared, and holders an admin excluded, are
+  not listed. Each entry has the asset (code, name, token contract), the
+  payout token and amount, the tokens held at the snapshot, the receiving
+  wallet and its alias. app-mobile's dividend and interest screens use it.
+
+The processing fee and its VAT on each payout are paid to the fee and VAT
+wallets and recorded in `fee_collections` as `PROCEED_PAYOUT_FEE` /
+`PROCEED_PAYOUT_FEE_VAT`.
+
+## Public Markets (tokenized equities and bonds)
+
+How the engine works is in [PUBLIC_MARKETS.md](PUBLIC_MARKETS.md). There
+are three surfaces.
+
+### The apps (`/v1/public-markets`)
+
+The listing and prices are public (rate limited). Everything else uses
+the request signature, like every other app route.
+
+| Route | What it returns |
+|---|---|
+| `GET /v1/public-markets?market=&type=&search=` | Assets with price, day change, market session and whether they accept orders |
+| `GET /v1/public-markets/assets/:assetCode` | One asset: statistics, custody chain, corporate actions |
+| `GET /v1/public-markets/assets/:assetCode/prices?range=1D\|1W\|1M\|3M\|1Y\|All` | Chart points |
+| `GET /v1/public-markets/assets/:assetCode/quote?side=buy&amount=` / `?side=sell&quantity=` | Fee, quantity or proceeds, and path (fast / netted / slow) |
+| `POST /v1/public-markets/assets/:assetCode/buy` / `.../sell` | Two calls. With `walletAddress` and `amount` (or `quantity`), returns the quote and the wallet operation to sign. Called again with `transaction` and `transactionSignature`, it submits the operation and returns the order |
+| `GET /v1/public-markets/portfolio` | Holdings, average cost, returns, income, open orders, activity |
+| `GET /v1/public-markets/orders`, `GET /v1/public-markets/orders/:orderID` | Orders, and one order with its timeline |
+| `GET /v1/public-markets/dividends?assetCode=` | Dividends and coupons: units at the record date, gross, withholding tax, net |
+
+The order's status changes arrive as push notifications, and over the
+user websocket as `publicMarketsEvent`. Trading needs KYC. Shared wallets
+(wallets with approvers) cannot trade Public Markets.
+
+### Exchanges (`/v1/trovo-api/public-markets`)
+
+The exchange must be a verified service link that Trovo Manager has
+onboarded for Public Markets. Every request carries:
+
+- the API key, as `X-TW-SERVICE-LINK-API-KEY` or
+  `Authorization: HMAC {apiKey}:{signature}`;
+- `X-Trovotech-Timestamp` (Unix seconds, within 5 minutes);
+- the signature, as `hex(HMAC-SHA256(signingSecret, timestamp + "." + body))`,
+  in the `Authorization` header or `X-Trovotech-Signature`.
+
+After a secret rotation, the previous secret is accepted until its expiry.
+Every `POST` requires an `Idempotency-Key`:
+
+- a repeat returns the original response with `Idempotent-Replayed: true`;
+- the same key with a different body gets `422`;
+- a key whose request is still running gets `409`;
+- a `5xx` is not recorded, so it can be retried.
+
+| Route | Purpose |
+|---|---|
+| `GET /assets`, `GET /assets/:assetCode` | Assets and reference prices |
+| `POST /wallets` | Provision a customer wallet: `externalUserRef`, `legalName`, `taxIdentifier`, `residencyCountry`, `nationality`, `ndpaConsent`. Answers `201`, or `200` for a known `externalUserRef`. A missing field gets `400` with `field` |
+| `GET /wallets/:walletID` | A wallet's holdings |
+| `POST /creation` | `walletId`, `assetCode`, `amount` (NGN), `externalOrderRef`. Paid from the prefunded balance. Answers `202 pending` |
+| `POST /redemption` | `walletId`, `assetCode`, `quantity` or `amount`, `externalOrderRef`. Proceeds go to the balance. Answers `202 pending` |
+| `GET /orders/:orderID` | `pending`, `settled`, `rejected` or `failed` |
+| `POST /confirmations` | Confirm a webhook (`eventId`, or `event` + `walletId`). Required for every `dividend.paid` |
+| `GET /account` | Balance, deposit address (the treasury), the registered funding wallet and recent movements |
+| `POST /deposits` | `txHash` of a CNGN transfer from the funding wallet to the treasury, which is verified on-chain and credited |
+
+Webhooks go to the exchange's URL:
+
+- events: `creation.settled`, `redemption.settled`, `order.rejected`,
+  `dividend.paid`;
+- headers: `X-Trovotech-Event`, `X-Trovotech-Delivery` (the event id),
+  `X-Trovotech-Timestamp` and `X-Trovotech-Signature`, signed like the
+  requests.
+
+Failed deliveries are retried with backoff and then dead-lettered.
+Trovo Manager can replay them.
+
+### Custodian and Dealing Member callbacks
+
+| Route | Sent by |
+|---|---|
+| `POST /v1/custodian-partners/callbacks/settlement` | Custodian: `instructionId`, `status` (`settlement_final` / `failed`), `settledQuantity`, `settlementDate`, `custodianReference` |
+| `POST /v1/custodian-partners/callbacks/positions` | Custodian: `asOf`, `positions[]` (`assetCode`, `unitsHeld`) |
+| `POST /v1/custodian-partners/callbacks/corporate-action` | Custodian: `assetCode`, `eventType`, `recordDate`, `payDate`, `amountPerUnit`, `currency` |
+| `POST /v1/dealing-member-partners/callbacks/execution` | Dealing Member: `orderId`, `status` (`FILLED` / `PARTIAL` / `REJECTED`), `executedQuantity`, `executedPrice`, `executionTime` |
+
+The partner names itself in `X-Partner-Code` and signs the body the same
+way, with the secret from its credentials reference
+(`X-Trovotech-Timestamp` + `X-Partner-Signature`). A redelivery answers
+`{"status":"duplicate"}`. These payloads follow the integration
+document's proposal and will be adjusted when the partners' specifications
+are final. Until then, partners run as mocks.
 
 ## Swagger UI: the per-endpoint reference
 

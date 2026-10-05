@@ -160,14 +160,14 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 		{
 			//prevent wallets with approver from using this endpoint
 			if sourceWallet.SharedAccessEnabled == 1 && sourceWallet.WalletCountApproverAccess(gc) > 0 {
-				errAccountIsTemp := &tErrors.CustomError{
+				errWalletNotAllowed := &tErrors.CustomError{
 					Param:      "ID",
 					Err:        "error-wallet-with-shared-access-not-allowed",
 					ErrMessage: "This wallet has approver access enabled. Please let someone with an INITIATOR access submit the request.",
 					Code:       http.StatusForbidden,
 				}
 
-				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+				c.JSON(errWalletNotAllowed.HTTPCode(), errWalletNotAllowed.JSONError())
 				return
 			}
 		}
@@ -190,7 +190,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 			//check if it is an email
 			if strings.Contains(paymentInfo.Destination, "@") {
 				//an email...replace the user info
-				destinationUser, err = usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
+				destinationUser, err = usersDB.GetSlimUser(paymentInfo.Destination, gc.DB, gc)
 				if err == nil {
 					destinationWallet, getDestinationWalletError = usersDB.GetWallet(destinationUser.Username, gc.DB)
 					if getDestinationWalletError == nil {
@@ -201,7 +201,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 				}
 			} else if strings.Contains(paymentInfo.Destination, "+") {
 				//a phone...replace the user info
-				destinationUser, err = usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
+				destinationUser, err = usersDB.GetSlimUser(paymentInfo.Destination, gc.DB, gc)
 				if err == nil {
 					destinationWallet, getDestinationWalletError = usersDB.GetWallet(destinationUser.Username, gc.DB)
 					if getDestinationWalletError == nil {
@@ -242,7 +242,7 @@ func postUsersPaymentHandler(callBackRetryChan chan userModels.RetryCallbacks, g
 				return
 			}
 
-			destinationUser, getDestinationUserError = usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
+			destinationUser, getDestinationUserError = usersDB.GetSlimUser(paymentInfo.Destination, gc.DB, gc)
 			if getDestinationUserError != nil {
 				ex := &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
 				c.JSON(ex.HTTPCode(), ex.JSONError())
@@ -515,14 +515,14 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 		{
 			//prevent wallets with approver from using this endpoint
 			if sourceWallet.SharedAccessEnabled == 0 {
-				errAccountIsTemp := &tErrors.CustomError{
+				errWalletNotAllowed := &tErrors.CustomError{
 					Param:      "ID",
 					Err:        "error-wallet-without-shared-access-not-allowed",
 					ErrMessage: "This wallet does not have shared access enabled to use this endpoint.",
 					Code:       http.StatusForbidden,
 				}
 
-				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+				c.JSON(errWalletNotAllowed.HTTPCode(), errWalletNotAllowed.JSONError())
 				return
 			}
 		}
@@ -632,7 +632,7 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 				return
 			}
 
-			destinationUser, getDestinationUserError = usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
+			destinationUser, getDestinationUserError = usersDB.GetSlimUser(paymentInfo.Destination, gc.DB, gc)
 			if getDestinationUserError != nil {
 				ex := &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
 				c.JSON(ex.HTTPCode(), ex.JSONError())
@@ -721,7 +721,7 @@ func postSharedAccessPaymentHandler(callBackRetryChan chan userModels.RetryCallb
 					for _, a := range accessList {
 
 						if a.Permission == "APPROVER" {
-							ph, e := usersDB.GetUser(a.TargetUsername, gc.DB, gc)
+							ph, e := usersDB.GetSlimUser(a.TargetUsername, gc.DB, gc)
 							ph.InvalidateUserCache(gc)
 							if e == nil {
 								if ph.PushNotificationToken == nil {

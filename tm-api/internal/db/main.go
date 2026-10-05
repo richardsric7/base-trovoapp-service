@@ -180,10 +180,6 @@ func migrateAdminSchema(gormDB *gorm.DB) error {
 }
 
 func migrateAdminSchemaTransaction(gormDB *gorm.DB) error {
-	if err := prepareAdminSchemaForAutoMigrate(gormDB); err != nil {
-		return err
-	}
-
 	if err := gormDB.AutoMigrate(&models.AdminUser{}, &models.RoleConfig{}, &models.AdminPermission{},
 		&models.RolePermission{}, &models.AdminSuspensionHistory{}, &models.UserSuspensionReason{},
 		&models.AdminChangeLog{}, &models.SuspensionReason{}, &models.RoleConfig{}, &models.CurrencyConfig{},
@@ -221,9 +217,6 @@ func migrateAdminSchemaTransaction(gormDB *gorm.DB) error {
 	); err != nil {
 		return err
 	}
-	if err := pruneOrphanedStakeholderEvidenceLinks(gormDB); err != nil {
-		return err
-	}
 	if err := gormDB.AutoMigrate(
 		&stakeholderModels.ComplianceItemDocument{},
 		&stakeholderModels.DueDiligenceItemDocument{},
@@ -232,95 +225,6 @@ func migrateAdminSchemaTransaction(gormDB *gorm.DB) error {
 		return err
 	}
 
-	return ensureAdminSchemaDefaults(gormDB)
-}
-
-// prepareAdminSchemaForAutoMigrate makes upgrades safe when an earlier release
-// created the receiving-account columns without the final NOT NULL constraint.
-// UpdateColumn avoids changing the business record's updated_at timestamp.
-func prepareAdminSchemaForAutoMigrate(gormDB *gorm.DB) error {
-	migrator := gormDB.Migrator()
-	model := &stakeholderModels.FundReleaseRequest{}
-	if migrator.HasTable(model) {
-		for _, column := range []string{"receiving_bank", "receiving_account_name", "receiving_account_number"} {
-			if !migrator.HasColumn(model, column) {
-				continue
-			}
-			if err := gormDB.Model(model).Where(column+" IS NULL").UpdateColumn(column, "").Error; err != nil {
-				return fmt.Errorf("backfill fund release %s: %w", column, err)
-			}
-		}
-	}
-
-	return nil
-}
-
-func pruneOrphanedStakeholderEvidenceLinks(gormDB *gorm.DB) error {
-	migrator := gormDB.Migrator()
-	type evidenceLinkMigration struct {
-		model        interface{}
-		parent       interface{}
-		parentExpr   string
-		documentExpr string
-	}
-	migrations := []evidenceLinkMigration{
-		{
-			model:        &stakeholderModels.ComplianceItemDocument{},
-			parent:       &stakeholderModels.ComplianceItem{},
-			parentExpr:   "NOT EXISTS (SELECT 1 FROM compliance_items WHERE compliance_items.id = compliance_item_documents.compliance_item_id)",
-			documentExpr: "NOT EXISTS (SELECT 1 FROM stakeholder_documents WHERE stakeholder_documents.id = compliance_item_documents.document_id)",
-		},
-		{
-			model:        &stakeholderModels.DueDiligenceItemDocument{},
-			parent:       &stakeholderModels.DueDiligenceItem{},
-			parentExpr:   "NOT EXISTS (SELECT 1 FROM due_diligence_items WHERE due_diligence_items.id = due_diligence_item_documents.due_diligence_item_id)",
-			documentExpr: "NOT EXISTS (SELECT 1 FROM stakeholder_documents WHERE stakeholder_documents.id = due_diligence_item_documents.document_id)",
-		},
-	}
-
-	for _, migration := range migrations {
-		if !migrator.HasTable(migration.model) || !migrator.HasTable(migration.parent) ||
-			!migrator.HasTable(&stakeholderModels.StakeholderDocument{}) {
-			continue
-		}
-		query := gormDB.Where(migration.parentExpr).Or(migration.documentExpr)
-		if err := query.Delete(migration.model).Error; err != nil {
-			return fmt.Errorf("prune orphaned %T rows: %w", migration.model, err)
-		}
-	}
-	return nil
-}
-
-// ensureAdminSchemaDefaults compensates for GORM v1.25 not detecting a missing
-// empty-string default on an existing PostgreSQL column. New databases get the
-// same defaults from the model tags; upgraded databases are corrected here.
-func ensureAdminSchemaDefaults(gormDB *gorm.DB) error {
-	migrator := gormDB.Migrator()
-	model := &stakeholderModels.FundReleaseRequest{}
-	if !migrator.HasTable(model) {
-		return nil
-	}
-	columnTypes, err := migrator.ColumnTypes(model)
-	if err != nil {
-		return fmt.Errorf("inspect fund release column defaults: %w", err)
-	}
-	hasDefault := make(map[string]bool, len(columnTypes))
-	for _, columnType := range columnTypes {
-		_, hasDefault[columnType.Name()] = columnType.DefaultValue()
-	}
-
-	for _, column := range []string{"receiving_bank", "receiving_account_name", "receiving_account_number"} {
-		if !migrator.HasColumn(model, column) {
-			continue
-		}
-		if hasDefault[column] {
-			continue
-		}
-		statement := fmt.Sprintf("ALTER TABLE fund_release_requests ALTER COLUMN %s SET DEFAULT ''", column)
-		if err := gormDB.Exec(statement).Error; err != nil {
-			return fmt.Errorf("set fund release %s default: %w", column, err)
-		}
-	}
 	return nil
 }
 
@@ -419,6 +323,8 @@ func seedPermissions(db *gorm.DB) {
 		{Name: "ACCESS_REPORTS"},
 		{Name: "MANAGE_SETTINGS"},
 		{Name: "VIEW_USER_DATA"},
+		{Name: "MANAGE_PUBLIC_MARKETS"},
+		{Name: "VIEW_PUBLIC_MARKETS_PII"},
 	}
 
 	for _, permission := range permissions {
@@ -429,12 +335,12 @@ func seedPermissions(db *gorm.DB) {
 		models.SuperAdmin: {
 			"VIEW_ADMIN_LIST", "REMOVE_ADMIN_USER", "GRANT_PERMISSIONS", "INVITE_ADMIN",
 			"MANAGE_TROVO_WALLET", "VERIFY_DOCUMENTS", "UPDATE_PROFILE", "ACCESS_REPORTS",
-			"MANAGE_SETTINGS",
+			"MANAGE_SETTINGS", "MANAGE_PUBLIC_MARKETS", "VIEW_PUBLIC_MARKETS_PII",
 		},
 		models.ViewOnlyAdmin: {"VIEW_ADMIN_LIST", "VIEW_USER_DATA"},
 		models.EditLevelAdmin: {
 			"VIEW_ADMIN_LIST", "VIEW_USER_DATA", "UPDATE_PROFILE", "ACCESS_REPORTS",
-			"MANAGE_SETTINGS", "MANAGE_TROVO_WALLET", "VERIFY_DOCUMENTS",
+			"MANAGE_SETTINGS", "MANAGE_TROVO_WALLET", "VERIFY_DOCUMENTS", "MANAGE_PUBLIC_MARKETS",
 		},
 	}
 

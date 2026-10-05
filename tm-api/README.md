@@ -76,7 +76,7 @@ tm-api/
 ├── main.go                      # Entry point: env/DB setup, route wiring, server start
 ├── config/                      # envconfig-based config loader (config.Load())
 ├── docs/                        # Generated Swagger spec (docs.go, swagger.json, swagger.yaml) — do not hand-edit
-├── migrations/                  # Historical, hand-run SQL migrations (schema is otherwise managed by GORM AutoMigrate)
+├── migrations/                  # create_career_roles.sql, applied once by hand (everything else is GORM AutoMigrate)
 ├── payloads/                    # Sample/reference request payloads
 ├── scripts/                     # Build/CI helper scripts (e.g. the swag YAML-structure fix)
 └── internal/

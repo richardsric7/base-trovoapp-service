@@ -23,7 +23,6 @@ type UserWallet struct {
 	CreatedAt     time.Time `json:"createdAt"`
 	UpdatedAt     time.Time `json:"updatedAt"`
 	ID            string    `gorm:"size:56" json:"publicKey"`
-	TempAddress   *string   `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
 	Tag           *string   `gorm:"null;size:16" json:"tag"`
 	Description   *string   `gorm:"null;size:100" json:"description"`
 	Alias         string    `gorm:"size:27; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets

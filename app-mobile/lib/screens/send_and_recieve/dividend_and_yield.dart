@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart' show DateFormat, NumberFormat;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
@@ -7,6 +8,8 @@ import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_app/models/asset.dart';
+import 'package:trovo_app/models/proceed_payout.dart';
+import 'package:trovo_app/network/payout_requests.dart';
 import 'package:trovo_app/models/wallet.dart';
 import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
@@ -26,6 +29,9 @@ class _DividendAndYieldView extends State<DividendAndYieldView>
   late DataProvider appState;
   late Wallet wallet;
   late Asset? asset;
+  // the payouts of this asset to the user's wallets (null while loading)
+  List<ProceedPayoutReceipt>? receipts;
+  bool failed = false;
 
   @override
   void initState() {
@@ -41,6 +47,50 @@ class _DividendAndYieldView extends State<DividendAndYieldView>
             asset.contractAddress == appState.viewData!['contractAddress'],
       );
     }
+    _load();
+  }
+
+  Future<void> _load() async {
+    final list = await PayoutApi(appState).receipts(
+      assetCode: asset?.assetCode,
+      tokenContract: asset?.contractAddress,
+    );
+    if (!mounted) return;
+    setState(() {
+      receipts = list ?? [];
+      failed = list == null;
+    });
+  }
+
+  String get _currency =>
+      receipts?.isNotEmpty == true ? receipts!.first.payoutAssetCode : '';
+
+  String _money(double v) =>
+      '${NumberFormat('#,##0.##').format(v)} $_currency'.trim();
+
+  String _date(DateTime? d) =>
+      d == null ? '—' : DateFormat('d MMM yyyy').format(d);
+
+  // value shows a figure from the payouts, or a placeholder while loading
+  String value(String Function(List<ProceedPayoutReceipt> r) f) {
+    if (receipts == null) return '…';
+    if (failed) return '—';
+    return f(receipts!);
+  }
+
+  String _totalPaid(List<ProceedPayoutReceipt> r) =>
+      _money(r.where((p) => p.paid).fold(0.0, (a, p) => a + p.amountValue));
+
+  String _scheduled(List<ProceedPayoutReceipt> r) => _money(
+    r.where((p) => p.scheduled).fold(0.0, (a, p) => a + p.amountValue),
+  );
+
+  ProceedPayoutReceipt? _last(List<ProceedPayoutReceipt> r) {
+    final paid = r.where((p) => p.paid).toList()
+      ..sort(
+        (a, b) => (b.date ?? DateTime(0)).compareTo(a.date ?? DateTime(0)),
+      );
+    return paid.isEmpty ? null : paid.first;
   }
 
   @override
@@ -129,13 +179,23 @@ class _DividendAndYieldView extends State<DividendAndYieldView>
                             ),
                           ),
                         ),
-                        item("Dividend frequency", 'Quarterly'),
+                        item("Total dividends received", value(_totalPaid)),
                         Divider(color: notifier.getsplashgrey, thickness: 1),
-                        item("Total dividends received", 'N45,000'),
+                        item(
+                          "Last dividend amount",
+                          value(
+                            (r) => _last(r) == null
+                                ? '—'
+                                : _money(_last(r)!.amountValue),
+                          ),
+                        ),
                         Divider(color: notifier.getsplashgrey, thickness: 1),
-                        item("Last dividend amount", 'N7,500'),
+                        item(
+                          "Last dividend date",
+                          value((r) => _date(_last(r)?.date)),
+                        ),
                         Divider(color: notifier.getsplashgrey, thickness: 1),
-                        item("Last dividend date", '20th May, 2024'),
+                        item("Scheduled, not yet paid", value(_scheduled)),
                         SizedBox(height: height / 50),
                         Button(
                           "View Dividend History",
@@ -186,19 +246,23 @@ class _DividendAndYieldView extends State<DividendAndYieldView>
                             ),
                           ),
                         ),
-                        item("Interest frequency", 'Quarterly'),
+                        item("Total interest earned", value(_totalPaid)),
                         Divider(color: notifier.getsplashgrey, thickness: 1),
-                        item("Total interest earned", 'N45,000'),
+                        item(
+                          "Last payment amount",
+                          value(
+                            (r) => _last(r) == null
+                                ? '—'
+                                : _money(_last(r)!.amountValue),
+                          ),
+                        ),
                         Divider(color: notifier.getsplashgrey, thickness: 1),
-                        item("Last payment date", '20th May, 2024'),
+                        item(
+                          "Last payment date",
+                          value((r) => _date(_last(r)?.date)),
+                        ),
                         Divider(color: notifier.getsplashgrey, thickness: 1),
-                        item("Accrued interest (unpaid)", 'N45,000'),
-                        Divider(color: notifier.getsplashgrey, thickness: 1),
-                        item("Next payment date", '20th May, 2024'),
-                        Divider(color: notifier.getsplashgrey, thickness: 1),
-                        item("YTD effective yield", '9.20%'),
-                        Divider(color: notifier.getsplashgrey, thickness: 1),
-                        item("Expected annual yield", '9.20%'),
+                        item("Scheduled interest (unpaid)", value(_scheduled)),
                         SizedBox(height: height / 50),
                         Button(
                           "View Yield History",

@@ -143,10 +143,6 @@ func AccountDeletion(user *userModels.User, payload *userModels.UserAccountDelet
 	SendEmailAccountDeletionRequested(user)
 
 	user.InvalidateUserCache(gc)
-	owner, _ := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-	if len(owner.ID) > 0 {
-		user = &owner
-	}
 
 	return nil
 

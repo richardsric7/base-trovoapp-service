@@ -1,3 +1,4 @@
+import 'package:trovo_app/screens/public_markets/pm_home_section.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -390,6 +391,8 @@ class _HomeState extends State<Home>
                               ),
                               SizedBox(height: height / 50),
                               primaryOffers(),
+                              SizedBox(height: height / 50),
+                              const PMHomeSection(),
                               SizedBox(height: height / 50),
                               secondaryListing(),
                             ],

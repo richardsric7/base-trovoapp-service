@@ -13,9 +13,11 @@ import (
 	assetModels "trovo-wallet-api/internal/components/assets/models"
 	p2pModels "trovo-wallet-api/internal/components/p2p/models"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
+	pmModels "trovo-wallet-api/internal/components/publicmarkets/models"
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	users "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/dynamiclinks"
+	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/offerbook"
 	sharedConfig "trovo-wallet-api/internal/sharedconfig"
 	SMS "trovo-wallet-api/internal/sms"
@@ -149,86 +151,6 @@ func OpenSqliteDB() (*gorm.DB, error) {
 	return sqliteDB, nil
 }
 
-// renameAssetIssuerColumns renames legacy "asset_issuer"-family columns (Stellar-era
-// terminology, carrying a Base token's smart contract address since the Base port) to
-// "contract_address"-family names, matching the Go model fields renamed from AssetIssuer to
-// ContractAddress. AutoMigrate never renames an existing column - left alone, it would add a
-// new empty "contract_address" column while the old "asset_issuer" column (and its data)
-// stayed behind unused. Each rename is guarded to be a no-op on repeat runs: skipped if the
-// table doesn't exist yet (fresh DB, AutoMigrate below will just create the column with its
-// new name directly), if the old column is already gone, or if the new column is already
-// present.
-func renameAssetIssuerColumns(gormDB *gorm.DB) {
-	renames := []struct {
-		table, oldColumn, newColumn string
-	}{
-		{"curated_assets", "asset_issuer", "contract_address"},
-		{"market_offers", "asset_issuer", "contract_address"},
-		{"tokenization_currencies", "asset_issuer", "contract_address"},
-		{"tokenized_asset_subscriptions", "asset_issuer", "contract_address"},
-		{"expression_of_interests", "asset_issuer", "contract_address"},
-		{"tokenized_asset_payout_schedules", "payout_asset_issuer", "payout_contract_address"},
-		{"tokenized_asset_payout_engine_tasks", "payout_asset_issuer", "payout_contract_address"},
-		{"default_assets", "asset_issuer", "contract_address"},
-		{"service_fees", "fee_asset_issuer", "fee_contract_address"},
-		{"activation_amounts", "asset_issuer", "contract_address"},
-		{"fee_collections", "asset_issuer", "contract_address"},
-		{"payment_histories", "asset_issuer", "contract_address"},
-		// Source/destination split (payment history can now represent a
-		// swap, where the asset leaving From differs from the asset
-		// arriving at To) - the old single asset/contract/amount columns
-		// become the destination side; the source side is a new,
-		// additively-created set of columns AutoMigrate handles below.
-		{"payment_histories", "asset_code", "destination_asset_code"},
-		{"payment_histories", "contract_address", "destination_contract_address"},
-		{"payment_histories", "amount", "destination_amount"},
-	}
-	migrator := gormDB.Migrator()
-	for _, r := range renames {
-		if !migrator.HasTable(r.table) {
-			continue
-		}
-		if migrator.HasColumn(r.table, r.oldColumn) && !migrator.HasColumn(r.table, r.newColumn) {
-			if err := migrator.RenameColumn(r.table, r.oldColumn, r.newColumn); err != nil {
-				log.Printf("[MigrateDB] failed to rename %s.%s -> %s: %v\n", r.table, r.oldColumn, r.newColumn, err)
-			} else {
-				log.Printf("[MigrateDB] renamed %s.%s -> %s\n", r.table, r.oldColumn, r.newColumn)
-			}
-		}
-	}
-}
-
-// backfillPaymentHistorySourceColumns fills in every payment_histories row
-// created before the source/destination split (see renameAssetIssuerColumns
-// above and the PaymentHistory struct) with source_* mirroring its
-// destination_* values. Every write path that predates this split only ever
-// recorded a single-leg transfer, so source == destination is the correct
-// historical value, not a placeholder - without this, every pre-existing
-// row would read back with an empty source side and look like a
-// (nonsensical) swap out of nothing. Idempotent: only touches rows whose
-// source_asset_code is still empty, so it's a no-op on every boot after the
-// first.
-func backfillPaymentHistorySourceColumns(gormDB *gorm.DB) {
-	if !gormDB.Migrator().HasTable("payment_histories") {
-		return
-	}
-	result := gormDB.Exec(`
-		UPDATE payment_histories
-		SET source_network = destination_network,
-		    source_asset_code = destination_asset_code,
-		    source_contract_address = destination_contract_address,
-		    source_amount = destination_amount
-		WHERE source_asset_code = ''
-	`)
-	if result.Error != nil {
-		log.Printf("[MigrateDB] failed to backfill payment_histories source columns: %v\n", result.Error)
-		return
-	}
-	if result.RowsAffected > 0 {
-		log.Printf("[MigrateDB] backfilled source columns for %d payment_histories row(s)\n", result.RowsAffected)
-	}
-}
-
 // migrationLockName identifies the schema-migration lock row in
 // sharedConfig's distributed_locks table (see sharedconfig.TryAcquireLock).
 const migrationLockName = "schema-migration"
@@ -273,7 +195,18 @@ func runSchemaMigration(gormDB *gorm.DB) {
 		}
 	}
 	{
-		renameAssetIssuerColumns(gormDB)
+		// Public Markets (internal/components/publicmarkets)
+		if errMigrate := gormDB.AutoMigrate(pmModels.All()...); errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating Public Markets tables: ", errMigrate)
+		}
+	}
+	{
+		// internal/network's own tables (asset authorizations, account signers)
+		if errMigrate := gormDB.AutoMigrate(&network.WalletAssetAuthorization{}, &network.AccountSigner{}); errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating network tables: ", errMigrate)
+		}
+	}
+	{
 		errMigrate := gormDB.AutoMigrate(&users.User{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error migrating User:", errMigrate)
@@ -353,9 +286,10 @@ func runSchemaMigration(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetPayoutSchedule: ", errMigrate)
 		}
 
-		errMigrate = gormDB.AutoMigrate(&users.TokenizedAssetPayoutEngineTask{})
+		// proceeds payouts (payout-engine; tm-api)
+		errMigrate = gormDB.AutoMigrate(&users.ProceedPayoutBatch{}, &users.ProceedPayoutApproval{}, &users.PayoutTokenIndex{}, &users.PayoutTokenBalance{}, &users.PayoutEngineState{})
 		if errMigrate != nil {
-			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetPayoutEngineTask: ", errMigrate)
+			log.Fatalln("[OpenDb]Error Migrating proceeds payout tables: ", errMigrate)
 		}
 
 		errMigrate = gormDB.AutoMigrate(&users.UserAccountRecoveryLog{}, &users.RecoveryWatchCursor{}, &sharedConfig.CallbackDelivery{}, &sharedConfig.NonceReservation{})
@@ -509,7 +443,6 @@ func runSchemaMigration(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating PaymentHistory: ", errMigrate)
 		}
-		backfillPaymentHistorySourceColumns(gormDB)
 
 		errMigrate = gormDB.AutoMigrate(&paymentModels.CurrencyRates{})
 		if errMigrate != nil {
@@ -780,16 +713,6 @@ func runSchemaMigration(gormDB *gorm.DB) {
 		errMigrate = gormDB.AutoMigrate(&p2pModels.Offer{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating P2P Offer: ", errMigrate)
-		}
-		// Backfill IsMerchant for any user who already has at least one
-		// offer, now that CreateOffer requires it - without this, every
-		// pre-existing merchant would be locked out of creating new offers
-		// (though not from managing their existing ones, which only check
-		// offer ownership) the moment that gate goes live. Idempotent: the
-		// "AND is_merchant = false" clause makes re-running it on every
-		// startup a no-op once done.
-		if r := gormDB.Exec("UPDATE users SET is_merchant = true WHERE is_merchant = false AND id IN (SELECT DISTINCT merchant_user_id FROM offers)"); r.Error != nil {
-			log.Println("[OpenDb] error backfilling IsMerchant for existing P2P merchants: ", r.Error)
 		}
 		errMigrate = gormDB.AutoMigrate(&p2pModels.Order{})
 		if errMigrate != nil {

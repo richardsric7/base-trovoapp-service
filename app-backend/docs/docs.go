@@ -122,6 +122,36 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/account/recovery/status/{targetUser}": {
+            "get": {
+                "description": "For the device recovering an account (whose new key is not active yet): the status (PENDING, CANCELED, COMPLETED, FAILED; empty when none) of the recovery onto the key that signed the request, and when it takes effect.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "GET /v1/account/recovery/status/:targetUser - state of a recovery onto a new key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username",
+                        "name": "targetUser",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/account/recovery/verify-email-otp/{targetUser}/{otp}": {
             "post": {
                 "produces": [
@@ -2030,7 +2060,7 @@ const docTemplate = `{
                         "SignatureAuth": []
                     }
                 ],
-                "description": "Used by the asset depositor (the SELL-side party) to fund escrow for an order. Call it twice: first with an empty body to receive an unsigned transaction to sign locally, then again with the signed transaction and commit=1 to actually submit it. The source wallet must be a standard, non-temp wallet with no approver-based shared access.",
+                "description": "Used by the asset depositor (the SELL-side party) to fund escrow for an order. Call it twice: first with an empty body to receive an unsigned transaction to sign locally, then again with the signed transaction and commit=1 to actually submit it. The source wallet must be a standard wallet with no approver-based shared access.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2632,6 +2662,374 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/public-markets": {
+            "get": {
+                "description": "Tokenized NGX equities and FMDQ bonds with their reference prices and market session. Filter by market (NGX, FMDQ), type (EQUITY, BOND) and a search.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "List Public Markets assets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "NGX or FMDQ",
+                        "name": "market",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "EQUITY or BOND",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Code or name",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/public-markets/assets/{assetCode}": {
+            "get": {
+                "description": "Price, key statistics, custody chain, market session and corporate actions.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "A Public Markets asset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset code (MTNN-T) or ticker (MTNN)",
+                        "name": "assetCode",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.AssetView"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/public-markets/assets/{assetCode}/buy": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Two calls, like every wallet operation. Without transactionSignature: returns the quote and the operation (transaction) to sign - the wallet pays the amount to the Public Markets treasury. With transaction and transactionSignature: submits it and places the order, which fills once the payment is mined (instantly from Custodian inventory, or at the next session).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Buy a Public Markets asset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset code",
+                        "name": "assetCode",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "walletAddress and amount; then transaction and transactionSignature",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.TradeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.TradeResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/public-markets/assets/{assetCode}/prices": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Price chart of an asset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset code",
+                        "name": "assetCode",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "1D",
+                        "description": "1D, 1W, 1M, 3M, 1Y or All",
+                        "name": "range",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/public-markets/assets/{assetCode}/quote": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Price, Trovo fee, estimated quantity or proceeds, and whether it fills instantly (fast / netted) or at the next session (slow).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Quote a buy or sell",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset code",
+                        "name": "assetCode",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "buy or sell",
+                        "name": "side",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "buy: amount to spend (funding currency, fee included)",
+                        "name": "amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sell: tokens",
+                        "name": "quantity",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.Quote"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/public-markets/assets/{assetCode}/sell": {
+            "post": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Two calls. The wallet sends the tokens to the asset's issuing Safe; the sale is netted against the day's demand and paid at once, or sold by the Dealing Member and paid after the Custodian settles.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "Sell a Public Markets asset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset code",
+                        "name": "assetCode",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "walletAddress and quantity; then transaction and transactionSignature",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.TradeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.TradeResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/public-markets/dividends": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Each with its breakdown: units on the record date, gross, withholding tax and the net paid.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "My dividends and coupons",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Only this asset",
+                        "name": "assetCode",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/public-markets/orders": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "My Public Markets orders",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/public-markets/orders/{orderID}": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "One of my orders, with its timeline",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID (PM-CR-..., PM-RD-...)",
+                        "name": "orderID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.OrderView"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/public-markets/portfolio": {
+            "get": {
+                "security": [
+                    {
+                        "SignatureAuth": []
+                    }
+                ],
+                "description": "Holdings across the user's wallets with average cost, returns, income, open orders and recent activity.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets"
+                ],
+                "summary": "My Stocks",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.Portfolio"
                         }
                     }
                 }
@@ -3821,7 +4219,7 @@ const docTemplate = `{
                         }
                     },
                     "403": {
-                        "description": "Wallet is temporary, or caller lacks initiator/owner permission on this shared-access wallet",
+                        "description": "Caller lacks initiator/owner permission on this shared-access wallet",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -4473,13 +4871,6 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": true
                         }
-                    },
-                    "403": {
-                        "description": "Wallet is a temporary wallet, which is not allowed",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
                     }
                 }
             }
@@ -4763,6 +5154,42 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/tokenization/payouts": {
+            "get": {
+                "description": "The proceeds payouts (dividends / interest) to the user's wallets, newest first: paid ones with their transaction, and scheduled ones once a payout's holder schedule is locked. Optional tokenizedAssetId narrows it to one asset.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "GET /v1/tokenization/payouts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tokenized asset id",
+                        "name": "tokenizedAssetId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -5565,6 +5992,400 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/trovo-api/public-markets/account": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets (exchange partners)"
+                ],
+                "summary": "The exchange's prefunded balance and its movements",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/trovo-api/public-markets/assets": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Assets an exchange can offer its customers, with reference prices and whether they accept orders.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets (exchange partners)"
+                ],
+                "summary": "Public Markets assets (exchange partners)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/trovo-api/public-markets/assets/{assetCode}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets (exchange partners)"
+                ],
+                "summary": "A Public Markets asset with its reference price (exchange partners)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset code",
+                        "name": "assetCode",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.AssetView"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/trovo-api/public-markets/confirmations": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Required for every dividend.paid: the exchange confirms it passed the (already withheld) amount on. Unconfirmed events past the SLA are escalated.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets (exchange partners)"
+                ],
+                "summary": "Confirm receipt of a webhook (§6.4.3)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The exchange's idempotency key",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "eventId, or event and walletId; confirmedAt",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ConfirmationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/trovo-api/public-markets/creation": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Buys for a customer's wallet, paid from the exchange's prefunded balance. Answers 202 pending; a creation.settled webhook follows once the Custodian confirms settlement. Runs on the same engine as Trovo App orders.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets (exchange partners)"
+                ],
+                "summary": "Place a creation order (§6.3.2)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The exchange's idempotency key",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "walletId, assetCode, amount, amountCurrency (NGN), externalOrderRef",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ExchangeOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ExchangeOrderView"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/trovo-api/public-markets/deposits": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "After sending the funding stablecoin from the registered funding wallet to the Public Markets treasury, submit the transaction hash to have it credited.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets (exchange partners)"
+                ],
+                "summary": "Credit a deposit to the prefunded balance",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The exchange's idempotency key",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "txHash",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/trovo-api/public-markets/orders/{orderID}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "pending, settled, rejected or failed (internal states are not exposed).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets (exchange partners)"
+                ],
+                "summary": "An order's status (exchange partners)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "trovotechOrderId",
+                        "name": "orderID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ExchangeOrderView"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/trovo-api/public-markets/redemption": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Sells from a customer's wallet: quantity (tokens) or amount (NGN). Answers 202 pending; redemption.settled follows, with the proceeds credited to the exchange's balance.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets (exchange partners)"
+                ],
+                "summary": "Place a redemption order (§6.3.3)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The exchange's idempotency key",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "walletId, assetCode, quantity or amount, externalOrderRef",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ExchangeOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ExchangeOrderView"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/trovo-api/public-markets/wallets": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Opens an individually addressed wallet for one of the exchange's customers, from the minimum identity and tax data Trovotech needs (full KYC stays with the exchange). A repeated externalUserRef returns the same wallet. A missing field is refused with a field-level error.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets (exchange partners)"
+                ],
+                "summary": "Provision a customer wallet (§6.3.1)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The exchange's idempotency key",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "externalUserRef, legalName, taxIdentifier, residencyCountry, nationality, ndpaConsent",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.ProvisionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/publicmarkets.WalletView"
+                        }
+                    },
+                    "400": {
+                        "description": "field-level error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/trovo-api/public-markets/wallets/{walletID}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public Markets (exchange partners)"
+                ],
+                "summary": "A customer wallet's holdings (exchange partners)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "walletId",
+                        "name": "walletID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -6979,6 +7800,48 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/users/account/recovery/cancel": {
+            "post": {
+                "description": "Two steps: without transactionSignatures it returns the operations to sign (one per wallet being recovered); with them it submits them. Signed with the current key.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "POST /v1/users/account/recovery/cancel - cancel a pending account recovery",
+                "parameters": [
+                    {
+                        "description": "Cancel payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.UserAccountRecoveryPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users/activate/fiat": {
             "get": {
                 "produces": [
@@ -7727,49 +8590,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/users/stablerail/onboarduser/{bvn}": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "POST /v1/users/stablerail/onboarduser/:bvn",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "BVN (11 digits)",
-                        "name": "bvn",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/v1/users/stablerail/onrampcngn/{amount}": {
             "post": {
                 "produces": [
@@ -7805,6 +8625,109 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/stablerail/profile": {
+            "get": {
+                "description": "Whether bank deposits and withdrawals are available, whether the user's BVN is verified for them, and the smallest bank withdrawal.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "GET /v1/users/stablerail/profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/users.StablerailProfile"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/stablerail/withdraw": {
+            "post": {
+                "description": "Withdraws cNGN from the wallet to a Nigerian bank account. Like a payment it takes two calls: the first (amount, accountNumber, bankCode) returns the transaction to sign; the second (the same body plus transaction and transactionSignature, or commit for shared wallets) submits it. The cNGN goes to the user's Stablerail wallet, which then pays the bank account; follow it with GET /v1/users/stablerail/withdrawals.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "POST /v1/users/stablerail/withdraw",
+                "parameters": [
+                    {
+                        "description": "Withdrawal",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/users.BankWithdrawalRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/users.BankWithdrawalRequest"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/stablerail/withdrawals": {
+            "get": {
+                "description": "The user's bank withdrawals, newest first, with their status: DEPOSITING, DEPOSITED, REQUESTING, DEPOSIT_FAILED, REQUEST_FAILED, then Stablerail's (pending, processing, bank_verification, transfer_pending, transfer_confirmed, payout_pending, completed, failed, cancelled).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "GET /v1/users/stablerail/withdrawals",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -7910,6 +8833,32 @@ const docTemplate = `{
             }
         },
         "/v1/users/trades": {
+            "get": {
+                "description": "The wallet's market-making offers, with what each still sells and whether it is open on the offer book.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "GET /v1/users/trades",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -7949,6 +8898,54 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/trades/{id}": {
+            "delete": {
+                "description": "Cancels a market-making offer, returning what is left of it to the wallet. Like placing one it takes two calls: the first returns the transaction to sign, the second (with transaction and transactionSignature, or commit for shared wallets) submits it.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "DELETE /v1/users/trades/:id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Market offer id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Signed transaction",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/users.DeleteOfferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -8480,6 +9477,815 @@ const docTemplate = `{
                 }
             }
         },
+        "publicmarkets.Activity": {
+            "type": "object",
+            "properties": {
+                "at": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "kind": {
+                    "description": "BUY | SELL | DIVIDEND | COUPON",
+                    "type": "string"
+                },
+                "received": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "spent": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.AssetView": {
+            "type": "object",
+            "properties": {
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetType": {
+                    "type": "string"
+                },
+                "contractAddress": {
+                    "type": "string"
+                },
+                "corporateActions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.CorporateAction"
+                    }
+                },
+                "coupon": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "custody": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "dayChangePercent": {
+                    "type": "string"
+                },
+                "dayHigh": {
+                    "type": "string"
+                },
+                "dayLow": {
+                    "type": "string"
+                },
+                "dayVolume": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dividendYield": {
+                    "type": "string"
+                },
+                "feePercent": {
+                    "type": "string"
+                },
+                "fundingAsset": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isin": {
+                    "type": "string"
+                },
+                "logo": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "market": {
+                    "type": "string"
+                },
+                "marketCap": {
+                    "type": "string"
+                },
+                "maturityDate": {
+                    "type": "string"
+                },
+                "minimumBuy": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "peRatio": {
+                    "type": "string"
+                },
+                "previousClose": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "string"
+                },
+                "priceAt": {
+                    "type": "string"
+                },
+                "priceLive": {
+                    "type": "boolean"
+                },
+                "priceSource": {
+                    "type": "string"
+                },
+                "sector": {
+                    "type": "string"
+                },
+                "session": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "shortName": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "open | halted | coming-soon",
+                    "type": "string"
+                },
+                "ticker": {
+                    "type": "string"
+                },
+                "tokenDecimals": {
+                    "type": "integer"
+                },
+                "tokensInCirculation": {
+                    "type": "string"
+                },
+                "unitDescription": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.ConfirmationRequest": {
+            "type": "object",
+            "properties": {
+                "confirmedAt": {
+                    "type": "string"
+                },
+                "event": {
+                    "type": "string"
+                },
+                "eventId": {
+                    "type": "string"
+                },
+                "walletId": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.CorporateAction": {
+            "type": "object",
+            "properties": {
+                "amountPerUnit": {
+                    "type": "string"
+                },
+                "approvalsRequired": {
+                    "type": "integer"
+                },
+                "approvedAt": {
+                    "type": "string"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetId": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "declaredBy": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "eligibleUnits": {
+                    "type": "string"
+                },
+                "eventType": {
+                    "type": "string"
+                },
+                "fundedAt": {
+                    "type": "string"
+                },
+                "grossAmount": {
+                    "type": "string"
+                },
+                "holderCount": {
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "CA-...",
+                    "type": "string"
+                },
+                "netAmount": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "payDate": {
+                    "type": "string"
+                },
+                "recordBlock": {
+                    "type": "integer"
+                },
+                "recordDate": {
+                    "description": "YYYY-MM-DD (Africa/Lagos)",
+                    "type": "string"
+                },
+                "retainedUnits": {
+                    "description": "platform wallets (inventory): not paid out",
+                    "type": "string"
+                },
+                "snapshotAt": {
+                    "type": "string"
+                },
+                "snapshotChecksum": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "sourceReference": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "whtAmount": {
+                    "type": "string"
+                },
+                "whtTxHash": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.ExchangeOrderRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "amountCurrency": {
+                    "type": "string"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "externalOrderRef": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "string"
+                },
+                "walletId": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.ExchangeOrderView": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "externalOrderRef": {
+                    "type": "string"
+                },
+                "fee": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "settledAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "pending | settled | rejected | failed",
+                    "type": "string"
+                },
+                "trovotechOrderId": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "walletId": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.Holding": {
+            "type": "object",
+            "properties": {
+                "asset": {
+                    "$ref": "#/definitions/publicmarkets.AssetView"
+                },
+                "averageCost": {
+                    "type": "string"
+                },
+                "costBasis": {
+                    "type": "string"
+                },
+                "incomeReceived": {
+                    "type": "string"
+                },
+                "marketValue": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "string"
+                },
+                "returnPercent": {
+                    "type": "string"
+                },
+                "todayChange": {
+                    "type": "string"
+                },
+                "totalReturn": {
+                    "type": "string"
+                },
+                "wallets": {
+                    "description": "wallet address -\u003e quantity",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "publicmarkets.Order": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "creation: what the buyer pays (incl. fee); redemption: gross proceeds",
+                    "type": "string"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetId": {
+                    "type": "string"
+                },
+                "batchId": {
+                    "type": "string"
+                },
+                "channel": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "executedPrice": {
+                    "type": "string"
+                },
+                "externalOrderRef": {
+                    "type": "string"
+                },
+                "fee": {
+                    "description": "Trovo fee",
+                    "type": "string"
+                },
+                "feePercent": {
+                    "type": "string"
+                },
+                "fundingAssetCode": {
+                    "description": "payment (creation) / proceeds (redemption), in the funding currency",
+                    "type": "string"
+                },
+                "fundingContract": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "PM-CR-..., PM-RD-...",
+                    "type": "string"
+                },
+                "netAmount": {
+                    "description": "creation: invested; redemption: paid out",
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "partnerWalletId": {
+                    "description": "exchange-provisioned wallet",
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "paymentConfirmedAt": {
+                    "type": "string"
+                },
+                "paymentOperationId": {
+                    "description": "on-chain trail",
+                    "type": "string"
+                },
+                "paymentTxHash": {
+                    "type": "string"
+                },
+                "payoutTxHash": {
+                    "type": "string"
+                },
+                "priceSource": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "description": "tokens (estimated until settled for slow creations)",
+                    "type": "string"
+                },
+                "referencePrice": {
+                    "type": "string"
+                },
+                "serviceLinkId": {
+                    "type": "string"
+                },
+                "settledAt": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "tokenTxHash": {
+                    "description": "mint (creation) or burn (redemption)",
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "walletAddress": {
+                    "type": "string"
+                },
+                "walletAlias": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.OrderEvent": {
+            "type": "object",
+            "properties": {
+                "at": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.OrderView": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "creation: what the buyer pays (incl. fee); redemption: gross proceeds",
+                    "type": "string"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "assetId": {
+                    "type": "string"
+                },
+                "batchId": {
+                    "type": "string"
+                },
+                "channel": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.OrderEvent"
+                    }
+                },
+                "executedPrice": {
+                    "type": "string"
+                },
+                "externalOrderRef": {
+                    "type": "string"
+                },
+                "fee": {
+                    "description": "Trovo fee",
+                    "type": "string"
+                },
+                "feePercent": {
+                    "type": "string"
+                },
+                "fundingAssetCode": {
+                    "description": "payment (creation) / proceeds (redemption), in the funding currency",
+                    "type": "string"
+                },
+                "fundingContract": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "PM-CR-..., PM-RD-...",
+                    "type": "string"
+                },
+                "netAmount": {
+                    "description": "creation: invested; redemption: paid out",
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "partnerWalletId": {
+                    "description": "exchange-provisioned wallet",
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "paymentConfirmedAt": {
+                    "type": "string"
+                },
+                "paymentOperationId": {
+                    "description": "on-chain trail",
+                    "type": "string"
+                },
+                "paymentTxHash": {
+                    "type": "string"
+                },
+                "payoutTxHash": {
+                    "type": "string"
+                },
+                "priceSource": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "description": "tokens (estimated until settled for slow creations)",
+                    "type": "string"
+                },
+                "referencePrice": {
+                    "type": "string"
+                },
+                "serviceLinkId": {
+                    "type": "string"
+                },
+                "settledAt": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "tokenTxHash": {
+                    "description": "mint (creation) or burn (redemption)",
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "walletAddress": {
+                    "type": "string"
+                },
+                "walletAlias": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.Portfolio": {
+            "type": "object",
+            "properties": {
+                "activity": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.Activity"
+                    }
+                },
+                "costBasis": {
+                    "type": "string"
+                },
+                "holdings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.Holding"
+                    }
+                },
+                "income": {
+                    "type": "string"
+                },
+                "openOrders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/publicmarkets.Order"
+                    }
+                },
+                "returnPercent": {
+                    "type": "string"
+                },
+                "todayChange": {
+                    "type": "string"
+                },
+                "totalReturn": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.ProvisionRequest": {
+            "type": "object",
+            "properties": {
+                "externalUserRef": {
+                    "type": "string"
+                },
+                "legalName": {
+                    "type": "string"
+                },
+                "nationality": {
+                    "type": "string"
+                },
+                "ndpaConsent": {
+                    "type": "boolean"
+                },
+                "residencyCountry": {
+                    "type": "string"
+                },
+                "taxIdentifier": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.Quote": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "assetCode": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "custodianName": {
+                    "type": "string"
+                },
+                "fee": {
+                    "type": "string"
+                },
+                "feePercent": {
+                    "type": "string"
+                },
+                "fundingAsset": {
+                    "type": "string"
+                },
+                "marketOpen": {
+                    "type": "boolean"
+                },
+                "minimumBuy": {
+                    "type": "string"
+                },
+                "netAmount": {
+                    "type": "string"
+                },
+                "nextSessionAt": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "string"
+                },
+                "priceSource": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "string"
+                },
+                "settlementNote": {
+                    "type": "string"
+                },
+                "side": {
+                    "description": "BUY | SELL",
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.TradeRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "buy: funding currency to spend (fee included)",
+                    "type": "string"
+                },
+                "quantity": {
+                    "description": "sell: tokens",
+                    "type": "string"
+                },
+                "transaction": {
+                    "type": "string"
+                },
+                "transactionSignature": {
+                    "type": "string"
+                },
+                "walletAddress": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.TradeResponse": {
+            "type": "object",
+            "properties": {
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "order": {
+                    "$ref": "#/definitions/publicmarkets.OrderView"
+                },
+                "quote": {
+                    "$ref": "#/definitions/publicmarkets.Quote"
+                },
+                "transaction": {
+                    "type": "string"
+                }
+            }
+        },
+        "publicmarkets.WalletView": {
+            "type": "object",
+            "properties": {
+                "externalUserRef": {
+                    "type": "string"
+                },
+                "publicKey": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "walletId": {
+                    "type": "string"
+                }
+            }
+        },
         "servicelinks.ServiceLinkEventRequestInput": {
             "type": "object",
             "properties": {
@@ -8638,6 +10444,10 @@ const docTemplate = `{
                 "emailOtp": {
                     "type": "string"
                 },
+                "executeAfter": {
+                    "description": "ExecuteAfter is when the recovery takes effect, unless canceled.",
+                    "type": "string"
+                },
                 "messages": {
                     "type": "array",
                     "items": {
@@ -8655,6 +10465,12 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                },
+                "wallets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -8674,6 +10490,48 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "transactionSignature": {
+                    "type": "string"
+                }
+            }
+        },
+        "users.BankWithdrawalRequest": {
+            "type": "object",
+            "properties": {
+                "accountNumber": {
+                    "type": "string"
+                },
+                "amount": {
+                    "description": "cNGN, which is Naira 1:1",
+                    "type": "string"
+                },
+                "bankCode": {
+                    "type": "string"
+                },
+                "bankName": {
+                    "type": "string"
+                },
+                "commit": {
+                    "type": "integer"
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "signatureRequired": {
+                    "type": "integer"
+                },
+                "transaction": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "transactionSignature": {
+                    "type": "string"
+                },
+                "withdrawalId": {
                     "type": "string"
                 }
             }
@@ -8742,6 +10600,41 @@ const docTemplate = `{
                 },
                 "networkPassPhrase": {
                     "type": "string"
+                },
+                "transaction": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string"
+                },
+                "transactionSignature": {
+                    "type": "string"
+                }
+            }
+        },
+        "users.DeleteOfferRequest": {
+            "type": "object",
+            "properties": {
+                "Id": {
+                    "type": "string"
+                },
+                "commit": {
+                    "type": "integer"
+                },
+                "memo": {
+                    "type": "string"
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "networkPassPhrase": {
+                    "type": "string"
+                },
+                "signatureRequired": {
+                    "type": "integer"
                 },
                 "transaction": {
                     "type": "string"
@@ -9708,6 +11601,24 @@ const docTemplate = `{
                 "walletType": {
                     "description": "0=normal, 1= assetIssuing (if issuing wallet, then linkedWalletAddress is required). Required for initial Call",
                     "type": "integer"
+                }
+            }
+        },
+        "users.StablerailProfile": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "minimumWithdrawal": {
+                    "type": "string"
+                },
+                "onboarded": {
+                    "type": "boolean"
+                },
+                "onboardingStatus": {
+                    "description": "the last onboarding request's status, if any",
+                    "type": "string"
                 }
             }
         },
@@ -11505,14 +13416,27 @@ const docTemplate = `{
                 "securityAnswers": {
                     "$ref": "#/definitions/users.UserSecurityAnswer"
                 },
-                "transaction": {
-                    "type": "string"
-                },
                 "transactionId": {
                     "type": "string"
                 },
-                "transactionSignature": {
-                    "type": "string"
+                "transactionSignatures": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "transactions": {
+                    "description": "Transactions are the operations to sign, one per covered wallet\n(Wallets, same order).",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "wallets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

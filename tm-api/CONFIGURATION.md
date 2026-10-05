@@ -77,7 +77,7 @@ notifications, tokenized-asset data).
 
 | Variable | Example | Effect | How to get a real value |
 |---|---|---|---|
-| `ENABLE_CACHING` | `0` | `1` enables the Redis-backed HTTP response cache; anything else disables it (in-memory no-op). Also gates whether `/health`'s cache dependency check runs. | `0` for local dev unless you're specifically testing caching behavior. |
+| `ENABLE_CACHING` | `0` | `1` enables the Redis-backed HTTP response cache; anything else disables it (in-memory no-op). Also gates whether `/health`'s cache dependency check runs, and whether tm-api wakes `payout-engine` over Redis after a payout change (without it the engine notices on its next poll). | `0` for local dev unless you're specifically testing caching behavior. |
 | `REDIS_HOST` | `localhost` | Redis host, used only when `ENABLE_CACHING=1`. | Your Redis instance's hostname. |
 | `REDIS_PORT` | `6379` | Redis port. | Your Redis instance's port. |
 | `REDIS_PASSWORD` | *(empty)* | Redis auth password, if any. | Your Redis instance's password, if it requires one. |
@@ -159,7 +159,7 @@ names on the Docker network**; the browser never contacts them directly (see
 
 | Variable | Example | Effect | How to get a real value |
 |---|---|---|---|
-| `BASE_RPC_URL` | `https://mainnet.base.org` | RPC endpoint used by `internal/network` for on-chain reads. | An RPC provider URL for the chain you're targeting (e.g. a Base RPC provider). |
+| `BASE_RPC_URL` | `https://mainnet.base.org` | RPC endpoint used by `internal/network` for on-chain reads, including the Public Markets token check when a contract is registered (without it, contracts cannot be registered). | An RPC provider URL for the chain you're targeting (e.g. a Base RPC provider). |
 | `BASE_CHAIN_ID` | `8453` | Numeric chain ID matching `BASE_RPC_URL`. | The chain ID for whichever network `BASE_RPC_URL` points at. |
 | `RPC_TIMEOUT` | `30s` (default) | Longest a single request to `BASE_RPC_URL` may take. The process shares one RPC client; after 3 failed requests in a row it refuses RPC calls at once for 10 seconds at a time until one gets through, so a stalled RPC does not pile up requests and memory. | Leave unset unless your provider is legitimately slow. |
 | `BLOCKCHAIN_NETWORK_PASSPHRASE` | *(network-specific)* | Network passphrase used when constructing/validating blockchain transactions. | Ask the wallet-core/blockchain team for the correct value per network. |
@@ -191,4 +191,5 @@ in the source — a real value routes alerts to your own channel instead.
 
 | Variable | Example | Effect | How to get a real value |
 |---|---|---|---|
+| `PROCEED_PAYOUT_APPROVALS_REQUIRED` | `2` | How many distinct Trovo admins must approve a proceeds payout's locked schedule before it can be funded and paid (at least 1; neither the admin who prepared it nor the one who set its fee counts). Read when a payout is registered or prepared. | A business decision; keep it at 2 or more. |
 | `TAKER_FEE` | `0.1` | Overrides the taker-fee percentage shown on user-info responses (`internal/components/users/services/get_user.go`). Leave unset to use the built-in default. | A business decision — set to whatever the current taker-fee rate is. |

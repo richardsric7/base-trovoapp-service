@@ -172,6 +172,30 @@ share one Next.js app and one `tm-api` base URL:
 Both flows still ultimately call the same `tm-api`, just as different
 authenticated principals hitting different endpoint groups.
 
+## Public Markets pages
+
+`/publicmarkets/*` covers tokenized NGX equities and FMDQ bonds. It has a
+sidebar group of its own and the section's tabs at the top of each page.
+Every page reads tm-api's `/public-markets` endpoints through
+`src/redux/api/publicMarkets`.
+
+- **Writes need permissions.** Reads need any Trovo admin. Writes need
+  `MANAGE_PUBLIC_MARKETS`, and settings and partners need
+  `MANAGE_SETTINGS`. `GET /public-markets/me` tells the pages what to show:
+  they hide the buttons the admin cannot use, and only listed approvers see
+  the approve buttons.
+- **Some work is done by app-backend's engine.** Resuming an asset, running
+  reconciliation, a mock position feed and paying a balance back are
+  requests that app-backend's engine picks up. Recorded partner outcomes
+  and declared corporate actions are applied by the engine within seconds.
+  The pages show what is still "waiting for the engine". Corporate
+  Actions › "Recorded in Trovo Manager" lists each entry with its result.
+- **Secrets are shown once.** A new exchange's signing secret, and a
+  rotated one, appear once in a dialog and are never shown again.
+- **Personal data is masked.** Exchange customers' legal names and tax IDs
+  arrive masked unless the admin holds `VIEW_PUBLIC_MARKETS_PII`.
+- **System Health** also lists the engine's background jobs.
+
 ## Canonical per-endpoint reference
 
 This document describes the *shape* of the integration (base URL, auth

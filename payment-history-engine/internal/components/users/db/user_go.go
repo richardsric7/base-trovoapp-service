@@ -13,7 +13,8 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// GetUser gets user data by either wallet id or signer or temporary public key
+// GetUser gets a user by wallet address or signer, wallet alias, or user ID,
+// username, mobile or email
 func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
 
@@ -22,7 +23,7 @@ func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 	if len(userInfo) == 42 {
 		//42 char address is supplied
 
-		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("temp_address = ?", &userInfo).Or("signer = ?", userInfo).Select("user_id")
+		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("signer = ?", userInfo).Select("user_id")
 		e = db.Preload(clause.Associations).Where("id = (?)", subQuery).First(&user).Error
 	} else if strings.Contains(userInfo, "_") {
 		//alias format is supplied
@@ -52,19 +53,16 @@ func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 
 }
 
-// GetWallet gets user wallet data by alias or public key or temp public key
-func GetWallet(identifier string, db *gorm.DB) (user userModels.UserWallet, temp bool, err error) {
+// GetWallet gets a wallet by its address or alias
+func GetWallet(identifier string, db *gorm.DB) (user userModels.UserWallet, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
 
 	//e returns execution errors
 	var e error
 	if len(identifier) == 42 {
 		//42 char address is supplied
-		e = db.Preload(clause.Associations).Where("id = ?", identifier).Or("temp_address = ?", &identifier).First(&user).Error
+		e = db.Preload(clause.Associations).Where("id = ?", identifier).First(&user).Error
 		if e == nil {
-			if identifier == *user.TempAddress {
-				temp = true
-			}
 			return
 		}
 	} else {
@@ -86,6 +84,6 @@ func GetWallet(identifier string, db *gorm.DB) (user userModels.UserWallet, temp
 	}
 
 	// log.Printf("user for %v is %v\n", userInfo, user)
-	return user, temp, nil
+	return user, nil
 
 }

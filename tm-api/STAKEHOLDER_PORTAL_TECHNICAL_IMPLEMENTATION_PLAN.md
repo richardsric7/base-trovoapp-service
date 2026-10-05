@@ -283,7 +283,7 @@ Request:
 
 Add GORM models to `internal/models/stakeholder_portal.go` or component-local models if the team wants to keep domain ownership inside the component.
 
-Use explicit SQL migrations for stakeholder workflow tables. The repo already has `migrations/` for `career_roles`, and the portal tables need production-grade indexes, uniqueness constraints, status checks, and foreign keys that should not depend only on GORM `AutoMigrate`.
+_Superseded: the stakeholder tables are created by GORM AutoMigrate (`migrateAdminSchemaTransaction`); there are no stakeholder SQL migrations._ Original plan: use explicit SQL migrations for stakeholder workflow tables. The repo already has `migrations/` for `career_roles`, and the portal tables need production-grade indexes, uniqueness constraints, status checks, and foreign keys that should not depend only on GORM `AutoMigrate`.
 
 GORM models should still be added for repository usage. If the team keeps AutoMigrate enabled locally, include the models only as a developer convenience after the SQL migration strategy is defined.
 

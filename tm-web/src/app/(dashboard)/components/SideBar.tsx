@@ -20,6 +20,7 @@ import Compliance from "@/assets/images/complianceIcon.svg";
 import Support from "@/assets/images/streamline_interface-help-customer-support-2-customer-headphones-headset-help-microphone-phone-person-support.svg";
 import NotificationIcon from "@/assets/images/notificationBellIcon.svg";
 import Revenue from "@/assets/images/revenueIcon.svg";
+import { PUBLIC_MARKETS_PAGES } from "../publicmarkets/components/ui";
 import VaultSignerIcon from "@/assets/images/key-square.svg";
 import { FaAngleUp, FaAngleDown } from "react-icons/fa";
 import breifcaseIcon from "@/assets/images/briefcase.svg";
@@ -116,9 +117,11 @@ export const SideBar = () => {
     if (
       path.startsWith("/assettokenization") ||
       path.startsWith("/othertoken") ||
-      path.startsWith("/assetcuration")
+      path.startsWith("/assetcuration") ||
+      path.startsWith("/dividendandyield")
     )
       return "asset&tokens";
+    if (path.startsWith("/publicmarkets")) return "publicMarkets";
     return null;
   };
 
@@ -288,6 +291,42 @@ export const SideBar = () => {
                   Asset Curation
                 </SubMenuText>
               </SubMenuItem>
+              <SubMenuItem onClick={() => router.push("/dividendandyield")}>
+                <SubMenuText $isActive={isActive("/dividendandyield")}>
+                  Proceeds Payouts
+                </SubMenuText>
+              </SubMenuItem>
+            </SubMenu>
+          )}
+
+          <MenuContent onClick={() => handleToggleMenu("publicMarkets")}>
+            <ContentWrapper>
+              <IconWrapper>
+                <Image src={Revenue} alt="public-markets-icon" />
+              </IconWrapper>
+              <MenuText>Public Markets</MenuText>
+            </ContentWrapper>
+            {isMenuOpen.includes("publicMarkets") ? (
+              <FaAngleUp color="#828282" />
+            ) : (
+              <FaAngleDown color="#828282" />
+            )}
+          </MenuContent>
+          {isMenuOpen.includes("publicMarkets") && (
+            <SubMenu>
+              {PUBLIC_MARKETS_PAGES.map((p) => (
+                <SubMenuItem key={p.href} onClick={() => router.push(p.href)}>
+                  <SubMenuText
+                    $isActive={
+                      p.href === "/publicmarkets"
+                        ? pathname === p.href
+                        : isActive(p.href)
+                    }
+                  >
+                    {p.label}
+                  </SubMenuText>
+                </SubMenuItem>
+              ))}
             </SubMenu>
           )}
 

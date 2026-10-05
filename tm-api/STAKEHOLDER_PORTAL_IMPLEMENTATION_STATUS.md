@@ -24,7 +24,7 @@ Completed ticket groups:
 
 - Component: `internal/components/stakeholder/`
 - Middleware: `internal/middleware/stakeholder_auth_middleware.go`
-- Migration: `migrations/20260629_create_stakeholder_portal_tables.sql`
+- Schema: GORM AutoMigrate in `internal/db/main.go` (`migrateAdminSchemaTransaction`)
 - Swagger: `internal/components/stakeholder/handlers/swagger_docs.go`, `docs/`
 - Env sample: `.env-sample`
 - DB/API verification runbook: `STAKEHOLDER_PORTAL_TEST_VERIFICATION_FLOW.md`
@@ -58,9 +58,7 @@ Required environment:
 
 Migration order:
 
-1. Confirm AdminDB has existing `organizations` and `organization_members` tables.
-2. Apply `migrations/20260629_create_stakeholder_portal_tables.sql` to AdminDB.
-3. Do not apply migrations to production from the app process; run through the normal DB migration/release procedure.
+tm-api creates the portal tables (with `organizations` and `organization_members`) through GORM AutoMigrate on startup. No SQL file is applied by hand.
 
 Data readiness:
 
@@ -81,7 +79,7 @@ Seed/assignment procedure:
 Rollback plan:
 
 - Disable stakeholder routes by rolling back the application deploy.
-- If the migration must be rolled back before production data exists, drop the new tables from `migrations/20260629_create_stakeholder_portal_tables.sql` in reverse dependency order.
+- If the tables must be removed before production data exists, drop the stakeholder tables listed in `migrateAdminSchemaTransaction` in reverse dependency order.
 - If production data exists, preserve table dumps before dropping or run a forward migration that disables route access while retaining audit/workflow records.
 
 ## Test Results

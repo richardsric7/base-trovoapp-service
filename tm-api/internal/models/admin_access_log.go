@@ -108,6 +108,49 @@ const (
 
 	// partner (white-label service link integrations)
 	EventServiceLinkChange = "service_link.change"
+
+	// proceeds payouts (payout-engine controls)
+	EventPayoutPrepare     = "payout.prepare"
+	EventPayoutFee         = "payout.fee"
+	EventPayoutApprove     = "payout.approve"
+	EventPayoutReject      = "payout.reject"
+	EventPayoutFund        = "payout.confirm_funding"
+	EventPayoutPause       = "payout.pause"
+	EventPayoutResume      = "payout.resume"
+	EventPayoutCancel      = "payout.cancel"
+	EventPayoutRetry       = "payout.retry_failed"
+	EventPayoutItemExclude = "payout_item.exclude"
+	EventPayoutItemInclude = "payout_item.include"
+	EventPayoutItemPaid    = "payout_item.mark_paid"
+	EventPayoutFeeConfig   = "payout_fee_config.change"
+	EventPayoutEngineHalt  = "payout_engine.halt"
+	EventPayoutEngineRun   = "payout_engine.unhalt"
+	EventPayoutSweep       = "payout_engine.sweep"
+
+	// public markets (tokenized NGX / FMDQ instruments)
+	EventPMAssetChange      = "public_markets.asset.change"
+	EventPMAssetHalt        = "public_markets.asset.halt"
+	EventPMAssetResume      = "public_markets.asset.resume"
+	EventPMAssetLive        = "public_markets.asset.go_live"
+	EventPMContract         = "public_markets.asset.contract"
+	EventPMPrice            = "public_markets.price.manual"
+	EventPMPosition         = "public_markets.position.manual"
+	EventPMBatchApprove     = "public_markets.batch.approve"
+	EventPMBatchReject      = "public_markets.batch.reject"
+	EventPMBatchRoll        = "public_markets.batch.roll"
+	EventPMInstruction      = "public_markets.instruction.change"
+	EventPMOutcome          = "public_markets.instruction.outcome"
+	EventPMReconcile        = "public_markets.reconcile"
+	EventPMActionDeclare    = "public_markets.corporate_action.declare"
+	EventPMActionApprove    = "public_markets.corporate_action.approve"
+	EventPMActionCancel     = "public_markets.corporate_action.cancel"
+	EventPMExchangeChange   = "public_markets.exchange.change"
+	EventPMExchangeSecret   = "public_markets.exchange.rotate_secret"
+	EventPMExchangeStatus   = "public_markets.exchange.status"
+	EventPMExchangeWithdraw = "public_markets.exchange.withdrawal"
+	EventPMWebhookReplay    = "public_markets.webhook.replay"
+	EventPMSettings         = "public_markets.settings.change"
+	EventPMPartnerChange    = "public_markets.partner.change"
 )
 
 // Access-log status values (canonical lowercase; the UI filter's title-case is
@@ -120,10 +163,12 @@ const (
 
 // Access-log categories.
 const (
-	AccessCategorySession = "session"
-	AccessCategoryAccount = "account"
-	AccessCategorySecret  = "secret"
-	AccessCategoryOrg     = "org"
-	AccessCategoryAsset   = "asset"
-	AccessCategoryConfig  = "config"
+	AccessCategorySession       = "session"
+	AccessCategoryAccount       = "account"
+	AccessCategorySecret        = "secret"
+	AccessCategoryOrg           = "org"
+	AccessCategoryAsset         = "asset"
+	AccessCategoryConfig        = "config"
+	AccessCategoryPayout        = "payout"
+	AccessCategoryPublicMarkets = "public_markets"
 )

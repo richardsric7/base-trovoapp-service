@@ -152,7 +152,7 @@ if err := gormDB.AutoMigrate(&models.AdminUser{}, /* ...existing... */
 }
 ```
 
-No new raw SQL file needed unless a future column needs the kind of guarded backfill `prepareAdminSchemaForAutoMigrate` does for `FundReleaseRequest` — not expected here since these are brand-new tables with no legacy data.
+No raw SQL file is needed: these are brand-new tables, created by AutoMigrate.
 
 ### `VaultSignerManagedSecret` (shared signer-slot secrets)
 

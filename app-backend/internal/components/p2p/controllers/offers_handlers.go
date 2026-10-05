@@ -17,7 +17,8 @@ import (
 // currentUser resolves the authenticated caller from the signed request,
 // matching postUsersPaymentHandler's own resolution pattern exactly.
 func currentUser(c *gin.Context, gc *sharedconfig.GlobalConfig) (userModels.User, error) {
-	return userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+	// only the user's own fields are used by P2P handlers: load it slim
+	return userModels.GetSlimUserBySigner(middleware.ExtractSigner(c), gc.DB, gc)
 }
 
 func writeError(c *gin.Context, err error) {

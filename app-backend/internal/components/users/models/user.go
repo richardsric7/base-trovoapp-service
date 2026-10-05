@@ -334,12 +334,10 @@ type UserSecurityAnswer struct {
 
 type UserAccountRecoveryPayload struct {
 	// Transactions are the operations to sign, one per covered wallet
-	// (Wallets, same order); Transaction is the first, for older clients.
+	// (Wallets, same order).
 	Transactions          []string           `json:"transactions"`
 	TransactionSignatures []string           `json:"transactionSignatures"`
 	Wallets               []string           `json:"wallets"`
-	Transaction           string             `json:"transaction"`
-	TransactionSignature  string             `json:"transactionSignature"`
 	TransactionID         string             `json:"transactionId"`
 	NetworkPassPhrase     string             `json:"networkPassPhrase"`
 	Messages              []string           `json:"messages"`

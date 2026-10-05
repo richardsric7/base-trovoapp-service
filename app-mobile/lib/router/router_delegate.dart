@@ -105,6 +105,13 @@ import 'package:trovo_app/screens/page_view/pdf_view.dart';
 import 'package:trovo_app/screens/page_view/success_view.dart';
 import 'package:trovo_app/screens/page_view/web_view.dart';
 import 'package:trovo_app/screens/p2p/p2p_marketplace_view.dart';
+import 'package:trovo_app/screens/public_markets/public_markets_view.dart';
+import 'package:trovo_app/screens/public_markets/pm_asset_view.dart';
+import 'package:trovo_app/screens/public_markets/pm_trade_view.dart';
+import 'package:trovo_app/screens/public_markets/pm_order_view.dart';
+import 'package:trovo_app/screens/public_markets/pm_portfolio_view.dart';
+import 'package:trovo_app/screens/public_markets/pm_dividends_view.dart';
+import 'package:trovo_app/screens/fiat/bank_transfer_view.dart';
 import 'package:trovo_app/screens/p2p/p2p_offer_detail_view.dart';
 import 'package:trovo_app/screens/p2p/p2p_create_offer_view.dart';
 import 'package:trovo_app/screens/p2p/p2p_create_order_view.dart';
@@ -683,6 +690,27 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.P2PMarketplaceView:
           _addPageData(P2PMarketplaceView(), P2PMarketplaceViewPageConfig);
           break;
+        case Pages.PublicMarketsView:
+          _addPageData(const PublicMarketsView(), PublicMarketsViewPageConfig);
+          break;
+        case Pages.PMAssetView:
+          _addPageData(const PMAssetView(), PMAssetViewPageConfig);
+          break;
+        case Pages.PMTradeView:
+          _addPageData(const PMTradeView(), PMTradeViewPageConfig);
+          break;
+        case Pages.PMOrderView:
+          _addPageData(const PMOrderView(), PMOrderViewPageConfig);
+          break;
+        case Pages.PMPortfolioView:
+          _addPageData(const PMPortfolioView(), PMPortfolioViewPageConfig);
+          break;
+        case Pages.PMDividendsView:
+          _addPageData(const PMDividendsView(), PMDividendsViewPageConfig);
+          break;
+        case Pages.BankTransferView:
+          _addPageData(BankTransferView(), BankTransferViewPageConfig);
+          break;
         case Pages.P2POfferDetailView:
           _addPageData(P2POfferDetailView(), P2POfferDetailViewPageConfig);
           break;
@@ -1040,6 +1068,27 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.P2PMarketplaceView:
         P2PMarketplaceViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.PublicMarketsView:
+        PublicMarketsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.PMAssetView:
+        PMAssetViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.PMTradeView:
+        PMTradeViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.PMOrderView:
+        PMOrderViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.PMPortfolioView:
+        PMPortfolioViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.PMDividendsView:
+        PMDividendsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.BankTransferView:
+        BankTransferViewPageConfig.currentPageAction = action;
         break;
       case Pages.P2POfferDetailView:
         P2POfferDetailViewPageConfig.currentPageAction = action;

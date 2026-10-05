@@ -3,6 +3,7 @@ import Dropdown from './dropdown';
 import AssetDropdown from './assettDropdown';
 import Button from './button';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   formatToDecimal,
   getAssetCode,
@@ -48,6 +49,7 @@ export default function WalletOperations({
   onAssetChanged,
   isWalletDetailsPage,
 }: Props) {
+  const navigate = useNavigate();
   const appUser = useSelector((state: RootState) => state.auth.user!);
   const appState = useSelector((state: RootState) => state.appState!);
   const [qrCodeLink, setQrCodeLink] = useState('');
@@ -988,7 +990,8 @@ export default function WalletOperations({
             <Button
               label="Deposit/Withdraw"
               onclick={() => {
-                /* */
+                // Naira bank deposits and withdrawals (cNGN, via Stablerail)
+                navigate('/dashboard/bank', { state: { walletAddress: activeWallet.address } });
               }}
             />
           </div>

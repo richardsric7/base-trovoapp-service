@@ -1,30 +1,20 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import viteTsconfigPaths from 'vite-tsconfig-paths'
-import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 
 export default defineConfig({
     // depending on your application, base can also be "/"
     base: '',
-    plugins: [react(), viteTsconfigPaths()],
+    plugins: [react()],
+    resolve: {
+        // resolve imports through tsconfig.json "paths" (native in Vite 8)
+        tsconfigPaths: true,
+    },
     server: {    
-        // this ensures that the browser opens upon server start
-        open: true,
+        // open the app in a browser on start, where there is one to open:
+        // not on a Linux machine without a desktop (a container, SSH, CI).
+        // BROWSER=none also turns it off.
+        open: process.platform !== 'linux' || !!(process.env.DISPLAY || process.env.WAYLAND_DISPLAY),
         // this sets a default port to 3000  
         port: 3000, 
     },
-    optimizeDeps: {
-        esbuildOptions: {
-            // Node.js global to browser globalThis
-            define: {
-                global: 'globalThis'
-            },
-            // Enable esbuild polyfill plugins
-            plugins: [
-                NodeGlobalsPolyfillPlugin({
-                    buffer: true
-                })
-            ]
-        }
-    }
 })

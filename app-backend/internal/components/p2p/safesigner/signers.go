@@ -16,10 +16,6 @@ import (
 // in tm-api (tm-api/internal/components/vaultsigner/models/db_models.go).
 const signerSeparator = ";"
 
-// legacySignerSeparator is accepted for backward compatibility, matching
-// VaultSignerManagedSecret's own legacy fallback.
-const legacySignerSeparator = ","
-
 // requiredActiveSigners is the fixed number of signers P2P's own release
 // code uses to sign every settlement transaction - the escrow Safe's
 // on-chain policy may be 3-of-M with M >= 4 (matching
@@ -50,14 +46,9 @@ func ActiveSigners() ([]*evmkeypair.Full, error) {
 	return signers, nil
 }
 
-// splitCSV mirrors VaultSignerManagedSecret's SplitCSV helper: prefer the
-// standard ";" separator, fall back to the legacy ",".
+// splitCSV mirrors VaultSignerManagedSecret's SplitCSV helper.
 func splitCSV(raw string) []string {
-	sep := signerSeparator
-	if !strings.Contains(raw, signerSeparator) && strings.Contains(raw, legacySignerSeparator) {
-		sep = legacySignerSeparator
-	}
-	parts := strings.Split(raw, sep)
+	parts := strings.Split(raw, signerSeparator)
 	out := make([]string, 0, len(parts))
 	for _, p := range parts {
 		p = strings.TrimSpace(p)

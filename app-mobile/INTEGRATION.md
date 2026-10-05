@@ -80,6 +80,64 @@ until the recovery completes after its waiting period. See
 [recovery/INTEGRATION.md](../recovery/INTEGRATION.md) and
 [app-backend/INTEGRATION.md](../app-backend/INTEGRATION.md#account-recovery-opt-in-guardian).
 
+### Bank (NGN) deposits and withdrawals
+
+cNGN moves to and from Nigerian bank accounts through Stablerail
+(`lib/network/fiat_requests.dart`, `lib/screens/fiat/bank_transfer_view.dart`).
+It is reached from an asset's existing **Deposit/Withdraw** sheet
+(`wrapped_asset.dart`): for cNGN a "Bank account (NGN)" row (Deposit,
+Withdraw, History) appears when `GET /v1/users/stablerail/profile` says
+Stablerail is enabled. There is no BVN screen: the backend onboards the user
+when KYC level 1 completes, and until then the bank screen points to the KYC
+screen. A withdrawal is built, shown, confirmed (biometrics where available),
+signed with `signBase64Txn` and submitted, like a payment. See
+`app-backend/INTEGRATION.md` ("Bank deposits and withdrawals").
+
+### Dividends and interest
+
+An asset's **Dividend and Interest** screen (`dividend_and_yield.dart`), its
+history (`dividend_history.dart`; `yield_history.dart` shows the same list
+as "Interest History") and a payout's detail
+(`dividend_payment_detail.dart`) read
+`GET /v1/tokenization/payouts` (`lib/network/payout_requests.dart`,
+`lib/models/proceed_payout.dart`). They are matched to the asset by its
+token contract, and show what was paid, with its transaction on Basescan,
+and what is scheduled but not yet paid. The payouts themselves are made by
+`payout-engine`; see `app-backend/INTEGRATION.md` ("Proceeds payouts").
+
+### Public Markets (tokenized NGX equities and FMDQ bonds)
+
+`lib/network/public_markets_requests.dart` calls app-backend's
+`/v1/public-markets`. The asset list, an asset's page and its price chart
+are unsigned requests. The quote, buy, sell, portfolio, orders and
+dividends are signed requests from the primary wallet.
+
+The screens live in `lib/screens/public_markets/`:
+
+- the home screen's Public Markets block;
+- the list (search, and filters for equities, bonds and top gainers);
+- an asset's page (chart, the user's position, key statistics, how the
+  tokens are owned and backed, the trading session, corporate actions);
+- the trade screen;
+- the order's status page, which refreshes until the order is final;
+- My Stocks;
+- dividend history and details.
+
+Buying and selling follow the usual wallet flow:
+
+1. Without a signature, the buy or sell call returns the quote and the
+   operation to sign.
+2. The review sheet shows what happens: whether the order fills now or
+   at the next session, the fee and the amounts. The user confirms with
+   biometrics.
+3. The signed operation (`TrovoWalletSDK().signBase64Txn`) is sent back
+   and the order opens.
+
+Only the user's own wallets can trade. Shared wallets with approvers
+cannot. Pushes carry `route: publicMarketsOrder` (with `orderId`) or
+`publicMarketsDividend` (with `assetCode`), and tapping one opens the
+order or the dividends.
+
 ## Shared code with the rest of the monorepo: `wallet-core`
 
 This app is **not** fully code-isolated — it's meant to share its

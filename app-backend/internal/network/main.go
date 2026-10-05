@@ -349,22 +349,6 @@ var authDB *gorm.DB
 // Called once at startup (see main.go).
 func SetDB(db *gorm.DB) {
 	authDB = db
-	if authDB != nil {
-		// Rename the legacy "asset_issuer" column (Stellar-era name) to
-		// "contract_address" before AutoMigrate, which never renames an
-		// existing column on its own - left alone it would add a new
-		// empty contract_address column while asset_issuer's data sat
-		// unused. No-op if already renamed or the table doesn't exist yet.
-		migrator := authDB.Migrator()
-		const table = "wallet_asset_authorizations"
-		if migrator.HasTable(table) && migrator.HasColumn(table, "asset_issuer") && !migrator.HasColumn(table, "contract_address") {
-			if err := migrator.RenameColumn(table, "asset_issuer", "contract_address"); err != nil {
-				log.Printf("[SetDB] failed to rename %s.asset_issuer -> contract_address: %v\n", table, err)
-			}
-		}
-		authDB.AutoMigrate(&WalletAssetAuthorization{})
-		authDB.AutoMigrate(&AccountSigner{})
-	}
 	basetxn.SetDefaultBuilder(NewTxBuilder(GetBlockchainClient()))
 }
 
@@ -761,48 +745,3 @@ func logDiscordFailedPayment(msg string) {
 
 // transferTopic is keccak256("Transfer(address,address,uint256)").
 var transferTopic = common.HexToHash("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
-
-// TokenHolders lists every address holding token now, with its raw
-// balance: the recipients of the token's Transfer events since fromBlock
-// (its deployment), each checked with balanceOf. Base has no "accounts
-// holding this asset" query like Horizon's, so the token's own event log
-// is the list.
-func TokenHolders(ctx context.Context, client *ethclient.Client, token common.Address, fromBlock uint64) (map[common.Address]*big.Int, error) {
-	head, err := client.BlockNumber(ctx)
-	if err != nil {
-		return nil, err
-	}
-	seen := map[common.Address]bool{}
-	const chunk = 5000
-	for from := fromBlock; from <= head; from += chunk {
-		to := from + chunk - 1
-		if to > head {
-			to = head
-		}
-		logs, err := client.FilterLogs(ctx, ethereum.FilterQuery{
-			FromBlock: new(big.Int).SetUint64(from), ToBlock: new(big.Int).SetUint64(to),
-			Addresses: []common.Address{token}, Topics: [][]common.Hash{{transferTopic}},
-		})
-		if err != nil {
-			return nil, err
-		}
-		for _, l := range logs {
-			if len(l.Topics) == 3 {
-				seen[common.BytesToAddress(l.Topics[2].Bytes())] = true
-			}
-		}
-	}
-	delete(seen, common.Address{})
-	out := map[common.Address]*big.Int{}
-	for a := range seen {
-		data, _ := erc20ABI.Pack("balanceOf", a)
-		res, err := client.CallContract(ctx, ethereum.CallMsg{To: &token, Data: data}, nil)
-		if err != nil {
-			return nil, err
-		}
-		if b := new(big.Int).SetBytes(res); b.Sign() > 0 {
-			out[a] = b
-		}
-	}
-	return out, nil
-}

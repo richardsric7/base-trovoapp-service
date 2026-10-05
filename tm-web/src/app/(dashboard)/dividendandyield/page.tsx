@@ -1,56 +1,37 @@
 "use client";
 
 import Tab from "@/components/Tab";
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import PayoutsList from "./components/PayoutsList";
+import FeeAndEngine from "./components/FeeAndEngine";
+import Reports from "./components/Reports";
 
-import { useRouter } from "next/navigation";
-import { FaArrowLeft } from "react-icons/fa6";
-import styled from "styled-components";
-import DividendTable from "./components/DividendTable";
-import YieldTable from "./components/YieldTable";
-
-const DividendAndYieldPage = () => {
-  const [currentTab, setCurrentTab] = useState("dividend");
-  const router = useRouter();
+// Proceeds payouts (dividends and yields of tokenized assets), paid by
+// payout-engine and driven from here.
+const ProceedPayouts = () => {
+  const params = useSearchParams();
+  const [currentTab, setCurrentTab] = useState("payouts");
 
   const tabs = [
-    { key: "dividend", label: "Dividend" },
-    { key: "yield", label: "yield" },
+    { key: "payouts", label: "Payouts" },
+    { key: "fees", label: "Fee & engine" },
+    { key: "reports", label: "Reports" },
   ];
 
-  const handleBack = () => {
-    router.back();
-  };
   return (
-    <>
-      <BackButtonLink onClick={handleBack}>
-        <FaArrowLeft size={18} />
-      </BackButtonLink>
-      <Tab
-        tabs={tabs}
-        currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
-        tabContainerStyle={{
-          width: "100%",
-          maxWidth: "200px",
-        }}
-      >
-        {currentTab === "dividend" && <DividendTable />}
-        {currentTab === "yield" && <YieldTable />}
-      </Tab>
-    </>
+    <Tab tabs={tabs} currentTab={currentTab} setCurrentTab={setCurrentTab} tabContainerStyle={{ width: "100%", maxWidth: "420px" }}>
+      {currentTab === "payouts" && <PayoutsList asset={params.get("asset") ?? undefined} />}
+      {currentTab === "fees" && <FeeAndEngine />}
+      {currentTab === "reports" && <Reports />}
+    </Tab>
   );
 };
 
-export default DividendAndYieldPage;
+const ProceedPayoutsPage = () => (
+  <Suspense fallback={null}>
+    <ProceedPayouts />
+  </Suspense>
+);
 
-const BackButtonLink = styled.button`
-  text-decoration: none;
-  display: block;
-  color: #000000;
-  width: 20px;
-  background: none;
-  cursor: pointer;
-  border: none;
-  padding: 24px;
-`;
+export default ProceedPayoutsPage;

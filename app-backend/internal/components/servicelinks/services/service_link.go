@@ -283,7 +283,7 @@ func GetTransactionSignature(input *servicelinkModels.ServiceLinkTokenizedAssetA
 
 }
 func GetUserFromPrimarySigner(signerKey string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user userModels.User, err error) {
-	return usersDB.GetUserFromPrimarySigner(signerKey, gc.DB, gc)
+	return usersDB.GetSlimUserFromPrimarySigner(signerKey, gc.DB, gc)
 }
 
 func UpdateUserKYCStatus(targetUser *userModels.User, kycStatus int, jsonString string, gc *sharedconfig.GlobalConfig) (err error) {

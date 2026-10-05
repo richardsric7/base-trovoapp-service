@@ -22,4 +22,6 @@ export const tagTypes = {
   CURATED_ASSETS: "curatedAssets",
   SERVICE_LINKS: "serviceLinks",
   FEE_EXEMPTIONS: "feeExemptions",
+  PROCEED_PAYOUTS: "proceedPayouts",
+  PUBLIC_MARKETS: "publicMarkets",
 };

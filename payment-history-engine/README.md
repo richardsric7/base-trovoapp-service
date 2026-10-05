@@ -36,9 +36,6 @@ returns:
    Only transfers where the sender or receiver is a tracked wallet are kept;
    everything else is skipped. Each processed block's number is saved as a
    resume cursor.
-4. **Monitor the trade stream** — currently an idle stub. Base has no
-   on-chain order book/DEX integrated yet, so there is no trade event source
-   to subscribe to (see `MonitorTradeStream`'s doc comment in `main.go`).
 
 Every recorded transfer is written as a `PaymentHistory` row via
 `SavePaymentHistory` (`internal/components/payments/services/procedure.go`).
@@ -100,14 +97,13 @@ payment-history-engine/
 ├── docs/                         Generated Swagger/OpenAPI spec (swag init output — do not hand-edit)
 ├── internal/
 │   ├── basetxn/                  Base transaction building/signing helpers
-│   ├── blockchainalgofuncs/      Deterministic account derivation, hashing, password helpers
 │   ├── cache/                    Redis cache wrapper
 │   ├── components/
 │   │   ├── health/                Liveness/readiness probes + the HTTP server that exposes them
 │   │   ├── payments/
 │   │   │   ├── db/                 IP-geolocation helper (vestigial, see CONFIGURATION.md)
 │   │   │   ├── errors/             gin.H-shaped error types (vestigial — see above)
-│   │   │   ├── models/             PaymentHistory, TrackedWallet, TrackedAddress, cursors, MarketOffer
+│   │   │   ├── models/             PaymentHistory, TrackedWallet, TrackedAddress, cursors
 │   │   │   └── services/           TrackUserWallet, SavePaymentHistory
 │   │   └── users/                 UserWallet / user models read from the primary DB
 │   ├── db/                       DB connection setup (primary DB + RoachDB)

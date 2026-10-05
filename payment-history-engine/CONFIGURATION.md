@@ -180,59 +180,6 @@ immediately without serving anything.
 - **How to get a real value**: only relevant if/when swap support is wired
   up; leave unset otherwise.
 
-## Wallet key derivation
-
-### `MNEMONIC_TEMP_ACCOUNTS`
-- **Required**: yes
-- **Example**: `24 words sha` (a placeholder in `.env.example` — replace with
-  a real BIP-39 mnemonic)
-- **What it is**: the seed phrase this engine derives temporary/intermediate
-  accounts from (`network.main.go`).
-- **How to get a real value**: generate a real BIP-39 mnemonic with a wallet
-  tool you trust (e.g. `openssl rand` piped through a BIP-39 wordlist
-  generator, or a hardware wallet's setup flow) — **never reuse a
-  mainnet-funded mnemonic in a dev/test environment**, and never commit a
-  real one to `.env`.
-
-### `MARKET_MAKING_SALT`, `MNEMONIC_MARKET_MAKING`
-- **Required**: yes (both)
-- **Example**: any string for the salt; a real BIP-39 mnemonic for the other
-- **What they are**: used by `internal/blockchainalgofuncs` to
-  deterministically derive the market-making account from a mnemonic + salt.
-- **How to get a real value**: same guidance as `MNEMONIC_TEMP_ACCOUNTS` for
-  the mnemonic; the salt can be any secret string you control (treat it like
-  a password — generate with `openssl rand -hex 16`).
-
-### `MM_FEE_COLLECTION_CHANNEL_ACCOUNT`, `MARKET_MAKING_FEE_WALLET`
-- **Required**: yes (both, checked at boot)
-- **Example**: a Base address, e.g. `0x0000000000000000000000000000000000000000`
-- **What they are**: required by the startup check in `main.go`, but **not
-  read anywhere else in this codebase** (grepped) — they appear to be
-  reserved for the market-making/trade-stream feature, which is currently an
-  idle stub (see `MonitorTradeStream`'s doc comment: "Base has no trade
-  stream to watch yet").
-- **How to get a real value**: set to any syntactically valid non-empty
-  value to satisfy the startup check until this feature is implemented; a
-  real value will matter once trade-stream processing is built out.
-
-### `BULK_PAYMENT_SALT`, `MNEMONIC_BULK_PAYMENT`
-- **Required**: no (not in the hard-required list, but read by
-  `internal/blockchainalgofuncs`)
-- **Example**: same shape as the market-making pair above
-- **What they are**: derive a bulk-payment account, analogous to the
-  market-making derivation.
-- **How to get a real value**: same guidance as `MNEMONIC_TEMP_ACCOUNTS`.
-
-### `ENCODER_SALT`
-- **Required**: no (but read unconditionally by two functions in
-  `internal/blockchainalgofuncs/algofuncs.go`, so effectively required if
-  those code paths are exercised)
-- **Example**: a random 16+ byte hex string, e.g. `openssl rand -hex 16`
-- **What it is**: a salt used in encoding/decoding helper functions.
-- **How to get a real value**: `openssl rand -hex 16`; store it securely and
-  keep it stable once set (changing it invalidates anything previously
-  encoded with it).
-
 ## Caching (Redis)
 
 ### `ENABLE_CACHING`
@@ -297,12 +244,6 @@ immediately without serving anything.
 - **How to get a real value**: normally leave unset and let the DB-stored
   cursor (`monitored_cursors`) drive resumption; only set this to force a
   specific starting block (e.g. after a manual intervention).
-
-### `TRADE_RESUME_CURSOR`
-- **Required**: no (defaults to `"0"`)
-- **What it is**: read by `GetTradeResumeCursor`, but the trade stream itself
-  is currently an idle stub — has no present effect.
-- **How to get a real value**: leave unset.
 
 ## Email validation
 

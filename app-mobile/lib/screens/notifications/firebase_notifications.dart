@@ -79,7 +79,7 @@ initMyNotification(BuildContext context) {
   //When the app is in the background, but not terminated.
   FirebaseMessaging.onMessageOpenedApp.listen(
     (message) {
-      goToPageRoute(message.data['route'] ?? '');
+      goToPageRoute(message.data['route'] ?? '', message.data);
       return;
     },
     cancelOnError: false,
@@ -167,9 +167,28 @@ void requestPermissions() {
       ?.requestPermissions(alert: true, badge: true, sound: true);
 }
 
-void goToPageRoute(String route) {
+void goToPageRoute(String route, [Map data = const {}]) {
   if (_appState.isLoggedIn) {
     switch (route) {
+      case 'publicMarketsOrder':
+        // a Public Markets order completed or was not: its status page
+        // (My Stocks when the push carried no order)
+        final orderId = '${data['orderId'] ?? ''}';
+        _appState.viewData ??= {};
+        if (orderId.isNotEmpty) _appState.viewData![PMOrderViewPageConfig.key] = {'orderId': orderId};
+        _appState.currentAction = PageAction(
+          state: PageState.addAll,
+          pages: [BottomHomePageConfig, orderId.isNotEmpty ? PMOrderViewPageConfig : PMPortfolioViewPageConfig],
+        );
+        break;
+      case 'publicMarketsDividend':
+        _appState.viewData ??= {};
+        _appState.viewData![PMDividendsViewPageConfig.key] = {'assetCode': '${data['assetCode'] ?? ''}'};
+        _appState.currentAction = PageAction(
+          state: PageState.addAll,
+          pages: [BottomHomePageConfig, PMDividendsViewPageConfig],
+        );
+        break;
       case 'basicTransactionHistory':
         _appState.currentAction = PageAction(
           state: PageState.replaceAll,

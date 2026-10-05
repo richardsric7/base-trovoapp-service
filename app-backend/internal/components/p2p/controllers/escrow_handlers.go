@@ -20,11 +20,11 @@ type depositEscrowRequest struct {
 
 // postEscrowDepositHandler godoc
 // @Summary Deposit the sold asset into P2P escrow
-// @Description Used by the asset depositor (the SELL-side party) to fund escrow for an order. Call it twice: first with an empty body to receive an unsigned transaction to sign locally, then again with the signed transaction and commit=1 to actually submit it. The source wallet must be a standard, non-temp wallet with no approver-based shared access.
+// @Description Used by the asset depositor (the SELL-side party) to fund escrow for an order. Call it twice: first with an empty body to receive an unsigned transaction to sign locally, then again with the signed transaction and commit=1 to actually submit it. The source wallet must be a standard wallet with no approver-based shared access.
 // postEscrowDepositHandler mirrors postUsersPaymentHandler's own
 // constraints exactly (Plan Section 28/29): source wallet must be a
-// standard wallet (WalletType == 0), not temp, and not a shared-access
-// wallet with approvers. The first call (no Commit) returns an unsigned
+// standard wallet (WalletType == 0), not a shared-access wallet with
+// approvers. The first call (no Commit) returns an unsigned
 // transaction for the client to sign locally; the second call, carrying
 // the signature and Commit=1, actually submits it.
 // @Tags P2P

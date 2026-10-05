@@ -2451,6 +2451,126 @@ paths:
       summary: Get service link service fee by ID
       tags:
       - Fees
+  /fee/exempt-users:
+    get:
+      description: Accounts that pay no platform service fees (swap, payment, patron,
+        account recovery, sub-wallet, tokenization application, closed group). The
+        tokenization issuing profile is always exempt and is not listed.
+      operationId: GetFeeExemptUsers
+      parameters:
+      - default: Bearer <your-token>
+        description: JWT Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.FeeExemptUser'
+                  type: array
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - JwtTokenAuth: []
+      summary: List fee-exempt accounts
+      tags:
+      - Fees
+    post:
+      consumes:
+      - application/json
+      description: Adds a Trovo account (by username) to the fee-exempt list, or updates
+        its reason. Takes effect on its next fee-charging request.
+      operationId: AddFeeExemptUser
+      parameters:
+      - default: Bearer <your-token>
+        description: JWT Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Account and reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usermetrics.AddFeeExemptUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.FeeExemptUser'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Exempt an account from platform service fees
+      tags:
+      - Fees
+  /fee/exempt-users/{username}:
+    delete:
+      description: The account pays platform service fees again from its next request.
+      operationId: RemoveFeeExemptUser
+      parameters:
+      - default: Bearer <your-token>
+        description: JWT Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Remove a fee exemption
+      tags:
+      - Fees
   /fiat/payments:
     get:
       description: Retrieves paginated fiat payment records aggregated from fiat_payment
@@ -4794,6 +4914,2240 @@ paths:
       summary: Ping
       tags:
       - Meta
+  /proceed-payouts:
+    get:
+      description: Payouts of authorized stakeholder distributions, newest first.
+      parameters:
+      - description: Status (REGISTERED, LOCKED, APPROVED, PAYING, PAUSED, COMPLETED,
+          ...)
+        in: query
+        name: status
+        type: string
+      - description: Tokenized asset ID or code
+        in: query
+        name: asset
+        type: string
+      - description: Created on or after (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: Created on or before (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      - default: 1
+        description: Page
+        in: query
+        name: page
+        type: integer
+      - default: 50
+        description: Page size (max 200)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/proceedpayouts.PayoutView'
+                  type: array
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: List proceeds payouts
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}:
+    get:
+      description: The payout with its approvals, batches, holder counts and the engine's
+        state.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.Detail'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: A proceeds payout
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/approve:
+    post:
+      description: Each admin approves once; the payout is approved when the required
+        number of distinct admins (PROCEED_PAYOUT_APPROVALS_REQUIRED, default 2) approved
+        this schedule.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Approve a locked schedule
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: Stops the payout for good; holders already paid stay paid. Not
+        while a batch is being mined.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.ReasonRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Cancel a payout
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/confirm-funding:
+    post:
+      description: payout-engine checks the payout Safe holds what is still to pay
+        (on top of other payouts in progress), that the signers can sign and the executor
+        has gas, then starts paying; otherwise the payout returns to APPROVED with
+        the shortfall in its note.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Confirm the payout is funded
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/fee:
+    put:
+      consumes:
+      - application/json
+      description: FIXED (an amount of the payout token) or PERCENT of the payout
+        (capped by feeCap when above 0). VAT at the asset country's rate is charged
+        on the fee. The fee and VAT are paid from the payout to the fee and VAT wallets.
+        On a locked or approved payout the schedule is prepared again, so the fee
+        is approved with it; the admin who sets the fee cannot approve.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Fee
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.FeeRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Set a payout's processing fee
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/items:
+    get:
+      description: 'The schedule''s lines: the fee and VAT, then holders by amount.'
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: PENDING, QUEUED, PAID, FAILED, EXCLUDED or SKIPPED
+        in: query
+        name: status
+        type: string
+      - description: HOLDER, FEE or VAT
+        in: query
+        name: kind
+        type: string
+      - description: Address or username
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: Page
+        in: query
+        name: page
+        type: integer
+      - default: 50
+        description: Page size (max 200)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/proceedpayouts.PayoutItem'
+                  type: array
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: A payout's schedule
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/items/{itemId}/exclude:
+    post:
+      consumes:
+      - application/json
+      description: Leaves a pending or failed holder out of the payout; its share
+        stays in the payout Safe. Approvals stand.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Schedule item ID
+        in: path
+        name: itemId
+        required: true
+        type: string
+      - description: Reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.ReasonRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutItem'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Exclude a holder
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/items/{itemId}/include:
+    post:
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Schedule item ID
+        in: path
+        name: itemId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutItem'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Include an excluded holder again
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/items/{itemId}/mark-paid:
+    post:
+      consumes:
+      - application/json
+      description: Records that a holder the engine could not pay was paid another
+        way. The payout must be paused or completed with failures.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Schedule item ID
+        in: path
+        name: itemId
+        required: true
+        type: string
+      - description: How it was paid
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.ReferenceRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutItem'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Mark a holder paid
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/pause:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Reason
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/proceedpayouts.ReasonRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Pause a payout
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/prepare:
+    post:
+      description: payout-engine snapshots the asset's holders (transfers during preparation
+        included) and locks the schedule for approval. A locked or approved schedule
+        is prepared again and its approvals dropped. The admin who prepares cannot
+        approve.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Prepare (or re-prepare) a payout's schedule
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/reject:
+    post:
+      consumes:
+      - application/json
+      description: Sends a locked or approved payout back to REGISTERED and drops
+        its approvals.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.ReasonRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Reject a schedule
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/resume:
+    post:
+      description: The funding check runs again before paying continues.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Resume a paused payout
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/{id}/retry-failed:
+    post:
+      description: Puts a completed payout's failed transfers back in the schedule;
+        they are paid after a new funding check.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Retry failed transfers
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/engine:
+    get:
+      description: Heartbeat (online), current activity, last error, kill switch and
+        pending sweep.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.EngineStatus'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: payout-engine's state
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/engine/halt:
+    post:
+      consumes:
+      - application/json
+      description: The engine stops all payout work until it is resumed.
+      parameters:
+      - description: Reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.ReasonRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.EngineStatus'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Stop payout-engine (kill switch)
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/engine/sweep:
+    post:
+      consumes:
+      - application/json
+      description: Moves the payout Safe's whole balance of the token to the engine's
+        sweep address (PROCEED_PAYOUT_SWEEP_ADDRESS); refused while a payout of that
+        token is being funded or paid.
+      parameters:
+      - description: Token contract
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.SweepRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.EngineStatus'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Sweep a token from the payout Safe
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/engine/unhalt:
+    post:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.EngineStatus'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Let payout-engine work again
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/fee-config:
+    get:
+      description: 'The payout fee wallet and the default fee of new payouts (none
+        set: FIXED 0, cap 0), and the VAT wallet.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.FeeConfig'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: The payout fee configuration
+      tags:
+      - Proceeds payouts
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Fee wallet and defaults
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proceedpayouts.FeeConfigRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.FeeConfig'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Set the payout fee configuration
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/reports/fees:
+    get:
+      description: Payout processing fees and the VAT on them as paid to the fee and
+        VAT wallets, with totals per asset and currency.
+      parameters:
+      - description: Tokenized asset ID or code
+        in: query
+        name: asset
+        type: string
+      - description: From (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: To (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.FeesReport'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Payout fees and VAT report
+      tags:
+      - Proceeds payouts
+  /proceed-payouts/reports/payouts:
+    get:
+      description: Matching payouts with totals per payout currency (authorized, to
+        holders, paid, fees, VAT) and counts per status.
+      parameters:
+      - description: Status
+        in: query
+        name: status
+        type: string
+      - description: Tokenized asset ID or code
+        in: query
+        name: asset
+        type: string
+      - description: From (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: To (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/proceedpayouts.PayoutsReport'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Payouts report
+      tags:
+      - Proceeds payouts
+  /public-markets/assets:
+    get:
+      parameters:
+      - description: NGX or FMDQ
+        in: query
+        name: market
+        type: string
+      - description: EQUITY or BOND
+        in: query
+        name: type
+        type: string
+      - description: SETUP, LIVE or HALTED
+        in: query
+        name: status
+        type: string
+      - description: Custodian
+        in: query
+        name: custodianId
+        type: integer
+      - description: Code, ticker, ISIN or name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/publicmarkets.AssetRow'
+                  type: array
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Public Market assets
+      tags:
+      - Public Markets
+    post:
+      consumes:
+      - application/json
+      description: Creates the asset in SETUP. Register its token, set a price and
+        record the Custodian position before taking it live.
+      parameters:
+      - description: assetCode, market, assetType, isin, instrumentName, custodianId,
+          dealingMemberId, ...
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.AssetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.Asset'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Add a Public Market asset
+      tags:
+      - Public Markets
+  /public-markets/assets/{id}:
+    get:
+      description: The asset with supply, Custodian position, beneficial owners (substantial
+        holders flagged), reconciliation runs, prices, corporate actions and its setup
+        steps.
+      parameters:
+      - description: Asset id or code
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.AssetDetail'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: A Public Market asset
+      tags:
+      - Public Markets
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Asset id or code
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to change
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.AssetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.Asset'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Edit a Public Market asset
+      tags:
+      - Public Markets
+  /public-markets/assets/{id}/contract:
+    post:
+      consumes:
+      - application/json
+      description: 'Verified on Base: the token''s owner must be the issuing Safe
+        and nothing may be minted yet. Its decimals are read from the contract.'
+      parameters:
+      - description: Asset id or code
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: contractAddress and issuingSafeAddress
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.ContractRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.Asset'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Register an asset's token contract
+      tags:
+      - Public Markets
+  /public-markets/assets/{id}/go-live:
+    post:
+      description: Opens creation and redemption once the asset's setup steps are
+        done.
+      parameters:
+      - description: Asset id or code
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.Asset'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Take an asset live
+      tags:
+      - Public Markets
+  /public-markets/assets/{id}/halt:
+    post:
+      consumes:
+      - application/json
+      description: Stops creation and redemption (holders' balances are not frozen).
+      parameters:
+      - description: Asset id or code
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.ReasonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.Asset'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Halt an asset
+      tags:
+      - Public Markets
+  /public-markets/assets/{id}/position:
+    post:
+      consumes:
+      - application/json
+      description: From the Custodian's statement (MANUAL Custodians, or a correction).
+        Reconciliation uses the latest position.
+      parameters:
+      - description: Asset id or code
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: unitsHeld, asOf (YYYY-MM-DD), reference
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.PositionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.CustodianPosition'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Record the Custodian's position
+      tags:
+      - Public Markets
+  /public-markets/assets/{id}/price:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Asset id or code
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: price (NGN)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.PriceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.Asset'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Set a manual reference price
+      tags:
+      - Public Markets
+  /public-markets/assets/{id}/prices:
+    get:
+      parameters:
+      - description: Asset id or code
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 100
+        description: Snapshots
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/publicmarkets.PriceSnapshot'
+                  type: array
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: An asset's price history
+      tags:
+      - Public Markets
+  /public-markets/assets/{id}/resume:
+    post:
+      description: Asks the engine to reconcile the asset now and reopen it only if
+        the run matches.
+      parameters:
+      - description: Asset id or code
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.JobRequest'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Resume a halted asset
+      tags:
+      - Public Markets
+  /public-markets/batches:
+    get:
+      parameters:
+      - description: AWAITING_APPROVAL, RELEASED, EXECUTED, SETTLED, PROCESSED, REJECTED,
+          FAILED, INTERNAL
+        in: query
+        name: status
+        type: string
+      - description: Asset code
+        in: query
+        name: asset
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - JwtTokenAuth: []
+      summary: Net batches
+      tags:
+      - Public Markets
+  /public-markets/batches/{id}/approve:
+    post:
+      description: Only Net Creation Approvers; the engine releases the batch once
+        enough have approved.
+      parameters:
+      - description: Batch id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.BatchView'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Approve a net batch above the threshold
+      tags:
+      - Public Markets
+  /public-markets/batches/{id}/reject:
+    post:
+      consumes:
+      - application/json
+      description: The engine refunds its orders.
+      parameters:
+      - description: Batch id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.ReasonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.NetBatch'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Reject a net batch
+      tags:
+      - Public Markets
+  /public-markets/batches/{id}/roll:
+    post:
+      consumes:
+      - application/json
+      description: 'For a released batch that was not executed (e.g. the market was
+        closed): its orders wait for the next session''s batch.'
+      parameters:
+      - description: Batch id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.ReasonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.NetBatch'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Roll a batch to the next session
+      tags:
+      - Public Markets
+  /public-markets/confirmations:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/publicmarkets.ConfirmationRow'
+                  type: array
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Exchange confirmations of dividend.paid
+      tags:
+      - Public Markets
+  /public-markets/corporate-actions:
+    get:
+      parameters:
+      - description: ANNOUNCED, SNAPSHOTTED, APPROVED, PAYING, DISTRIBUTED, NEEDS_MANUAL,
+          CANCELLED
+        in: query
+        name: status
+        type: string
+      - description: Asset code
+        in: query
+        name: asset
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - JwtTokenAuth: []
+      summary: Corporate actions
+      tags:
+      - Public Markets
+    post:
+      consumes:
+      - application/json
+      description: Recorded for the engine, which declares it as it would a Custodian's
+        notice. Dividends and coupons are distributed automatically; bonus, rights
+        and split need manual handling.
+      parameters:
+      - description: assetCode, eventType, recordDate, payDate, amountPerUnit
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.DeclareRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.PartnerEvent'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Declare a corporate action
+      tags:
+      - Public Markets
+  /public-markets/corporate-actions/{id}:
+    get:
+      parameters:
+      - description: Corporate action id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Entitlement status filter
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.ActionDetail'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: A corporate action with its distribution
+      tags:
+      - Public Markets
+  /public-markets/corporate-actions/{id}/approve:
+    post:
+      description: Only Dividend Approvers; the approval is on the snapshot's checksum.
+      parameters:
+      - description: Corporate action id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.ActionDetail'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Approve a distribution
+      tags:
+      - Public Markets
+  /public-markets/corporate-actions/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Corporate action id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.ReasonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.CorporateAction'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Cancel a corporate action
+      tags:
+      - Public Markets
+  /public-markets/custodians:
+    get:
+      description: Approved Asset Custodians with their Public Markets integration.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/publicmarkets.CustodianRow'
+                  type: array
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Custodians
+      tags:
+      - Public Markets
+  /public-markets/custodians/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Its partner code (X-Partner-Code), nominee, mode (MOCK, REST, MANUAL),
+        REST base URL, auth scheme and credentials reference.
+      parameters:
+      - description: Approved Asset Custodian id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Integration settings
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.PartnerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.Custodian'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Configure a Custodian for Public Markets
+      tags:
+      - Public Markets
+  /public-markets/dealing-members:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/publicmarkets.DealingMemberRow'
+                  type: array
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Dealing Members
+      tags:
+      - Public Markets
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: name, code, country, CSCS member code, fees, integration
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.PartnerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.DealingMember'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Add or edit a Dealing Member
+      tags:
+      - Public Markets
+  /public-markets/dealing-members/{id}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Dealing Member id (PUT)
+        in: path
+        name: id
+        type: integer
+      - description: name, code, country, CSCS member code, fees, integration
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.PartnerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.DealingMember'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Add or edit a Dealing Member
+      tags:
+      - Public Markets
+  /public-markets/exchanges:
+    get:
+      parameters:
+      - description: active or suspended
+        in: query
+        name: status
+        type: string
+      - description: Name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - JwtTokenAuth: []
+      summary: Exchange partners
+      tags:
+      - Public Markets
+    post:
+      consumes:
+      - application/json
+      description: Makes a verified service link an exchange partner. The signing
+        secret is in the response once; hand it to the exchange securely.
+      parameters:
+      - description: serviceLinkId, callbackUrl, fundingAddress, environment, tiers
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.ExchangeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - JwtTokenAuth: []
+      summary: Onboard an exchange
+      tags:
+      - Public Markets
+  /public-markets/exchanges/{id}:
+    get:
+      parameters:
+      - description: Service link id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Delivery status filter (PENDING, DELIVERED, DEAD_LETTER)
+        in: query
+        name: deliveries
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.ExchangeDetail'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: An exchange partner
+      tags:
+      - Public Markets
+    put:
+      consumes:
+      - application/json
+      description: A rate-limit tier change updates the service link's rate limit.
+      parameters:
+      - description: Service link id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to change
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.ExchangeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.ExchangeRow'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Edit an exchange partner
+      tags:
+      - Public Markets
+  /public-markets/exchanges/{id}/activate:
+    post:
+      parameters:
+      - description: Service link id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.ExchangeRow'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Reactivate an exchange
+      tags:
+      - Public Markets
+  /public-markets/exchanges/{id}/replay-dead-letters:
+    post:
+      parameters:
+      - description: Service link id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - JwtTokenAuth: []
+      summary: Replay an exchange's dead-lettered webhooks
+      tags:
+      - Public Markets
+  /public-markets/exchanges/{id}/rotate-secret:
+    post:
+      description: The new secret is in the response once; the previous one keeps
+        working for 24 hours.
+      parameters:
+      - description: Service link id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - JwtTokenAuth: []
+      summary: Rotate an exchange's signing secret
+      tags:
+      - Public Markets
+  /public-markets/exchanges/{id}/suspend:
+    post:
+      parameters:
+      - description: Service link id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.ExchangeRow'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Suspend an exchange
+      tags:
+      - Public Markets
+  /public-markets/exchanges/{id}/withdrawals:
+    post:
+      consumes:
+      - application/json
+      description: Asks the engine to transfer the amount from the treasury to the
+        exchange's funding wallet.
+      parameters:
+      - description: Service link id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: amount
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.AmountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.JobRequest'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Pay an exchange's balance back
+      tags:
+      - Public Markets
+  /public-markets/health:
+    get:
+      description: The engine's background jobs (last run, status), recent job requests
+        and queue depths.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.Health'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Public Markets engine health
+      tags:
+      - Public Markets
+  /public-markets/instructions:
+    get:
+      parameters:
+      - description: PENDING, ACCEPTED, EXECUTED, SETTLED, ESCALATED, HANDLED, REJECTED
+        in: query
+        name: status
+        type: string
+      - description: Asset code
+        in: query
+        name: asset
+        type: string
+      - description: Batch id
+        in: query
+        name: batch
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - JwtTokenAuth: []
+      summary: Outbound instructions
+      tags:
+      - Public Markets
+  /public-markets/instructions/{id}/handled:
+    post:
+      consumes:
+      - application/json
+      description: Closes it (no more retries or alerts). Record the partner's outcome
+        so its batch moves on.
+      parameters:
+      - description: Instruction id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'reason: how it was handled'
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.ReasonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.Instruction'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Mark an instruction handled
+      tags:
+      - Public Markets
+  /public-markets/instructions/{id}/outcome:
+    post:
+      consumes:
+      - application/json
+      description: 'For a MANUAL partner (or a webhook that never arrived): a Dealing
+        Member''s fill or a Custodian''s settlement, applied by the engine as if the
+        partner had sent it.'
+      parameters:
+      - description: Instruction id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: status and the fill / settlement details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.OutcomeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.PartnerEvent'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Record a partner's outcome
+      tags:
+      - Public Markets
+  /public-markets/instructions/{id}/retry:
+    post:
+      parameters:
+      - description: Instruction id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.Instruction'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Retry an escalated instruction
+      tags:
+      - Public Markets
+  /public-markets/jobs:
+    get:
+      description: What was asked of the engine from Trovo Manager, and the results.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/publicmarkets.JobRequest'
+                  type: array
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Job requests
+      tags:
+      - Public Markets
+  /public-markets/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - JwtTokenAuth: []
+      summary: My Public Markets permissions
+      tags:
+      - Public Markets
+  /public-markets/orders:
+    get:
+      parameters:
+      - description: CREATION or REDEMPTION
+        in: query
+        name: type
+        type: string
+      - description: A state, or open
+        in: query
+        name: state
+        type: string
+      - description: TROVO_APP or EXCHANGE
+        in: query
+        name: channel
+        type: string
+      - description: FAST, SLOW or NETTED
+        in: query
+        name: path
+        type: string
+      - description: Asset code
+        in: query
+        name: asset
+        type: string
+      - description: Net batch id
+        in: query
+        name: batch
+        type: string
+      - description: Service link id
+        in: query
+        name: exchange
+        type: string
+      - description: Order id, wallet, username or external ref
+        in: query
+        name: search
+        type: string
+      - description: YYYY-MM-DD
+        in: query
+        name: from
+        type: string
+      - description: YYYY-MM-DD
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - JwtTokenAuth: []
+      summary: Public Markets orders
+      tags:
+      - Public Markets
+  /public-markets/orders/{id}:
+    get:
+      parameters:
+      - description: Order id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.OrderDetail'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: An order with its timeline
+      tags:
+      - Public Markets
+  /public-markets/overview:
+    get:
+      description: Asset, order and value totals, what needs attention (approvals,
+        escalations, dead letters, late confirmations, disclosures, halts, drift),
+        the engine's jobs and today's batches.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.Overview'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Public Markets overview
+      tags:
+      - Public Markets
+  /public-markets/partner-events:
+    get:
+      description: Webhooks from Custodians and Dealing Members, and what Operations
+        recorded (source MANUAL), with the engine's result.
+      parameters:
+      - description: 'Source prefix: MANUAL, CUSTODIAN, DEALING_MEMBER'
+        in: query
+        name: source
+        type: string
+      - description: settlement, execution, position-feed, corporate-action
+        in: query
+        name: kind
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - JwtTokenAuth: []
+      summary: Inbound partner events
+      tags:
+      - Public Markets
+  /public-markets/position-feed:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 'target: the Custodian''s code'
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.TargetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.JobRequest'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Request a mock Custodian's position feed
+      tags:
+      - Public Markets
+  /public-markets/prices:
+    get:
+      description: Each asset's reference price, source and freshness, and recent
+        Dealing Member executions against the reference.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - JwtTokenAuth: []
+      summary: Price oracle
+      tags:
+      - Public Markets
+  /public-markets/reconciliation:
+    get:
+      description: Each asset's latest run, with likely causes of a drift.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.Reconciliation'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Reconciliation
+      tags:
+      - Public Markets
+  /public-markets/reconciliation/run:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 'target: an asset code, or ALL'
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/publicmarkets.TargetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.JobRequest'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Run reconciliation now
+      tags:
+      - Public Markets
+  /public-markets/reconciliation/runs:
+    get:
+      parameters:
+      - description: Asset code
+        in: query
+        name: asset
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - JwtTokenAuth: []
+      summary: Reconciliation history
+      tags:
+      - Public Markets
+  /public-markets/settings:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.Settings'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Public Markets settings
+      tags:
+      - Public Markets
+    put:
+      consumes:
+      - application/json
+      description: Thresholds, approvers, fees, withholding tax, market hours and
+        holidays, rate-limit tiers. Needs MANAGE_SETTINGS.
+      parameters:
+      - description: Fields to change
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/publicmarkets.SettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.Settings'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Change Public Markets settings
+      tags:
+      - Public Markets
+  /public-markets/wallets:
+    get:
+      description: Wallets exchanges opened for their customers. Legal names and tax
+        IDs are masked unless the admin holds VIEW_PUBLIC_MARKETS_PII.
+      parameters:
+      - description: Service link id
+        in: query
+        name: exchange
+        type: string
+      - description: active or rejected
+        in: query
+        name: status
+        type: string
+      - description: External user ref, wallet id or address
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - JwtTokenAuth: []
+      summary: Wallet provisioning
+      tags:
+      - Public Markets
+  /public-markets/webhooks/{id}/replay:
+    post:
+      parameters:
+      - description: Delivery id (evt_...)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/publicmarkets.WebhookDelivery'
+              type: object
+      security:
+      - JwtTokenAuth: []
+      summary: Replay a dead-lettered webhook
+      tags:
+      - Public Markets
   /public/tokenization:
     get:
       description: Get all parameters needed for tokenization and display (requires
@@ -11574,6 +13928,17 @@ definitions:
         example: FLW_TOKEN_123
         type: string
     type: object
+  models.FeeExemptUser:
+    properties:
+      addedBy:
+        type: string
+      createdAt:
+        type: string
+      reason:
+        type: string
+      username:
+        type: string
+    type: object
   models.FiatPaymentRecord:
     properties:
       amount:
@@ -13374,6 +15739,2390 @@ definitions:
         example: 6h
         type: string
     type: object
+  proceedpayouts.CurrencyTotals:
+    properties:
+      currency:
+        type: string
+      fees:
+        type: string
+      holderPayable:
+        description: after fee and VAT
+        type: string
+      holdersFailed:
+        type: integer
+      holdersPaid:
+        type: integer
+      paidToHolders:
+        type: string
+      payouts:
+        type: integer
+      total:
+        description: authorized
+        type: string
+      vat:
+        type: string
+    type: object
+  proceedpayouts.Detail:
+    properties:
+      amountPerToken:
+        type: string
+      approvalList:
+        items:
+          $ref: '#/definitions/proceedpayouts.PayoutApproval'
+        type: array
+      approvals:
+        description: for the current schedule
+        type: integer
+      approvalsRequired:
+        type: integer
+      approvedAt:
+        type: string
+      assetCode:
+        type: string
+      assetName:
+        type: string
+      batch:
+        type: string
+      batches:
+        items:
+          $ref: '#/definitions/proceedpayouts.PayoutBatch'
+        type: array
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      distributionId:
+        type: string
+      eligibleUnits:
+        type: string
+      engine:
+        $ref: '#/definitions/proceedpayouts.EngineStatus'
+      excludedCount:
+        type: integer
+      failedCount:
+        type: integer
+      fee:
+        type: string
+      feeCap:
+        type: string
+      feeSetBy:
+        type: string
+      feeType:
+        type: string
+      feeUnits:
+        type: string
+      feeValue:
+        type: string
+      feeWallet:
+        type: string
+      fundingCheckedAt:
+        type: string
+      fundingRequestedBy:
+        type: string
+      holderCount:
+        type: integer
+      holderPayable:
+        description: TotalAmount less fee and VAT
+        type: string
+      holderPayableUnits:
+        type: string
+      id:
+        type: integer
+      itemCounts:
+        additionalProperties:
+          type: integer
+        description: holders by status
+        type: object
+      lockedAt:
+        type: string
+      note:
+        type: string
+      paid:
+        description: to holders
+        type: string
+      paidCount:
+        type: integer
+      paidUnits:
+        type: string
+      payable:
+        description: to eligible holders
+        type: string
+      payableUnits:
+        type: string
+      paymentScheduleReady:
+        type: integer
+      payoutAssetCode:
+        type: string
+      payoutCompleted:
+        type: integer
+      payoutContractAddress:
+        type: string
+      payoutDecimals:
+        type: integer
+      payoutSafeAddress:
+        type: string
+      preparationRequestedAt:
+        type: string
+      preparedBy:
+        type: string
+      retained:
+        description: excluded holders' share and rounding dust
+        type: string
+      retainedUnits:
+        type: string
+      scannedBlock:
+        type: integer
+      scheduleChecksum:
+        type: string
+      snapshotBlock:
+        type: integer
+      snapshotStartBlock:
+        type: integer
+      startedAt:
+        type: string
+      status:
+        type: string
+      statusBeforePause:
+        type: string
+      supplyUnits:
+        type: string
+      tokenContractAddress:
+        type: string
+      tokenDecimals:
+        type: integer
+      tokenizedAssetId:
+        type: string
+      totalAmount:
+        type: string
+      totalUnits:
+        type: string
+      updatedAt:
+        type: string
+      vat:
+        type: string
+      vatPercent:
+        type: string
+      vatUnits:
+        type: string
+      vatWallet:
+        type: string
+    type: object
+  proceedpayouts.EngineStatus:
+    properties:
+      activity:
+        type: string
+      haltReason:
+        type: string
+      halted:
+        type: boolean
+      haltedAt:
+        type: string
+      haltedBy:
+        type: string
+      heartbeatAt:
+        type: string
+      id:
+        type: integer
+      instance:
+        type: string
+      lastError:
+        type: string
+      online:
+        description: heartbeat within the last 90 seconds
+        type: boolean
+      sweepRequestedAt:
+        type: string
+      sweepRequestedBy:
+        type: string
+      sweepResult:
+        type: string
+      sweepToken:
+        type: string
+      version:
+        type: string
+    type: object
+  proceedpayouts.FeeCollection:
+    properties:
+      amount:
+        type: number
+      assetCode:
+        description: the asset whose payout paid it
+        type: string
+      createdAt:
+        type: string
+      destinationWallet:
+        type: string
+      feeType:
+        type: string
+      id:
+        type: string
+      payoutAssetCode:
+        type: string
+      payoutBatch:
+        description: '"payout <batch>"'
+        type: string
+      payoutSafe:
+        description: the payout Safe
+        type: string
+      transactionHash:
+        type: string
+    type: object
+  proceedpayouts.FeeConfig:
+    properties:
+      feeCap:
+        type: string
+      feeType:
+        type: string
+      feeValue:
+        type: string
+      feeWallet:
+        type: string
+      lastUpdatedBy:
+        type: string
+      vatWallet:
+        type: string
+    type: object
+  proceedpayouts.FeeConfigRequest:
+    properties:
+      feeCap:
+        type: string
+      feeType:
+        type: string
+      feeValue:
+        type: string
+      feeWallet:
+        type: string
+    required:
+    - feeWallet
+    type: object
+  proceedpayouts.FeeRequest:
+    properties:
+      feeCap:
+        description: 'PERCENT only; 0 or empty: no cap'
+        type: string
+      feeType:
+        description: FIXED or PERCENT
+        type: string
+      feeValue:
+        type: string
+    required:
+    - feeType
+    - feeValue
+    type: object
+  proceedpayouts.FeeTotals:
+    properties:
+      assetCode:
+        type: string
+      count:
+        type: integer
+      fees:
+        type: number
+      payoutAssetCode:
+        type: string
+      vat:
+        type: number
+    type: object
+  proceedpayouts.FeesReport:
+    properties:
+      collections:
+        items:
+          $ref: '#/definitions/proceedpayouts.FeeCollection'
+        type: array
+      totalFees:
+        additionalProperties:
+          format: float64
+          type: number
+        description: per payout currency
+        type: object
+      totalVat:
+        additionalProperties:
+          format: float64
+          type: number
+        type: object
+      totals:
+        items:
+          $ref: '#/definitions/proceedpayouts.FeeTotals'
+        type: array
+    type: object
+  proceedpayouts.PayoutApproval:
+    properties:
+      adminEmail:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: integer
+      proceedPayoutId:
+        type: integer
+      scheduleChecksum:
+        type: string
+    type: object
+  proceedpayouts.PayoutBatch:
+    properties:
+      amountUnits:
+        type: string
+      createdAt:
+        type: string
+      error:
+        type: string
+      executor:
+        type: string
+      gasUsed:
+        type: integer
+      id:
+        type: integer
+      itemCount:
+        type: integer
+      proceedPayoutId:
+        type: integer
+      safeNonce:
+        type: integer
+      safeTxHash:
+        type: string
+      status:
+        type: string
+      txHash:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  proceedpayouts.PayoutItem:
+    properties:
+      actionBy:
+        type: string
+      amountToReceive:
+        type: number
+      amountUnits:
+        type: string
+      balanceUnits:
+        type: string
+      batch:
+        type: string
+      batchId:
+        type: integer
+      beneficiaryAddress:
+        type: string
+      cannotReceiveAsset:
+        type: integer
+      confirmedTokenizedAssetBalance:
+        type: number
+      createdAt:
+        type: string
+      id:
+        type: string
+      kind:
+        type: string
+      paidAt:
+        type: string
+      payoutAssetCode:
+        type: string
+      payoutContractAddress:
+        type: string
+      proceedPayoutId:
+        type: integer
+      reason:
+        type: string
+      status:
+        type: string
+      tokenizedAssetId:
+        type: string
+      txHash:
+        type: string
+      updatedAt:
+        type: string
+      username:
+        type: string
+    type: object
+  proceedpayouts.PayoutView:
+    properties:
+      amountPerToken:
+        type: string
+      approvals:
+        description: for the current schedule
+        type: integer
+      approvalsRequired:
+        type: integer
+      approvedAt:
+        type: string
+      assetCode:
+        type: string
+      assetName:
+        type: string
+      batch:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      distributionId:
+        type: string
+      eligibleUnits:
+        type: string
+      excludedCount:
+        type: integer
+      failedCount:
+        type: integer
+      fee:
+        type: string
+      feeCap:
+        type: string
+      feeSetBy:
+        type: string
+      feeType:
+        type: string
+      feeUnits:
+        type: string
+      feeValue:
+        type: string
+      feeWallet:
+        type: string
+      fundingCheckedAt:
+        type: string
+      fundingRequestedBy:
+        type: string
+      holderCount:
+        type: integer
+      holderPayable:
+        description: TotalAmount less fee and VAT
+        type: string
+      holderPayableUnits:
+        type: string
+      id:
+        type: integer
+      lockedAt:
+        type: string
+      note:
+        type: string
+      paid:
+        description: to holders
+        type: string
+      paidCount:
+        type: integer
+      paidUnits:
+        type: string
+      payable:
+        description: to eligible holders
+        type: string
+      payableUnits:
+        type: string
+      paymentScheduleReady:
+        type: integer
+      payoutAssetCode:
+        type: string
+      payoutCompleted:
+        type: integer
+      payoutContractAddress:
+        type: string
+      payoutDecimals:
+        type: integer
+      payoutSafeAddress:
+        type: string
+      preparationRequestedAt:
+        type: string
+      preparedBy:
+        type: string
+      retained:
+        description: excluded holders' share and rounding dust
+        type: string
+      retainedUnits:
+        type: string
+      scannedBlock:
+        type: integer
+      scheduleChecksum:
+        type: string
+      snapshotBlock:
+        type: integer
+      snapshotStartBlock:
+        type: integer
+      startedAt:
+        type: string
+      status:
+        type: string
+      statusBeforePause:
+        type: string
+      supplyUnits:
+        type: string
+      tokenContractAddress:
+        type: string
+      tokenDecimals:
+        type: integer
+      tokenizedAssetId:
+        type: string
+      totalAmount:
+        type: string
+      totalUnits:
+        type: string
+      updatedAt:
+        type: string
+      vat:
+        type: string
+      vatPercent:
+        type: string
+      vatUnits:
+        type: string
+      vatWallet:
+        type: string
+    type: object
+  proceedpayouts.PayoutsReport:
+    properties:
+      byStatus:
+        additionalProperties:
+          type: integer
+        type: object
+      payouts:
+        items:
+          $ref: '#/definitions/proceedpayouts.PayoutView'
+        type: array
+      totals:
+        items:
+          $ref: '#/definitions/proceedpayouts.CurrencyTotals'
+        type: array
+    type: object
+  proceedpayouts.ReasonRequest:
+    properties:
+      reason:
+        type: string
+    type: object
+  proceedpayouts.ReferenceRequest:
+    properties:
+      reference:
+        type: string
+    type: object
+  proceedpayouts.SweepRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  publicmarkets.ActionDetail:
+    properties:
+      amountPerUnit:
+        type: string
+      approvals:
+        items:
+          $ref: '#/definitions/publicmarkets.DividendApproval'
+        type: array
+      approvalsRequired:
+        type: integer
+      approvedAt:
+        type: string
+      approvers:
+        items:
+          type: string
+        type: array
+      assetCode:
+        type: string
+      assetId:
+        type: string
+      byChannel:
+        items:
+          $ref: '#/definitions/publicmarkets.ChannelTotals'
+        type: array
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      currency:
+        type: string
+      declaredBy:
+        type: string
+      description:
+        type: string
+      eligibleUnits:
+        type: string
+      entitlements:
+        items:
+          $ref: '#/definitions/publicmarkets.Entitlement'
+        type: array
+      eventType:
+        type: string
+      fundedAt:
+        type: string
+      grossAmount:
+        type: string
+      holderCount:
+        type: integer
+      id:
+        description: CA-...
+        type: string
+      netAmount:
+        type: string
+      note:
+        type: string
+      payDate:
+        type: string
+      recordBlock:
+        type: integer
+      recordDate:
+        description: YYYY-MM-DD (Africa/Lagos)
+        type: string
+      retainedUnits:
+        description: 'platform wallets (inventory): not paid out'
+        type: string
+      snapshotAt:
+        type: string
+      snapshotChecksum:
+        type: string
+      source:
+        type: string
+      sourceReference:
+        type: string
+      status:
+        type: string
+      totalEntitlements:
+        type: integer
+      updatedAt:
+        type: string
+      whtAmount:
+        type: string
+      whtTxHash:
+        type: string
+    type: object
+  publicmarkets.AmountRequest:
+    properties:
+      amount:
+        type: string
+    type: object
+  publicmarkets.Asset:
+    properties:
+      assetCode:
+        description: e.g. MTNN-T
+        type: string
+      assetType:
+        description: EQUITY | BOND
+        type: string
+      contractAddress:
+        description: the token
+        type: string
+      country:
+        type: string
+      coupon:
+        type: string
+      createdAt:
+        type: string
+      createdBy:
+        type: string
+      currency:
+        type: string
+      custodianId:
+        description: custody and execution
+        type: integer
+      dayHigh:
+        type: string
+      dayLow:
+        type: string
+      dayVolume:
+        type: string
+      dealingMemberId:
+        description: approved_dealing_members.id
+        type: integer
+      description:
+        type: string
+      dividendYield:
+        type: string
+      feePercent:
+        description: 'empty: the settings'' trade fee'
+        type: string
+      haltReason:
+        type: string
+      haltedAt:
+        type: string
+      haltedBy:
+        type: string
+      id:
+        type: string
+      instrumentName:
+        type: string
+      inventoryTargetUnits:
+        type: string
+      isin:
+        type: string
+      issuingSafeAddress:
+        description: owns the token, holds redeemed tokens until burnt
+        type: string
+      lastPrice:
+        description: latest reference price (also in PriceSnapshot), kept here for
+          listing
+        type: string
+      logoBackground:
+        description: display
+        type: string
+      logoForeground:
+        type: string
+      logoInitials:
+        type: string
+      logoUrl:
+        type: string
+      market:
+        description: NGX | FMDQ
+        type: string
+      marketCap:
+        description: key statistics shown in the apps (free text from the data vendor
+          or ops)
+        type: string
+      maturityDate:
+        type: string
+      minimumBuy:
+        description: trading rules
+        type: string
+      omnibusReference:
+        description: trovotechAccountReference, e.g. POOL-DANGCEM-01
+        type: string
+      peRatio:
+        type: string
+      previousClose:
+        type: string
+      priceAt:
+        type: string
+      priceSource:
+        type: string
+      sector:
+        type: string
+      shortName:
+        type: string
+      status:
+        description: status
+        type: string
+      ticker:
+        description: e.g. MTNN
+        type: string
+      tokenDecimals:
+        type: integer
+      unitDescription:
+        description: |-
+          UnitDescription says what one token stands for (one share, or
+          100 NGN face value of a bond).
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  publicmarkets.AssetDetail:
+    properties:
+      assetCode:
+        description: e.g. MTNN-T
+        type: string
+      assetType:
+        description: EQUITY | BOND
+        type: string
+      contractAddress:
+        description: the token
+        type: string
+      corporateActions:
+        items:
+          $ref: '#/definitions/publicmarkets.CorporateAction'
+        type: array
+      country:
+        type: string
+      coupon:
+        type: string
+      createdAt:
+        type: string
+      createdBy:
+        type: string
+      currency:
+        type: string
+      custodian:
+        $ref: '#/definitions/publicmarkets.Custodian'
+      custodianId:
+        description: custody and execution
+        type: integer
+      custodianName:
+        type: string
+      dayHigh:
+        type: string
+      dayLow:
+        type: string
+      dayVolume:
+        type: string
+      dealingMember:
+        $ref: '#/definitions/publicmarkets.DealingMember'
+      dealingMemberId:
+        description: approved_dealing_members.id
+        type: integer
+      dealingMemberName:
+        type: string
+      description:
+        type: string
+      dividendYield:
+        type: string
+      feePercent:
+        description: 'empty: the settings'' trade fee'
+        type: string
+      haltReason:
+        type: string
+      haltedAt:
+        type: string
+      haltedBy:
+        type: string
+      holders:
+        items:
+          $ref: '#/definitions/publicmarkets.Holder'
+        type: array
+      id:
+        type: string
+      instrumentName:
+        type: string
+      inventoryTargetUnits:
+        type: string
+      isin:
+        type: string
+      issuingSafeAddress:
+        description: owns the token, holds redeemed tokens until burnt
+        type: string
+      lastPrice:
+        description: latest reference price (also in PriceSnapshot), kept here for
+          listing
+        type: string
+      lastReconAt:
+        type: string
+      lastReconResult:
+        type: string
+      logoBackground:
+        description: display
+        type: string
+      logoForeground:
+        type: string
+      logoInitials:
+        type: string
+      logoUrl:
+        type: string
+      market:
+        description: NGX | FMDQ
+        type: string
+      marketCap:
+        description: key statistics shown in the apps (free text from the data vendor
+          or ops)
+        type: string
+      marketOpen:
+        type: boolean
+      marketValue:
+        type: string
+      maturityDate:
+        type: string
+      minimumBuy:
+        description: trading rules
+        type: string
+      omnibusReference:
+        description: trovotechAccountReference, e.g. POOL-DANGCEM-01
+        type: string
+      openOrders:
+        type: integer
+      owners:
+        type: integer
+      peRatio:
+        type: string
+      position:
+        type: string
+      positionAsOf:
+        type: string
+      positionSource:
+        type: string
+      previousClose:
+        type: string
+      priceAt:
+        type: string
+      priceFresh:
+        type: boolean
+      priceSource:
+        type: string
+      prices:
+        items:
+          $ref: '#/definitions/publicmarkets.PriceSnapshot'
+        type: array
+      reconciliationRuns:
+        items:
+          $ref: '#/definitions/publicmarkets.ReconciliationRun'
+        type: array
+      sector:
+        type: string
+      setupSteps:
+        items:
+          $ref: '#/definitions/publicmarkets.SetupStep'
+        type: array
+      shortName:
+        type: string
+      status:
+        description: status
+        type: string
+      supply:
+        description: Σ ledger
+        type: string
+      ticker:
+        description: e.g. MTNN
+        type: string
+      tokenDecimals:
+        type: integer
+      unitDescription:
+        description: |-
+          UnitDescription says what one token stands for (one share, or
+          100 NGN face value of a bond).
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  publicmarkets.AssetRequest:
+    properties:
+      assetCode:
+        type: string
+      assetType:
+        type: string
+      coupon:
+        type: string
+      custodianId:
+        type: integer
+      dealingMemberId:
+        type: integer
+      description:
+        type: string
+      dividendYield:
+        type: string
+      feePercent:
+        type: string
+      instrumentName:
+        type: string
+      inventoryTargetUnits:
+        type: string
+      isin:
+        type: string
+      logoBackground:
+        type: string
+      logoForeground:
+        type: string
+      logoInitials:
+        type: string
+      logoUrl:
+        type: string
+      market:
+        type: string
+      marketCap:
+        type: string
+      maturityDate:
+        type: string
+      minimumBuy:
+        type: string
+      omnibusReference:
+        type: string
+      peRatio:
+        type: string
+      sector:
+        type: string
+      shortName:
+        type: string
+      ticker:
+        type: string
+      unitDescription:
+        type: string
+    type: object
+  publicmarkets.AssetRow:
+    properties:
+      assetCode:
+        description: e.g. MTNN-T
+        type: string
+      assetType:
+        description: EQUITY | BOND
+        type: string
+      contractAddress:
+        description: the token
+        type: string
+      country:
+        type: string
+      coupon:
+        type: string
+      createdAt:
+        type: string
+      createdBy:
+        type: string
+      currency:
+        type: string
+      custodianId:
+        description: custody and execution
+        type: integer
+      custodianName:
+        type: string
+      dayHigh:
+        type: string
+      dayLow:
+        type: string
+      dayVolume:
+        type: string
+      dealingMemberId:
+        description: approved_dealing_members.id
+        type: integer
+      dealingMemberName:
+        type: string
+      description:
+        type: string
+      dividendYield:
+        type: string
+      feePercent:
+        description: 'empty: the settings'' trade fee'
+        type: string
+      haltReason:
+        type: string
+      haltedAt:
+        type: string
+      haltedBy:
+        type: string
+      id:
+        type: string
+      instrumentName:
+        type: string
+      inventoryTargetUnits:
+        type: string
+      isin:
+        type: string
+      issuingSafeAddress:
+        description: owns the token, holds redeemed tokens until burnt
+        type: string
+      lastPrice:
+        description: latest reference price (also in PriceSnapshot), kept here for
+          listing
+        type: string
+      lastReconAt:
+        type: string
+      lastReconResult:
+        type: string
+      logoBackground:
+        description: display
+        type: string
+      logoForeground:
+        type: string
+      logoInitials:
+        type: string
+      logoUrl:
+        type: string
+      market:
+        description: NGX | FMDQ
+        type: string
+      marketCap:
+        description: key statistics shown in the apps (free text from the data vendor
+          or ops)
+        type: string
+      marketOpen:
+        type: boolean
+      marketValue:
+        type: string
+      maturityDate:
+        type: string
+      minimumBuy:
+        description: trading rules
+        type: string
+      omnibusReference:
+        description: trovotechAccountReference, e.g. POOL-DANGCEM-01
+        type: string
+      owners:
+        type: integer
+      peRatio:
+        type: string
+      position:
+        type: string
+      positionAsOf:
+        type: string
+      positionSource:
+        type: string
+      previousClose:
+        type: string
+      priceAt:
+        type: string
+      priceFresh:
+        type: boolean
+      priceSource:
+        type: string
+      sector:
+        type: string
+      shortName:
+        type: string
+      status:
+        description: status
+        type: string
+      supply:
+        description: Σ ledger
+        type: string
+      ticker:
+        description: e.g. MTNN
+        type: string
+      tokenDecimals:
+        type: integer
+      unitDescription:
+        description: |-
+          UnitDescription says what one token stands for (one share, or
+          100 NGN face value of a bond).
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  publicmarkets.AttentionItem:
+    properties:
+      kind:
+        description: approval | escalation | dead-letter | confirmation | disclosure
+          | halt | drift
+        type: string
+      target:
+        description: an id the page links to
+        type: string
+      text:
+        type: string
+      where:
+        type: string
+    type: object
+  publicmarkets.BatchApproval:
+    properties:
+      approver:
+        type: string
+      at:
+        type: string
+      batchId:
+        type: string
+    type: object
+  publicmarkets.BatchView:
+    properties:
+      approvals:
+        items:
+          $ref: '#/definitions/publicmarkets.BatchApproval'
+        type: array
+      approvalsRequired:
+        type: integer
+      assetCode:
+        type: string
+      assetId:
+        type: string
+      createdAt:
+        type: string
+      creationOrders:
+        type: integer
+      executedAt:
+        type: string
+      executedPrice:
+        type: string
+      executedQuantity:
+        type: string
+      id:
+        description: NB-2026-09-29-1015-MTNN-T
+        type: string
+      note:
+        type: string
+      quantity:
+        type: string
+      redemptionOrders:
+        type: integer
+      referencePrice:
+        type: string
+      sessionDate:
+        type: string
+      settledAt:
+        type: string
+      side:
+        description: BUY | SELL | NONE
+        type: string
+      status:
+        type: string
+      threshold:
+        type: string
+      updatedAt:
+        type: string
+      value:
+        type: string
+    type: object
+  publicmarkets.ChannelTotals:
+    properties:
+      channel:
+        type: string
+      failed:
+        type: integer
+      gross:
+        type: string
+      net:
+        type: string
+      paid:
+        type: integer
+      recipients:
+        type: integer
+      wht:
+        type: string
+    type: object
+  publicmarkets.ConfirmationRow:
+    properties:
+      assetCode:
+        type: string
+      confirmed:
+        type: integer
+      escalated:
+        type: integer
+      exchangeName:
+        type: string
+      oldestDueAt:
+        type: string
+      outstanding:
+        type: integer
+      serviceLinkId:
+        type: string
+      walletsPaid:
+        type: integer
+    type: object
+  publicmarkets.ContractRequest:
+    properties:
+      contractAddress:
+        type: string
+      issuingSafeAddress:
+        type: string
+    type: object
+  publicmarkets.CorporateAction:
+    properties:
+      amountPerUnit:
+        type: string
+      approvalsRequired:
+        type: integer
+      approvedAt:
+        type: string
+      assetCode:
+        type: string
+      assetId:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      currency:
+        type: string
+      declaredBy:
+        type: string
+      description:
+        type: string
+      eligibleUnits:
+        type: string
+      eventType:
+        type: string
+      fundedAt:
+        type: string
+      grossAmount:
+        type: string
+      holderCount:
+        type: integer
+      id:
+        description: CA-...
+        type: string
+      netAmount:
+        type: string
+      note:
+        type: string
+      payDate:
+        type: string
+      recordBlock:
+        type: integer
+      recordDate:
+        description: YYYY-MM-DD (Africa/Lagos)
+        type: string
+      retainedUnits:
+        description: 'platform wallets (inventory): not paid out'
+        type: string
+      snapshotAt:
+        type: string
+      snapshotChecksum:
+        type: string
+      source:
+        type: string
+      sourceReference:
+        type: string
+      status:
+        type: string
+      updatedAt:
+        type: string
+      whtAmount:
+        type: string
+      whtTxHash:
+        type: string
+    type: object
+  publicmarkets.Custodian:
+    properties:
+      active:
+        type: boolean
+      authScheme:
+        description: HMAC | MTLS | NONE
+        type: string
+      baseUrl:
+        type: string
+      code:
+        description: sent as X-Partner-Code on callbacks
+        type: string
+      createdAt:
+        type: string
+      credentialsRef:
+        description: |-
+          CredentialsRef names where the partner's credentials live: an
+          environment variable (env:NAME) or a Vault path (vault://...).
+        type: string
+      custodianId:
+        type: integer
+      feePercent:
+        type: string
+      mode:
+        type: string
+      nomineeName:
+        type: string
+      transport:
+        description: label, e.g. "REST + webhooks", "SFTP (end of day file)"
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  publicmarkets.CustodianPosition:
+    properties:
+      asOf:
+        type: string
+      assetId:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: integer
+      realUnitsHeld:
+        type: string
+      recordedBy:
+        type: string
+      reference:
+        type: string
+      source:
+        type: string
+    type: object
+  publicmarkets.CustodianRow:
+    properties:
+      assets:
+        type: integer
+      country:
+        type: string
+      feePercent:
+        type: number
+      id:
+        type: integer
+      integration:
+        $ref: '#/definitions/publicmarkets.Custodian'
+      name:
+        type: string
+    type: object
+  publicmarkets.DealingMember:
+    properties:
+      active:
+        type: boolean
+      authScheme:
+        type: string
+      baseUrl:
+        type: string
+      code:
+        type: string
+      createdAt:
+        type: string
+      credentialsRef:
+        type: string
+      cscsMemberCode:
+        type: string
+      dealingMemberAddress:
+        type: string
+      dealingMemberCountry:
+        type: string
+      dealingMemberName:
+        type: string
+      feeFixed:
+        type: number
+      feePercent:
+        type: number
+      id:
+        type: integer
+      mode:
+        type: string
+      requirementDocument:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  publicmarkets.DealingMemberRow:
+    properties:
+      active:
+        type: boolean
+      assets:
+        type: integer
+      authScheme:
+        type: string
+      baseUrl:
+        type: string
+      code:
+        type: string
+      createdAt:
+        type: string
+      credentialsRef:
+        type: string
+      cscsMemberCode:
+        type: string
+      dealingMemberAddress:
+        type: string
+      dealingMemberCountry:
+        type: string
+      dealingMemberName:
+        type: string
+      feeFixed:
+        type: number
+      feePercent:
+        type: number
+      id:
+        type: integer
+      mode:
+        type: string
+      requirementDocument:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  publicmarkets.DeclareRequest:
+    properties:
+      amountPerUnit:
+        type: string
+      assetCode:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      eventType:
+        type: string
+      payDate:
+        type: string
+      recordDate:
+        type: string
+      reference:
+        type: string
+    type: object
+  publicmarkets.DividendApproval:
+    properties:
+      approver:
+        type: string
+      at:
+        type: string
+      checksum:
+        type: string
+      corporateActionId:
+        type: string
+    type: object
+  publicmarkets.Entitlement:
+    properties:
+      assetCode:
+        type: string
+      assetId:
+        type: string
+      channel:
+        type: string
+      corporateActionId:
+        type: string
+      createdAt:
+        type: string
+      grossAmount:
+        type: string
+      id:
+        type: string
+      netAmount:
+        type: string
+      note:
+        type: string
+      paidAt:
+        type: string
+      partnerWalletId:
+        type: string
+      serviceLinkId:
+        type: string
+      status:
+        type: string
+      taxResidency:
+        type: string
+      txHash:
+        type: string
+      units:
+        description: tokens held at the record date
+        type: string
+      updatedAt:
+        type: string
+      username:
+        type: string
+      walletAddress:
+        type: string
+      whtAmount:
+        type: string
+      whtPercent:
+        type: string
+    type: object
+  publicmarkets.ExchangeDetail:
+    properties:
+      balance:
+        type: string
+      callbackUrl:
+        type: string
+      confirmationSlaHours:
+        description: '0: the settings'' SLA'
+        type: integer
+      createdAt:
+        type: string
+      deadLetters:
+        type: integer
+      deliveries:
+        items:
+          $ref: '#/definitions/publicmarkets.WebhookDelivery'
+        type: array
+      environment:
+        type: string
+      fundingAddress:
+        description: |-
+          the exchange's prefunded CNGN balance with Trovotech: creation orders
+          are paid from it, redemption proceeds and dividends credited to it
+        type: string
+      ledger:
+        items:
+          $ref: '#/definitions/publicmarkets.ExchangeLedgerEntry'
+        type: array
+      name:
+        type: string
+      orders30d:
+        type: integer
+      pendingWebhooks:
+        type: integer
+      previousSecretValidUntil:
+        type: string
+      rateLimitPerMinute:
+        type: integer
+      rateLimitTier:
+        type: string
+      recentOrders:
+        items:
+          $ref: '#/definitions/publicmarkets.Order'
+        type: array
+      reserved:
+        type: string
+      revenueShareTier:
+        type: string
+      serviceLinkId:
+        type: string
+      shortName:
+        type: string
+      status:
+        description: active | suspended
+        type: string
+      techContact:
+        type: string
+      updatedAt:
+        type: string
+      wallets:
+        type: integer
+      withdrawals:
+        items:
+          $ref: '#/definitions/publicmarkets.JobRequest'
+        type: array
+    type: object
+  publicmarkets.ExchangeLedgerEntry:
+    properties:
+      amount:
+        description: signed
+        type: string
+      balanceAfter:
+        type: string
+      createdAt:
+        type: string
+      createdBy:
+        type: string
+      id:
+        type: integer
+      kind:
+        description: DEPOSIT | ORDER | REFUND | REDEMPTION | DIVIDEND | WITHDRAWAL
+          | ADJUSTMENT
+        type: string
+      note:
+        type: string
+      reference:
+        type: string
+      serviceLinkId:
+        type: string
+    type: object
+  publicmarkets.ExchangeRequest:
+    properties:
+      callbackUrl:
+        type: string
+      confirmationSlaHours:
+        type: integer
+      environment:
+        description: sandbox | production
+        type: string
+      fundingAddress:
+        type: string
+      rateLimitTier:
+        type: string
+      revenueShareTier:
+        type: string
+      serviceLinkId:
+        type: string
+      techContact:
+        type: string
+    type: object
+  publicmarkets.ExchangeRow:
+    properties:
+      balance:
+        type: string
+      callbackUrl:
+        type: string
+      confirmationSlaHours:
+        description: '0: the settings'' SLA'
+        type: integer
+      createdAt:
+        type: string
+      deadLetters:
+        type: integer
+      environment:
+        type: string
+      fundingAddress:
+        description: |-
+          the exchange's prefunded CNGN balance with Trovotech: creation orders
+          are paid from it, redemption proceeds and dividends credited to it
+        type: string
+      name:
+        type: string
+      orders30d:
+        type: integer
+      pendingWebhooks:
+        type: integer
+      previousSecretValidUntil:
+        type: string
+      rateLimitPerMinute:
+        type: integer
+      rateLimitTier:
+        type: string
+      reserved:
+        type: string
+      revenueShareTier:
+        type: string
+      serviceLinkId:
+        type: string
+      shortName:
+        type: string
+      status:
+        description: active | suspended
+        type: string
+      techContact:
+        type: string
+      updatedAt:
+        type: string
+      wallets:
+        type: integer
+    type: object
+  publicmarkets.Health:
+    properties:
+      jobs:
+        items:
+          $ref: '#/definitions/publicmarkets.JobRun'
+        type: array
+      pendingEvents:
+        type: integer
+      pendingMockEvents:
+        type: integer
+      pendingWebhooks:
+        type: integer
+      requests:
+        items:
+          $ref: '#/definitions/publicmarkets.JobRequest'
+        type: array
+    type: object
+  publicmarkets.Holder:
+    properties:
+      balance:
+        type: string
+      channel:
+        type: string
+      exchangeName:
+        type: string
+      percentOfSupply:
+        type: string
+      serviceLinkId:
+        type: string
+      substantial:
+        description: above the disclosure threshold (CAMA s.120)
+        type: boolean
+      walletAddress:
+        type: string
+    type: object
+  publicmarkets.Instruction:
+    properties:
+      acceptedAt:
+        type: string
+      assetCode:
+        type: string
+      assetId:
+        type: string
+      attempts:
+        type: integer
+      batchId:
+        type: string
+      createdAt:
+        type: string
+      executedAt:
+        type: string
+      handledBy:
+        type: string
+      id:
+        description: also the Idempotency-Key and instructionId/orderId
+        type: string
+      kind:
+        type: string
+      lastError:
+        type: string
+      lastStatusCode:
+        type: integer
+      maxAttempts:
+        type: integer
+      nextAttemptAt:
+        type: string
+      partnerId:
+        type: integer
+      partnerName:
+        type: string
+      partnerRef:
+        description: custodianReference
+        type: string
+      partnerType:
+        description: CUSTODIAN | DEALING_MEMBER
+        type: string
+      payload:
+        type: string
+      quantity:
+        type: string
+      settledAt:
+        type: string
+      side:
+        type: string
+      status:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  publicmarkets.JobRequest:
+    properties:
+      createdAt:
+        type: string
+      doneAt:
+        type: string
+      id:
+        type: integer
+      job:
+        type: string
+      requestedBy:
+        type: string
+      result:
+        type: string
+      target:
+        type: string
+    type: object
+  publicmarkets.JobRun:
+    properties:
+      detail:
+        type: string
+      job:
+        type: string
+      lastRunAt:
+        type: string
+      status:
+        description: up | degraded | down
+        type: string
+    type: object
+  publicmarkets.NetBatch:
+    properties:
+      approvalsRequired:
+        type: integer
+      assetCode:
+        type: string
+      assetId:
+        type: string
+      createdAt:
+        type: string
+      creationOrders:
+        type: integer
+      executedAt:
+        type: string
+      executedPrice:
+        type: string
+      executedQuantity:
+        type: string
+      id:
+        description: NB-2026-09-29-1015-MTNN-T
+        type: string
+      note:
+        type: string
+      quantity:
+        type: string
+      redemptionOrders:
+        type: integer
+      referencePrice:
+        type: string
+      sessionDate:
+        type: string
+      settledAt:
+        type: string
+      side:
+        description: BUY | SELL | NONE
+        type: string
+      status:
+        type: string
+      updatedAt:
+        type: string
+      value:
+        type: string
+    type: object
+  publicmarkets.Order:
+    properties:
+      amount:
+        description: 'creation: what the buyer pays (incl. fee); redemption: gross
+          proceeds'
+        type: string
+      assetCode:
+        type: string
+      assetId:
+        type: string
+      batchId:
+        type: string
+      channel:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      executedPrice:
+        type: string
+      externalOrderRef:
+        type: string
+      fee:
+        description: Trovo fee
+        type: string
+      feePercent:
+        type: string
+      fundingAssetCode:
+        description: payment (creation) / proceeds (redemption), in the funding currency
+        type: string
+      fundingContract:
+        type: string
+      id:
+        description: PM-CR-..., PM-RD-...
+        type: string
+      netAmount:
+        description: 'creation: invested; redemption: paid out'
+        type: string
+      note:
+        type: string
+      partnerWalletId:
+        description: exchange-provisioned wallet
+        type: string
+      path:
+        type: string
+      paymentConfirmedAt:
+        type: string
+      paymentOperationId:
+        description: on-chain trail
+        type: string
+      paymentTxHash:
+        type: string
+      payoutTxHash:
+        type: string
+      priceSource:
+        type: string
+      quantity:
+        description: tokens (estimated until settled for slow creations)
+        type: string
+      referencePrice:
+        type: string
+      serviceLinkId:
+        type: string
+      settledAt:
+        type: string
+      state:
+        type: string
+      tokenTxHash:
+        description: mint (creation) or burn (redemption)
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+      username:
+        type: string
+      walletAddress:
+        type: string
+      walletAlias:
+        type: string
+    type: object
+  publicmarkets.OrderDetail:
+    properties:
+      attempts:
+        type: integer
+      batch:
+        $ref: '#/definitions/publicmarkets.NetBatch'
+      events:
+        items:
+          $ref: '#/definitions/publicmarkets.OrderEvent'
+        type: array
+      exchangeName:
+        type: string
+      instructions:
+        items:
+          $ref: '#/definitions/publicmarkets.Instruction'
+        type: array
+      lastError:
+        type: string
+      order:
+        $ref: '#/definitions/publicmarkets.Order'
+    type: object
+  publicmarkets.OrderEvent:
+    properties:
+      at:
+        type: string
+      note:
+        type: string
+      state:
+        type: string
+    type: object
+  publicmarkets.OutcomeRequest:
+    properties:
+      custodianReference:
+        type: string
+      executedPrice:
+        type: string
+      executedQuantity:
+        type: string
+      settledQuantity:
+        type: string
+      settlementDate:
+        type: string
+      status:
+        description: 'DM: FILLED | PARTIALLY_FILLED | REJECTED; Custodian: settlement_final
+          | failed'
+        type: string
+    type: object
+  publicmarkets.Overview:
+    properties:
+      assets:
+        type: integer
+      attention:
+        items:
+          $ref: '#/definitions/publicmarkets.AttentionItem'
+        type: array
+      batchesToday:
+        items:
+          $ref: '#/definitions/publicmarkets.NetBatch'
+        type: array
+      creationsToday:
+        type: integer
+      fastPercent:
+        description: of today's creations
+        type: string
+      halted:
+        items:
+          $ref: '#/definitions/publicmarkets.Asset'
+        type: array
+      haltedAssets:
+        type: integer
+      inProgress:
+        type: integer
+      inProgressValue:
+        type: string
+      jobs:
+        items:
+          $ref: '#/definitions/publicmarkets.JobRun'
+        type: array
+      liveAssets:
+        type: integer
+      marketValue:
+        type: string
+      nettedPercent:
+        description: of today's redemptions
+        type: string
+      redemptionsToday:
+        type: integer
+      settledToday:
+        type: integer
+      settledTodayValue:
+        type: string
+    type: object
+  publicmarkets.PartnerEvent:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: integer
+      kind:
+        type: string
+      payload:
+        type: string
+      processedAt:
+        type: string
+      reference:
+        type: string
+      result:
+        type: string
+      source:
+        description: CUSTODIAN:<code>, DEALING_MEMBER:<code>, EXCHANGE:<id>
+        type: string
+    type: object
+  publicmarkets.PartnerRequest:
+    properties:
+      active:
+        type: boolean
+      address:
+        type: string
+      authScheme:
+        description: HMAC | MTLS | NONE
+        type: string
+      baseUrl:
+        type: string
+      code:
+        type: string
+      country:
+        type: string
+      credentialsRef:
+        type: string
+      cscsMemberCode:
+        type: string
+      feeFixed:
+        type: number
+      feePercent:
+        type: number
+      mode:
+        description: MOCK | REST | MANUAL
+        type: string
+      name:
+        type: string
+      nomineeName:
+        type: string
+      requirementDocument:
+        type: string
+      transport:
+        type: string
+    type: object
+  publicmarkets.PositionRequest:
+    properties:
+      asOf:
+        type: string
+      reference:
+        type: string
+      unitsHeld:
+        type: string
+    type: object
+  publicmarkets.PriceRequest:
+    properties:
+      price:
+        type: string
+    type: object
+  publicmarkets.PriceSnapshot:
+    properties:
+      asOf:
+        description: the vendor's time
+        type: string
+      assetId:
+        type: string
+      capturedAt:
+        type: string
+      id:
+        type: integer
+      marketHours:
+        type: boolean
+      price:
+        type: string
+      source:
+        type: string
+    type: object
+  publicmarkets.ReasonRequest:
+    properties:
+      reason:
+        type: string
+    type: object
+  publicmarkets.ReconRow:
+    properties:
+      assetCode:
+        type: string
+      assetId:
+        type: string
+      assetStatus:
+        type: string
+      createdAt:
+        type: string
+      custodianName:
+        type: string
+      custodianPosition:
+        type: string
+      delta:
+        description: supply - position when positive
+        type: string
+      detail:
+        type: string
+      halted:
+        type: boolean
+      id:
+        type: integer
+      inventory:
+        description: 'position - supply: units held but not tokenized'
+        type: string
+      ledgerDelta:
+        type: string
+      ledgerTotal:
+        type: string
+      ordersSince:
+        description: 'settled after the position''s as-of: likely causes of a drift'
+        items:
+          $ref: '#/definitions/publicmarkets.Order'
+        type: array
+      positionAsOf:
+        type: string
+      positionSource:
+        type: string
+      priceStale:
+        type: boolean
+      result:
+        type: string
+      tokenSupply:
+        type: string
+      triggeredBy:
+        type: string
+    type: object
+  publicmarkets.Reconciliation:
+    properties:
+      checked:
+        type: integer
+      drift:
+        type: integer
+      lastRunAt:
+        type: string
+      matched:
+        type: integer
+      nextRunAt:
+        type: string
+      rows:
+        items:
+          $ref: '#/definitions/publicmarkets.ReconRow'
+        type: array
+      stalePrices:
+        type: integer
+    type: object
+  publicmarkets.ReconciliationRun:
+    properties:
+      assetCode:
+        type: string
+      assetId:
+        type: string
+      createdAt:
+        type: string
+      custodianPosition:
+        type: string
+      delta:
+        description: supply - position when positive
+        type: string
+      detail:
+        type: string
+      halted:
+        type: boolean
+      id:
+        type: integer
+      inventory:
+        description: 'position - supply: units held but not tokenized'
+        type: string
+      ledgerDelta:
+        type: string
+      ledgerTotal:
+        type: string
+      positionAsOf:
+        type: string
+      positionSource:
+        type: string
+      priceStale:
+        type: boolean
+      result:
+        type: string
+      tokenSupply:
+        type: string
+      triggeredBy:
+        type: string
+    type: object
+  publicmarkets.Settings:
+    properties:
+      approvalsRequired:
+        type: integer
+      aumFeePercent:
+        type: string
+      batchIntervalMinutes:
+        type: integer
+      confirmationSlaHours:
+        description: 0 = not set (OI-CONS-10)
+        type: integer
+      dividendApprovers:
+        type: string
+      feeWallet:
+        type: string
+      fmdqClose:
+        type: string
+      fmdqOpen:
+        type: string
+      fundingAssetCode:
+        type: string
+      fxSpreadPercent:
+        type: string
+      instructionMaxAttempts:
+        type: integer
+      marketHolidays:
+        description: comma-separated YYYY-MM-DD
+        type: string
+      netCreationApprovers:
+        description: comma-separated admin emails
+        type: string
+      netCreationThreshold:
+        description: per asset per day, NGN
+        type: string
+      ngxClose:
+        type: string
+      ngxOpen:
+        type: string
+      priceStaleMinutes:
+        type: integer
+      rateLimitTiers:
+        description: 'JSON {"Tier 1": 1200, ...} requests/minute'
+        type: string
+      reconciliationHour:
+        description: WAT
+        type: integer
+      revenueShareTiers:
+        type: string
+      settlementSlaHours:
+        type: integer
+      substantialHoldingPercent:
+        type: string
+      tradeFeePercent:
+        type: string
+      updatedAt:
+        type: string
+      updatedBy:
+        type: string
+      webhookMaxAttempts:
+        type: integer
+      whtMissingTaxIdPercent:
+        type: string
+      whtNonResidentPercent:
+        type: string
+      whtResidentPercent:
+        type: string
+      whtWallet:
+        type: string
+    type: object
+  publicmarkets.SettingsRequest:
+    properties:
+      approvalsRequired:
+        type: integer
+      aumFeePercent:
+        type: string
+      batchIntervalMinutes:
+        type: integer
+      confirmationSlaHours:
+        type: integer
+      dividendApprovers:
+        type: string
+      feeWallet:
+        type: string
+      fmdqClose:
+        type: string
+      fmdqOpen:
+        type: string
+      fxSpreadPercent:
+        type: string
+      instructionMaxAttempts:
+        type: integer
+      marketHolidays:
+        type: string
+      netCreationApprovers:
+        type: string
+      netCreationThreshold:
+        type: string
+      ngxClose:
+        type: string
+      ngxOpen:
+        type: string
+      priceStaleMinutes:
+        type: integer
+      rateLimitTiers:
+        type: string
+      reconciliationHour:
+        type: integer
+      revenueShareTiers:
+        type: string
+      settlementSlaHours:
+        type: integer
+      substantialHoldingPercent:
+        type: string
+      tradeFeePercent:
+        type: string
+      webhookMaxAttempts:
+        type: integer
+      whtMissingTaxIdPercent:
+        type: string
+      whtNonResidentPercent:
+        type: string
+      whtResidentPercent:
+        type: string
+      whtWallet:
+        type: string
+    type: object
+  publicmarkets.SetupStep:
+    properties:
+      detail:
+        type: string
+      done:
+        type: boolean
+      label:
+        type: string
+    type: object
+  publicmarkets.TargetRequest:
+    properties:
+      target:
+        type: string
+    type: object
+  publicmarkets.WebhookDelivery:
+    properties:
+      assetCode:
+        type: string
+      attempts:
+        type: integer
+      confirmationDueAt:
+        type: string
+      confirmedAt:
+        type: string
+      createdAt:
+        type: string
+      deliveredAt:
+        type: string
+      escalatedAt:
+        type: string
+      event:
+        type: string
+      id:
+        description: evt_...
+        type: string
+      lastError:
+        type: string
+      lastResponseCode:
+        type: integer
+      needsConfirmation:
+        type: boolean
+      nextAttemptAt:
+        type: string
+      payload:
+        type: string
+      reference:
+        description: order id / entitlement id
+        type: string
+      serviceLinkId:
+        type: string
+      status:
+        type: string
+      updatedAt:
+        type: string
+      walletId:
+        type: string
+    type: object
   response.Data:
     properties:
       data: {}
@@ -13514,6 +18263,16 @@ definitions:
         type: string
       qrCode:
         type: string
+    type: object
+  usermetrics.AddFeeExemptUserRequest:
+    properties:
+      reason:
+        type: string
+      username:
+        type: string
+    required:
+    - reason
+    - username
     type: object
   usermetrics.ApprovedAssetCustodian:
     properties:

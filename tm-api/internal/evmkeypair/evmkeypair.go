@@ -33,7 +33,7 @@ type AddressOnly struct {
 // FromRawSeed derives a keypair from a 32-byte seed, the Base equivalent of
 // Stellar's keypair.FromRawSeed. Used across this codebase's deterministic
 // server-side signer derivation (recovery accounts, market-making signers,
-// bulk-payment signers, temp accounts) - unchanged call sites, new curve.
+// bulk-payment signers) - unchanged call sites, new curve.
 func FromRawSeed(seed [32]byte) (*Full, error) {
 	priv, err := crypto.ToECDSA(seed[:])
 	if err != nil {

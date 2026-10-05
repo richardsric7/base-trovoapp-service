@@ -32,6 +32,12 @@ func StablerailInitiateOnboardUser(trovoUser *userModels.User, bvn string, gc *s
 		//alrready registered
 		return "registration already done", nil
 	}
+	// a repeated KYC callback must not start a second onboarding
+	var inProgress int64
+	gc.DB.Model(&userModels.StablerailRequest{}).Where("trovo_username = ? AND request_type = ? AND status IN ?", trovoUsername, "Onboarding", []string{"processing", "pending", "requested"}).Count(&inProgress)
+	if inProgress > 0 {
+		return "registration in progress", nil
+	}
 	//initiate onboarding
 	// tx := gc.DB.Begin()
 	// defer tx.Rollback()
@@ -186,7 +192,13 @@ func UpdateStablerailUserOnboardingStatus(r userModels.StablerailRequest, gc *sh
 		user, _ := userModels.Username(r.TrovoUsername).GetSimpleUser(gc.DB, gc)
 		dataPayload := make(map[string]string)
 		dataPayload["route"] = ""
-		user.SendPushMessage("BNV verified for fiat operations", "your BVN has now been verified for fiat operations. You can now go ahead to deposit or make withdrawals", "", dataPayload, gc)
+		user.SendPushMessage("BVN verified for bank transactions", "Your BVN has been verified for bank transactions. You can now deposit Naira from, and withdraw to, your bank account.", "", dataPayload, gc)
+	}
+	if strings.EqualFold(res.Data.Status, "failed") {
+		gc.LogDiscordFailedRequest(fmt.Sprintf("[UpdateStablerailUserOnboardingStatus] Stablerail onboarding %v of %v failed: %v", r.ID, r.TrovoUsername, res.Data.Message))
+		if user, e := userModels.Username(r.TrovoUsername).GetSimpleUser(gc.DB, gc); e == nil {
+			user.SendPushMessage("Bank transactions not enabled", "Your BVN could not be verified for bank deposits and withdrawals. Please contact support.", "", map[string]string{"route": ""}, gc)
+		}
 	}
 	return nil
 
@@ -194,7 +206,7 @@ func UpdateStablerailUserOnboardingStatus(r userModels.StablerailRequest, gc *sh
 
 func GetStablerailPendingOnboardingRequests(gc *sharedconfig.GlobalConfig) (req []userModels.StablerailRequest) {
 	req = make([]userModels.StablerailRequest, 0)
-	gc.DB.Where("request_type= ? AND status = ?", "Onboarding", "processing").Find(&req)
+	gc.DB.Where("request_type= ? AND status IN ?", "Onboarding", []string{"processing", "pending", "requested"}).Find(&req)
 	return
 }
 func ProcessUpdateStablerailOnboardingStatus(gc *sharedconfig.GlobalConfig) {
@@ -206,6 +218,46 @@ func ProcessUpdateStablerailOnboardingStatus(gc *sharedconfig.GlobalConfig) {
 		perror := UpdateStablerailUserOnboardingStatus(req, gc)
 		if perror != nil {
 			log.Printf("[ProcessUpdateStablerailOnboardingStatus] error updating stablerail user onboarding status: %v\n", perror)
+		}
+	}
+}
+
+// MaskBVN keeps only the last 3 digits of a BVN, for logs and alerts.
+func MaskBVN(bvn string) string {
+	if len(bvn) <= 3 {
+		return "***"
+	}
+	return strings.Repeat("*", len(bvn)-3) + bvn[len(bvn)-3:]
+}
+
+// maxOnboardingRetries is how often a failed onboarding trigger from the KYC
+// callback is retried (about every 5 minutes) before it is left to support.
+const maxOnboardingRetries = 24
+
+// ProcessStablerailOnboardingRetries retries the Stablerail onboardings the
+// KYC callback could not start (Stablerail down or misconfigured at the
+// time). A retry that starts the onboarding, or finds the user already
+// onboarded, is removed; the BVN is kept no longer than that.
+func ProcessStablerailOnboardingRetries(gc *sharedconfig.GlobalConfig) {
+	if !StablerailEnabled(gc) {
+		return
+	}
+	var retries []userModels.StablerailOnboardUserRetry
+	gc.DB.Where("attempts < ? AND updated_at < ?", maxOnboardingRetries, time.Now().Add(-5*time.Minute)).Order("id").Limit(50).Find(&retries)
+	for _, r := range retries {
+		user, err := userModels.Username(r.TrovoUsername).GetSimpleUser(gc.DB, gc)
+		if err != nil {
+			continue
+		}
+		if _, err := StablerailInitiateOnboardUser(&user, r.BVN, gc); err == nil {
+			gc.DB.Delete(&userModels.StablerailOnboardUserRetry{}, r.ID)
+			continue
+		} else {
+			attempts := r.Attempts + 1
+			gc.DB.Model(&userModels.StablerailOnboardUserRetry{}).Where("id = ?", r.ID).Updates(map[string]interface{}{"attempts": attempts, "updated_at": time.Now()})
+			if attempts >= maxOnboardingRetries {
+				gc.LogDiscordFailedRequest(fmt.Sprintf("[ProcessStablerailOnboardingRetries] Stablerail onboarding of %v (BVN %v) still failing after %d attempts: %v", r.TrovoUsername, MaskBVN(r.BVN), attempts, err))
+			}
 		}
 	}
 }

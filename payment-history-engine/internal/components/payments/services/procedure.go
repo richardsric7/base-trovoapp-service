@@ -66,11 +66,10 @@ func TrackUserWallet(userWallet userModels.UserWallet, roachDB, db *gorm.DB, tra
 			newID := uuid.NewString()
 
 			trackedWallet := paymentModels.TrackedWallet{
-				ID:          newID,
-				Address:     userWallet.ID,
-				TempAddress: userWallet.TempAddress,
-				Alias:       userWallet.Alias,
-				Name:        name,
+				ID:      newID,
+				Address: userWallet.ID,
+				Alias:   userWallet.Alias,
+				Name:    name,
 			}
 			errCreate := roachDB.Create(&trackedWallet).Error
 			if errCreate != nil {
@@ -107,7 +106,6 @@ func TrackUserWallet(userWallet userModels.UserWallet, roachDB, db *gorm.DB, tra
 		//already exists. record was fetched. update the name and save
 		existingWallet.Name = name
 		existingWallet.Alias = userWallet.Alias
-		existingWallet.TempAddress = userWallet.TempAddress
 		eSave := roachDB.Save(&existingWallet).Error
 		if eSave != nil {
 			log.Printf("[TrackUserWallet]Error while saving existing tracked wallet for %s, %v\n", userWallet.Alias, eSave)

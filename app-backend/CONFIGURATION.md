@@ -511,7 +511,7 @@ Opt-in account recovery (see [INTEGRATION.md](INTEGRATION.md#account-recovery-op
 - How to get a real value: `recoveryPeriodSeconds` in the module's deployment file (`recovery/contracts/deployments/<chainId>.json`).
 
 **`ACCOUNT_RECOVERY_GUARDIAN_SAFE`** / **`ACCOUNT_RECOVERY_GUARDIAN_SIGNERS`**
-- Example: `0x1234...abcd` / `0x59c6...;0x5de4...` (hex private keys, `;` or `,` separated)
+- Example: `0x1234...abcd` / `0x59c6...;0x5de4...` (hex private keys, `;` separated)
 - What it does: The platform's recovery guardian, made the only guardian of each covered wallet. With `ACCOUNT_RECOVERY_GUARDIAN_SAFE` (recommended) the guardian is that Safe and the backend executes its calls with enough of the `ACCOUNT_RECOVERY_GUARDIAN_SIGNERS` keys to meet its threshold (the first key pays gas); without it the guardian is the first key itself. The guardian can only start replacing a covered wallet's key (finalized after the recovery period, cancellable by the user) - it cannot move funds. Its keys pay the gas of starting and finalizing recoveries, so keep them funded with a little ETH.
 - How to get a real value: create a Safe owned by dedicated keys from your secrets manager (e.g. 2-of-3 with two keys here and one held offline). Changing the guardian later does not move existing wallets to it: users would have to turn recovery off and on again.
 
@@ -537,7 +537,7 @@ Opt-in account recovery (see [INTEGRATION.md](INTEGRATION.md#account-recovery-op
 ## Internal balance authorization / compliance
 
 **`INTERNAL_BALANCE_ISSUING_SIGNERS`**
-- Example: `0xkey1,0xkey2`
+- Example: `0xkey1;0xkey2` (`;` separated, like every managed signer secret)
 - What it does: Owner keys of each country's internal balance minting Safe (`CountryConfig.internalTokenMinterSafe`, which owns the internal balance token `internalTokenIssuer`). For a fiat purchase of a tokenized asset whose payment is confirmed, enough of them sign one Safe transaction that mints the purchase amount to the Safe and buys from the asset's sale offer for the buyer; the first key pays its gas, so it must hold ETH. (`INTERNAL_BALANCE_AUTHORIZER_WALLET` is no longer used.)
 - How to get a real value: the keys of that Safe's owners, from your secrets manager.
 
@@ -557,7 +557,7 @@ Opt-in account recovery (see [INTEGRATION.md](INTEGRATION.md#account-recovery-op
 
 **`P2P_ESCROW_SIGNERS`**
 - Example: `key1;key2;key3`
-- What it does: A `;`-separated (legacy `,`-separated also accepted) list of at least 3 signer private keys/mnemonics for the escrow Safe. The first signer also broadcasts and pays gas for every settlement.
+- What it does: A `;`-separated list of at least 3 signer private keys/mnemonics for the escrow Safe. The first signer also broadcasts and pays gas for every settlement.
 - How to get a real value: the private keys of the Safe's configured owners — for local/testnet dev, create a testnet Safe with test-only owner keys.
 
 **`P2P_ESCROW_MULTISEND_ADDRESS`**
@@ -586,17 +586,105 @@ Opt-in account recovery (see [INTEGRATION.md](INTEGRATION.md#account-recovery-op
 
 ---
 
-## Stablerail (fiat onramp for cNGN)
+## Stablerail (bank deposits and withdrawals for cNGN)
 
 **`CNGN_PRICE_API_URL`**
 - Example: `https://api.example.com/cngn/price`
 - What it does: URL the app polls for the current cNGN (Nigerian Naira stablecoin) price. Required to boot.
 - How to get a real value: your cNGN price-feed provider's endpoint.
 
-Note: Stablerail's own API key/config (bank onboarding, onramp) is stored
-in the database (`StablerailConfig` table), not read from environment
-variables — set it up via whatever admin tooling manages that table (see
-`tm-api`), not `.env`.
+**`STABLERAIL_MIN_WITHDRAWAL`**
+- Example: `1000`
+- What it does: the smallest bank withdrawal (cNGN, which is Naira 1:1) a user may request. Optional; defaults to `1000`.
+- How to get a real value: Stablerail's minimum payout for your account, or a higher business minimum.
+
+Note: Stablerail's own API key/config (bank onboarding, onramp, offramp) is
+stored in the database (`stablerail_configs` table: `api_key`, `base_url`,
+`enable_stablerail`), not read from environment variables, and is read on
+every request — enabling or disabling it needs no restart. There is no admin
+screen for it yet; set the row directly. Users are onboarded with Stablerail
+automatically by the KYC callback when KYC level 1 (BVN) completes.
+
+---
+
+## Public Markets (tokenized NGX equities and FMDQ bonds)
+
+See [PUBLIC_MARKETS.md](PUBLIC_MARKETS.md) for how the engine works.
+Thresholds, fees, approvers, market hours and withholding-tax rates are
+**not** environment variables. They live in the `public_market_settings`
+row and are edited in Trovo Manager. Partner endpoints and modes live in
+`public_market_custodians` and `approved_dealing_members`, also edited in
+Trovo Manager. Without `BASE_RPC_URL` the engine only does database work:
+no wallets, mints or payments.
+
+**`PUBLIC_MARKETS_SIGNERS`**
+- Example: `key1;key2;key3`
+- What it does: A `;`-separated list of the private keys or mnemonics
+  that own the Public Markets Safes:
+  - each asset's issuing Safe;
+  - the treasury;
+  - every exchange customer's wallet.
+
+  The first signer submits the transactions and pays their gas.
+- How to get a real value: managed secret (Vault), one key per signing
+  officer/HSM. For local development, any test-only keys.
+
+**`PUBLIC_MARKETS_TREASURY_SAFE`**
+- Example: `0x3333333333333333333333333333333333333333`
+- What it does: The Safe (owned by the signers above) that receives
+  buyers' CNGN and exchange deposits, and pays sellers, dividends, fees and
+  withholding tax. Exchanges are told to deposit here.
+- How to get a real value: deploy a Safe owned by the Public Markets
+  signers on the target network.
+
+**`PUBLIC_MARKETS_PARTNER_WALLET_THRESHOLD`**
+- Example: `` (default: the smaller of 3 and the number of signers)
+- What it does: How many signers must sign for an exchange customer's
+  wallet Safe. It only applies to wallets deployed after it changes.
+- How to get a real value: leave empty unless your signing policy differs.
+
+**`SAFE_FALLBACK_HANDLER_ADDRESS`**
+- Example: `` (default `0xfd0732Dc9E303f09fCEf3a7388Ad10A83459Ec99`, the
+  Safe v1.4.1 CompatibilityFallbackHandler)
+- What it does: The fallback handler set on the exchange customer wallets
+  the engine deploys.
+- How to get a real value: leave empty unless your network's Safe
+  deployment uses another address.
+
+**`PUBLIC_MARKETS_MOCK_EXECUTION_SECONDS`** / **`PUBLIC_MARKETS_MOCK_SETTLEMENT_SECONDS`**
+- Example: `20` / `60`
+- What it does: How long the mock Dealing Member takes to fill an order,
+  and how long the mock Custodian takes to confirm settlement (the real
+  cycle is T+2). These apply only to partners in `MOCK` mode.
+- How to get a real value: the defaults suit development. Use larger
+  values to demo pending states.
+
+**`PUBLIC_MARKETS_PRICE_FEED`** / **`PUBLIC_MARKETS_PRICE_FEED_URL`** / **`PUBLIC_MARKETS_PRICE_FEED_AUTH`** / **`PUBLIC_MARKETS_PRICE_FEED_CREDENTIALS`**
+- Example: `rest` / `https://prices.example.com` / `hmac` / `env:PRICE_VENDOR`
+- What it does: With `rest`, prices come from a vendor's
+  `GET /v1/quotes/{isin}`. Otherwise a mock feed moves prices in small
+  steps during market hours, within NGX's ±10% daily band. AUTH is `hmac`
+  or `mtls`. CREDENTIALS is a credentials reference (below).
+- How to get a real value: the contracted price vendor's details. Until
+  then, leave PUBLIC_MARKETS_PRICE_FEED empty.
+
+**Partner credentials references** (the `credentialsRef` of a Custodian,
+Dealing Member or the price feed, set in Trovo Manager)
+- Example: `env:CUSTODIAN_A` or `vault://secret/public-markets/custodian-a#CUSTODIAN_A`
+- What it does: Names the environment variable that holds the partner's
+  credentials:
+  - `NAME` holds `keyId:secret` for HMAC signing, both outbound and to
+    verify the partner's webhooks;
+  - `NAME_CERT` / `NAME_KEY` are PEM file paths, for mTLS.
+
+  A `vault://path#FIELD` reference reads `FIELD`, which the deployment
+  injects from Vault like every other managed secret.
+- How to get a real value: issued by the partner during onboarding.
+
+**`PUBLIC_MARKETS_TEST_POSTGRES`** (tests only)
+- Example: `host=localhost user=trovo dbname=trovo_test sslmode=disable`
+- What it does: Runs the Public Markets tests against this Postgres
+  database, each test in its own schema, instead of SQLite.
 
 ---
 
