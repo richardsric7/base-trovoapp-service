@@ -1,277 +1,155 @@
 "use client";
-
-import { SearchBar } from "@/components";
-import Pagination from "@/components/CustomPagination";
+import React, { useState } from "react";
 import CustomTable from "@/components/CustomTable";
-import React, { useMemo, useState } from "react";
-import { AiOutlineCheckCircle, AiOutlineCloseCircle } from "react-icons/ai";
-import styled from "styled-components";
-import AdminFilter from "../../admin-users/components/AdminFilter";
-import { MdVerified } from "react-icons/md";
-import TruncatedText from "@/hooks/useTruncate";
+import Pagination from "@/components/CustomPagination";
+import { showErrorToast, showSuccessToast } from "@/components";
+import { IPayout, IPayoutItem, useGetPayoutItemsQuery, usePayoutItemActionMutation } from "@/redux/api/proceedPayouts";
+import { amount, Card, date, errorMessage, Input, LinkButton, Mono, Row, Select, StatusPill, SubTitle } from "./ui";
 
-const PayoutListTable = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+// payout statuses in which admins may change schedule lines (tm-api agrees)
+const EDITABLE = ["LOCKED", "APPROVED", "FUNDING_CHECK_REQUESTED", "PAYING", "PAUSED", "COMPLETED_WITH_FAILURES"];
+
+// A payout's schedule: the fee and VAT lines, then the holders by amount,
+// with the controls for single holders.
+const PayoutListTable = ({ payout }: { payout: IPayout }) => {
+  const [status, setStatus] = useState("");
+  const [kind, setKind] = useState("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(25);
+  const { data, isFetching } = useGetPayoutItemsQuery({ id: payout.id, status, kind, search: search.trim(), page, limit });
+  const [itemAction] = usePayoutItemActionMutation();
+  const editable = EDITABLE.includes(payout.status);
+  const canMarkPaid = payout.status === "PAUSED" || payout.status === "COMPLETED_WITH_FAILURES";
+
+  const act = async (item: IPayoutItem, action: "exclude" | "include" | "mark-paid") => {
+    let reason: string | undefined;
+    let reference: string | undefined;
+    if (action === "exclude") {
+      reason = window.prompt(`Why leave ${item.username || item.beneficiaryAddress} out of this payout? Its share stays in the payout Safe.`) ?? undefined;
+      if (!reason?.trim()) return;
+    } else if (action === "mark-paid") {
+      reference = window.prompt("How was this holder paid? (e.g. the transaction or transfer reference)") ?? undefined;
+      if (!reference?.trim()) return;
+    } else if (!window.confirm("Include this holder in the payout again?")) {
+      return;
+    }
+    try {
+      await itemAction({ id: payout.id, itemId: item.id, action, reason, reference }).unwrap();
+      showSuccessToast(action === "exclude" ? "Holder excluded" : action === "include" ? "Holder included" : "Holder marked paid");
+    } catch (err) {
+      showErrorToast(errorMessage(err, "The change failed"));
+    }
+  };
 
   const columns = [
     {
-      title: "Investor",
-      dataIndex: "investor",
-      render: (_: any, record: any) => {
-        return (
-          <InvestorInfoSection>
-            <Avatar />
-            <div>
-              <UserNameWrapper>
-                <UserName>
-                  {" "}
-                  <TruncatedText text={record.userName} maxLength={15} />
-                  {record.kyc_level === 0 ? (
-                    ""
-                  ) : (
-                    <MdVerified size={12} color="#007CDF" />
-                  )}
-                </UserName>
-              </UserNameWrapper>
-
-              <FullName>{record.fullName}</FullName>
-            </div>
-          </InvestorInfoSection>
-        );
-      },
-    },
-
-    {
-      title: "Wallet/Bank Details",
-      dataIndex: "walletDetails",
-      key: "walletDetails",
-    },
-
-    {
-      title: "Token Holders",
-      dataIndex: "tokenHolders",
-      key: "tokenHolders",
-    },
-
-    {
-      title: "Payout Per Token",
-      dataIndex: "payoutPerToken",
-      key: "payoutPerToken",
-    },
-
-    {
-      title: " Gross Amount",
-      dataIndex: "grossAmount",
-      key: "grossAmount",
-    },
-    {
-      title: "Tax(WHT)",
-      dataIndex: "tax",
-      key: "tax",
-    },
-
-    {
-      title: " Net Amount",
-      dataIndex: "netAmount",
-      key: "netAmount",
-    },
-
-    {
-      title: " Status",
-      dataIndex: "status",
-      key: "status",
-      render: (_: any, record: any) => (
-        <StatusWithIcon status={record.status} />
+      title: "Beneficiary",
+      dataIndex: "beneficiaryAddress",
+      render: (v: string, r: IPayoutItem) => (
+        <span>
+          {r.kind !== "HOLDER" ? <strong>{r.kind === "FEE" ? "Payout fee" : "VAT on the fee"}</strong> : r.username ? <strong>{r.username}</strong> : null}
+          {(r.kind !== "HOLDER" || r.username) && <br />}
+          <Mono>{v}</Mono>
+        </span>
       ),
     },
+    {
+      title: "Tokens held",
+      dataIndex: "confirmedTokenizedAssetBalance",
+      render: (v: number, r: IPayoutItem) => (r.kind === "HOLDER" ? amount(v) : "—"),
+    },
+    { title: "Amount", dataIndex: "amountToReceive", render: (v: number) => amount(v, payout.payoutAssetCode) },
+    { title: "Status", dataIndex: "status", render: (v: string) => <StatusPill status={v} /> },
+    {
+      title: "Details",
+      dataIndex: "reason",
+      render: (v: string, r: IPayoutItem) => (
+        <small>
+          {v}
+          {r.txHash && (
+            <>
+              {v && <br />}
+              <Mono>{r.txHash}</Mono>
+            </>
+          )}
+          {r.paidAt && <> · {date(r.paidAt)}</>}
+        </small>
+      ),
+    },
+    {
+      title: "",
+      dataIndex: "actions",
+      render: (_: any, r: IPayoutItem) =>
+        r.kind !== "HOLDER" ? null : (
+          <span>
+            {editable && (r.status === "PENDING" || r.status === "FAILED") && (
+              <LinkButton $danger onClick={() => act(r, "exclude")}>
+                Exclude
+              </LinkButton>
+            )}
+            {editable && r.status === "EXCLUDED" && r.actionBy && <LinkButton onClick={() => act(r, "include")}>Include</LinkButton>}
+            {canMarkPaid && (r.status === "FAILED" || r.status === "PENDING") && (
+              <LinkButton onClick={() => act(r, "mark-paid")}>Mark paid</LinkButton>
+            )}
+          </span>
+        ),
+    },
   ];
-  const dataSource = useMemo(() => {
-    return Array.from({ length: 100 }, (_, index) => ({
-      key: index + 1,
-      payoutDate: "23 Sep 2023",
-      userName: "Odogwu",
-      fullName: "Obi Enechi",
-      walletDetails: `12345678-First Bank`,
-      tokenHolders: `1200`,
-      payoutPerToken: `₦20.00`,
-      grossAmount: `₦100,000,000.00`,
-      tax: "₦5,000,000.00",
-      netAmount: `₦95,000,000.00`,
-      status: "Paid",
-    }));
-  }, []);
-
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return dataSource.slice(startIndex, endIndex);
-  }, [currentPage, pageSize, dataSource]);
 
   return (
-    <Container>
-      <Title> Payout List</Title>
-
-      <SubHeader>
-        <SearchBar />
-        <AdminFilter />
-      </SubHeader>
-      <CustomTable columns={columns} dataSource={paginatedData} />
+    <Card>
+      <SubTitle>Schedule</SubTitle>
+      <Row>
+        <Select
+          value={status}
+          onChange={(e) => {
+            setStatus(e.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="">All statuses</option>
+          {["PENDING", "QUEUED", "PAID", "FAILED", "EXCLUDED", "SKIPPED"].map((s) => (
+            <option key={s} value={s}>
+              {s.charAt(0) + s.slice(1).toLowerCase()}
+            </option>
+          ))}
+        </Select>
+        <Select
+          value={kind}
+          onChange={(e) => {
+            setKind(e.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="">Holders, fee and VAT</option>
+          <option value="HOLDER">Holders</option>
+          <option value="FEE">Fee</option>
+          <option value="VAT">VAT</option>
+        </Select>
+        <Input
+          $wide
+          placeholder="Search address or username"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+        />
+      </Row>
+      <CustomTable columns={columns} dataSource={data?.data?.items ?? []} isLoading={isFetching && !data} />
       <Pagination
-        currentPage={currentPage}
-        totalCount={dataSource.length}
-        pageSize={pageSize}
-        onPageChange={setCurrentPage}
-        onPageSizeChange={setPageSize}
+        currentPage={page}
+        totalCount={data?.data?.total ?? 0}
+        pageSize={limit}
+        onPageChange={setPage}
+        onPageSizeChange={(n) => {
+          setLimit(n);
+          setPage(1);
+        }}
       />
-    </Container>
+    </Card>
   );
 };
 
 export default PayoutListTable;
-const Container = styled.section`
-  background: #ffffff;
-  padding: 32px;
-  margin-top: 30px;
-  border-radius: 24px;
-
-  table {
-    width: 100%;
-    table-layout: fixed;
-    padding-top: 8px;
-  }
-
-  th:nth-child(1),
-  td:nth-child(1) {
-    width: 14%;
-  }
-  th:nth-child(2),
-  td:nth-child(2) {
-    width: 12%;
-    text-align: center;
-  }
-  th:nth-child(3),
-  td:nth-child(3) {
-    width: 7%;
-    text-align: center;
-  }
-  th:nth-child(4),
-  td:nth-child(4) {
-    width: 8%;
-    text-align: center;
-  }
-
-  th:nth-child(5),
-  td:nth-child(5) {
-    width: 9%;
-    text-align: center;
-  }
-  th:nth-child(6),
-  td:nth-child(6) {
-    width: 12%;
-    text-align: center;
-  }
-
-  th:nth-child(7),
-  td:nth-child(7) {
-    width: 8%;
-    text-align: center;
-  }
-
-  th:nth-child(8),
-  td:nth-child(8) {
-    width: 8%;
-    text-align: center;
-  }
-
-  th {
-    color: #828282;
-    font-size: 14px;
-    font-weight: 500;
-  }
-  td {
-    color: #00225a;
-    font-weight: 400;
-  }
-`;
-
-const Title = styled.h1`
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0;
-  color: #00225a;
-`;
-
-const SubHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 18px;
-`;
-
-const InvestorInfoSection = styled.div`
-  display: flex;
-  column-gap: 10px;
-  align-items: center;
-  cursor: pointer;
-`;
-const Avatar = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: rebeccapurple;
-`;
-
-const UserNameWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-`;
-const UserName = styled.p`
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  text-align: left;
-  margin: 0;
-  color: #00225a;
-`;
-
-const FullName = styled.p`
-  font-size: 10px;
-  font-weight: 400;
-  line-height: 16px;
-  letter-spacing: 0.1px;
-  text-align: left;
-  margin: 0;
-  color: #00225a;
-`;
-const AssetStatus = styled.p<{ textColor: string; backgroundColor: string }>`
-  color: ${({ textColor }) => textColor};
-  background-color: ${({ backgroundColor }) => backgroundColor};
-  font-weight: 500;
-  padding: 8px;
-  border-radius: 8px;
-  text-align: center;
-  margin: 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-`;
-
-const StatusWithIcon = ({ status }: { status: "Paid" | "Failed" }) => {
-  const isProcessed = status === "Paid";
-
-  return (
-    <AssetStatus
-      textColor={isProcessed ? "#00A859" : "#FF4D4D"}
-      backgroundColor={isProcessed ? "#00A8591A" : "#BE38001A"}
-    >
-      {isProcessed ? (
-        <AiOutlineCheckCircle size={14} />
-      ) : (
-        <AiOutlineCloseCircle size={14} />
-      )}
-      {status}
-    </AssetStatus>
-  );
-};

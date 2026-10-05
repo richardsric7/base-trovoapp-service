@@ -539,8 +539,14 @@ export default function AssetTokenizationDetailsPage() {
 
             {currentStep === 9 && (
               <ButtonContainer>
-                <ApproveButton onClick={() => router.push("/dividendandyield")}>
-                  Dividened & yield
+                <ApproveButton
+                  onClick={() =>
+                    router.push(
+                      `/dividendandyield${asset?.id ? `?asset=${encodeURIComponent(String(asset.id))}` : ""}`
+                    )
+                  }
+                >
+                  Dividend & yield
                 </ApproveButton>
 
                 <IconBox onClick={() => setIsOpenBox(!isOpenbox)}>

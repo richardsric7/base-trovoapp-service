@@ -2204,7 +2204,7 @@ type TokenizedAssetPayoutSchedule struct {
 	Batch                          string         `gorm:"not null;size:100;index:," json:"batch"` // the ProceedPayout's Batch
 	PayoutAssetCode                string         `gorm:"not null;size:12" json:"payoutAssetCode"`
 	PayoutContractAddress          string         `gorm:"not null;size:100" json:"payoutContractAddress"`
-	BeneficiaryAddress             string         `gorm:"not null;size:100;index:idx_payout_schedule_beneficiary,unique,priority:2" json:"beneficiaryAddress"`
+	BeneficiaryAddress             string         `gorm:"not null;size:100;index:idx_payout_schedule_beneficiary,unique,priority:2;index:idx_payout_item_beneficiary" json:"beneficiaryAddress"`
 	ConfirmedTokenizedAssetBalance float64        `json:"confirmedTokenizedAssetBalance"` //asset balance at the time of preparing schedule
 	AmountToReceive                float64        `json:"amountToReceive"`
 	CannotReceiveAsset             int            `gorm:"default:0" json:"CannotReceiveAsset"` //checks if the beneficiary can receive the asset or not.

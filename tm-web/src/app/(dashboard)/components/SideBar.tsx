@@ -116,7 +116,8 @@ export const SideBar = () => {
     if (
       path.startsWith("/assettokenization") ||
       path.startsWith("/othertoken") ||
-      path.startsWith("/assetcuration")
+      path.startsWith("/assetcuration") ||
+      path.startsWith("/dividendandyield")
     )
       return "asset&tokens";
     return null;
@@ -286,6 +287,11 @@ export const SideBar = () => {
               <SubMenuItem onClick={() => router.push("/assetcuration")}>
                 <SubMenuText $isActive={isActive("/assetcuration")}>
                   Asset Curation
+                </SubMenuText>
+              </SubMenuItem>
+              <SubMenuItem onClick={() => router.push("/dividendandyield")}>
+                <SubMenuText $isActive={isActive("/dividendandyield")}>
+                  Proceeds Payouts
                 </SubMenuText>
               </SubMenuItem>
             </SubMenu>

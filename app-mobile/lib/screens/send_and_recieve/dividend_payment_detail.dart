@@ -3,16 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_app/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
-import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_app/custom_bloc_observer/colors.dart';
 import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_app/models/asset.dart';
+import 'package:trovo_app/models/proceed_payout.dart';
 import 'package:trovo_app/models/user.dart';
 import 'package:trovo_app/models/wallet.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_app/router/page_actions.dart';
-import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/storage/state.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 
@@ -43,7 +41,9 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
   double? amount;
   String? assetCode;
   String memo = '';
-  late Asset? asset;
+  Asset? asset;
+  // the payout shown, chosen in the history
+  late ProceedPayoutReceipt receipt;
 
   @override
   void initState() {
@@ -51,13 +51,19 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
     appState = Provider.of<DataProvider>(context, listen: false);
     activeWallet = appState.activeWallet;
     assetCode = appState.viewData!['assetCode'];
-
-    asset = activeWallet!.claimedAssets!.firstWhere(
-      (asset) =>
-          asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.contractAddress == appState.viewData!['contractAddress'],
+    receipt = ProceedPayoutReceipt.fromMap(
+      Map.from(appState.viewData!['payoutReceipt'] ?? {}),
     );
+
+    for (final a in activeWallet?.claimedAssets ?? <Asset>[]) {
+      if (a.assetCode == appState.viewData!['assetCode'] &&
+          a.contractAddress == appState.viewData!['contractAddress']) {
+        asset = a;
+      }
+    }
   }
+
+  String get _txHash => receipt.txHash;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +87,7 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
             children: [
               SizedBox(height: height / 30),
               Text(
-                'Dividend Payment ${"details".tr()}',
+                '${receipt.paid ? 'Dividend Payment' : 'Scheduled Dividend'} ${"details".tr()}',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: notifier.getbluewhitecolor,
@@ -91,7 +97,7 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
               ),
               SizedBox(height: height / 30),
               Text(
-                '+3,000.00 CNGN',
+                '${receipt.paid ? '+' : ''}${NumberFormat('#,##0.00######').format(receipt.amountValue)} ${receipt.payoutAssetCode}',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: notifier.getgreencolor,
@@ -145,7 +151,9 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
                                           horizontal: 20.0,
                                         ),
                                         child: Text(
-                                          'Kennis',
+                                          receipt.walletAlias.isNotEmpty
+                                              ? receipt.walletAlias
+                                              : '—',
                                           style: TextStyle(
                                             fontWeight: FontWeight.w500,
                                             color: notifier.getbluewhitecolor,
@@ -162,7 +170,7 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
                                         onPressed: () => {
                                           Clipboard.setData(
                                             ClipboardData(
-                                              text: 'viewData.toAddress',
+                                              text: receipt.walletAlias,
                                             ),
                                           ),
                                           showSnackBar(
@@ -185,14 +193,20 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
                                           horizontal: 20.0,
                                         ),
                                         child: Text(
-                                          truncate(
-                                                'viewData.toAddress!',
-                                                length: 5,
-                                              ) +
-                                              'viewData.toAddress!'.substring(
-                                                'viewData.toAddress!'.length -
-                                                    5,
-                                              ),
+                                          receipt.beneficiaryAddress.length > 12
+                                              ? truncate(
+                                                      receipt
+                                                          .beneficiaryAddress,
+                                                      length: 5,
+                                                    ) +
+                                                    receipt.beneficiaryAddress
+                                                        .substring(
+                                                          receipt
+                                                                  .beneficiaryAddress
+                                                                  .length -
+                                                              5,
+                                                        )
+                                              : receipt.beneficiaryAddress,
                                           style: TextStyle(
                                             fontWeight: FontWeight.w500,
                                             color: notifier.getbluewhitecolor,
@@ -209,7 +223,7 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
                                         onPressed: () => {
                                           Clipboard.setData(
                                             ClipboardData(
-                                              text: 'viewData.toAddress!',
+                                              text: receipt.beneficiaryAddress,
                                             ),
                                           ),
                                           showSnackBar(
@@ -268,7 +282,7 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
                                   ),
                                 ],
                                 Text(
-                                  asset!.assetCode!.toUpperCase(),
+                                  '${(asset?.assetCode ?? receipt.assetCode).toUpperCase()}  ·  ${NumberFormat('#,##0.######').format(double.tryParse(receipt.tokensHeld) ?? 0)} held',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontFamily: fontsemibold,
@@ -304,12 +318,18 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
                                 Expanded(
                                   flex: 5,
                                   child: GestureDetector(
-                                    onTap: () => appState.goToWebView(
-                                      getExplorerBaseUrl(appState.walletMode) +
-                                          'viewData.transactionId!',
-                                    ),
+                                    onTap: _txHash.isEmpty
+                                        ? null
+                                        : () => appState.goToWebView(
+                                            getExplorerBaseUrl(
+                                                  appState.walletMode,
+                                                ) +
+                                                _txHash,
+                                          ),
                                     child: Text(
-                                      'viewData.transactionId!',
+                                      _txHash.isEmpty
+                                          ? 'Not paid yet'
+                                          : _txHash,
                                       style: TextStyle(
                                         decoration: TextDecoration.underline,
                                         color: notifier.getbluewhitecolor,
@@ -325,9 +345,7 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
                                   child: IconButton(
                                     onPressed: () => {
                                       Clipboard.setData(
-                                        ClipboardData(
-                                          text: 'viewData.transactionId!',
-                                        ),
+                                        ClipboardData(text: _txHash),
                                       ),
                                       showSnackBar(
                                         "transactionid".tr(),
@@ -363,7 +381,10 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
                               horizontal: 20.0,
                             ),
                             child: Text(
-                              '22 January, 2024  14:35 PM',
+                              receipt.date == null
+                                  ? '—'
+                                  : DateFormat('d MMMM, yyyy  hh:mm a')
+                                        .format(receipt.date!),
                               style: TextStyle(
                                 color: notifier.getbluewhitecolor,
                                 fontSize: 13,
@@ -387,19 +408,6 @@ class _DividendPaymentDetailsView extends State<DividendPaymentDetailsView>
                 ],
               ),
               SizedBox(height: height / 20),
-              Button(
-                "generatereceipt".tr(),
-                notifier.getbluecolor,
-                wihitecolor,
-                onTap: () {
-                  appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: ShareReceiptViewPageConfig,
-                  );
-
-                  // appState.viewData![ShareReceiptViewPageConfig.key] = viewData;
-                },
-              ),
               SizedBox(height: height / 10),
             ],
           ),
