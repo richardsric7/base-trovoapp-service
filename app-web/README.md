@@ -78,8 +78,9 @@ src/
 ```
 
 Other notable root files:
-- `vite.config.mts` — Vite config (dev server on port 3000, Node globals
-  polyfill for browser use of a couple of Node-oriented deps).
+- `vite.config.mts` — Vite config (dev server on port 3000, React plugin,
+  tsconfig path resolution). No Node globals polyfill is needed: the app's
+  code and dependencies run in the browser without one.
 - `tailwind.config.js` / `postcss.config.js` — Tailwind/PostCSS setup.
 - `Dockerfile` / `nginx.conf.template` — production container build; see
   [`DEPLOYMENT.md`](./DEPLOYMENT.md).
