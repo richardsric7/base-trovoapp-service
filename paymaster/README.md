@@ -1,7 +1,25 @@
 # paymaster
 
-Lets Trovo wallets pay their own gas in a stablecoin (USDC, USDT, cNGN, …)
-instead of ETH. Two parts:
+## What this project does
+
+Every action on the blockchain (sending money, buying a token) costs a
+small network fee, called "gas", normally paid in ETH. Most Trovo users
+hold stablecoins such as cNGN or USDC, not ETH. This project lets them pay
+that fee **in the stablecoin they already have**: Trovo pays the network
+in ETH and charges the user the equivalent in their stablecoin, at a fair
+current price plus a small spread.
+
+It has two parts: a blockchain contract (the "paymaster") that pays the
+fees, and a small always-on web service (the "quote service") that works
+out the price and signs it. app-backend asks the quote service for a price
+whenever a user pays gas in a stablecoin. Without it, users must hold ETH
+to do anything.
+
+- How to deploy: [DEPLOYMENT.md](DEPLOYMENT.md)
+- Every setting: [CONFIGURATION.md](CONFIGURATION.md)
+- How other projects use it: [INTEGRATION.md](INTEGRATION.md)
+
+## The two parts
 
 | Part | What it is |
 |---|---|
@@ -42,7 +60,7 @@ covers price movement between quoting and conversion, conversion costs,
 and margin. For cNGN the market rate is discovered from its on-chain
 market (the cNGN/USDC pool TWAP) and/or exchange and FX APIs, so users get
 the actual cNGN price of gas plus Trovo's spread — see
-[CONFIGURATION.md](CONFIGURATION.md#rate-pairs-and-sources).
+[CONFIGURATION.md](CONFIGURATION.md#rate_pairs).
 
 ## Safety properties
 
