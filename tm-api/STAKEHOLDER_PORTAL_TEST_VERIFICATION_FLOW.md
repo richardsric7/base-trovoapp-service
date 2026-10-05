@@ -182,11 +182,10 @@ The profile endpoint later proves each token maps back to these DB rows because 
 
 ## Step 1: Migration and Boundary Proof
 
-Apply to local/staging AdminDB only:
+Start tm-api once against the local/staging AdminDB; its AutoMigrate creates the tables:
 
 ```bash
-psql "$ADMIN_CONNECTION_STRING" -f migrations/20260629_create_stakeholder_portal_tables.sql \
-  | tee evidence/stakeholder-portal/01-migration-output.txt
+go run main.go 2>&1 | tee evidence/stakeholder-portal/01-migration-output.txt
 ```
 
 | Proof | Command | Expected |

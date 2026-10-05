@@ -6,6 +6,9 @@ CREATE TABLE IF NOT EXISTS career_roles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     heading VARCHAR(255) NOT NULL,
     company_overview TEXT,
+    location VARCHAR(50) NOT NULL DEFAULT 'onsite',
+    years_of_experience VARCHAR(100),
+    work_type VARCHAR(50) NOT NULL DEFAULT 'fulltime',
     sections JSONB NOT NULL,
     application JSONB NOT NULL,
     status career_role_status NOT NULL DEFAULT 'draft',
@@ -20,6 +23,8 @@ CREATE TABLE IF NOT EXISTS career_roles (
 CREATE INDEX IF NOT EXISTS idx_career_roles_status ON career_roles(status);
 CREATE INDEX IF NOT EXISTS idx_career_roles_published_at ON career_roles(published_at) WHERE status = 'published';
 CREATE INDEX IF NOT EXISTS idx_career_roles_created_at ON career_roles(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_career_roles_location ON career_roles(location);
+CREATE INDEX IF NOT EXISTS idx_career_roles_work_type ON career_roles(work_type);
 
 -- Add comment to table
 COMMENT ON TABLE career_roles IS 'Stores career/job posting information';
