@@ -10,6 +10,7 @@ const HealthTab = dynamic(() => import("./components/HealthTab"));
 const IssuesTab = dynamic(() => import("./components/IssuesTab"));
 const TrendsTab = dynamic(() => import("./components/TrendsTab"), { ssr: false });
 const TraceTab = dynamic(() => import("./components/TraceTab"));
+const PublicMarketsJobs = dynamic(() => import("./components/PublicMarketsJobs"));
 
 /**
  * System Health — what is happening across the Trovo platform, without needing
@@ -48,7 +49,12 @@ const SystemHealthPage = () => {
         tabContentStyle={{ backgroundColor: "transparent", padding: 0 }}
       />
       <TabBody>
-        {currentTab === "health" && <HealthTab />}
+        {currentTab === "health" && (
+          <>
+            <HealthTab />
+            <PublicMarketsJobs />
+          </>
+        )}
         {currentTab === "issues" && <IssuesTab />}
         {currentTab === "trends" && <TrendsTab />}
         {currentTab === "trace" && <TraceTab />}

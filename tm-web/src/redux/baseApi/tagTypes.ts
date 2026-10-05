@@ -23,4 +23,5 @@ export const tagTypes = {
   SERVICE_LINKS: "serviceLinks",
   FEE_EXEMPTIONS: "feeExemptions",
   PROCEED_PAYOUTS: "proceedPayouts",
+  PUBLIC_MARKETS: "publicMarkets",
 };
