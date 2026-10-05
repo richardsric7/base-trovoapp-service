@@ -385,13 +385,6 @@ func UploadTokenizationDocument(user *userModels.User, file multipart.File, file
 	}
 
 	user.InvalidateUserCache(gc)
-	owner, err := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-	if err == nil {
-		if owner.Username == user.Username {
-			user = &owner
-		}
-
-	}
 
 	return url, nil
 }
@@ -422,13 +415,6 @@ func UploadTokenizationFeeProofOfPaymentDocument(user *userModels.User, tokenize
 	}
 
 	user.InvalidateUserCache(gc)
-	owner, err := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-	if err == nil {
-		if owner.Username == user.Username {
-			user = &owner
-		}
-
-	}
 
 	return url, nil
 }
@@ -453,13 +439,6 @@ func UploadTokenizationAssetLogo(user *userModels.User, ato *userModels.Tokenize
 	}
 
 	user.InvalidateUserCache(gc)
-	owner, err := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-	if err == nil {
-		if owner.Username == user.Username {
-			user = &owner
-		}
-
-	}
 
 	return url, nil
 }
@@ -544,13 +523,6 @@ func DeleteTokenization(user *userModels.User, tokenizationID string, gc *shared
 
 	tx.Commit()
 	user.InvalidateUserCache(gc)
-	owner, err := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-	if err == nil {
-		if owner.Username == user.Username {
-			user = &owner
-		}
-
-	}
 
 	return ato.ToJSON(gc), nil
 }
@@ -627,13 +599,6 @@ func TrovoManagerDeleteTokenization(user *userModels.User, tokenizationID string
 
 	tx.Commit()
 	user.InvalidateUserCache(gc)
-	owner, err := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-	if err == nil {
-		if owner.Username == user.Username {
-			user = &owner
-		}
-
-	}
 
 	return ato.ToJSON(gc), nil
 }
@@ -660,13 +625,6 @@ func DeleteTokenizationDocument(user *userModels.User, documentID uint64, gc *sh
 	}
 
 	user.InvalidateUserCache(gc)
-	owner, err := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-	if err == nil {
-		if owner.Username == user.Username {
-			user = &owner
-		}
-
-	}
 
 	return document, nil
 }
@@ -693,13 +651,6 @@ func DeleteTokenizationFeePaymentDocument(user *userModels.User, documentID uint
 	}
 
 	user.InvalidateUserCache(gc)
-	owner, err := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
-	if err == nil {
-		if owner.Username == user.Username {
-			user = &owner
-		}
-
-	}
 
 	return document, nil
 }

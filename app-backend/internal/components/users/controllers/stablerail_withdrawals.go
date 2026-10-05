@@ -36,7 +36,7 @@ func stablerailAvailable(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 // @Router /v1/users/stablerail/profile [get]
 func getUsersStablerailProfileHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 		if err != nil {
 			writeError(c, err)
 			return
@@ -86,7 +86,7 @@ func postUsersStablerailWithdrawHandler(gc *sharedconfig.GlobalConfig) gin.Handl
 // @Router /v1/users/stablerail/withdrawals [get]
 func getUsersStablerailWithdrawalsHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 		if err != nil {
 			writeError(c, err)
 			return

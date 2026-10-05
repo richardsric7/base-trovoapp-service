@@ -27,7 +27,7 @@ func writeError(c *gin.Context, err error) {
 // market-making request acts on, writing the error response when it fails.
 func marketWallet(c *gin.Context, gc *sharedconfig.GlobalConfig) (signerUser, walletOwner userModels.User, wallet userModels.UserWallet, ok bool) {
 	var err error
-	if signerUser, err = usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc); err != nil {
+	if signerUser, err = usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc); err != nil {
 		writeError(c, err)
 		return
 	}

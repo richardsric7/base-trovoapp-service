@@ -43,7 +43,7 @@ func GetUser(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user 
 	if len(userInfo) == 42 {
 		//56 char public key is supplied
 
-		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("temp_address = ?", &userInfo).Or("signer = ?", userInfo).Select("user_id")
+		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("signer = ?", userInfo).Select("user_id")
 		e = db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("id IN (?)", subQuery).First(&user).Error
 	} else if strings.Contains(userInfo, "_") {
 		//alias format is supplied
@@ -81,6 +81,38 @@ func GetUser(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user 
 
 	return user, nil
 
+}
+
+// GetSlimUser finds the user GetUser would find for userInfo (a wallet
+// address or signer, a wallet alias, or a user ID, username, mobile or
+// email), without loading wallets or other associations. Use it where only
+// the user's own fields are read.
+func GetSlimUser(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user userModels.User, err error) {
+	userInfo = strings.TrimSpace(userInfo)
+	var e error
+	if len(userInfo) == 42 {
+		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("signer = ?", userInfo).Select("user_id")
+		e = db.Where("id IN (?)", subQuery).First(&user).Error
+	} else if strings.Contains(userInfo, "_") {
+		subQuery := db.Table("user_wallets").Where("alias = ?", strings.ToLower(userInfo)).Select("user_id")
+		e = db.Where("id = (?)", subQuery).First(&user).Error
+	} else {
+		// slim users are cached under username, email and ID (and are
+		// invalidated with them); a mobile number simply misses
+		if cached, ok := userModels.CachedSlimUser(userInfo, gc); ok {
+			return cached, nil
+		}
+		e = db.Where("(id = ? OR lower(username) = lower(?) OR mobile = ? OR lower(email) = lower(?))", userInfo, userInfo, userInfo, userInfo).First(&user).Error
+	}
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			return user, &tErrors.ErrorUserDoesNotExist{Username: userInfo}
+		}
+		log.Println("[GetSlimUser] error: ", e)
+		return user, &tErrors.ErrorTemporaryServerError{}
+	}
+	userModels.CacheSlimUser(&user, gc)
+	return user, nil
 }
 
 // GetWallet gets user wallet data by alias or address
@@ -135,6 +167,14 @@ func UpdatePushNotificationToken(identifier string, pnt *string, db *gorm.DB, gc
 		}
 		user.InvalidateUserCache(gc)
 	}
+}
+
+// GetSlimUserFromPrimarySigner fetches the user linked to the primary
+// signer without their wallets and other associations (see
+// userModels.GetSlimUserBySigner) - for requests that only need the
+// user's own fields.
+func GetSlimUserFromPrimarySigner(publicKey string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (userModels.User, error) {
+	return userModels.GetSlimUserBySigner(publicKey, db, gc)
 }
 
 // GetUserFromPrimarySigner fetches the user linked to the primary signer
@@ -204,13 +244,8 @@ func InvalidateUserWalletCache(userAccount *userModels.User, gc *sharedconfig.Gl
 	if userAccount == nil {
 		return
 	}
-	if userAccount.UserWallets == nil {
-		return
-	}
-	if len(userAccount.UserWallets) == 0 {
-		return
-	}
-	for _, w := range userAccount.UserWallets {
+	userModels.InvalidateSlimUserCache(userAccount, gc)
+	for _, w := range userAccount.WalletsForInvalidation(gc) {
 		cacheKey1 := fmt.Sprintf("GetBalance_%s", w.ID)
 
 		cacheKey3 := fmt.Sprintf("userObj %v", w.Alias)

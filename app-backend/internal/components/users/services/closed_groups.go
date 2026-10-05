@@ -48,13 +48,6 @@ func UploadClosedGroupRegistrationDocument(groupOwner *userModels.User, file mul
 	}
 
 	groupOwner.InvalidateUserCache(gc)
-	owner, err := userModels.Username(groupOwner.Username).GetFullUser(gc.DB, gc)
-	if err == nil {
-		if owner.Username == groupOwner.Username {
-			groupOwner = &owner
-		}
-
-	}
 
 	return url, nil
 }

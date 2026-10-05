@@ -28,7 +28,7 @@ type GasFeeAssetInput struct {
 // @Router /v1/users/settings/gas-fee-assets [get]
 func getUsersGasFeeAssetsHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 		if err != nil {
 			respondError(c, err)
 			return
@@ -55,7 +55,7 @@ func putUsersGasFeeAssetHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
 			return
 		}
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+		user, err := usersDB.GetSlimUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 		if err != nil {
 			respondError(c, err)
 			return

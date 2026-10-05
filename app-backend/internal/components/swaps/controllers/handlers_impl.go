@@ -33,7 +33,7 @@ import (
 func postUsersSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		signerOwner, getUserError := usersdb.GetUser(middleware.ExtractSigner(c), gc.DB, gc)
+		signerOwner, getUserError := usersdb.GetSlimUser(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if getUserError != nil {
 
@@ -349,7 +349,7 @@ func postSharedAccessSwapHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc 
 					for _, a := range accessList {
 
 						if a.Permission == "APPROVER" {
-							ph, e := usersdb.GetUser(a.TargetUsername, gc.DB, gc)
+							ph, e := usersdb.GetSlimUser(a.TargetUsername, gc.DB, gc)
 							if e == nil {
 								ph.SendPushMessage(fmt.Sprintf("Trovo: SWAP %v %v awaiting approval!", swapInfo.SourceAmount, swapInfo.Memo), fmt.Sprintf("%v initiated swap request from %v now waiting for an approval. Request: %v", signerOwner.Username, wallet.Alias, swapInfo.ReturnedDescription), "", dataPayload, gc)
 

@@ -2141,7 +2141,7 @@ func (u *User) GetUplines(gc *sharedconfig.GlobalConfig) (lv1, lv2, lv3 string) 
 	}
 
 	//get all the user referrals
-	lv1User, err := Username(lv1).GetFullUser(gc.DB, gc)
+	lv1User, err := Username(lv1).GetSlimUser(gc.DB, gc)
 
 	if err != nil {
 		return
@@ -2153,7 +2153,7 @@ func (u *User) GetUplines(gc *sharedconfig.GlobalConfig) (lv1, lv2, lv3 string) 
 	}
 
 	//get the user referrals
-	lv2User, err := Username(lv2).GetFullUser(gc.DB, gc)
+	lv2User, err := Username(lv2).GetSlimUser(gc.DB, gc)
 
 	if err != nil {
 		return
@@ -2288,39 +2288,10 @@ func (u Username) GetFullUser(db *gorm.DB, gc *sharedconfig.GlobalConfig) (owner
 	return
 }
 
+// GetSimpleUser loads the user without wallets or other associations (see
+// GetSlimUser); its callers only read the user's own fields.
 func (u Username) GetSimpleUser(db *gorm.DB, gc *sharedconfig.GlobalConfig) (owner User, err error) {
-
-	cacheKeyInfo := fmt.Sprintf("userObj %v", string(u))
-
-	{
-
-		// search cache for balance
-		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKeyInfo)
-
-		if ok {
-
-			// log.Printf("GetSimpleUser[%v], served from cache\n", cacheKeyInfo)
-			json.Unmarshal(rawdata, &owner)
-			return
-		}
-
-	}
-
-	// e := db.Where("username = ?", string(u)).First(&owner).Error
-	// if e != nil {
-	// 	if errors.Is(e, gorm.ErrRecordNotFound) {
-	// 		//no wallet was found
-	// 		err = &tErrors.CustomError{
-	// 			Param:      "id",
-	// 			Err:        "error-account-not-found",
-	// 			ErrMessage: "Account not found",
-	// 			Code:       404,
-	// 		}
-	// 		return
-	// 	}
-	// 	err = &tErrors.ErrorTemporaryServerError{}
-	// }
-	return u.GetFullUser(db, gc)
+	return u.GetSlimUser(db, gc)
 }
 
 func (u Username) GetUserPermissionOnWallet(walletAddress string, db *gorm.DB) (walletPermission WalletPermission, err error) {
@@ -2817,13 +2788,10 @@ func (u *User) InvalidateUserWalletCache(gc *sharedconfig.GlobalConfig) {
 	if u == nil {
 		return
 	}
-	if u.UserWallets == nil {
-		return
-	}
-	if len(u.UserWallets) == 0 {
-		return
-	}
-	for _, w := range u.UserWallets {
+	// every invalidation path ends here, so the slim entries go too
+	InvalidateSlimUserCache(u, gc)
+	// a slim user has no wallets loaded: read their ids
+	for _, w := range u.WalletsForInvalidation(gc) {
 		cacheKey1 := fmt.Sprintf("GetBalance_%s", w.ID)
 		cacheKey3 := fmt.Sprintf("userObj %v", w.Alias)
 		cacheKey4 := fmt.Sprintf("userObj %v", w.ID)
@@ -2990,6 +2958,6 @@ func (w UserWallet) CreateCryptoSubwalletRequest(currency string, gc *sharedconf
 // feeExempt reports whether the wallet's owner pays no platform service
 // fees (see GlobalConfig.FeeExemptUsername).
 func (u *UserWallet) feeExempt(gc *sharedconfig.GlobalConfig) bool {
-	owner, err := u.GetWalletOwner(gc.DB, gc)
+	owner, err := Username(u.UserID).GetSlimUser(gc.DB, gc)
 	return err == nil && gc.FeeExemptUsername(owner.Username)
 }
