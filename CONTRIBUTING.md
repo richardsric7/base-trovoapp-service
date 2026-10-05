@@ -7,7 +7,7 @@ other AI assistant) working in this repo identically — there is no separate,
 looser bar for automated changes.
 
 Read [ARCHITECTURE.md](ARCHITECTURE.md) first if you haven't already — it
-explains how the eight projects in this monorepo relate to each other and the
+explains how the projects in this monorepo relate to each other and the
 one design decision (direct shared-DB write vs. calling app-backend's API)
 that most new admin features need to make correctly.
 
@@ -15,10 +15,77 @@ that most new admin features need to make correctly.
 
 | File | What it covers |
 |---|---|
-| `README.md` | What the project is, its role in the monorepo, tech stack, directory layout, how to run it locally. The front door — link out to the other three rather than duplicating them. |
-| `DEPLOYMENT.md` | Every step from a clean checkout to a running instance: prerequisites (with install links), build, run locally, run via Docker, and — only where verifiable from the project's own files — how it's actually deployed. Never invent infrastructure you can't confirm exists; say what you can verify and flag what you can't. |
-| `CONFIGURATION.md` | Every environment variable / build-time config value the project reads. Each entry needs a name, a realistic (never real) example value, a plain-English explanation of its effect, and concrete instructions for obtaining a real value — a shell command for a generated secret, the actual third-party provider's dashboard for an API key, a pointer to a sibling project's own `DEPLOYMENT.md` for a value that should point at another service in this monorepo. |
-| `INTEGRATION.md` | What calls this project and what it calls, with the actual auth scheme, base-URL config, and any shared-database relationship — described from reading the real client/auth code, not assumed from convention. |
+| `README.md` | Starts with **"What this project does"**: a few plain sentences a non-developer could follow (what it is for, who or what uses it, what would stop working without it). Then its place in the monorepo, tech stack, directory layout and how to run it locally. Links to the other three rather than repeating them. |
+| `DEPLOYMENT.md` | A step-by-step guide a first-time deployer can follow without help (format below). |
+| `CONFIGURATION.md` | **Every** parameter the project reads (environment variables, build-time values, Vault keys, config files), each in the format below. |
+| `INTEGRATION.md` | Every connection to another project or outside service, each in the format below. |
+
+The reader to write for is a novice: someone deploying this for the first
+time who has never seen the code. Do not assume they know what a term means,
+where a value comes from, or which other service it must match. Never put a
+real secret in an example.
+
+### Parameter format (CONFIGURATION.md, and deploy-only parameters in DEPLOYMENT.md)
+
+Every parameter gets its own heading and all five fields:
+
+```markdown
+### `DB_CONNECTION_STRING`
+
+- **What it is:** The address and login of the Postgres database this service stores its data in.
+- **Why it's needed:** Without it the service has nowhere to keep users or payments and refuses to start.
+- **Required:** Yes.  *(or: No, default `8080`, meaning ...)*
+- **Example:** `postgres://trovo:change-me@db.internal:5432/trovo?sslmode=require`
+- **How to get it:** 1. Create a database (...). 2. Create a user with a password (...). 3. Put them together as shown in the example.
+```
+
+- **What it is** says what the value *is*, in plain words.
+- **Why it's needed** says what it is used for and what happens if it is
+  missing or wrong.
+- **Required** says Yes or No; for No, give the default and what it means.
+- **Example** is realistic and never a real secret.
+- **How to get it** gives concrete steps: a command to generate a secret, the
+  provider dashboard page for an API key, or, for a value that must match
+  another project in this repo, exactly which parameter of which project it
+  must equal (with a link).
+
+Group parameters under headings by area (Server, Database, Blockchain, ...)
+and start the file with how to set them (`.env` file, Docker, hosting
+platform) and a short table of the ones needed just to start.
+
+### DEPLOYMENT.md format
+
+1. **What you are deploying:** one paragraph in plain words, and what must
+   already be running first (database, other services).
+2. **Before you start:** every account and tool needed, with the install
+   link or command and the command that checks it is installed.
+3. **Steps:** numbered, one action each, with the exact command to run and
+   what you should see when it worked.
+4. **Parameters:** the runtime parameters needed to start, listed with links
+   to their `CONFIGURATION.md` entries, and any deploy-only parameters
+   (build arguments, hosting settings) written out in the parameter format
+   above.
+5. **Check it works:** how to tell the deployment is healthy.
+6. **Updating and rolling back.**
+7. **Troubleshooting:** common symptoms, their cause and the fix.
+
+Only describe infrastructure you can confirm from the project's own files;
+say clearly what you could not confirm.
+
+### INTEGRATION.md format
+
+One section per connection (another project in this repo, or an outside
+service such as a bank API, Vault or a blockchain node):
+
+- **What it is and why:** what the other side is and what this project uses
+  it for.
+- **Direction:** who calls whom (or which database or queue is shared).
+- **How they connect:** URL or address, protocol, and how requests are
+  authenticated, described from the real code.
+- **Settings on this side** and **settings on the other side:** the
+  parameters that must be set (and must match), each with an example value
+  and how to get it, or a link to its `CONFIGURATION.md` entry.
+- **How to check it works**, and **what happens when it is down**.
 
 A REST API project (currently `app-backend`, `tm-api`, and — once its own
 Swagger setup is added — `payment-history-engine`) additionally maintains
@@ -36,7 +103,9 @@ no HTTP API of its own to document that way.
    the API has grown — retrofitting is exactly the situation this
    documentation initiative had to dig out of for `app-backend`, `tm-api`,
    and `payment-history-engine`.
-4. There is no CI pipeline yet (see ARCHITECTURE.md); document the
+4. Add it to the project list and deploy order in the root
+   [README.md](README.md).
+5. There is no CI pipeline yet (see ARCHITECTURE.md); document the
    project's build/lint/test commands in its `DEPLOYMENT.md` so they can be
    wired into one later.
 
@@ -45,7 +114,8 @@ no HTTP API of its own to document that way.
 Ask, for every change:
 
 - **Did I add, remove, or change an environment variable / config value?**
-  Update that project's `CONFIGURATION.md` in the same commit. Don't leave a
+  Update that project's `CONFIGURATION.md` in the same commit, with all five
+  fields of the parameter format. Don't leave a
   variable undocumented because "it's obvious" — the whole point of this doc
   is that a first-time deployer has never seen this codebase before.
 - **Did I add, remove, or change an HTTP endpoint** (on `app-backend`,

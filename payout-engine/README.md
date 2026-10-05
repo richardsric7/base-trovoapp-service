@@ -1,13 +1,25 @@
 # Payout Engine (`payout-engine`)
 
-A Go background worker that pays a tokenized asset's proceeds (dividends,
-rent, interest) to the asset's token holders, in the payout token (e.g.
-cNGN), from one dedicated Safe wallet on Base. It has **no HTTP interface**.
-It reads and writes app-backend's database, and Redis is used only to wake
-it and report its progress. Trovo admins drive it from TM (`tm-web` →
-`tm-api`).
+## What this project does
 
-## What it does
+When a company whose asset is tokenized on Trovo shares out money (a
+dividend, rent, interest), every person holding that asset's tokens should
+get their share. `payout-engine` is the program that pays them. It works
+out who held the tokens and how many, waits for Trovo admins to check and
+approve the list, makes sure the money has arrived, and then sends each
+holder their share in a stablecoin such as cNGN from one dedicated wallet
+on the Base blockchain. Paid users get a push notification.
+
+It runs in the background with **no website and no API**. Admins control it
+from Trovo Manager (`tm-web` → `tm-api`); it shares app-backend's database,
+and Redis (optional) lets Trovo Manager wake it instantly. Without it,
+approved payouts are never paid.
+
+- How to deploy it: [DEPLOYMENT.md](DEPLOYMENT.md)
+- Every setting: [CONFIGURATION.md](CONFIGURATION.md)
+- What it connects to: [INTEGRATION.md](INTEGRATION.md)
+
+## How a payout works
 
 A payout exists once a trustee authorizes a stakeholder distribution in the
 stakeholder portal: `tm-api` registers it in `proceed_payouts` as
