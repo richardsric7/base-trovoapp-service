@@ -3014,14 +3014,14 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 		{
 			//prevent wallets with approver from using this endpoint
 			if sourceWallet.SharedAccessEnabled == 1 && sourceWallet.WalletCountApproverAccess(gc) > 0 {
-				errAccountIsTemp := &tErrors.CustomError{
+				errWalletNotAllowed := &tErrors.CustomError{
 					Param:      "ID",
 					Err:        "error-wallet-with-shared-access-not-allowed",
 					ErrMessage: "This wallet has approver access enabled. Please let someone with an INITIATOR access submit the request.",
 					Code:       http.StatusForbidden,
 				}
 
-				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+				c.JSON(errWalletNotAllowed.HTTPCode(), errWalletNotAllowed.JSONError())
 				return
 			}
 		}

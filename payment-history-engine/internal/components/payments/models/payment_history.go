@@ -65,11 +65,10 @@ type PaymentHistoryJSON struct {
 	TransactionID string `json:"transactionId"`
 }
 type TrackedWallet struct {
-	ID          string  `gorm:""`
-	Address     string  `gorm:"index:idx_tracked_wallet_address,unique"`
-	TempAddress *string `gorm:"index:idx_tracked_wallet_temp_address,unique"`
-	Alias       string  `gorm:"index:idx_tracked_wallet_alias"`
-	Name        string  `gorm:"index:idx_tracked_wallet_name"`
+	ID      string `gorm:""`
+	Address string `gorm:"index:idx_tracked_wallet_address,unique"`
+	Alias   string `gorm:"index:idx_tracked_wallet_alias"`
+	Name    string `gorm:"index:idx_tracked_wallet_name"`
 }
 
 type TrackedAddress struct {

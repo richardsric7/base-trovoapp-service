@@ -84,7 +84,7 @@ func TestSlimUserLookups(t *testing.T) {
 	if err != nil || len(full.UserWallets) != 1 {
 		t.Fatalf("full user after slim loads: %d wallets, %v", len(full.UserWallets), err)
 	}
-	// GetUser's address lookup (no temp_address column any more)
+	// GetUser by wallet address
 	if byAddr, err := GetUser(slimWallet, gc.DB, gc); err != nil || byAddr.Username != "alice" {
 		t.Fatalf("GetUser by address: %q %v", byAddr.Username, err)
 	}

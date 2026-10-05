@@ -494,31 +494,6 @@ func (u *UserWallet) GetSortedUserBalance(gc *sharedconfig.GlobalConfig) (balanc
 	//GetBalance
 	unsortedBalances, err := u.GetBalance(gc)
 	if err != nil {
-		// qrCode := ""
-		// if !temp {
-
-		// 	p, e := dl.GeneratePaymentData(u.ID, "", "", "", "", gc)
-		// 	if e == nil {
-		// 		qrCode = p.QRCode
-		// 	}
-
-		// }
-		// gasUsdPrice, _ := blockchain.GetGASDollarAskPrice(gc.DB)
-		// gasNativePrice := "1"
-		// unsortedBalances[":"] = Balance{
-		// 	ContractAddress: "",
-		// 	AssetCode:   "",
-		// 	Amount:      decimal.Zero,
-		// 	QRCode:      qrCode,
-		// 	ImageURL:    os.Getenv("NATIVE_ASSET_IMAGE_URL"),
-		// 	UsdPrice:    gasUsdPrice,
-		// 	NativePrice: gasNativePrice,
-		// 	InTrade: TradeLiabilties{
-		// 		SellingLiabilities: "0",
-		// 		BuyingLiabilities:  "0",
-		// 	},
-		// 	CryptoWalletDepositAddresses: nil,
-		// }
 		return
 	}
 	// log.Printf("unsorted balance for [%v]:[%+v]", u.ID, unsortedBalances)
@@ -536,33 +511,6 @@ func (u *UserWallet) GetSortedUserBalance(gc *sharedconfig.GlobalConfig) (balanc
 		balances = append(balances, balance)
 
 	}
-	// if len(balances) < 1 {
-	// 	qrCode := ""
-	// 	if !temp {
-
-	// 		p, e := dl.GeneratePaymentData(u.ID, "", "", "", "", gc)
-	// 		if e == nil {
-	// 			qrCode = p.QRCode
-	// 		}
-
-	// 	}
-	// 	gasUsdPrice, _ := blockchain.GetGASDollarAskPrice(gc.DB)
-	// 	gasNativePrice := "1"
-	// 	balances = append(balances, Balance{
-	// 		ContractAddress: "",
-	// 		AssetCode:   "",
-	// 		Amount:      decimal.Zero,
-	// 		QRCode:      qrCode,
-	// 		ImageURL:    os.Getenv("NATIVE_ASSET_IMAGE_URL"),
-	// 		UsdPrice:    gasUsdPrice,
-	// 		NativePrice: gasNativePrice,
-	// 		InTrade: TradeLiabilties{
-	// 			SellingLiabilities: "0",
-	// 			BuyingLiabilities:  "0",
-	// 		},
-	// 		CryptoWalletDepositAddresses: nil,
-	// 	})
-	// }
 	return balances, nil
 }
 

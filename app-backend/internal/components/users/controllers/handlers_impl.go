@@ -1367,7 +1367,6 @@ func getUsersPaymentGenerateTargetUserHandler(callBackRetryChan chan userModels.
 		{
 			//search cache
 
-			// cacheKeyParameters := fmt.Sprintf("limit=%v&order=%v&cursor=%v&forTransactionHash=%v&includeHash=%v&temp=%v", limit, orderStr, cursor, forTransactionHash, includeHash, temp)
 
 			ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
 
@@ -4927,19 +4926,6 @@ func postTokenizationExpressedInterestsTokenizedAssetIDHandler(callBackRetryChan
 			return
 		}
 
-		// if temp {
-		// 	errAccountIsTemp := &tErrors.CustomError{
-		// 		Param:      "Username",
-		// 		Err:        "error-account-not-temporary-wallet",
-		// 		ErrMessage: "Only normal/standard wallets are allowed for this request.",
-		// 		Code:       http.StatusForbidden,
-		// 	}
-
-		// 	c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
-		// 	return
-
-		// }
-
 		tokenizedAsset, _, err := userServices.GetTokenizedAssetByID(tokenizedAssetID, gc.DB)
 		if err != nil {
 
@@ -7527,7 +7513,6 @@ func getComplianceWalletAuthorizationHandler(callBackRetryChan chan userModels.R
 // @Param body body userModels.TokenizedAssetEarlyExitInput true "Early exit request (e.g. quantity to exit)"
 // @Success 200 {object} userModels.TokenizedAssetEarlyExitInput
 // @Failure 400 {object} map[string]interface{} "Invalid JSON or request"
-// @Failure 403 {object} map[string]interface{} "Wallet is a temporary wallet, which is not allowed"
 // @Security SignatureAuth
 // @Router /v1/tokenization/early-exit/{tokenizedAssetID} [post]
 func postTokenizationEarlyExitTokenizedAssetIDHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
@@ -7640,7 +7625,7 @@ func postTokenizationEarlyExitTokenizedAssetIDHandler(gc *sharedconfig.GlobalCon
 // @Success 200 {object} userModels.TokenizedAssetEarlyExitInput "Exit executed immediately"
 // @Success 202 {object} userModels.TokenizedAssetEarlyExitInput "Exit pending approver authorization"
 // @Failure 400 {object} map[string]interface{} "Invalid JSON or request"
-// @Failure 403 {object} map[string]interface{} "Wallet is temporary, or caller lacks initiator/owner permission on this shared-access wallet"
+// @Failure 403 {object} map[string]interface{} "Caller lacks initiator/owner permission on this shared-access wallet"
 // @Security SignatureAuth
 // @Router /v1/shared-access/tokenization/early-exit/{tokenizedAssetID} [post]
 func postSharedAccessTokenizationEarlyExitTokenizedAssetIDHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {

@@ -16,7 +16,8 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// GetUser gets user data by either wallet id or signer or temporary public key
+// GetUser gets a user by wallet address or signer, wallet alias, or user ID,
+// username, mobile or email
 func GetUser(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user userModels.User, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
 	cacheKeyInfo := fmt.Sprintf("userObj %v", userInfo)

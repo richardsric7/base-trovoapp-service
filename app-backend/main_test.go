@@ -225,7 +225,6 @@ type AssetClass struct {
 type UserWalletJSON struct {
 	CreatedAt              time.Time                  `json:"createdAt"`
 	ID                     string                     `json:"publicKey"`
-	TempAddress            string                     `json:"-"`
 	Tag                    string                     `json:"tag"`
 	Description            string                     `json:"description"`
 	Alias                  string                     `json:"alias"`  //primaryUsername_tag for sub wallets

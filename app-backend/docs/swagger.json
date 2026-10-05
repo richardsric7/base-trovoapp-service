@@ -2054,7 +2054,7 @@
                         "SignatureAuth": []
                     }
                 ],
-                "description": "Used by the asset depositor (the SELL-side party) to fund escrow for an order. Call it twice: first with an empty body to receive an unsigned transaction to sign locally, then again with the signed transaction and commit=1 to actually submit it. The source wallet must be a standard, non-temp wallet with no approver-based shared access.",
+                "description": "Used by the asset depositor (the SELL-side party) to fund escrow for an order. Call it twice: first with an empty body to receive an unsigned transaction to sign locally, then again with the signed transaction and commit=1 to actually submit it. The source wallet must be a standard wallet with no approver-based shared access.",
                 "consumes": [
                     "application/json"
                 ],
@@ -3845,7 +3845,7 @@
                         }
                     },
                     "403": {
-                        "description": "Wallet is temporary, or caller lacks initiator/owner permission on this shared-access wallet",
+                        "description": "Caller lacks initiator/owner permission on this shared-access wallet",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -4493,13 +4493,6 @@
                     },
                     "400": {
                         "description": "Invalid JSON or request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "403": {
-                        "description": "Wallet is a temporary wallet, which is not allowed",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true

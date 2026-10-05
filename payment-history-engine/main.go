@@ -576,7 +576,7 @@ func swapTransactionType(from, sourceContractAddress, sourceAssetCode, to, desti
 // original Horizon-operation processing applied before writing history.
 func lookupTrackedWallets(roachDB *gorm.DB, from, to string) (fromAlias, fromName, toAlias, toName string, found bool) {
 	var trackedWallets []paymentModels.TrackedWallet
-	dbFetchError := roachDB.Where("(address = ? OR temp_address = ?) OR (address = ? OR temp_address = ?)", from, from, to, to).Find(&trackedWallets).Error
+	dbFetchError := roachDB.Where("address = ? OR address = ?", from, to).Find(&trackedWallets).Error
 	if dbFetchError != nil {
 		log.Println("[lookupTrackedWallets] unable to find tracked wallets due to:", dbFetchError)
 		return "", "", "", "", false
@@ -796,7 +796,7 @@ const backfillChunkBlocks = 5000
 // equivalent of Horizon's per-account client.StreamPayments(ForAccount:...).
 func MonitorAddressPaymentStream(publicKey string, db, roachDB *gorm.DB, wg *sync.WaitGroup) {
 	defer wg.Done()
-	checkExists := roachDB.Where("address = ? OR temp_address = ?", publicKey, publicKey).First(&paymentModels.TrackedWallet{}).Error
+	checkExists := roachDB.Where("address = ?", publicKey).First(&paymentModels.TrackedWallet{}).Error
 	if checkExists != nil {
 		log.Printf("[MonitorAddressPaymentStream] aborting because %v could not be found in tracked wallets table:", checkExists)
 		return

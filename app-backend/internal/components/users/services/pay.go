@@ -10,7 +10,6 @@ import (
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
-	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -108,8 +107,6 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 	}
 	var ops []basetxn.Operation = make([]basetxn.Operation, 0)
 
-	var extraAccountKeyPair *evmkeypair.Full = nil
-
 	//custom asset
 
 	if !destinationAccountTrustsAsset {
@@ -183,16 +180,6 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 
 		if err != nil {
 			log.Println("[generateMintingXdr] error signing transaction with channelAccount key ", err)
-			return "", nil, &tErrors.ErrorTemporaryServerError{}
-		}
-	}
-
-	if extraAccountKeyPair != nil {
-
-		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), extraAccountKeyPair)
-
-		if err != nil {
-			log.Println("[generateMintingXdr] error signing transaction with temporary key ", err)
 			return "", nil, &tErrors.ErrorTemporaryServerError{}
 		}
 	}
