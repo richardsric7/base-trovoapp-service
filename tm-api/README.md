@@ -1,8 +1,27 @@
 # tm-api
 
-`tm-api` is the admin backend behind **Trovo Wallet's admin dashboard**. It is
-a Go REST API (Gin + GORM) that the dashboard frontend, **`tm-web`**, talks to
-for everything an operator or support agent does: managing admin accounts and
+## What this project does
+
+Trovo's staff need a back office: to look up users and their wallets,
+suspend an account, approve a tokenized asset, run a dividend payout,
+manage Public Markets, set fees, or onboard a partner. That back office is
+**Trovo Manager**. `tm-api` is its backend (the server); `tm-web` is the
+website staff use.
+
+Staff log in by approving a request in their Trovo Wallet app. tm-api then
+works directly in app-backend's database for admin data and settings, and
+asks app-backend to do anything that moves money or needs its checks
+(payments, authorizations, notifications). Every change an admin makes is
+recorded in an audit log. Without it, nobody can administer the platform.
+
+- How to deploy: [DEPLOYMENT.md](DEPLOYMENT.md)
+- Every setting: [CONFIGURATION.md](CONFIGURATION.md)
+- What it connects to: [INTEGRATION.md](INTEGRATION.md)
+
+## In more detail
+
+`tm-api` is a Go REST API (Gin + GORM) that **`tm-web`** talks to for
+everything an operator or support agent does: managing admin accounts and
 permissions, suspending/reactivating users, curating the platform's asset
 catalog, managing fee configs, reviewing tokenization requests, running the
 stakeholder-portal workflows, and more.
