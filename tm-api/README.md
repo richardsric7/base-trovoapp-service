@@ -78,7 +78,7 @@ where a new admin feature's data should live.
 
 ## Tech stack
 
-- **Language:** Go 1.23 (toolchain 1.24.3 per `go.mod`)
+- **Language:** Go 1.26 (the version in `go.mod`)
 - **Web framework:** [Gin](https://github.com/gin-gonic/gin)
 - **ORM:** [GORM](https://gorm.io) with the Postgres driver (`gorm.io/driver/postgres`); `gorm.io/driver/sqlite` is also wired in for local dev/testing without Postgres
 - **Auth:** JWT (`golang-jwt/jwt`), verified for Trovo-admin tokens by calling out to app-backend rather than decoding locally — see [INTEGRATION.md](./INTEGRATION.md)
@@ -137,7 +137,7 @@ Each has its own `controllers/` (route registration in `main.go`) and usually
 # 1. Clone and enter the repo
 git clone <repo-url> && cd tm-api
 
-# 2. Install Go 1.23+ (see DEPLOYMENT.md if you need install links)
+# 2. Install Go 1.26+ (see DEPLOYMENT.md if you need install links)
 
 # 3. Copy the env template and fill in real values (see CONFIGURATION.md)
 cp .env-sample .env
