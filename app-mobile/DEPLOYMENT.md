@@ -1,220 +1,222 @@
-# Deployment Guide
+# Deployment
 
-This guide assumes you have **never built or released a Flutter app
-before**. It covers: installing the tools, running the app in debug mode,
-running static analysis and tests, and producing signed release builds for
-Android and iOS.
+A step-by-step guide to building the Trovo mobile app and releasing it,
+written for someone who has never built a Flutter app. Commands run from
+the `app-mobile/` folder unless a step says otherwise.
 
-All commands below are run from the `app-mobile/` directory unless said
-otherwise.
+## 1. What you are deploying
 
-## 1. Install the Flutter SDK
+`app-mobile` is the **Trovo app for Android and iOS**. Users create a
+wallet (keys stay on the phone), send and receive money, trade P2P, buy
+tokenized assets and Public Markets stocks and bonds, and approve logins
+and transactions. All data comes from app-backend.
 
-`pubspec.yaml` requires Dart `>=3.8.0`, which ships with Flutter 3.32+.
-**Install a current Flutter release on the `stable` channel** (3.32 or
-newer); developers pin the exact version with [FVM](https://fvm.app/).
+"Deploying" it means building a signed app file and uploading it to
+**Google Play** (Android) and the **App Store** (iOS).
 
-1. Install Flutter following the official instructions for your OS:
-   https://docs.flutter.dev/get-started/install
-   - Pick the **stable** channel.
-   - If the installer gives you the latest stable release and it's newer
-     than 3.32.x, that's usually fine for day-to-day work, but if you hit
-     analyzer/build differences from other developers, pin the team's version
-     (e.g. via [FVM](https://fvm.app/), which lets you pin an exact
-     Flutter version per project: `fvm install 3.32.0 && fvm use 3.32.0`).
-2. Add Flutter to your `PATH` (the installer's instructions cover this
-   per-OS).
-3. Verify the install and let Flutter tell you what else is missing:
+**It needs these first:**
 
-   ```bash
-   flutter --version
-   flutter doctor
-   ```
+| What | Why | Where |
+|---|---|---|
+| app-backend, at an HTTPS address | every screen's data | [app-backend/DEPLOYMENT.md](../app-backend/DEPLOYMENT.md) |
+| wallet-core's native library | keys and signatures on the phone | step 4 below |
+| Firebase projects (test and production) | push notifications, crash reports | [CONFIGURATION.md](CONFIGURATION.md#2-firebase-push-notifications-analytics-crash-reports-remote-values) |
 
-   Run `flutter doctor` again after each step below — it's the
-   authoritative "what's still missing" checklist.
+## 2. Before you start
 
-## 2. Install platform tooling
+| Tool | Install | Check |
+|---|---|---|
+| Git | <https://git-scm.com/downloads> | `git --version` |
+| Flutter 3.47 or newer, stable channel | <https://docs.flutter.dev/get-started/install> | `flutter --version` |
+| Android Studio (Android SDK and emulator) | <https://developer.android.com/studio> | `flutter doctor` shows ✓ Android toolchain |
+| JDK 17 | <https://adoptium.net/> (Temurin 17) | `java -version` |
+| Rust (to build wallet-core) | <https://rustup.rs> | `cargo --version` |
+| Android NDK (to build wallet-core for Android) | Android Studio → **SDK Manager → SDK Tools → NDK (Side by side)** | `ls $ANDROID_HOME/ndk` |
+| For iOS only: a Mac with Xcode and CocoaPods | Mac App Store; `sudo gem install cocoapods` | `xcodebuild -version`, `pod --version` |
 
-This project has both an `android/` and an `ios/` folder, so it targets
-both platforms.
+Run `flutter doctor` and fix everything it marks ✗ for the platforms you
+build (accept Android licenses with `flutter doctor --android-licenses`).
+Without a Mac you can still do all the Android steps.
 
-### Android (any OS)
-
-1. Install **Android Studio**: https://developer.android.com/studio
-2. On first launch, use its **SDK Manager** to install an Android SDK
-   platform and the Android SDK command-line tools (`flutter doctor` will
-   tell you if anything's missing, including license acceptance —
-   `flutter doctor --android-licenses`).
-3. Install a JDK if you don't already have one — **Temurin/OpenJDK 17**
-   is the version the Android build is set up for.
-4. Create an emulator via Android Studio's **Device Manager**, or plug in
-   a physical Android device with USB debugging enabled.
-
-### iOS (macOS only — Xcode does not run on Windows/Linux)
-
-1. Install **Xcode** from the Mac App Store.
-2. Open it once to accept the license and let it install additional
-   components.
-3. Install CocoaPods, which Flutter uses to manage this project's iOS
-   dependencies (`ios/Podfile`):
-
-   ```bash
-   sudo gem install cocoapods
-   ```
-
-4. To run on the iOS **Simulator**, no Apple account is needed. To run on
-   a **physical iPhone** or produce a release build, you need an Apple
-   Developer account and code signing set up in Xcode — see
-   [§6 iOS release build](#6-ios-release-build-ipa) below.
-
-If you're on Windows or Linux, you can still do all Android work; skip
-the iOS sections.
-
-## 3. Get project dependencies
+## 3. Get the code and packages
 
 ```bash
-cd app-mobile
+git clone https://github.com/richardsric7/base-trovoapp-service.git
+cd base-trovoapp-service/app-mobile
 flutter pub get
 ```
 
-This reads `pubspec.yaml`/`pubspec.lock` and downloads all Dart/Flutter
-packages. Re-run it any time you pull changes that touch `pubspec.yaml`.
+**You should see:** `Got dependencies!`.
 
-## 4. Run in debug mode
+## 4. Build wallet-core for the phone
 
-1. Start an Android emulator or iOS Simulator, or connect a physical
-   device.
-2. Confirm Flutter sees it:
+The app makes keys and signs with wallet-core, Trovo's Rust library. The
+compiled library is **not in the repository**; without it, creating or
+importing a wallet fails with "library not found". Build it once, and again
+whenever `wallet-core/src/` changes.
 
+**Android** (from the `wallet-core/` folder):
+
+```bash
+cd ../wallet-core
+rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
+cargo install cargo-ndk
+export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/<version>     # the NDK you installed
+cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 \
+  -o ../app-mobile/android/app/src/main/jniLibs build --release
+cd ../app-mobile
+```
+
+**You should see:** `libwallet_core.so` in
+`android/app/src/main/jniLibs/arm64-v8a/`, `armeabi-v7a/` and `x86_64/`.
+
+**iOS** (on a Mac): build the static library for each target and link it
+into Xcode:
+
+```bash
+cd ../wallet-core
+rustup target add aarch64-apple-ios aarch64-apple-ios-sim
+cargo build --release --target aarch64-apple-ios        # iPhones
+cargo build --release --target aarch64-apple-ios-sim    # simulators on Apple-silicon Macs
+cd ../app-mobile
+```
+
+Then open `ios/Runner.xcworkspace` in Xcode, add
+`../wallet-core/target/aarch64-apple-ios/release/libwallet_core.a` under
+**Runner → Build Phases → Link Binary With Libraries**, and in **Build
+Settings → Other Linker Flags** add `-force_load` followed by that file's
+path, so its functions are kept (the app finds them with
+`DynamicLibrary.process()`). To build for the simulator as well, combine
+the two into an XCFramework (`xcodebuild -create-xcframework -library ...
+-library ... -output WalletCore.xcframework`) and link that instead.
+
+Details: [wallet-core/DEPLOYMENT.md](../wallet-core/DEPLOYMENT.md). These
+steps are not automated in this repository yet; if you automate them, keep
+the output paths the same.
+
+## 5. Choose the servers
+
+The app has two app-backend addresses written in
+`lib/network/requests.dart` (Testnet and Mainnet) and two Firebase
+projects in `lib/firebase_options.dart`; the Settings screen switches
+between them, and a new install starts on Testnet. Check they point at
+your servers before building ([CONFIGURATION.md](CONFIGURATION.md)).
+
+## 6. Run it on a phone or emulator
+
+1. Start an Android emulator (Android Studio → **Device Manager → Create
+   device**), an iOS Simulator (`open -a Simulator`), or plug in a phone
+   with developer mode / USB debugging on.
+2. Check Flutter sees it:
    ```bash
    flutter devices
    ```
-
-3. Run the app with hot reload:
-
+3. Run:
    ```bash
    flutter run
    ```
+   **You should see** the app open on the splash screen. Press `r` in the
+   terminal to reload after a code change.
+4. Create a wallet: you get a 12-word recovery phrase, and the account
+   appears in app-backend's `users` table.
 
-   Or, in VS Code: open the Run and Debug panel and press F5 (this repo's
-   original README already documented this shortcut). In Android Studio:
-   use the Run ▶ button with your device selected.
-
-## 5. Static analysis and tests
-
-There is no CI pipeline in this repository (the inherited workflows were
-removed - see the root `ARCHITECTURE.md`); run these yourself after
-`flutter pub get`:
+Before a release, run the checks:
 
 ```bash
-# Analyze — fail only on errors, not warnings/infos
-# (there's a known backlog of MaterialState*->WidgetState* and
-# Share->SharePlus deprecation infos that don't block PRs today)
-flutter analyze --no-fatal-warnings --no-fatal-infos
-
-# Run the test suite (see test/)
+flutter analyze
 flutter test
 ```
 
-Run both before opening a PR. Plain `flutter analyze` (no flags) is
-stricter and worth running too.
+## 7. Build an Android release
 
-## 6. Build a release Android APK/AppBundle
+1. **Create the signing key (once, ever).** Every update must be signed
+   with the same key, so keep it safe:
+   ```bash
+   keytool -genkey -v -keystore ~/keys/trovo-upload.jks \
+     -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   ```
+   It asks for a password and your name and organization. Put the `.jks`
+   file and both passwords in your password manager. (With Google Play App
+   Signing, this is your **upload** key; Google holds the app signing key.)
+2. **Tell the build where it is:** create `android/key.properties`:
+   ```properties
+   storeFile=/home/ada/keys/trovo-upload.jks
+   storePassword=<your-keystore-password>
+   keyAlias=upload
+   keyPassword=<your-key-password>
+   ```
+   It is in `.gitignore`; never commit it ([CONFIGURATION.md](CONFIGURATION.md#android-signing-key-androidkeyproperties)).
+3. **Raise the version** in `pubspec.yaml` (`version: 0.0.122+166`: the
+   number after `+` must be higher than the last upload).
+4. **Build:**
+   ```bash
+   flutter build appbundle      # for Google Play
+   flutter build apk            # an installable file for testers
+   ```
+   **You should see:** `✓ Built build/app/outputs/bundle/release/app-release.aab`
+   (or `.../flutter-apk/app-release.apk`).
+5. **Upload** the `.aab` in the [Google Play Console](https://play.google.com/console)
+   → your app → **Testing → Internal testing → Create new release**. Test
+   it, then promote it to **Production**.
 
-### 6.1 Generate a signing keystore (one-time, per release identity)
+## 8. Build an iOS release (Mac only)
 
-There is no `key.properties.example` or checked-in keystore in this repo
-— `android/key.properties` and `android/**/local.properties` are
-git-ignored (see `.gitignore`). For release builds, generate your own
-keystore once with the JDK's `keytool`:
-
-```bash
-keytool -genkey -v -keystore ~/trovo-release-key.jks \
-  -keyalg RSA -keysize 2048 -validity 10000 \
-  -alias trovo-release
-```
-
-You'll be prompted for a keystore password, your name/org details, and a
-key password. **Keep the resulting `.jks` file and passwords private —
-never commit them.**
-
-### 6.2 Point the build at your keystore
-
-Create `android/key.properties` (this exact path — `android/app/build.gradle.kts`
-reads it from `rootProject.file("key.properties")`, i.e. `android/key.properties`):
-
-```properties
-storePassword=<your keystore password>
-keyPassword=<your key password>
-keyAlias=trovo-release
-storeFile=<path to your .jks file, e.g. /Users/you/trovo-release-key.jks>
-```
-
-This file is already covered by `.gitignore` — do not remove that entry,
-and never commit real passwords.
-
-Without a `key.properties` file, `flutter build apk`/`appbundle` will
-still produce a build, but Gradle's `signingConfig` block
-(`android/app/build.gradle.kts`) will fail to resolve a keystore for the
-`release` build type — create the file first.
-
-### 6.3 Build
-
-```bash
-# Android App Bundle — what Google Play expects
-flutter build appbundle
-
-# or, a plain installable APK
-flutter build apk
-```
-
-Output lands under `build/app/outputs/bundle/release/` (AAB) or
-`build/app/outputs/flutter-apk/` (APK).
-
-## 7. iOS release build (`.ipa`)
-
-This requires a **Mac with Xcode**, an **Apple Developer Program
-account**, and code signing configured in Xcode. Full Apple signing setup
-(certificates, provisioning profiles, App Store Connect app records) is
-its own large topic — Apple's own documentation is the source of truth,
-so this section describes the shape of the process rather than exact,
-unverified menu paths:
-
-1. Enroll in the **Apple Developer Program** if you haven't already
-   (apple.com), and have access to the relevant Apple Developer account
-   / App Store Connect app record for `com.trovo.wallet` (the bundle ID
-   set in `ios/Runner.xcodeproj`).
-2. Open `ios/Runner.xcworkspace` in Xcode (not the `.xcodeproj` — Flutter
-   projects use CocoaPods, so the workspace is the file to open).
-3. In the Runner target's **Signing & Capabilities** tab, set your team
-   and let Xcode manage signing (simplest path for a first build), or
-   configure a manual provisioning profile if your team uses one.
-4. Build the IPA:
-
+1. Join the [Apple Developer Program](https://developer.apple.com/programs/)
+   and make sure an App Store Connect app exists for `com.trovo.wallet`.
+2. `cd ios && pod install && cd ..`
+3. Open `ios/Runner.xcworkspace` in Xcode (the workspace, not the
+   `.xcodeproj`). In **Runner → Signing & Capabilities**, choose your
+   **Team** and keep **Automatically manage signing** on.
+4. Raise the version in `pubspec.yaml` as for Android.
+5. Build:
    ```bash
    flutter build ipa
    ```
+   **You should see:** `Built IPA to build/ios/ipa`.
+6. Upload with the **Transporter** app (Mac App Store) or Xcode
+   (**Product → Archive → Distribute App**), test it in **TestFlight**,
+   then submit it for review in App Store Connect.
 
-   Output lands under `build/ios/ipa/`.
-5. Upload to TestFlight / App Store Connect via Xcode's Organizer, or
-   `xcrun altool` / `xcrun notarytool`, per Apple's current upload
-   instructions.
+## 9. Check it works
 
-There is no automated iOS release pipeline in this repository (the
-inherited GitHub Actions workflow and fastlane setup were removed).
+On a test phone with the release build:
 
-## 8. Switching Flutter versions / stale build artifacts
+1. Create a wallet and write down the phrase.
+2. Receive a small test payment, then send one.
+3. Put the app in the background, send it a payment from another account:
+   a push notification arrives.
+4. In Firebase **Crashlytics**, the app shows up (after its first start).
 
-This project has a `build/` directory at its root (git-ignored — it's
-Flutter's build output, not source). If you switch Flutter SDK versions,
-or hit strange build errors after a Flutter upgrade/downgrade, clear
-cached build state first:
+## 10. Updating and rolling back
 
-```bash
-flutter clean
-flutter pub get
-```
+- **Updating:** raise the version, build (steps 7 and 8) and upload. Users
+  get it through the stores. Deploy app-backend first when the release
+  needs new API routes, and keep app-backend working for the previous app
+  version: users update slowly.
+- **Rolling back:** the stores cannot go back to an older build. Build the
+  previous code (`git checkout <previous-tag>`) with a **higher** build
+  number and release it; on Google Play you can also halt a staged
+  rollout.
+- There is no CI/CD pipeline in this repository: run `flutter analyze` and
+  `flutter test` before merging, and build and upload by hand.
 
-`flutter clean` removes `build/`, `.dart_tool/`, and other generated
-directories so the next build starts fresh.
+## 11. Troubleshooting
+
+| You see | Cause | Fix |
+|---|---|---|
+| "library not found" / `libwallet_core.so` errors when creating a wallet | wallet-core not built into the app | step 4 |
+| iOS: `symbol not found` for wallet-core functions | the library is not linked, or not force-loaded | step 4, `-force_load` |
+| every screen shows a network error | wrong app-backend address for the chosen network, or not HTTPS | [CONFIGURATION.md](CONFIGURATION.md#1-network-and-servers) |
+| no push notifications | the Firebase project in the app differs from app-backend's, or notification permission was refused | use the same project in both; allow notifications |
+| `Keystore file not found` / signing errors in a release build | `android/key.properties` missing or wrong | step 7.2 |
+| Google Play: "version code already used" | build number not raised | raise the number after `+` in `pubspec.yaml` |
+| strange errors after changing Flutter version | old build files | `flutter clean && flutter pub get` |
+| iOS: `pod install` errors | CocoaPods out of date | `sudo gem install cocoapods`, then `pod repo update` |
+
+## Web build (testing only)
+
+The project also builds for the web (`flutter build web`), used only to
+check that the app compiles and its screens load. On the web, wallet
+functions are not available (`lib/functions/wallet_core_ffi_web.dart`
+reports "not available"); the real web wallet is
+[app-web](../app-web/README.md).

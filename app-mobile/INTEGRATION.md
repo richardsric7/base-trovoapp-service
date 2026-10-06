@@ -1,6 +1,99 @@
-# Integration with the rest of the monorepo
+# Integration
 
-## Talking to `app-backend`
+Everything `app-mobile` connects to, and how. The app talks to app-backend
+for everything, makes keys and signs on the phone with wallet-core, and
+uses Firebase for push notifications, crash reports and remote values.
+
+| Connects to | Direction | Through | Needed? |
+|---|---|---|---|
+| [1. app-backend](#1-app-backend) | app → app-backend | HTTPS (REST) | yes |
+| [2. wallet-core](#2-wallet-core) | built into the app | native library (Dart FFI) | yes |
+| [3. Firebase](#3-firebase) | both ways | Firebase SDKs | yes |
+| [4. Binance market data](#4-binance-market-data) | app → Binance | HTTPS | optional |
+| [5. Not connected: tm-api and tm-web](#5-not-connected-tm-api-and-tm-web) | none | — | — |
+
+---
+
+## 1. app-backend
+
+- **What it is and why:** the server that holds accounts and wallets and
+  sends transactions. Every screen's data comes from it.
+- **Direction:** app → app-backend. The app opens no websocket; screens
+  that change (orders, recoveries, logins waiting for approval) ask again
+  every few seconds, and push notifications tell the app something
+  happened.
+- **How they connect:** HTTPS REST through `lib/network/requests.dart`
+  (and `P2PApi` on top of it). Requests are **signed** on the phone with
+  the user's key (headers `X-TW-SIGNER`, `X-TW-PUBLIC-KEY`,
+  `X-TW-TIMESTAMP`, `X-TW-SIGNATURE`, plus `X-TW-DEVICE-ID` and
+  `X-TW-APP-VERSION`); the key never leaves the phone. Transactions come
+  back from app-backend as a hash, which the app signs and sends back.
+- **Settings on this side:** the Testnet and Mainnet addresses in
+  `getTrovoAppBaseURL()` and the in-app network switch
+  ([CONFIGURATION.md](CONFIGURATION.md#1-network-and-servers)).
+- **Settings on the other side:** app-backend must be on HTTPS. Its
+  dynamic-link settings (`DYNAMIC_LINKS_ANDROID_PACKAGE_NAME`,
+  `DYNAMIC_LINKS_IOS_BUNDLE_ID`) must be this app's id, `com.trovo.wallet`.
+- **How to check it works:** create a wallet; the account appears in
+  app-backend's `users` table.
+- **When it is down:** screens show network errors; keys stay safe on the
+  phone.
+
+## 2. wallet-core
+
+- **What it is and why:** Trovo's Rust code for keys, recovery phrases,
+  signing and Safe wallet addresses. The same code runs in app-web, so
+  both apps derive the same wallet from the same phrase.
+- **Direction:** the app calls it on the phone.
+- **How they connect:** Dart FFI: `lib/functions/wallet_core_ffi_io.dart`
+  loads `libwallet_core.so` (Android) or the linked `libwallet_core.a`
+  (iOS); `lib/functions/trovo-sdk.dart` (`TrovoWalletSDK`) wraps it.
+- **Settings:** the compiled library must be in the app; it is **not in
+  the repository** ([DEPLOYMENT.md](DEPLOYMENT.md#4-build-wallet-core-for-the-phone)).
+- **How to check it works:** creating a wallet shows a 12-word phrase.
+- **When it is missing:** creating, importing and signing fail with
+  "library not found".
+
+## 3. Firebase
+
+- **What it is and why:** push notifications (`firebase_messaging`),
+  crash reports (`firebase_crashlytics`), analytics (`firebase_analytics`)
+  and remote values such as `share_wallet_referral_label`
+  (`firebase_remote_config`).
+- **Direction:** the app registers for notifications and sends crash
+  reports and analytics; app-backend sends notifications through Firebase
+  to the phone.
+- **How they connect:** the Firebase SDKs, with the project in
+  `lib/firebase_options.dart` (one for Testnet, one for Mainnet). The app
+  gives app-backend its notification token.
+- **Settings on this side:** [Firebase project settings](CONFIGURATION.md#firebase-project-settings-libfirebase_optionsdart).
+- **Settings on the other side:** app-backend's `GC` and
+  `GOOGLE_PROJECT_ID` must be the **same** Firebase project, or
+  notifications never arrive.
+- **How to check it works:** receive a payment with the app in the
+  background: a notification arrives.
+- **When it is down:** no notifications; everything else works.
+
+## 4. Binance market data
+
+- **What it is and why:** the market chart screen loads hourly price
+  candles from `https://api.binance.com/api/v3/klines`
+  (`lib/screens/market_trade/market_trade_info.dart`).
+- **Direction:** app → Binance; no key.
+- **When it is down:** that chart is empty.
+
+## 5. Not connected: tm-api and tm-web
+
+The app has no address, call or code for Trovo Manager. Admin actions reach
+users through app-backend (for example push notifications, or a login
+request an admin approves in this app, which goes through app-backend).
+
+---
+
+The sections below go into more depth on how the app talks to app-backend
+and uses wallet-core.
+
+## Talking to app-backend in detail
 
 All backend communication goes through `lib/network/requests.dart`
 (`makeGetRequest`, `makePostRequest`, `makePutRequest`, etc.) and the
@@ -60,10 +153,10 @@ In plain terms: the client concatenates the request path, the signer
 identity, and a Unix timestamp, signs that string with the wallet's
 private key (`TrovoWalletSDK().signHTTP`, see below), and sends the
 signature, the wallet's public address, the signer, a device ID, the app
-version, and the timestamp as headers. `app-backend` is presumably able
-to verify the signature against the claimed public key/signer and reject
-stale timestamps or bad signatures — that verification logic lives in
-`app-backend`, not here.
+version, and the timestamp as headers. app-backend recomputes the string,
+checks the signature against `X-TW-SIGNER` and refuses the request (`401`)
+if it does not match (see app-backend's
+[Authentication](../app-backend/INTEGRATION.md#authentication)).
 
 The actual signing (`TrovoWalletSDK().signHTTP` in
 `lib/functions/trovo-sdk.dart`) delegates to `WalletCoreFFI` — see below.
@@ -138,7 +231,7 @@ cannot. Pushes carry `route: publicMarketsOrder` (with `orderId`) or
 `publicMarketsDividend` (with `assetCode`), and tapping one opens the
 order or the dividends.
 
-## Shared code with the rest of the monorepo: `wallet-core`
+## Using wallet-core in detail
 
 This app is **not** fully code-isolated — it's meant to share its
 crypto/signing logic with `app-web` through the monorepo's
@@ -201,13 +294,3 @@ address (the Safe) is `X-TW-PUBLIC-KEY`. They are no longer the same value.
   picks the stablecoin wallets pay network fees in
   (`GET /v1/users/settings/gas-fee-assets`,
   `PUT /v1/users/settings/gas-fee-asset`).
-
-## Relationship to `tm-api` / `tm-web`
-
-None. `tm-api`/`tm-web` are a separate internal admin console with their
-own backend; a search of both (`grep -rln "app-mobile" tm-api tm-web`)
-turns up only a mention in `tm-web/README.md`'s own integration notes,
-where it explicitly states `tm-web` has no relationship with
-`app-backend`, `app-web`, or `app-mobile`. Nothing in this app references
-`tm-api`/`tm-web`, and nothing in `tm-api`/`tm-web` builds against or
-calls this app.

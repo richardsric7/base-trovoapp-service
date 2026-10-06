@@ -1,41 +1,37 @@
-# app-mobile — Trovo Wallet (Mobile)
+# app-mobile — Trovo Wallet (mobile app)
 
-Trovo Wallet is a non-custodial cryptocurrency wallet for the Trovo
-Ecosystem. `app-mobile` is the Flutter application that ships this wallet
-to end users on **iOS and Android**. It is the mobile counterpart of
-[`app-web`](../app-web) (the browser-based wallet): both are end-user
-clients of the same [`app-backend`](../app-backend) Go REST API, and both
-sign requests with a wallet keypair rather than a username/password
-session. Neither app has any relationship to `tm-api`/`tm-web`, which are
-a separate internal admin tool — see [INTEGRATION.md](./INTEGRATION.md).
+## What this project does
 
-## Role in the monorepo
+`app-mobile` is the **Trovo app for Android and iOS**. With it, people:
 
-```
-app-backend  (Go REST API)
-     ^                 ^
-     |                 |
-  app-web           app-mobile   <-- you are here
- (browser)        (iOS/Android)
-```
+- create a wallet (a 12-word recovery phrase; the keys never leave the
+  phone) or import one, and see their balances;
+- send and receive money, swap assets, and pay network fees in ETH or a
+  stablecoin;
+- trade with other people on the **P2P** marketplace;
+- buy **tokenized assets** and **Public Markets** (tokenized Nigerian
+  stocks and bonds) and receive dividends and interest;
+- deposit and withdraw Naira through a bank, verify their identity (KYC),
+  share wallets, and turn on account recovery;
+- approve logins and requests from partner services and from Trovo
+  Manager.
 
-- `app-backend` is the only server this app talks to. There is no
-  API of app-mobile's own to document (no Swagger/OpenAPI here).
-- `app-web` is the sibling client — same backend, same account/wallet
-  model, and (partially) the same Rust `wallet-core` signing logic. See
-  [INTEGRATION.md](./INTEGRATION.md) for exactly how much code is shared
-  today versus merely mirrored.
-- `tm-api` / `tm-web` are an unrelated internal admin console. This app
-  never talks to them.
+It is built with Flutter. All data comes from
+[`app-backend`](../app-backend/README.md); keys and signatures are made on
+the phone by [`wallet-core`](../wallet-core/README.md). The web version of
+the same wallet is [`app-web`](../app-web/README.md).
+
+Next: [DEPLOYMENT.md](DEPLOYMENT.md) to build and release it,
+[CONFIGURATION.md](CONFIGURATION.md) for its settings and
+[INTEGRATION.md](INTEGRATION.md) for what it connects to.
 
 ## Tech stack
 
 Read from [`pubspec.yaml`](./pubspec.yaml) and the code under `lib/`:
 
 - **Flutter / Dart.** `environment.sdk: '>=3.13.0 <4.0.0'` in
-  `pubspec.yaml`. In practice, target the Flutter version pinned in CI —
-  see [DEPLOYMENT.md](./DEPLOYMENT.md#1-install-the-flutter-sdk) for the
-  exact version and why.
+  `pubspec.yaml`: Flutter 3.47 or newer (see
+  [DEPLOYMENT.md](./DEPLOYMENT.md#2-before-you-start)).
 - **State management: `provider`.** The app is built on
   `ChangeNotifier` + `provider` (`Provider.of` / `context.watch` /
   `context.read` appear in ~157 files, e.g. `lib/storage/state.dart`'s
@@ -64,11 +60,11 @@ Read from [`pubspec.yaml`](./pubspec.yaml) and the code under `lib/`:
   into `lib/firebase_options.dart`, with **separate Firebase projects for
   Testnet vs. Mainnet** selected at runtime — see
   [CONFIGURATION.md](./CONFIGURATION.md).
-- **Native crypto via FFI:** `lib/functions/wallet_core_ffi.dart` binds
+- **Native crypto via FFI:** `lib/functions/wallet_core_ffi_io.dart` binds
   (via `dart:ffi`) to the same Rust `wallet-core` crate that `app-web`
-  compiles to WASM, for key generation and transaction signing. As of
-  this writing that native library isn't actually built/bundled in this
-  repo yet — see [INTEGRATION.md](./INTEGRATION.md) for the caveat.
+  compiles to WASM, for key generation and signing. The compiled library
+  is not in the repository: build it with
+  [DEPLOYMENT.md step 4](./DEPLOYMENT.md#4-build-wallet-core-for-the-phone).
 - Other notable packages: `mobile_scanner` (QR scanning), `local_auth`
   (biometrics), `easy_localization` (translations, see
   `assets/translations/`), `fl_chart` / `syncfusion_flutter_*` /
@@ -90,45 +86,23 @@ Read from [`pubspec.yaml`](./pubspec.yaml) and the code under `lib/`:
 | `lib/storage/` | Local persistence and app-wide state: `state.dart` (the `DataProvider` `ChangeNotifier`), `store.dart`, `cache.dart`. |
 | `lib/models/` | Plain Dart data models (`wallet.dart`, `user.dart`, `transaction.dart`, `p2p_offer.dart`, etc). |
 | `lib/config/` | Static app config, e.g. `app_settings.config.dart`. |
-| `lib/functions/` | Helpers and the wallet SDK: `trovo-sdk.dart` (signing façade) and `wallet_core_ffi.dart` (Rust `wallet-core` FFI bindings). |
+| `lib/functions/` | Helpers and the wallet SDK: `trovo-sdk.dart` (signing façade) and `wallet_core_ffi*.dart` (Rust `wallet-core` FFI bindings, and a web stand-in). |
 | `lib/Icons/` | Custom icon font glue. |
 
 ## Local dev setup
 
-Prerequisites: Flutter SDK installed and a device/emulator/simulator
-available. See [DEPLOYMENT.md](./DEPLOYMENT.md) if you don't have Flutter,
-Android Studio, or Xcode installed yet — that doc walks through
-installing all of it from scratch.
+The short version (the full guide, including installing Flutter and
+building wallet-core, is [DEPLOYMENT.md](DEPLOYMENT.md)):
 
 ```bash
-# 1. From the monorepo root, enter this project
-cd app-mobile
-
-# 2. Confirm your Flutter install and see what devices are available
-flutter doctor
-flutter devices
-
-# 3. Fetch Dart/Flutter package dependencies
+git clone https://github.com/richardsric7/base-trovoapp-service.git
+cd base-trovoapp-service/app-mobile
 flutter pub get
-
-# 4. (Android only, first time) generate a local.properties pointing at your SDK
-#    — Android Studio does this automatically if you open android/ in it once.
-
-# 5. Start an emulator (Android) or simulator (iOS), or plug in a device
-
-# 6. Run the app in debug mode (hot reload enabled)
+# build wallet-core into the app once: DEPLOYMENT.md step 4
+flutter devices        # start an emulator or plug in a phone first
 flutter run
-
-# 7. Run static analysis
-flutter analyze
-
-# 8. Run the test suite
-flutter test
+flutter analyze && flutter test
 ```
-
-That's it for day-to-day development. For building a release APK/AAB or
-iOS IPA, app signing, and CI details, see
-[DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ## Further reading
 

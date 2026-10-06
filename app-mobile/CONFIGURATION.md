@@ -1,134 +1,189 @@
 # Configuration
 
-This document lists every piece of runtime/build-time configuration the
-app reads, based on an actual search of `lib/` (not on what's typical for
-Flutter apps in general).
+Every parameter `app-mobile` uses. Each one says what it is, why it is
+needed, whether you must set it, an example and how to get a real value.
 
-## What mechanism does this app actually use?
+## How to set them
 
-```bash
-grep -rn "String.fromEnvironment\|dotenv\|dart-define" lib/
-```
+The Trovo mobile app has **no environment variables** and no `.env` file:
+nothing in `lib/` reads `--dart-define`, `String.fromEnvironment` or a
+dotenv package. Its settings are of four kinds:
 
-This returns **nothing**. There is no `flutter_dotenv` dependency in
-`pubspec.yaml`, no `.env` file, and no use of `String.fromEnvironment` /
-`--dart-define` anywhere in `lib/`. The one hit for `.env` in the whole
-`lib/` tree is a comment in `lib/screens/kyc_screen.dart` ("fetched from
-.env variables") that does not correspond to any actual `.env`
-loading code in this repo — it looks aspirational/stale, not a real
-mechanism.
-
-**This is a real gap worth fixing.** Everything configurable today is
-either a hardcoded constant compiled into the app, or a value the user
-picks at runtime that's persisted to on-device storage:
-
-| Mechanism | Where | Notes |
+| Kind | Where | Changing it needs |
 |---|---|---|
-| Hardcoded constants | `lib/network/requests.dart`, `lib/firebase_options.dart` | Compiled into the binary. Changing them requires a code change and a new build — there's no way to point an existing build at a different backend without rebuilding. |
-| A runtime toggle persisted to local storage | `walletMode` (`"Testnet"` / anything else = mainnet), read/written via `StoreData` (`lib/storage/store.dart`) and `DataProvider` (`lib/storage/state.dart`) | Set by the user in-app (e.g. Settings), not by a build-time flag. Selects which of the two hardcoded backend URLs and which of the two hardcoded Firebase projects to use. |
-| A dead/unused static map | `lib/config/app_settings.config.dart` (`appSettings["network"]`) | Defined but never read anywhere else in `lib/` (`grep -rn "appSettings\[" lib/` finds no call sites) — effectively vestigial. |
+| **Written in the code** (server addresses, Firebase projects) | `lib/network/requests.dart`, `lib/firebase_options.dart` | an edit and a new build |
+| **A switch in the app** (Testnet or Mainnet) | Settings screen, saved on the phone | nothing: the user flips it |
+| **Build files** (app id, version, signing key) | `pubspec.yaml`, `android/`, `ios/` | a new build |
+| **Remote values** | Firebase Remote Config console | nothing: the app fetches them |
 
-If you need real environment-based configuration (e.g. a staging build
-that can't accidentally hit production, or CI builds that inject secrets
-without editing source), introducing `--dart-define` build flags or
-`flutter_dotenv` would be the standard Flutter fix — neither exists here
-today.
+The app ships with **two sets** of addresses and Firebase projects, one for
+**Testnet** (testing) and one for **Mainnet** (real money); the in-app
+switch picks between them. A new install starts on **Testnet**.
 
-## Configurable values
+---
 
-### 1. `app-backend` API base URL
+## 1. Network and servers
 
-- **Name:** implicit — the return value of `getTrovoAppBaseURL()` in
-  `lib/network/requests.dart`.
-- **Mechanism:** hardcoded, chosen at runtime by the persisted
-  `walletMode` flag:
+### Testnet / Mainnet switch (`walletMode`)
 
-  ```dart
-  Future<String> getTrovoAppBaseURL() async {
-    String trovoBaseURL;
-    if (await StoreData().storeGetData('walletMode') == "Testnet") {
-      trovoBaseURL = 'https://api.dev.trovo.app';
-    } else {
-      trovoBaseURL = 'https://api.trovotechnologies.com';
-    }
-    return trovoBaseURL;
-  }
-  ```
+- **What it is:** Which set of servers and Firebase project the app uses:
+  `Testnet`, or anything else for Mainnet. Saved on the phone under the key
+  `walletMode` (`lib/storage/state.dart`, `changeWalletMode`).
+- **Why it's needed:** The same app build can be used for testing and for
+  real money.
+- **Required:** No, default `Testnet`.
+- **Example:** `Testnet`
+- **How to get it:** The user changes it in **Settings**; the app then
+  restarts from the splash screen.
 
-- **Example values:** `https://api.dev.trovo.app` (Testnet) /
-  `https://api.trovotechnologies.com` (mainnet/production).
-- **What it's for:** every REST call this app makes to `app-backend`
-  goes through this base URL.
-- **How to get a real value:** it should point at wherever `app-backend`
-  is actually running for your environment — see
-  `app-backend/DEPLOYMENT.md` in this monorepo for how to stand up (or
-  find) a running instance. If you need the mobile app to hit a locally
-  running `app-backend` instance instead of either hardcoded host, you
-  currently have to edit `getTrovoAppBaseURL()` directly and rebuild —
-  there's no config flag for it.
+### app-backend address (Testnet)
 
-### 2. Firebase project configuration (push, analytics, crash reporting, remote config)
+- **What it is:** The address of the test app-backend, written in
+  `getTrovoAppBaseURL()` in `lib/network/requests.dart`. Every API call
+  starts with it.
+- **Why it's needed:** All of the app's data comes from app-backend.
+- **Required:** Yes (already set).
+- **Example:** `https://api.dev.trovo.app` (the current value)
+- **How to get it:** Your test app-backend's public address
+  ([app-backend/DEPLOYMENT.md](../app-backend/DEPLOYMENT.md)), HTTPS, no
+  trailing `/`. Android and iOS refuse plain `http://` addresses by
+  default (the app allows no exception), so to use an app-backend on your
+  own computer, give it an HTTPS address with a tunnel (for example
+  `ngrok http 8080` prints `https://<random>.ngrok-free.app`), put that
+  here and rebuild.
 
-- **Name:** `DefaultFirebaseOptions` in `lib/firebase_options.dart`
-  (generated by the [FlutterFire CLI](https://firebase.google.com/docs/flutter/setup)).
-- **Mechanism:** hardcoded, per-platform, per-network constants
-  (`androidTestNet`, `androidMainnet`, `iosTestNet`, `iosMainnet`),
-  selected by the same persisted `walletMode` flag as the API URL.
-- **Example shape** (Android Testnet; the real values are already
-  committed in `lib/firebase_options.dart` itself — not repeated here
-  in their real form, since Google/Firebase API keys share a
-  recognizable `AIza...` shape that GitHub's secret scanner flags even
-  when the key is meant to be public and even as an obvious
-  placeholder):
+### app-backend address (Mainnet)
 
+- **What it is:** The production app-backend's address, in the same
+  function.
+- **Why it's needed:** Real users' requests go here.
+- **Required:** Yes (already set).
+- **Example:** `https://api.trovotechnologies.com` (the current value)
+- **How to get it:** Your production app-backend's public address.
+
+The app opens no websocket and calls no blockchain node itself: keys are
+made and used on the phone with wallet-core, and app-backend does
+everything on the chain. The one other outside call is the market chart's
+prices, from `https://api.binance.com/api/v3/klines`
+(`lib/screens/market_trade/market_trade_info.dart`), which needs no key.
+
+## 2. Firebase (push notifications, analytics, crash reports, remote values)
+
+### Firebase project settings (`lib/firebase_options.dart`)
+
+- **What it is:** The identifiers of the Firebase project the app connects
+  to, one set per platform and network (`androidTestNet`, `androidMainnet`,
+  `iosTestNet`, `iosMainnet`): `apiKey`, `appId`, `messagingSenderId`,
+  `projectId`, `storageBucket` (and `iosBundleId` on iOS).
+- **Why it's needed:** Push notifications (`firebase_messaging`), analytics
+  (`firebase_analytics`), crash reports (`firebase_crashlytics`) and remote
+  values (`firebase_remote_config`) all go to that project. app-backend
+  sends push notifications through the **same** project (its `GC` and
+  `GOOGLE_PROJECT_ID` settings).
+- **Required:** Yes (already set).
+- **Example:**
   ```dart
   static const FirebaseOptions androidTestNet = FirebaseOptions(
-    apiKey: '<firebase-web-api-key>',
-    appId: '<firebase-app-id>',
-    messagingSenderId: '<firebase-sender-id>',
-    projectId: 'trovotech-website',
-    storageBucket: 'trovotech-website.appspot.com',
+    apiKey: '<firebase-api-key>',
+    appId: '1:123456789012:android:0123456789abcdef',
+    messagingSenderId: '123456789012',
+    projectId: 'trovo-wallet-test',
+    storageBucket: 'trovo-wallet-test.appspot.com',
   );
   ```
+- **How to get it:** Don't type these by hand. Install the FlutterFire tool
+  (`dart pub global activate flutterfire_cli`), log in to Firebase
+  (`firebase login`), then run `flutterfire configure` in `app-mobile/` and
+  pick your project; it writes the values. Because this app keeps two
+  projects, copy the generated values into the matching `...TestNet` or
+  `...Mainnet` block. These values identify the app; they are not secrets
+  (Firebase protects data with its own rules), which is why they are in the
+  code.
 
-  Firebase's client `apiKey` is a public app identifier, not a secret
-  (Firebase access is enforced server-side by security rules / App
-  Check), which is why it's safe for it to be checked into source — but
-  the project as a whole (which Firebase project each build talks to)
-  is still configuration you may want to change, e.g. for your own dev
-  Firebase project.
-- **What it's actually used for, per dependency in `pubspec.yaml`:**
-  - `firebase_messaging` — push notifications (`lib/services/push_fcm_service.dart`,
-    `lib/screens/notifications/firebase_notifications.dart`).
-  - `firebase_analytics` — product analytics.
-  - `firebase_crashlytics` — crash reporting (`FlutterError.onError` is
-    wired to it in `lib/main.dart`).
-  - `firebase_remote_config` — remote-config values (declared as a
-    dependency; not traced further here).
-- **How to get a real value:** these come from the **Firebase console**
-  (https://console.firebase.google.com/) for the Trovo Firebase
-  project(s). To point the app at your own Firebase project (e.g. for a
-  personal dev build), install the FlutterFire CLI
-  (`dart pub global activate flutterfire_cli`) and run
-  `flutterfire configure` against your own Firebase project, which
-  regenerates `lib/firebase_options.dart` — do not hand-edit the API
-  keys.
+### Remote value `share_wallet_referral_label`
 
-### 3. Blockchain / RPC network selection
+- **What it is:** The text of the referral share label, fetched from
+  Firebase Remote Config (`lib/bottom_bar/bottom_pages/settings.dart`).
+- **Why it's needed:** Marketing can change it without a new app release.
+- **Required:** No (empty when not set).
+- **Example:** `Join me on Trovo and get a bonus`
+- **How to get it:** Firebase console → your project → **Remote Config** →
+  add a parameter with that name → **Publish**. The app fetches values at
+  start, at most once a minute.
 
-There is **no separate RPC endpoint or chain-ID configuration** in this
-app. Signing and address derivation happen locally via the `wallet-core`
-FFI bindings (`lib/functions/wallet_core_ffi.dart`,
-`lib/functions/trovo-sdk.dart`) — there's no on-chain RPC call from the
-Dart code at all. All chain interaction is mediated through
-`app-backend`'s REST API (see [INTEGRATION.md](./INTEGRATION.md)), so the
-"network" a build talks to is fully determined by the API base URL above
-(`walletMode`: Testnet vs. mainnet), not by a separate RPC URL.
+## 3. Build files
 
-## Summary: what to change and where
+### App id / bundle id
 
-| You want to... | What to change |
-|---|---|
-| Point the app at a different `app-backend` | Edit `getTrovoAppBaseURL()` in `lib/network/requests.dart` and rebuild (no build flag exists today). |
-| Point the app at your own Firebase project | Run `flutterfire configure` to regenerate `lib/firebase_options.dart`. |
-| Switch a build between Testnet and Mainnet at runtime | Toggle the in-app setting that writes `walletMode` to local storage — see `lib/storage/store.dart` / `state.dart`. No rebuild needed for this switch, since both sets of endpoints are already compiled in. |
+- **What it is:** The app's unique id in the stores: `com.trovo.wallet`
+  (`android/app/build.gradle.kts`: `applicationId` and `namespace`; iOS:
+  `PRODUCT_BUNDLE_IDENTIFIER` in `ios/Runner.xcodeproj`).
+- **Why it's needed:** The stores, push notifications and Firebase
+  identify the app by it.
+- **Required:** Yes (already set).
+- **Example:** `com.trovo.wallet`
+- **How to get it:** Keep it. Changing it makes a different app in the
+  stores and needs matching Firebase apps.
+
+### App version (`pubspec.yaml`)
+
+- **What it is:** `version: 0.0.121+165`: the version people see (`0.0.121`)
+  and the build number (`165`).
+- **Why it's needed:** The stores refuse an upload whose build number is
+  not higher than the last one.
+- **Required:** Yes.
+- **Example:** `version: 0.0.122+166`
+- **How to get it:** Raise the build number (after `+`) for every upload,
+  and the version when you release new features.
+
+### Android signing key (`android/key.properties`)
+
+- **What it is:** A file pointing to the key that signs Android release
+  builds, with four values: `storeFile`, `storePassword`, `keyAlias`,
+  `keyPassword` (read by `android/app/build.gradle.kts`).
+- **Why it's needed:** Google Play only accepts signed builds, and every
+  update must be signed with the same key.
+- **Required:** For release builds (debug builds use a built-in key).
+- **Example:**
+  ```properties
+  storeFile=/home/ada/keys/trovo-upload.jks
+  storePassword=<your-keystore-password>
+  keyAlias=upload
+  keyPassword=<your-key-password>
+  ```
+- **How to get it:** Create the key once (see
+  [DEPLOYMENT.md](DEPLOYMENT.md#7-build-an-android-release)), keep it and
+  its passwords in your password manager, and write this file on the build
+  machine. `key.properties` is in `.gitignore`: never commit it or the key.
+
+### iOS signing team
+
+- **What it is:** The Apple Developer team that signs iOS builds, chosen in
+  Xcode (**Runner → Signing & Capabilities → Team**).
+- **Why it's needed:** Apple only installs signed apps.
+- **Required:** For running on an iPhone and for releases.
+- **Example:** `Trovo Technologies Ltd (AB12CD34EF)`
+- **How to get it:** An Apple Developer Program membership
+  (<https://developer.apple.com/programs/>); your account must be on the
+  team.
+
+### wallet-core native library
+
+- **What it is:** The compiled wallet-core library the app calls to make
+  keys, recovery phrases and signatures:
+  `android/app/src/main/jniLibs/<abi>/libwallet_core.so` on Android, and
+  `libwallet_core.a` linked into the Xcode project on iOS
+  (`lib/functions/wallet_core_ffi_io.dart`).
+- **Why it's needed:** Without it, creating or importing a wallet and
+  signing fail with "library not found".
+- **Required:** Yes, for any build that creates wallets or signs. **It is
+  not in the repository**: you build it from `wallet-core/`.
+- **Example:** `android/app/src/main/jniLibs/arm64-v8a/libwallet_core.so`
+- **How to get it:** [DEPLOYMENT.md](DEPLOYMENT.md#4-build-wallet-core-for-the-phone)
+  step 4.
+
+## Not used
+
+`lib/config/app_settings.config.dart` defines an `appSettings` map that no
+code reads. A comment in `lib/screens/kyc_screen.dart` mentions ".env
+variables"; there are none.
