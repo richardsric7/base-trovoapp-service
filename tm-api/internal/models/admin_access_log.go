@@ -86,6 +86,7 @@ const (
 	EventFeeExemptionAdd    = "fee_exemption.add"
 	EventFeeExemptionRemove = "fee_exemption.remove"
 	EventKycConfigChange    = "kyc_config.change"
+	EventStablerailConfig   = "stablerail_config.change"
 	EventKycLevelChange     = "kyc_level.change"
 
 	// org

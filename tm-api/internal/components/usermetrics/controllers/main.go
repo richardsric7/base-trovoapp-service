@@ -121,6 +121,12 @@ func Init(router *gin.Engine, s *serverModels.Server) {
 	apiV1.GET("/faucet/configs/:id", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetFaucetConfigByIDHandler(s.TrovoWalletDB))
 	apiV1.DELETE("/faucet/configs/:id", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.DeleteFaucetConfigHandler(s.TrovoWalletDB))
 
+	// Outside providers' credentials (KYC providers, Stablerail), masked;
+	// MANAGE_SETTINGS is checked in the handlers
+	apiV1.GET("/provider-settings", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetProviderSettingsHandler(s.AdminDB, s.TrovoWalletDB))
+	apiV1.PUT("/provider-settings/kyc/:provider", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventKycConfigChange, models.AccessCategoryConfig, accesslog.Param("provider")), userMetricServices.SaveKycProviderSettingsHandler(s.AdminDB, s.TrovoWalletDB))
+	apiV1.PUT("/provider-settings/stablerail", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventStablerailConfig, models.AccessCategoryConfig, nil), userMetricServices.SaveStablerailSettingsHandler(s.AdminDB, s.TrovoWalletDB))
+
 	// KYC Config endpoints
 	apiV1.POST("/kyc/configs", middleware.JwtTokenAuthMiddleware(s.AdminDB), accesslog.Audit(s.AdminDB, models.EventKycConfigChange, models.AccessCategoryConfig, accesslog.BodyField("service_provider")), userMetricServices.SaveKycConfigHandler(s.TrovoWalletDB))
 	apiV1.GET("/kyc/configs", middleware.JwtTokenAuthMiddleware(s.AdminDB), userMetricServices.GetAllKycConfigsHandler(s.TrovoWalletDB))

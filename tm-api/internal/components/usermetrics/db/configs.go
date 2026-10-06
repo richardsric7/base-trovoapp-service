@@ -50,8 +50,8 @@ func GetAllFaucetConfigs(db *gorm.DB) ([]models.FaucetConfigResponse, error) {
 		responses[i] = models.FaucetConfigResponse{
 			ID:              config.ID,
 			ServiceProvider: config.ServiceProvider,
-			Token:           config.Token,
-			SecretKey:       config.SecretKey,
+			Token:           models.MaskSecret(config.Token),
+			SecretKey:       models.MaskSecret(config.SecretKey),
 		}
 	}
 	return responses, nil
@@ -69,8 +69,8 @@ func GetFaucetConfigByID(db *gorm.DB, id int64) (*models.FaucetConfigResponse, e
 	return &models.FaucetConfigResponse{
 		ID:              config.ID,
 		ServiceProvider: config.ServiceProvider,
-		Token:           config.Token,
-		SecretKey:       config.SecretKey,
+		Token:           models.MaskSecret(config.Token),
+		SecretKey:       models.MaskSecret(config.SecretKey),
 	}, nil
 }
 
@@ -120,8 +120,8 @@ func GetAllKycConfigs(db *gorm.DB) ([]models.KycConfigResponse, error) {
 		responses[i] = models.KycConfigResponse{
 			ID:              config.ID,
 			ServiceProvider: config.ServiceProvider,
-			Token:           config.Token,
-			SecretKey:       config.SecretKey,
+			Token:           models.MaskSecret(config.Token),
+			SecretKey:       models.MaskSecret(config.SecretKey),
 		}
 	}
 	return responses, nil
@@ -139,8 +139,8 @@ func GetKycConfigByID(db *gorm.DB, id int64) (*models.KycConfigResponse, error) 
 	return &models.KycConfigResponse{
 		ID:              config.ID,
 		ServiceProvider: config.ServiceProvider,
-		Token:           config.Token,
-		SecretKey:       config.SecretKey,
+		Token:           models.MaskSecret(config.Token),
+		SecretKey:       models.MaskSecret(config.SecretKey),
 	}, nil
 }
 

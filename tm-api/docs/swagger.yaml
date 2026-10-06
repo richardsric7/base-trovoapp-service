@@ -5618,6 +5618,127 @@ paths:
       summary: Payouts report
       tags:
       - Proceeds payouts
+  /provider-settings:
+    get:
+      description: KYC providers' (Sumsub, Doja) and Stablerail's settings, with every
+        key masked. Needs MANAGE_SETTINGS.
+      parameters:
+      - default: Bearer <your-token>
+        description: JWT Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ProviderSettingsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Outside providers' settings
+      tags:
+      - ProviderSettings
+  /provider-settings/kyc/{provider}:
+    put:
+      consumes:
+      - application/json
+      description: Creates or updates the kyc_configs row app-backend reads for this
+        provider. Empty fields keep the stored value. Needs MANAGE_SETTINGS.
+      parameters:
+      - default: Bearer <your-token>
+        description: JWT Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: sumsub or doja
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: Credentials
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.KycProviderSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ProviderSettingsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Set a KYC provider's credentials
+      tags:
+      - ProviderSettings
+  /provider-settings/stablerail:
+    put:
+      consumes:
+      - application/json
+      description: Creates or updates the stablerail_configs row app-backend reads
+        on every bank deposit or withdrawal request. An empty api_key keeps the stored
+        key. Needs MANAGE_SETTINGS.
+      parameters:
+      - default: Bearer <your-token>
+        description: JWT Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Settings
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.StablerailSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ProviderSettingsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Set Stablerail's settings
+      tags:
+      - ProviderSettings
   /public-markets/assets:
     get:
       parameters:
@@ -14282,6 +14403,25 @@ definitions:
         example: individual
         type: string
     type: object
+  models.KycProviderSettings:
+    properties:
+      secret_key:
+        $ref: '#/definitions/models.ProviderSecretStatus'
+      service_provider:
+        example: sumsub
+        type: string
+      token:
+        $ref: '#/definitions/models.ProviderSecretStatus'
+    type: object
+  models.KycProviderSettingsRequest:
+    properties:
+      secret_key:
+        example: <secret>
+        type: string
+      token:
+        example: sbx:AbC...
+        type: string
+    type: object
   models.LoginCallbackInput:
     properties:
       loginId:
@@ -14531,6 +14671,23 @@ definitions:
       data:
         $ref: '#/definitions/models.StakeholderProfileResponse'
     type: object
+  models.ProviderSecretStatus:
+    properties:
+      hint:
+        example: sbx:…Xy
+        type: string
+      set:
+        type: boolean
+    type: object
+  models.ProviderSettingsResponse:
+    properties:
+      kyc:
+        items:
+          $ref: '#/definitions/models.KycProviderSettings'
+        type: array
+      stablerail:
+        $ref: '#/definitions/models.StablerailSettings'
+    type: object
   models.RejectRequest:
     properties:
       reason:
@@ -14741,6 +14898,33 @@ definitions:
     required:
     - otp
     - password
+    type: object
+  models.StablerailSettings:
+    properties:
+      api_key:
+        $ref: '#/definitions/models.ProviderSecretStatus'
+      base_url:
+        example: https://api.stablerail.example.com
+        type: string
+      enabled:
+        type: boolean
+      fintech_id:
+        example: ft_123
+        type: string
+    type: object
+  models.StablerailSettingsRequest:
+    properties:
+      api_key:
+        example: <api key>
+        type: string
+      base_url:
+        example: https://api.stablerail.example.com
+        type: string
+      enabled:
+        type: boolean
+      fintech_id:
+        example: ft_123
+        type: string
     type: object
   models.StakeholderAssetAssignment:
     properties:

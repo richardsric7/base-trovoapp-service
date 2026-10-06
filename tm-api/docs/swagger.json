@@ -8370,6 +8370,181 @@
                 }
             }
         },
+        "/provider-settings": {
+            "get": {
+                "description": "KYC providers' (Sumsub, Doja) and Stablerail's settings, with every key masked. Needs MANAGE_SETTINGS.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ProviderSettings"
+                ],
+                "summary": "Outside providers' settings",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ProviderSettingsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/provider-settings/kyc/{provider}": {
+            "put": {
+                "description": "Creates or updates the kyc_configs row app-backend reads for this provider. Empty fields keep the stored value. Needs MANAGE_SETTINGS.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ProviderSettings"
+                ],
+                "summary": "Set a KYC provider's credentials",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "sumsub or doja",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Credentials",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.KycProviderSettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ProviderSettingsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/provider-settings/stablerail": {
+            "put": {
+                "description": "Creates or updates the stablerail_configs row app-backend reads on every bank deposit or withdrawal request. An empty api_key keeps the stored key. Needs MANAGE_SETTINGS.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ProviderSettings"
+                ],
+                "summary": "Set Stablerail's settings",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cyour-token\u003e",
+                        "description": "JWT Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Settings",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.StablerailSettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ProviderSettingsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/public-markets/assets": {
             "get": {
                 "security": [
@@ -21697,6 +21872,34 @@
                 }
             }
         },
+        "models.KycProviderSettings": {
+            "type": "object",
+            "properties": {
+                "secret_key": {
+                    "$ref": "#/definitions/models.ProviderSecretStatus"
+                },
+                "service_provider": {
+                    "type": "string",
+                    "example": "sumsub"
+                },
+                "token": {
+                    "$ref": "#/definitions/models.ProviderSecretStatus"
+                }
+            }
+        },
+        "models.KycProviderSettingsRequest": {
+            "type": "object",
+            "properties": {
+                "secret_key": {
+                    "type": "string",
+                    "example": "\u003csecret\u003e"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "sbx:AbC..."
+                }
+            }
+        },
         "models.LoginCallbackInput": {
             "type": "object",
             "properties": {
@@ -22065,6 +22268,32 @@
                 }
             }
         },
+        "models.ProviderSecretStatus": {
+            "type": "object",
+            "properties": {
+                "hint": {
+                    "type": "string",
+                    "example": "sbx:…Xy"
+                },
+                "set": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.ProviderSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "kyc": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.KycProviderSettings"
+                    }
+                },
+                "stablerail": {
+                    "$ref": "#/definitions/models.StablerailSettings"
+                }
+            }
+        },
         "models.RejectRequest": {
             "type": "object",
             "required": [
@@ -22381,6 +22610,45 @@
                 "password": {
                     "type": "string",
                     "minLength": 8
+                }
+            }
+        },
+        "models.StablerailSettings": {
+            "type": "object",
+            "properties": {
+                "api_key": {
+                    "$ref": "#/definitions/models.ProviderSecretStatus"
+                },
+                "base_url": {
+                    "type": "string",
+                    "example": "https://api.stablerail.example.com"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "fintech_id": {
+                    "type": "string",
+                    "example": "ft_123"
+                }
+            }
+        },
+        "models.StablerailSettingsRequest": {
+            "type": "object",
+            "properties": {
+                "api_key": {
+                    "type": "string",
+                    "example": "\u003capi key\u003e"
+                },
+                "base_url": {
+                    "type": "string",
+                    "example": "https://api.stablerail.example.com"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "fintech_id": {
+                    "type": "string",
+                    "example": "ft_123"
                 }
             }
         },

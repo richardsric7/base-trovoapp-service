@@ -61,6 +61,11 @@ export const SideBar = () => {
       icon: Revenue,
       link: "/feeexemptions",
     },
+    {
+      title: "Provider Settings",
+      icon: Compliance,
+      link: "/providersettings",
+    },
 
     { title: "Revenue", icon: Revenue, link: "/revenue" },
 
