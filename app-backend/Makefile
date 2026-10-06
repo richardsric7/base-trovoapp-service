@@ -22,8 +22,7 @@ lint:
 	golangci-lint run --timeout=5m
 
 test:
-	# Scope: skips root main_test.go (integration suite that needs a live
-	# server at localhost:8080). -vet=off because go test's implicit vet
+	# -vet=off because go test's implicit vet
 	# doesn't take the -stringintconv=false flag we use above.
 	go test ./internal/... -race -vet=off -coverprofile=coverage.out -covermode=atomic
 

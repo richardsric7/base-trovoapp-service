@@ -907,15 +907,6 @@ own deployment, always set these explicitly).
 
 ---
 
-## Test suite only
-
-**`RICPK`** / **`RICSC`**
-- Example: a testnet wallet's public key / private key
-- What it does: Only read by `main_test.go` (the integration test suite that exercises a live running server) — not used by the application itself. They provide a funded test wallet's public key and secret key for the tests to transact with.
-- How to get a real value: a funded testnet wallet, used only for running `main_test.go` against a live local server; never a production key.
-
----
-
 ## Present in `.env.example` but not currently read by the code
 
 These appear as leftovers in `.env.example` from an earlier SMTP-based mail

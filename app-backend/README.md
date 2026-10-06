@@ -66,7 +66,6 @@ token — see [INTEGRATION.md](INTEGRATION.md#authentication) for the details.
 ```
 app-backend/
 ├── main.go              # entrypoint: env checks, DB open + migrate, router wiring, background jobs
-├── main_test.go          # manual scripts against a live server (build tag livetests; not run by `go test`)
 ├── docs/                 # swag-generated OpenAPI output (docs.go, swagger.json, swagger.yaml) — do not hand-edit
 ├── Dockerfile            # multi-stage build → small alpine runtime image
 ├── Makefile               # CI-parity targets: build, vet, lint, test

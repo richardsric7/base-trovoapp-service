@@ -253,7 +253,3 @@ make test    # go test ./internal/... -race -vet=off -coverprofile=coverage.out
 make ci      # tidy-check + build + vet + lint + test, in that order
 ```
 
-The root package's `main_test.go` holds manual scripts against a live
-server (they register accounts and send requests as real users), so it
-builds only with `-tags livetests`; neither `make test` nor `go test ./...`
-runs it.

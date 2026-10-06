@@ -104,7 +104,6 @@ was checked and ruled out.
 ```
 payment-history-engine/
 ├── main.go                     Entry point: DB setup, the 4 worker loops, block/log processing
-├── main_test.go                 Manual scripts against a live server (build tag livetests; not run by `go test`)
 ├── userops.go                   ETH sent/received by Safe wallets: user operation and SafeReceived decoding
 ├── docs/                         Generated Swagger/OpenAPI spec (swag init output — do not hand-edit)
 ├── internal/
