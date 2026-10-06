@@ -1,44 +1,37 @@
-# tm-web — Trovo Manager (Admin Dashboard)
+# tm-web — Trovo Manager (admin dashboard)
 
-`tm-web` is the internal admin dashboard for the Trovo Wallet platform. It is
-a [Next.js](https://nextjs.org/) + TypeScript single-page-style application
-used by Trovo staff to manage platform data: users, curated/tokenized assets,
-service links, P2P trades and appeals, fee/payment configuration, compliance
-and AML review, KYC, vault-signer secrets, audit trails, and more.
+## What this project does
 
-It also hosts a smaller, separate **organisation/stakeholder portal** (under
-`/organisation`) used by external partners (asset custodians, trustees,
-issuing houses, legal/financial advisers, rating agencies) to manage their
-own tokenized assets. Both portals live in this one app but authenticate and
-call the backend independently of each other (see [INTEGRATION.md](./INTEGRATION.md)).
+`tm-web` is the website of **Trovo Manager**, the admin dashboard Trovo
+staff use to run the platform. From it, staff:
 
-`npm run test`-style unit tests are not part of this project's current setup;
-correctness is enforced via `yarn lint` and `next build` type-checking (see
-`yarn ci` in `package.json`).
+- look up and manage users (KYC, suspensions, fee exemptions);
+- curate assets and manage tokenized assets, their payouts (dividends and
+  interest) and Public Markets (tokenized Nigerian stocks and bonds);
+- resolve P2P trading disputes and review compliance and AML cases;
+- manage partner businesses ("service links"), fees, platform signing keys
+  (vault manager), admins and their permissions, and see audit trails and
+  system health.
 
-## Role in the monorepo
+It also hosts the **organization portal** (`/organisation`), where partner
+organizations (custodians, trustees, issuing houses, advisers) manage their
+own tokenized assets, with a login of their own.
 
-This is a **pure client application with no database and (practically) no
-server-side business logic of its own**. Every piece of real data — users,
-assets, trades, fees, KYC records, etc. — is fetched from and written to the
-sibling Go project **`tm-api`** over HTTP/REST. `tm-web` renders UI, manages
-client-side auth state, and calls `tm-api`; it does not talk to any other
-service in the monorepo directly. See [INTEGRATION.md](./INTEGRATION.md) for
-the full picture, including why `tm-web` has no relationship with
-`app-backend`, `app-web`, or `app-mobile`.
+Admins log in without a password: they approve the login in their Trovo
+mobile app. tm-web has no data of its own; everything comes from
+[`tm-api`](../tm-api/README.md).
 
-A check of `src/app` confirms there are no Next.js Route Handlers
-(`route.ts`) anywhere in this project — `tm-web` exposes no API of its own.
-The `external-api-clients` folder under `src/app` is a *page* (for managing
-external API client credentials issued by `tm-api`), not an API route.
+Next: [DEPLOYMENT.md](DEPLOYMENT.md) to run it,
+[CONFIGURATION.md](CONFIGURATION.md) for its settings and
+[INTEGRATION.md](INTEGRATION.md) for what it connects to.
 
 ## Tech stack
 
 | Concern | Choice |
 |---|---|
-| Framework | [Next.js 14](https://nextjs.org/) (`^14.2.35`), **App Router** (`src/app/`) |
-| Language | TypeScript |
-| UI library | [Ant Design 5](https://ant.design/) (`antd`, `@ant-design/icons`, `@ant-design/nextjs-registry`) as the component kit |
+| Framework | [Next.js 16](https://nextjs.org/), App Router (`src/app/`) |
+| Language | TypeScript 7, React 19 |
+| UI library | [Ant Design 6](https://ant.design/) (`antd`, `@ant-design/icons`, `@ant-design/nextjs-registry`) |
 | Styling | [styled-components](https://styled-components.com/) (`^6.1.11`), enabled via the `compiler.styledComponents` option in `next.config.mjs` — most custom/bespoke UI (forms, layout, one-off pages) is hand-styled with `styled-components`, while `antd` supplies tables, modals, date pickers, etc. |
 | State / data fetching | [Redux Toolkit](https://redux-toolkit.js.org/) + **RTK Query**, via `react-redux`. Two separate RTK Query API slices exist: `baseApi` (admin dashboard, `src/redux/baseApi/index.ts`) and `orgApi` (organisation portal, `src/redux/baseApi/orgApi.ts`) — both use a **custom Axios-based `baseQuery`** (`axiosBasedQuery.ts` / `orgBasedQuery.ts`) rather than `fetchBaseQuery`, so all HTTP calls actually go through `axios` with its own interceptors. |
 | Forms | [Formik](https://formik.org/) + [Yup](https://github.com/jquense/yup) validation |
@@ -68,7 +61,6 @@ src/
 │   │   └── settings/, audit-trail/, system-health/, notification/, ...
 │   ├── organisation/           # SEPARATE stakeholder portal (external orgs), own auth (see INTEGRATION.md)
 │   ├── external-api-clients/   # Admin UI for managing tm-api's external API client credentials
-│   ├── middleware.ts           # Route guard — redirects unauthenticated requests to /sign-in or /organizations/login
 │   └── layout.tsx / page.tsx   # Root layout and landing page
 ├── redux/
 │   ├── baseApi/                # RTK Query setup: axios-based baseQuery, admin (baseApi) + org (orgApi) API slices, tag types
@@ -84,7 +76,7 @@ src/
 ├── config/                     # Runtime config, chiefly `BASE_URL` (tm-api base URL)
 ├── hooks/, utils/, lib/, constants/  # Shared helpers, localStorage/cookie helpers, constants
 ├── observability.ts            # Sentry helpers shared across client/server/edge configs
-└── middleware.ts                # (see above)
+└── middleware.ts                # Route guard: sends logged-out visitors to /sign-in or /organizations/login
 ```
 
 At the repo root, `sentry.client.config.ts`, `sentry.server.config.ts`, and
@@ -93,23 +85,20 @@ uses (browser, Node.js server, and Edge middleware respectively).
 
 ## Running locally
 
-Prerequisites: Node.js 20.x and Yarn (see [DEPLOYMENT.md](./DEPLOYMENT.md#prerequisites)
-for install links). You'll also need `tm-api` running somewhere reachable —
-see `tm-api/DEPLOYMENT.md` in this monorepo for how to stand it up locally.
+The short version (the full guide is [DEPLOYMENT.md](DEPLOYMENT.md)), with
+Node.js 20.9 or newer, Yarn 1 and tm-api running at `http://localhost:8082`:
 
 ```bash
-cd tm-web
-yarn install
-cp .env.example .env.local
-# edit .env.local: set NEXT_PUBLIC_API_BASE_URL to your local tm-api,
-# e.g. http://localhost:8082/api/v1
-yarn dev
+git clone https://github.com/richardsric7/base-trovoapp-service.git
+cd base-trovoapp-service/tm-web
+yarn install --frozen-lockfile
+cp .env.example .env.local     # NEXT_PUBLIC_API_BASE_URL=http://localhost:8082/api/v1
+yarn dev                       # http://localhost:3000
 ```
 
-Then open [http://localhost:3000](http://localhost:3000). Sign-in uses a
-QR-code flow tied to the Trovo mobile app (see [INTEGRATION.md](./INTEGRATION.md#authentication-flow))
-rather than a username/password form, so you'll need a way to complete that
-against whichever `tm-api`/backend environment you pointed at.
+Sign in with the Trovo Wallet username of one of tm-api's
+`DEFAULT_SUPER_ADMINS` and approve the request in the Trovo app (see
+[INTEGRATION.md](INTEGRATION.md#2-the-trovo-app-for-logins)).
 
 ## Further reading
 

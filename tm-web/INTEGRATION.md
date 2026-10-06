@@ -1,43 +1,86 @@
-# Integration with the rest of the monorepo
+# Integration
 
-## Summary
+Everything `tm-web` connects to, and how. tm-web is a website: it talks
+only to tm-api, plus optional error reporting.
 
-`tm-web` has exactly one integration point with the rest of the system:
-it is an HTTP client of **`tm-api`**, a sibling Go REST API in this
-monorepo. It has **no direct relationship** with `app-backend`, `app-web`,
-or `app-mobile` — those are a separate product line (the consumer-facing
-Trovo App and its own backend). `tm-api` is, in turn, the service that talks
-to (and reportedly shares a database with) `app-backend`; `tm-web` never
-reaches past `tm-api` to get there. This section explains what was checked
-to confirm that, and the sections below explain exactly how the `tm-api`
-integration works.
+| Connects to | Direction | Through | Needed? |
+|---|---|---|---|
+| [1. tm-api](#1-tm-api) | website → tm-api | HTTPS (REST) and a live login stream | yes |
+| [2. The Trovo app (for logins)](#2-the-trovo-app-for-logins) | through tm-api and app-backend | push request, approval | yes |
+| [3. GlitchTip (error reporting)](#3-glitchtip-error-reporting) | website → GlitchTip | HTTPS | optional |
+| [4. Google Cloud Storage (images)](#4-google-cloud-storage-images) | website → storage | HTTPS | — |
+| [5. Not connected: app-backend, app-web, app-mobile](#5-not-connected-app-backend-app-web-app-mobile) | none | — | — |
 
-Confirmation of the above, from this project's own source:
+---
 
-- `grep -rn "app-backend\|app-web\|app-mobile"` across `tm-web/src` and the
-  config files at the project root turns up **no HTTP calls, URLs, or
-  imports** referencing those projects — only a handful of source comments
-  (`src/redux/api/serviceLinks/interface.ts`, `src/redux/api/curatedAssets/interface.ts`,
-  `src/redux/api/p2p/interface.ts`) noting that certain `tm-api` response
-  shapes mirror tables/modules that live in `app-backend`'s own database
-  schema (e.g. "`service_links` table app-backend's servicelinks module
-  reads from"). That's exactly the "`tm-api` shares a DB with `app-backend`"
-  relationship described above, documented from `tm-api`'s side of the
-  integration for the benefit of whoever is typing these interfaces — it is
-  not `tm-web` talking to `app-backend`. `tm-web` itself has no configured
-  base URL, client, or import for `app-backend`, `app-web`, or `app-mobile`.
-- The only externally-configurable HTTP base URL in this project is
-  `NEXT_PUBLIC_API_BASE_URL` (`src/config/index.ts`), used everywhere the
-  RTK Query API slices and the auth/token-refresh code build request URLs.
-  There is exactly one such base URL — not several per-backend — which is
-  consistent with `tm-web` only ever calling one upstream service.
-  `tm-api`'s default port (per the comment in `.env.example`, referencing
-  `tm-api/internal/server/models/server.go`) is `8082`, distinct from
-  `app-backend`'s own port.
-- `tm-web` has **zero Next.js Route Handlers** of its own (no `route.ts`
-  anywhere under `src/app` — confirmed by `find src/app -iname "route.ts"`
-  returning nothing), so it isn't itself acting as a proxy or gateway in
-  front of any other backend.
+## 1. tm-api
+
+- **What it is and why:** Trovo Manager's server. Every page's data, every
+  change and every login go through it.
+- **Direction:** website → tm-api.
+- **How they connect:** HTTPS REST through Axios and RTK Query, with the
+  admin's login token in the `Authorization` header (details below). The
+  sign-in page also opens a live stream (`GET /login/stream/:loginId`) to
+  hear the moment a login is approved.
+- **Settings on this side:** [`NEXT_PUBLIC_API_BASE_URL`](CONFIGURATION.md#next_public_api_base_url)
+  (example `https://manager-api.trovo.example.com/api/v1`), set before
+  building.
+- **Settings on the other side:** tm-api's
+  [`CORS_ALLOWED_ORIGINS`](../tm-api/CONFIGURATION.md#cors_allowed_origins)
+  must include tm-web's address if it is set; tm-api's
+  `TROVO_MANAGER_BASE_URL` / `ADMIN_DASHBOARD_URL` should be tm-web's
+  address so invitation emails link here.
+- **How to check it works:** log in; the dashboard shows numbers.
+- **When it is down:** pages show errors; nothing is stored in tm-web.
+
+## 2. The Trovo app (for logins)
+
+- **What it is and why:** admins have no password. They log in by
+  approving a request in their Trovo mobile app.
+- **Direction:** tm-web → tm-api → app-backend → the admin's phone; the
+  approval comes back the same way.
+- **How they connect:** tm-web only talks to tm-api (`POST /login`, then
+  waits); tm-api asks app-backend to send the request through Trovo
+  Manager's service link.
+- **Settings:** none on this side. tm-api's service link and
+  `DEFAULT_SUPER_ADMINS` ([tm-api/DEPLOYMENT.md](../tm-api/DEPLOYMENT.md)).
+- **When it is down:** admins cannot log in; logged-in admins keep working
+  until their session ends.
+
+## 3. GlitchTip (error reporting)
+
+- **What it is and why:** collects errors from admins' browsers and the
+  Next.js server so the team hears about crashes. GlitchTip speaks Sentry's
+  protocol; the `@sentry/nextjs` package sends to it.
+- **Direction:** website → GlitchTip.
+- **Settings on this side:** [`NEXT_PUBLIC_SENTRY_DSN`](CONFIGURATION.md#next_public_sentry_dsn),
+  [`NEXT_PUBLIC_APP_ENV`](CONFIGURATION.md#next_public_app_env),
+  [`NEXT_PUBLIC_APP_VERSION`](CONFIGURATION.md#next_public_app_version),
+  and the optional [source-map upload settings](CONFIGURATION.md#3-source-map-upload-all-optional).
+- **Settings on the other side:** a GlitchTip project.
+- **When it is down or not set:** nothing is reported; tm-web works the
+  same. Only errors are sent: no performance tracing and no screen
+  recording (admin pages show customer data).
+
+## 4. Google Cloud Storage (images)
+
+- **What it is and why:** asset logos and documents uploaded through
+  tm-api are stored in Google Cloud Storage; tm-web shows them.
+  `next.config.mjs` allows images from `storage.googleapis.com`.
+- **Direction:** the browser loads the files.
+- **Settings:** none.
+
+## 5. Not connected: app-backend, app-web, app-mobile
+
+tm-web has no address, call or import for app-backend or the user apps.
+Everything goes through tm-api, which shares app-backend's database and
+calls app-backend's API. tm-web has no server routes of its own
+(no `route.ts`), so it is not a gateway either.
+
+---
+
+The sections below go into more depth on how tm-web calls tm-api, including
+the two separate logins (admins and organization members).
 
 ## How `tm-web` calls `tm-api`
 
@@ -196,21 +239,9 @@ Every page reads tm-api's `/public-markets` endpoints through
   arrive masked unless the admin holds `VIEW_PUBLIC_MARKETS_PII`.
 - **System Health** also lists the engine's background jobs.
 
-## Canonical per-endpoint reference
+## Per-endpoint reference
 
-This document describes the *shape* of the integration (base URL, auth
-headers, token lifecycle) but is **not** an endpoint-by-endpoint API
-reference. For the authoritative, current list of every route, request/
-response schema, and status code `tm-web` can call, use **`tm-api`'s own
-Swagger/OpenAPI UI**, expected at:
-
-```
-<tm-api base URL>/swagger/index.html
-```
-
-e.g. `http://localhost:8082/swagger/index.html` for a local `tm-api`
-started per `tm-api/DEPLOYMENT.md`. If that path isn't live yet in a given
-`tm-api` checkout, treat this note as forward-looking — the Swagger UI is
-expected to be the single source of truth for endpoint contracts once set
-up there, superseding any endpoint URL strings that happen to be quoted in
-this document or in `tm-web`'s own source.
+This document describes how tm-web connects (address, tokens, logins), not
+each endpoint. For every route, its request and its response, use tm-api's
+Swagger page: `<tm-api address>/swagger/index.html`, for example
+<http://localhost:8082/swagger/index.html> for a local tm-api.

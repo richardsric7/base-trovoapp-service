@@ -1,147 +1,150 @@
-# Configuration Reference
+# Configuration
 
-Every environment variable `tm-web` reads, found via:
+Every parameter `tm-web` reads. Each one says what it is, why it is needed,
+whether you must set it, an example and how to get a real value.
 
-```bash
-grep -rn "process\.env\." src/ next.config.mjs sentry.client.config.ts sentry.server.config.ts sentry.edge.config.ts
-```
+## How to set them
 
-cross-referenced against the committed `.env.example` at the project root.
+tm-web (Trovo Manager's website) is a Next.js app. **All its settings are
+build-time settings**: they are read when you run `yarn build` (or
+`yarn dev`) and copied into the website. Changing one means building again;
+setting it on a running container does nothing.
 
-All the variables below except the `SENTRY_*` build/upload ones are
-**`NEXT_PUBLIC_*`**, meaning they are compiled into the browser bundle at
-**build time**. See [DEPLOYMENT.md §3](./DEPLOYMENT.md#3-environment-variables--the-nextjs-nuance)
-for why that matters. Set them before `yarn build` (or pass them as Docker
-`--build-arg`s, per the Dockerfile) — setting them only at container runtime
-has no effect on any of the `NEXT_PUBLIC_*` values.
+- **Locally:** `cp .env.example .env.local`, then edit `.env.local` (never
+  committed). `yarn dev` reads it.
+- **Docker:** pass each as a build argument:
+  `docker build --build-arg NEXT_PUBLIC_API_BASE_URL=https://manager-api.trovo.example.com/api/v1 -t tm-web .`
 
-For local development, copy the template and fill it in:
+Settings starting with `NEXT_PUBLIC_` end up in the browser and are visible
+to anyone who opens the website, so never put a secret in one.
 
-```bash
-cp .env.example .env.local
-```
+The only required setting is [`NEXT_PUBLIC_API_BASE_URL`](#next_public_api_base_url).
+Everything else is for error reporting and is optional.
 
-## Core
+---
+
+## 1. Connection to tm-api
 
 ### `NEXT_PUBLIC_API_BASE_URL`
 
-- **Example**: `https://admin-api.dev.trovowallet.example.com/api/v1`
-- **What it is**: The base URL of the `tm-api` REST API that this dashboard
-  calls for literally all of its data (users, assets, trades, KYC, etc.).
-  Read in `src/config/index.ts` as `BASE_URL`, and used everywhere RTK
-  Query endpoints and the auth/token-refresh code build request URLs (e.g.
-  `src/redux/baseApi/axiosBasedQuery.ts`, `src/redux/refreshAccessToken.ts`).
-- **How to get a real value**: Point it at wherever `tm-api` is actually
-  running for your environment. For local development that's typically
-  `http://localhost:8082/api/v1` (`tm-api`'s default port, per the comment in
-  `.env.example`, which cites `tm-api/internal/server/models/server.go`).
-  See `tm-api/DEPLOYMENT.md` in this monorepo for how to stand up a `tm-api`
-  instance and confirm its actual base path/port. For a shared
-  staging/production deployment, use whatever hostname ops/infra has that
-  environment's `tm-api` reachable at, including the `/api/v1` path prefix.
+- **What it is:** The address of tm-api's API, including `/api/v1`. Read in
+  `src/config/index.ts`; every page's data, the login and the token
+  refresh use it.
+- **Why it's needed:** tm-web has no data of its own; everything comes from
+  tm-api.
+- **Required:** Yes. Unset, calls go to the website's own address and fail.
+- **Example:** `http://localhost:8082/api/v1` (tm-api on your machine) or
+  `https://manager-api.trovo.example.com/api/v1`
+- **How to get it:** tm-api's public address
+  ([tm-api/DEPLOYMENT.md](../tm-api/DEPLOYMENT.md); its default port is
+  `8082`) followed by `/api/v1`. It must be reachable **from the admins'
+  browsers**, not only from the server. If tm-api sets
+  `CORS_ALLOWED_ORIGINS`, tm-web's address must be in that list.
 
-## Error reporting (GlitchTip / Sentry-compatible) — all optional
+## 2. Error reporting (GlitchTip / Sentry), all optional
 
-`tm-web` uses the `@sentry/nextjs` SDK pointed at a self-hosted **GlitchTip**
-instance (a Sentry-API-compatible error tracker — not sentry.io). Every
-variable in this section is optional: leave `NEXT_PUBLIC_SENTRY_DSN` empty
-and the SDK never initializes, so none of the others matter either.
+tm-web can send browser and server errors to GlitchTip (or Sentry, which
+uses the same protocol). With no DSN, nothing is sent and the build is
+unchanged.
 
 ### `NEXT_PUBLIC_SENTRY_DSN`
 
-- **Example**: `https://a1b2c3d4e5f6@errors.dev.trovo.app/7`
-- **What it is**: The DSN (Data Source Name) that tells the Sentry SDK where
-  to send error events, and identifies which GlitchTip project they belong
-  to. Read in `src/observability.ts`, `sentry.client.config.ts`,
-  `sentry.server.config.ts`, and `sentry.edge.config.ts`. Also checked in
-  `next.config.mjs` to decide whether to wrap the Next.js config with the
-  Sentry build plugin at all.
-- **How to get a real value**: Log into the project's GlitchTip instance
-  (per `.env.example`, this project's is at `https://errors.dev.trovo.app/`),
-  open the relevant project's **Settings → Client Keys (DSN)** page, and copy
-  the DSN shown there. If no such project exists yet, create one in
-  GlitchTip first.
+- **What it is:** The address errors are sent to (the project's "DSN").
+- **Why it's needed:** To be told about crashes admins hit.
+- **Required:** No. Unset turns error reporting off.
+- **Example:** `https://0123abcd@errors.trovo.example.com/3` (placeholder)
+- **How to get it:** In GlitchTip: your project → **Settings → Client Keys
+  (DSN)** → copy the DSN.
 
 ### `NEXT_PUBLIC_APP_ENV`
 
-- **Example**: `staging` (other realistic values: `development`, `production`)
-- **What it is**: A free-text label attached to every error report so you can
-  tell which environment (dev/staging/prod) an error came from. Defaults to
-  `"development"` if unset. Read in `src/observability.ts` and all three
-  Sentry config files as `environment`.
-- **How to get a real value**: Not fetched from anywhere — just set it to
-  match whatever environment you're deploying (`development`, `staging`,
-  `production`, etc.), consistently with how other services in this
-  environment are labeled.
+- **What it is:** The environment name shown on each error report.
+- **Why it's needed:** To tell production errors from test errors.
+- **Required:** No, default `development`.
+- **Example:** `production`
+- **How to get it:** `development`, `staging` or `production`.
 
 ### `NEXT_PUBLIC_APP_VERSION`
 
-- **Example**: `a1b2c3d4e5f67890abcdef1234567890abcdef12` (a git commit SHA)
-- **What it is**: A build/release identifier attached to error reports (as
-  `release` in the Sentry config), so a GlitchTip error can be traced back to
-  the exact build that produced it. Per `.env.example`, "CI passes the git
-  sha."
-- **How to get a real value**: In CI, use the commit SHA being built, e.g.
-  `$(git rev-parse HEAD)`. Locally it can be left empty (defaults to
-  `"unknown"` per `src/observability.ts`).
+- **What it is:** The version shown on each error report (and in
+  `src/observability.ts`).
+- **Why it's needed:** To know which build an error came from.
+- **Required:** No, default `unknown`.
+- **Example:** `a1b2c3d`
+- **How to get it:** `git rev-parse --short HEAD` when building.
+
+## 3. Source-map upload, all optional
+
+Source maps make error reports show real file names and lines. Uploading
+them is **off unless `SENTRY_UPLOAD_SOURCEMAPS=1` and all four values
+below are set**, because a wrong organization or project name stops the
+build. Without upload, error reporting still works.
 
 ### `SENTRY_UPLOAD_SOURCEMAPS`
 
-- **Example**: `1`
-- **What it is**: Explicit opt-in switch (checked in `next.config.mjs`) for
-  uploading source maps to GlitchTip after a production build, so stack
-  traces in error reports show real file/function names instead of minified
-  code. Deliberately **not** automatic just because credentials are present —
-  a wrong org/project slug makes the underlying `sentry-cli` abort the whole
-  build, so this must be turned on knowingly. Only relevant in CI/production
-  builds, not local dev.
-- **How to get a real value**: Set to `1` only when you also have all four
-  of `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`, and `SENTRY_URL`
-  below correctly configured for a real GlitchTip project.
+- **What it is:** `1` turns source-map upload on.
+- **Why it's needed:** It is a deliberate switch: having the credentials
+  alone does not turn upload on.
+- **Required:** No.
+- **Example:** `1`
+- **How to get it:** Set it only after checking the four values below.
 
 ### `SENTRY_AUTH_TOKEN`
 
-- **Example**: `glitchtip_sample_token_abcdef1234567890` *(placeholder — real
-  tokens are opaque secrets, never guess or reuse an example value)*
-- **What it is**: An auth token used by the Sentry build plugin's
-  `sentry-cli` to create a release and upload source maps to GlitchTip.
-  Server-side/build-time only — never shipped to the browser.
-- **How to get a real value**: In GlitchTip, go to your user or
-  organization's **Settings → API Tokens** (or the project's own settings,
-  depending on GlitchTip version) and generate a token with permission to
-  create releases and upload artifacts for the relevant project.
+- **What it is:** A token allowed to upload to GlitchTip. A **secret**:
+  give it only to the build, never as `NEXT_PUBLIC_`.
+- **Why it's needed:** To upload source maps.
+- **Required:** For upload.
+- **Example:** `<your-glitchtip-auth-token>`
+- **How to get it:** GlitchTip → **Profile → Auth Tokens → Create**, with
+  `project:releases` permission.
 
-### `SENTRY_ORG` / `SENTRY_PROJECT`
+### `SENTRY_ORG`
 
-- **Example**: `SENTRY_ORG=trovo`, `SENTRY_PROJECT=tm-web`
-- **What it is**: The GlitchTip organization and project slugs that source
-  maps get uploaded to.
-- **How to get a real value**: Per the comment in `.env.example`, read them
-  directly out of the GlitchTip URL after logging in:
-  `https://errors.dev.trovo.app/<org-slug>/<project-slug>/`.
+- **What it is:** Your GlitchTip organization's short name ("slug").
+- **Why it's needed:** Where to upload.
+- **Required:** For upload.
+- **Example:** `trovo`
+- **How to get it:** The first part of the address after logging in:
+  `https://errors.trovo.example.com/<org-slug>/<project-slug>/`.
+
+### `SENTRY_PROJECT`
+
+- **What it is:** The project's short name.
+- **Why it's needed:** Where to upload.
+- **Required:** For upload.
+- **Example:** `trovo-manager-web`
+- **How to get it:** The second part of that address.
 
 ### `SENTRY_URL`
 
-- **Example**: `https://errors.dev.trovo.app`
-- **What it is**: The base URL of the GlitchTip instance itself (defaults to
-  the value shown in `.env.example`), so `sentry-cli` knows which server to
-  talk to instead of the default `sentry.io`.
-- **How to get a real value**: Use the URL of whichever GlitchTip deployment
-  this environment's errors should go to — ask whoever administers the
-  error-reporting stack if you're unsure it's still `https://errors.dev.trovo.app`.
+- **What it is:** The address of your GlitchTip server.
+- **Why it's needed:** Where to upload.
+- **Required:** For upload.
+- **Example:** `https://errors.trovo.example.com`
+- **How to get it:** The address you log in to GlitchTip at.
 
-## Not application config (context only)
+## 4. Set for you
 
-These aren't variables `tm-web`'s own code reads for its behavior, but show
-up around the build/runtime and are worth knowing about:
+### `NODE_ENV`
 
-- **`NODE_OPTIONS`** — set to `--max-old-space-size=4096` in the Dockerfile's
-  build stage only, to give Node enough heap to survive the Sentry webpack
-  plugin instrumenting every module during `yarn build`. Not something you
-  need to set yourself unless reproducing an out-of-memory build failure.
-- **`PORT`** — set to `3000` in the Dockerfile's runtime stage; `next start`
-  reads this to decide which port to listen on.
-- **`NEXT_RUNTIME`** — set automatically by Next.js itself (not by you) to
-  distinguish the `nodejs` vs `edge` runtime in `src/instrumentation.ts`,
-  which loads the matching `sentry.server.config.ts` or
-  `sentry.edge.config.ts`.
+- **What it is:** `production` or `development`, set by Next.js itself
+  (`yarn build`/`yarn start` use `production`, `yarn dev` uses
+  `development`) and by the Docker image.
+- **Why it's needed:** Next.js optimizes production builds. tm-web's own
+  code does not read it.
+- **Required:** No; don't set it yourself.
+- **Example:** `production`
+- **How to get it:** Nothing to do.
+
+### `PORT`
+
+- **What it is:** The port `yarn start` listens on.
+- **Why it's needed:** To run on a different port.
+- **Required:** No, default `3000` (the Docker image sets `3000`).
+- **Example:** `3000`
+- **How to get it:** Any free port.
+
+`NEXT_RUNTIME` is set by Next.js to load the right error-reporting setup;
+`NEXT_TELEMETRY_DISABLED=1` (set in the image) stops Next.js sending usage
+statistics.
