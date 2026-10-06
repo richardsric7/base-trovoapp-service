@@ -1,10 +1,10 @@
 package services
 
 import (
+	"admin-panel-dashboard/internal/utils"
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -39,10 +39,9 @@ func (s *AuthorizationService) CreateChallenge(ctx context.Context, auth AuthCon
 		return nil, NewHTTPError(http.StatusForbidden, "linked Trovo Wallet is required for this action")
 	}
 	cleanUsername := cleanTrovoUsername(*auth.TrovoWalletUsername)
-	callbackURL := os.Getenv("LOGIN_CALLBACK_URL")
-	if strings.TrimSpace(callbackURL) == "" {
-		callbackURL = "http://localhost/stakeholder/authorization/callback"
-	}
+	// app-backend notifies this route when the member approves; the
+	// approval itself is confirmed by VerifyChallenge asking app-backend.
+	callbackURL := utils.AuthorizationCallbackURL("trovo")
 	description := fmt.Sprintf("Authorize %s for %s", req.Action, req.EntityType)
 	authData, err := s.serviceLink.SendAuthorizationRequest(cleanUsername, description, "Trovo Manager Stakeholder Portal", callbackURL, int(s.ttl.Minutes()))
 	if err != nil {

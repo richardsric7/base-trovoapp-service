@@ -1,11 +1,11 @@
 package services
 
 import (
+	"admin-panel-dashboard/internal/utils"
 	"errors"
 	"fmt"
 	"log"
 	"log/slog"
-	"os"
 	"strings"
 	"time"
 
@@ -84,7 +84,7 @@ func SendWalletLinkAuthorizationRequest(server *serverModels.Server, c *gin.Cont
 	}
 	cleanUsername := strings.TrimSuffix(walletUsername, "@trovo")
 	deviceInfo := "Trovo Manager"
-	callbackUrl := fmt.Sprintf("%v/%v", os.Getenv("LOGIN_CALLBACK_URL"), "trovo")
+	callbackUrl := utils.AuthorizationCallbackURL("trovo")
 
 	authData, err := server.GC.ServiceLink.SendAuthorizationRequest(
 		cleanUsername,
@@ -117,7 +117,7 @@ func SendWalletLinkLoginRequest(server *serverModels.Server, c *gin.Context) (*t
 
 	cleanUsername := strings.Split(*member.TrovoWalletUsername, "@")[0]
 	deviceInfo := "Trovo Manager"
-	callbackUrl := fmt.Sprintf("%v/%v", os.Getenv("LOGIN_CALLBACK_URL"), "trovo")
+	callbackUrl := utils.LoginCallbackURL("trovo")
 
 	loginData, err := server.GC.ServiceLink.SendLoginRequest(cleanUsername, "", deviceInfo, callbackUrl)
 	if err != nil {

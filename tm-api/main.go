@@ -67,6 +67,12 @@ func main() {
 		log.Printf("could not find or load any .env file from %v...skipping...\n", path)
 	}
 
+	// Addresses with no safe default: without them admin actions would go to
+	// the wrong app-backend and invitation links would point nowhere.
+	if missing := missingRequiredEnv("TROVO_WALLET_BASE_URL", "TROVO_MANAGER_BASE_URL"); len(missing) > 0 {
+		log.Fatalf("[main] required environment variables are missing: %s", strings.Join(missing, ", "))
+	}
+
 	// The admin, wallet, and P2P schemas all live in the same physical
 	// database now, so this is the only connection the service opens -
 	// trovoWalletDB/p2pdb are kept as separate variable names (rather
@@ -81,18 +87,19 @@ func main() {
 	trovoWalletDB := admindb
 	p2pdb := admindb
 
-	// superadmin
-	// TOD0 Eventually get superadmin username (obi only) from .env before going live
+	// super admins: only the usernames DEFAULT_SUPER_ADMINS lists. There is no
+	// built-in fallback - a hardcoded username would make whoever registers
+	// it in the Trovo app a super admin.
 	var superAdmins []string
-	if len(os.Getenv("DEFAULT_SUPER_ADMINS")) > 0 && len(strings.Split(os.Getenv("DEFAULT_SUPER_ADMINS"), ",")) > 0 {
-		superAdmins = strings.Split(strings.ReplaceAll(os.Getenv("DEFAULT_SUPER_ADMINS"), " ", ""), ",")
-		log.Printf(">>>>>>>>> DEFAULT_SUPER_ADMINS set to: %v\n", os.Getenv("DEFAULT_SUPER_ADMINS"))
+	for _, u := range strings.Split(strings.ReplaceAll(os.Getenv("DEFAULT_SUPER_ADMINS"), " ", ""), ",") {
+		if u != "" {
+			superAdmins = append(superAdmins, u)
+		}
+	}
+	if len(superAdmins) == 0 {
+		log.Println("[main] DEFAULT_SUPER_ADMINS is not set: no super admins are seeded (existing admins keep their roles)")
 	} else {
-
-		// obi, toluwase, riky
-		superAdmins = []string{"obi", "toluwase"}
-		log.Printf(">>>>>>>>> DEFAULT_SUPER_ADMINS ENV not SET. Using default value of: %+v\n", superAdmins)
-
+		log.Printf("[main] DEFAULT_SUPER_ADMINS: %v\n", superAdmins)
 	}
 	for _, admin := range superAdmins {
 		err := seedSuperAdmin(trovoWalletDB, admindb, admin)
@@ -321,4 +328,16 @@ func SeedRoleConfig(db *gorm.DB) {
 			log.Printf("Role '%s' already exists, skipping.", role.RoleName)
 		}
 	}
+}
+
+// missingRequiredEnv returns the names in names whose environment variable
+// is empty.
+func missingRequiredEnv(names ...string) []string {
+	var missing []string
+	for _, n := range names {
+		if strings.TrimSpace(os.Getenv(n)) == "" {
+			missing = append(missing, n)
+		}
+	}
+	return missing
 }

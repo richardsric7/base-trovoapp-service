@@ -447,10 +447,8 @@ func validateLogo(file *multipart.FileHeader) error {
 // body: request body for POST/PUT requests (can be nil for GET requests)
 // result: pointer to the struct where the response will be unmarshaled
 func makeRequest(method, endpoint, token string, body interface{}, result interface{}) error {
+	// required at start (main.go), so never empty here
 	trovoWalletBaseURL := os.Getenv("TROVO_WALLET_BASE_URL")
-	if trovoWalletBaseURL == "" {
-		trovoWalletBaseURL = "https://apidev.trovotechnologies.com" // fallback to dev URL
-	}
 
 	url := fmt.Sprintf("%s/v1/trovo-manager%s", trovoWalletBaseURL, endpoint)
 
@@ -515,10 +513,8 @@ func makeRequest(method, endpoint, token string, body interface{}, result interf
 // body: request body for POST/PUT requests (can be nil for GET requests)
 // result: pointer to the struct where the response will be unmarshaled
 func makeRequestWithRaw(method, endpoint, token string, body []byte) (result []byte, err error) {
+	// required at start (main.go), so never empty here
 	trovoWalletBaseURL := os.Getenv("TROVO_WALLET_BASE_URL")
-	if trovoWalletBaseURL == "" {
-		trovoWalletBaseURL = "https://apidev.trovotechnologies.com" // fallback to dev URL
-	}
 
 	url := fmt.Sprintf("%s/v1/trovo-manager%s", trovoWalletBaseURL, endpoint)
 

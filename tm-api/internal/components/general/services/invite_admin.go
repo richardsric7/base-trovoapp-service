@@ -9,10 +9,10 @@ import (
 	"admin-panel-dashboard/internal/middleware"
 	"admin-panel-dashboard/internal/models"
 	serverModels "admin-panel-dashboard/internal/server/models"
+	"admin-panel-dashboard/internal/utils"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -246,7 +246,7 @@ func AddAdmin(s *serverModels.Server) gin.HandlerFunc {
 		go func() {
 			emailBody := fmt.Sprintf(
 				"Hi %v,\nYou have been added as an admin user. Please log in on %v with your Trovo app.\nWe're glad you are here.\nThe Trovo Team",
-				user.FirstName, os.Getenv("TROVO_WALLET_BASE_URL"),
+				user.FirstName, utils.GetTrovomanagerFrontendBaseUrl(),
 			)
 			_, response, err := mail.SendEmailWithMailgunTemplate(admin, emailBody, "Admin Email Invite")
 			if err != nil {

@@ -9,6 +9,7 @@ import (
 	"admin-panel-dashboard/internal/models"
 	"admin-panel-dashboard/internal/observe"
 	serverModels "admin-panel-dashboard/internal/server/models"
+	"admin-panel-dashboard/internal/utils"
 
 	serverResponse "admin-panel-dashboard/internal/server/response"
 	"encoding/json"
@@ -195,9 +196,22 @@ func AuthCallback(c *gin.Context, s *serverModels.Server) {
 	var pendingAuthorization models.PendingAuthorization
 	e := s.TrovoWalletDB.Where("auth_id = ?", callbakInput.AuthID).First(&pendingAuthorization).Error
 	if e != nil {
+		// Stakeholder-portal and organization wallet-link authorizations have
+		// no pending_authorizations row: they are confirmed by asking
+		// app-backend (VerifyChallenge). Acknowledge their callback so
+		// app-backend stops retrying, and wake any page waiting on it.
+		var challenges int64
+		s.AdminDB.Table("stakeholder_authorization_challenges").Where("auth_id = ?", callbakInput.AuthID).Count(&challenges)
+		if challenges > 0 {
+			s.GC.BroadcastToAuthID(callbakInput.AuthID, "authorizationNotice", struct {
+				Username string `json:"username"`
+			}{Username: targetUser})
+			c.JSON(http.StatusOK, gin.H{"status": "acknowledged"})
+			return
+		}
 		log.Printf("unable to find authorization object amongst pending authorizations due to err:[%v], callback:[%+v]", e, callbakInput)
 
-		c.JSON(http.StatusBadRequest, gin.H{"error": "could not process request", "message": "could not process request"})
+		c.JSON(http.StatusOK, gin.H{"status": "ignored", "message": "no pending authorization with this id"})
 
 		return
 	}
@@ -291,7 +305,7 @@ func Login(c *gin.Context, s *serverModels.Server) {
 		// process trovo login
 
 		deviceInfo := ""
-		callbackUrl := fmt.Sprintf("%v/%v", os.Getenv("LOGIN_CALLBACK_URL"), sn)
+		callbackUrl := utils.LoginCallbackURL(sn)
 		loginData, err := s.GC.ServiceLink.SendLoginRequest(strings.Split(userLogin, "@")[0], "", deviceInfo, callbackUrl)
 		if err != nil {
 			var ex p2pErrors.GenericError
@@ -435,7 +449,6 @@ func VerifyLoginID(c *gin.Context, s *serverModels.Server) {
 	cacheKey := fmt.Sprintf("[GET] /v1/users/verify/%v/%v", targetUser, loginID)
 	{
 		// search cache
-
 
 		ok, status, response := s.GC.Cache.CachedHttpResponse(cacheKey)
 
