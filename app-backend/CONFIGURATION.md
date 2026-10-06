@@ -1121,17 +1121,32 @@ engine only does database work.
 
 A Custodian, Dealing Member or the price feed is configured in Trovo
 Manager with a **credentials reference** such as `env:CUSTODIAN_A` or
-`vault://secret/public-markets/custodian-a#CUSTODIAN_A`. It names an
-environment variable you then set:
+`vault://secret/public-markets/custodian-a#CUSTODIAN_A`. The part after
+`env:` (or after `#`) is the **name** of environment variables you then
+set on app-backend:
 
-- **`<NAME>`** (for example `CUSTODIAN_A`): `keyId:secret`, used to sign
-  requests to the partner and check its webhooks (HMAC).
-  Example: `ck_live_01:xxxxxxxxxxxxxxxxxxxxxxxx`.
-- **`<NAME>_CERT`** and **`<NAME>_KEY`**: paths to PEM files, for mTLS.
-  Example: `/run/secrets/custodian-a.crt`.
+#### `<NAME>` (for example `CUSTODIAN_A`)
 
-They are issued by the partner during onboarding; a `vault://` reference
-means your deployment injects the field from Vault.
+- **What it is:** The partner's key id and shared secret, as
+  `keyId:secret`.
+- **Why it's needed:** Requests to the partner are signed with it, and the
+  partner's callbacks are checked with it (HMAC). Without it the partner
+  stays on its mock.
+- **Required:** For each real (not mock) partner that uses HMAC.
+- **Example:** `ck_live_01:xxxxxxxxxxxxxxxxxxxxxxxx` (placeholder)
+- **How to get it:** Issued by the partner during onboarding. With a
+  `vault://` reference, your deployment injects this field from Vault.
+
+#### `<NAME>_CERT`, `<NAME>_KEY`
+
+- **What they are:** Paths to the client certificate and private key (PEM
+  files) for partners that use mutual TLS.
+- **Why they're needed:** Such partners only accept connections that
+  present this certificate.
+- **Required:** Only for partners that use mutual TLS.
+- **Example:** `/run/secrets/custodian-a.crt`, `/run/secrets/custodian-a.key`
+- **How to get them:** The partner signs or issues the certificate during
+  onboarding; mount both files into the container read-only.
 
 ## 14. Bank (Naira) deposits and withdrawals
 
