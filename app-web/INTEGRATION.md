@@ -1,22 +1,85 @@
-# Integration with the rest of the monorepo
+# Integration
 
-`app-web` is a pure frontend with two integration points into the rest of
-the monorepo: it calls `app-backend`'s REST/WebSocket API over HTTP, and
-it uses a WASM package built from the `wallet-core` Rust crate for
-client-side key generation and request signing. It has no server-side
-code and no direct relationship with the admin-side projects (`tm-api` /
-`tm-web`).
+Everything `app-web` connects to, and how. app-web is a website with no
+server code of its own: it talks to app-backend, and uses wallet-core (built
+into it) to make keys and sign in the browser.
 
-## (a) Talking to `app-backend`
+| Connects to | Direction | Through | Needed? |
+|---|---|---|---|
+| [1. app-backend](#1-app-backend) | website → app-backend | HTTPS (REST) | yes |
+| [2. wallet-core](#2-wallet-core) | built into the website | WebAssembly | yes |
+| [3. Flutterwave](#3-flutterwave) | website → Flutterwave pop-up | Flutterwave's script | optional |
+| [4. Block explorer](#4-block-explorer) | links only | basescan.org | — |
+| [5. Not connected: tm-api and tm-web](#5-not-connected-tm-api-and-tm-web) | none | — | — |
 
-### Base URL
+---
 
-The API base URL is `src/store/config.ts`'s `BASE_URL`, read from
-`VITE_API_URL` (build-time) with a same-origin `/api` fallback used in
-production behind the nginx proxy. See
-[`CONFIGURATION.md`](./CONFIGURATION.md) and
-[`DEPLOYMENT.md`](./DEPLOYMENT.md) for how that value is set per
-environment.
+## 1. app-backend
+
+- **What it is and why:** the server that holds accounts and wallets and
+  sends transactions. Every screen's data comes from it.
+- **Direction:** website → app-backend. The website opens no websocket
+  today; screens that change (an order, a recovery) ask again every few
+  seconds.
+- **How they connect:** HTTPS REST through Axios and RTK Query (details
+  below). Requests that prove who the user is are **signed** in the
+  browser with the user's key (headers `X-TW-SIGNER`, `X-TW-PUBLIC-KEY`,
+  `X-TW-TIMESTAMP`, `X-TW-SIGNATURE`); the key never leaves the browser.
+  Transactions come back from app-backend as a hash, which the website
+  signs and sends back.
+- **Settings on this side:** [`VITE_API_URL`](CONFIGURATION.md#vite_api_url)
+  for the dev server (example `http://localhost:8080`), or
+  [`BACKEND_URL`](CONFIGURATION.md#backend_url) on the Docker container
+  (example `https://api.trovo.example.com`).
+- **Settings on the other side:** none. app-backend accepts calls from any
+  website address (CORS `*`).
+- **How to check it works:** sign up; with Docker,
+  `curl http://<website>/api/swagger/index.html` answers `200`.
+- **When it is down:** pages show errors; nothing is stored in the website.
+
+## 2. wallet-core
+
+- **What it is and why:** Trovo's Rust code for keys, recovery phrases,
+  signing and Safe wallet addresses, compiled to WebAssembly and copied
+  into `src/walletCore/`. The same code runs in the mobile app.
+- **Direction:** the website calls it, in the browser.
+- **How they connect:** `src/utils/trovoSDK.ts` imports
+  `src/walletCore/wallet_core.js`, which loads `wallet_core_bg.wasm`.
+- **Settings:** none. To update it, rebuild wallet-core for the web and copy
+  the output over `src/walletCore/` ([wallet-core/DEPLOYMENT.md](../wallet-core/DEPLOYMENT.md)).
+- **How to check it works:** creating an account shows a 12-word phrase and
+  an address.
+- **When it is missing or broken:** the website cannot start.
+
+## 3. Flutterwave
+
+- **What it is and why:** a card payment pop-up for buying crypto with
+  money (`src/pages/dashboard/home.tsx`, `flutterwave-react-v3`).
+- **Direction:** website → Flutterwave.
+- **Settings on this side:** the public key, written in the code (a
+  placeholder today; see [CONFIGURATION.md](CONFIGURATION.md#flutterwave-public-key)).
+- **Settings on the other side:** a Flutterwave merchant account.
+- **When it is down or not set up:** card purchase does not work; nothing
+  else is affected.
+
+## 4. Block explorer
+
+- **What it is and why:** links from a transaction to
+  `https://basescan.org/tx/...` (or Sepolia's) so users can look it up.
+- **Direction:** links only; the website does not call it.
+
+## 5. Not connected: tm-api and tm-web
+
+app-web has no code, address or call related to Trovo Manager (`tm-api`,
+`tm-web`). Admin actions reach users through app-backend's database and
+API.
+
+---
+
+The sections below go into more depth on how app-web talks to app-backend
+and uses wallet-core.
+
+## Talking to app-backend in detail
 
 ### Data-fetching layer
 
@@ -81,7 +144,7 @@ const signature = signHTTP(toSign, secretKey);
 
 `signHTTP` (in `src/utils/trovoSDK.ts`) signs that string using EIP-191
 `personal_sign`, implemented by the `wallet-core` WASM module (see part
-(b) below) — the private key never leaves the browser; only the
+"Using wallet-core in detail" below) — the private key never leaves the browser; only the
 signature is sent. The resulting headers are:
 
 | Header | Value |
@@ -96,12 +159,11 @@ This is used for flows that need to prove control of a wallet's private
 key directly (e.g. account registration, account-recovery/OTP flows)
 rather than relying on an already-issued bearer token — presumably
 because the user isn't authenticated with a session token yet at that
-point in the flow. Note: `axiosBaseQuery.ts` currently has several
-`console.log` calls that print the string-to-sign, the public key, the
-URI, the computed signature, and the timestamp for every signed request —
-worth flagging as something you'd want removed or gated behind a debug
-flag before a hardened production build, since it logs signing material
-to the browser console.
+point in the flow. Note: `axiosBaseQuery.ts` currently prints the
+string-to-sign, the address, the path, the signature and the timestamp of
+every signed request to the browser console (`console.log`); remove or
+hide these before a hardened production build. The private key is not
+printed.
 
 ### Account recovery
 
@@ -146,7 +208,7 @@ returning `{quote, order}`. Shared wallets are not offered for trading.
 Dividends are paid by Public Markets' own distribution engine, not the
 tokenized-asset proceeds payout. See `app-backend/PUBLIC_MARKETS.md`.
 
-## (b) Using `wallet-core` (WASM)
+## Using wallet-core in detail
 
 Yes — confirmed by code, not inferred. `app-web` vendors the compiled
 output of the `wallet-core` Rust crate under `src/walletCore/`
@@ -192,7 +254,7 @@ functions, all backed by `wallet-core`:
 | `parseSecretKey(secretKey)` | `keypairFromPrivateKey()` | Parse/validate a private key into a full keypair |
 | `generateMnemonic()` | `generateMnemonic()` | Generate a fresh 12-word BIP39 mnemonic |
 | `getCredsFromPassPhrase(passphrase)` | `keypairFromMnemonic()` | Derive a keypair from a BIP39 mnemonic (BIP44 path `m/44'/60'/0'/0/0`) |
-| `signHTTP(toSign, secretKey)` | `signPersonal()` | EIP-191 `personal_sign` over a string — used for the API request-signing headers described in (a) |
+| `signHTTP(toSign, secretKey)` | `signPersonal()` | EIP-191 `personal_sign` over a string — used for the API request-signing headers described above |
 | `signBase64Txn(secretKey, transactionDigest, _networkPassphrase)` | `signPersonalBytes()` | EIP-191 `personal_sign` over raw bytes decoded from a base64 digest — used to sign transaction digests computed upstream by `app-backend`; the `_networkPassphrase` parameter is unused/vestigial (kept only so call sites don't need to change their argument count) |
 | `primaryWalletAddress(signer)` | `primarySafeAddress(signer, "0")` | The user's primary wallet address: a Safe owned by the key, at a fixed address before it is deployed. Registration sends it as `X-TW-PUBLIC-KEY` (the key's address is `X-TW-SIGNER`); the backend refuses any other |
 
@@ -222,14 +284,3 @@ wallet) - they are no longer the same value.
   the stablecoin their wallets pay network fees in
   (`GET /v1/users/settings/gas-fee-assets`,
   `PUT /v1/users/settings/gas-fee-asset`; `src/store/api/settingsApis.ts`).
-
-## (c) No relationship to `tm-api` / `tm-web`
-
-Confirmed: there are no imports, URLs, or references to `tm-api` or
-`tm-web` anywhere in `app-web/src`. `tm-api` and `tm-web` form a separate
-admin-side stack (internal dashboard + its own backend) elsewhere in the
-monorepo, and `app-web` — the end-user wallet app — talks only to
-`app-backend`. The two stacks appear to be entirely independent frontends
-against (presumably) independent or at most incidentally-related
-backends; nothing in this project's code assumes or depends on the
-admin side existing.

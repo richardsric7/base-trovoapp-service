@@ -1,42 +1,41 @@
 # Trovo Wallet Web App (`app-web`)
 
-`app-web` is the end-user web client for **Trovo Wallet** — the customer-facing
-app people use to manage their wallet, send and receive payments, swap
-assets, trade on the P2P marketplace, hold tokenized assets, and buy and
-sell tokenized Nigerian stocks and bonds (Public Markets).
+## What this project does
 
-It is a **pure frontend**: it has no server of its own and exposes no API.
-Every piece of data it shows comes from HTTP (and WebSocket) calls to the
-[`app-backend`](../app-backend) Go API. Some cryptographic operations
-(key generation, mnemonic handling, request signing) are done client-side
-using a Rust crate from [`wallet-core`](../wallet-core), compiled to
-WebAssembly and vendored into this project — see
-[`INTEGRATION.md`](./INTEGRATION.md) for details.
+`app-web` is the **Trovo web wallet**, the website version of the Trovo
+app. In a browser, people can:
 
-This app is unrelated to the internal admin tooling in the monorepo
-(`tm-api` / `tm-web`) — see [`INTEGRATION.md`](./INTEGRATION.md#c-no-relationship-to-tm-api--tm-web)
-for that distinction.
+- create a wallet (or import one with its 12-word recovery phrase) and see
+  their balances;
+- send and receive money, and swap one asset for another;
+- trade with other people on the **P2P** marketplace;
+- buy **tokenized assets** and **Public Markets** (tokenized Nigerian
+  stocks and bonds), and see dividends;
+- deposit and withdraw Naira through a bank, and turn on account recovery.
+
+It is only a website: it has no server of its own. All data comes from
+[`app-backend`](../app-backend/README.md). Keys are made and used only in
+the browser, with [`wallet-core`](../wallet-core/README.md) compiled to
+WebAssembly; app-backend never sees them.
+
+Next: [DEPLOYMENT.md](DEPLOYMENT.md) to run it,
+[CONFIGURATION.md](CONFIGURATION.md) for its settings and
+[INTEGRATION.md](INTEGRATION.md) for what it connects to.
 
 ## Tech stack
 
 | Concern | Library / tool |
 |---|---|
-| Framework | React 18 (`react` / `react-dom` ^18.2) |
-| Language | TypeScript ^5.9 |
-| Build tool / dev server | Vite ^7.3 (`@vitejs/plugin-react`) |
-| Routing | React Router (`react-router-dom` ^6.21) |
-| State management | Redux Toolkit (`@reduxjs/toolkit`, `react-redux`) |
-| Data fetching / server cache | RTK Query (`createApi`, via `@reduxjs/toolkit/query/react`), with a **custom Axios-based `baseQuery`** (not the default `fetchBaseQuery`) |
-| HTTP client | Axios |
-| Styling | Tailwind CSS (`tailwindcss`, `postcss`, `autoprefixer`) + `tw-elements-react` |
-| Client-side crypto | `wallet_core` — a Rust crate from the sibling `wallet-core` project, compiled to WASM and vendored under `src/walletCore/` |
-| PDF generation | `@react-pdf/renderer` (e.g. exporting receipts/statements) |
-| Payments (fiat on-ramp) | `flutterwave-react-v3` (Flutterwave) |
-| Testing | `@testing-library/react`, `@testing-library/jest-dom` |
-
-The project was originally bootstrapped with Create React App and has since
-been migrated to Vite; some CRA-era artifacts (e.g. `public/manifest.json`,
-`browserslist` in `package.json`) are still present.
+| Framework | React 19 |
+| Language | TypeScript 7 |
+| Build tool / dev server | Vite 8 (`@vitejs/plugin-react`) |
+| Routing | React Router 7 (`react-router-dom`) |
+| State and data | Redux Toolkit and RTK Query, with an Axios-based `baseQuery` |
+| Styling | Tailwind CSS 4 (through `@tailwindcss/postcss`) and `tw-elements-react` |
+| Keys and signing | `wallet-core`, compiled to WebAssembly, copied into `src/walletCore/` |
+| PDF receipts | `@react-pdf/renderer` |
+| Card payments | `flutterwave-react-v3` |
+| Production server | nginx (Docker image) |
 
 ## Directory structure (`src/`)
 
@@ -81,45 +80,26 @@ Other notable root files:
 - `vite.config.mts` — Vite config (dev server on port 3000, React plugin,
   tsconfig path resolution). No Node globals polyfill is needed: the app's
   code and dependencies run in the browser without one.
-- `tailwind.config.js` / `postcss.config.js` — Tailwind/PostCSS setup.
+- `postcss.config.js` — Tailwind 4 through PostCSS (there is no
+  `tailwind.config.js`; Tailwind 4 reads its settings from the CSS).
 - `Dockerfile` / `nginx.conf.template` — production container build; see
   [`DEPLOYMENT.md`](./DEPLOYMENT.md).
 
 ## Running it locally
 
-Run these from inside the `app-web/` directory.
+The short version (the full guide is [DEPLOYMENT.md](DEPLOYMENT.md)), with
+Node.js 20.19 or newer and app-backend running at `http://localhost:8080`:
 
 ```bash
-# 1. Use Node 20 (matches CI; see DEPLOYMENT.md for details)
-nvm use 20   # or install Node 20.x another way
-
-# 2. Install dependencies (exact versions, from package-lock.json)
+git clone https://github.com/richardsric7/base-trovoapp-service.git
+cd base-trovoapp-service/app-web
 npm ci
-
-# 3. Point the app at a backend (optional — see below for the default)
-cp .env.example .env.local
-# edit .env.local if you want to hit a different app-backend instance
-
-# 4. Start the dev server
-npm start
-
-# 5. Open the app
-# Vite opens it automatically at http://localhost:3000
+cp .env.example .env.local   # points the website at app-backend
+npm start                    # http://localhost:3000
 ```
 
-By default (no `.env.local`), the app talks to same-origin `/api` and
-`/ws/v1` — that only works behind the nginx container described in
-`DEPLOYMENT.md`. For local development against a real backend, set
-`VITE_API_URL` / `VITE_SOCKET_URL` in `.env.local` — see
-[`CONFIGURATION.md`](./CONFIGURATION.md) for the full list of environment
-variables and how to get real values for them.
-
-To type-check and build a production bundle locally:
-
-```bash
-npm run build   # runs `tsc && vite build`, output goes to dist/
-npm run preview # serve the built dist/ locally, for a quick smoke test
-```
+To check and build the production files: `npm run build` (output in
+`dist/`), then `npm run preview` to look at them.
 
 ## Further documentation
 
@@ -128,5 +108,5 @@ npm run preview # serve the built dist/ locally, for a quick smoke test
 - [`CONFIGURATION.md`](./CONFIGURATION.md) — every environment variable
   this app reads, what it does, and how to get a real value.
 - [`INTEGRATION.md`](./INTEGRATION.md) — how this app talks to
-  `app-backend` (auth/signing) and to the `wallet-core` WASM package, and
-  its (non-)relationship to `tm-api` / `tm-web`.
+  `app-backend` (signing), uses the `wallet-core` WebAssembly package,
+  and its other connections.
