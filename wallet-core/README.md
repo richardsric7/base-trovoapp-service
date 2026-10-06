@@ -1,12 +1,29 @@
 # wallet-core
 
-Shared Base (EVM/secp256k1) wallet primitives, implemented once in Rust and
-compiled three different ways for the three places that need it in this
-monorepo. This is a library crate, not a service — there's nothing to
-"run" or "deploy" here; other projects link the compiled output into
-their own builds.
+## What this project does
 
-## What it actually does
+`wallet-core` is the code that does the **cryptography** of a Trovo
+wallet, written once in Rust and shared by the web wallet and the mobile
+app. It:
+
+- makes a new **12-word recovery phrase** and the **key** that comes from
+  it (the same key any Ethereum wallet would make from that phrase);
+- **signs** messages and transactions with that key, and checks
+  signatures;
+- calculates the user's **wallet address** (a Safe smart account on Base)
+  before the wallet even exists on the blockchain.
+
+It runs inside the user's browser (app-web, as WebAssembly) or phone
+(app-mobile, as a native library), so keys never leave the user's device.
+It is a library: there is no server to run. "Deploying" it means building
+it and copying the result into the apps ([DEPLOYMENT.md](DEPLOYMENT.md)).
+
+Next: [DEPLOYMENT.md](DEPLOYMENT.md) to build it,
+[CONFIGURATION.md](CONFIGURATION.md) for its build choices and the values
+that must match app-backend, and [INTEGRATION.md](INTEGRATION.md) for how
+the apps use it.
+
+## In technical terms
 
 Confirmed by reading `src/core.rs` (the platform-agnostic logic) and its
 two binding layers, `src/wasm.rs` and `src/ffi.rs`:
@@ -40,43 +57,18 @@ twice.
 
 ## Role in the monorepo
 
-One Rust implementation (`src/core.rs`), compiled three ways
+One Rust implementation (`src/core.rs`, `src/safe.rs`), compiled three ways
 (`Cargo.toml`'s `crate-type = ["cdylib", "staticlib", "rlib"]`):
 
-| Target | Binding layer | Consumer | Actually wired up? |
+| Target | Binding layer | Used by | How it gets there |
 |---|---|---|---|
-| `wasm32-unknown-unknown` (→ `cdylib`) | `src/wasm.rs` (`wasm-bindgen`) | `app-web` | **Yes** — confirmed, see below |
-| native `cdylib`/`staticlib` (Android/iOS) | `src/ffi.rs` (C ABI, called via Dart `dart:ffi`) | `app-mobile` | **Partially** — Dart bindings exist and are used, but the native library isn't built/bundled by any tracked build step yet |
-| native `rlib` | none (used directly) | `cargo test` on this crate itself | n/a, dev-only |
+| `wasm32-unknown-unknown` | `src/wasm.rs` (`wasm-bindgen`) | app-web (`src/utils/trovoSDK.ts`) | built output committed in `app-web/src/walletCore/` |
+| Android / iOS native library | `src/ffi.rs` (C functions, called through Dart FFI) | app-mobile (`lib/functions/trovo-sdk.dart`) | **built before each app build; not committed** ([DEPLOYMENT.md](DEPLOYMENT.md) steps 5 and 6) |
+| `rlib` | none | `cargo test` | — |
 
-**app-web**: confirmed consumer. `app-web/src/walletCore/` contains a
-committed copy of this crate's WASM build output (`wallet_core.js`,
-`wallet_core.d.ts`, `wallet_core_bg.wasm`, `wallet_core_bg.wasm.d.ts`).
-`app-web/src/utils/trovoSDK.ts` imports directly from
-`'../walletCore/wallet_core.js'`, and that module is in turn imported by
-around a dozen pages/components (`walletOperations.tsx`,
-`importWallet.tsx`, `accountRecovery/main.tsx`, `createAccount/backup.tsx`,
-`dashboard/wallet/walletView.tsx`, etc.). This is a **vendored copy**, not
-an npm dependency — `app-web/package.json` has no `wallet-core` entry, and
-building `app-web` does not itself invoke Rust/wasm-pack (that's the
-point: `app-web` needs no Rust toolchain to build; see DEPLOYMENT.md).
-
-**tm-web**: no reference to `wallet-core`, `wallet_core`, or `walletCore`
-found anywhere in `tm-web/package.json` or its source tree. **Not a
-consumer today.**
-
-**app-mobile**: `app-mobile/lib/functions/wallet_core_ffi.dart` contains
-hand-written `dart:ffi` bindings over this crate's `src/ffi.rs` C ABI, and
-`app-mobile/lib/functions/trovo-sdk.dart` imports and calls them (mirroring
-`app-web`'s `trovoSDK.ts` API). So the Dart-side integration code is
-written and in active use in that file. However, the native library it
-expects to load (`libwallet_core.so` on Android via
-`android/app/src/main/jniLibs/<abi>/`, statically linked on iOS) is not
-present anywhere in `app-mobile/`, and nothing in this repo builds or
-places it — `wallet_core_ffi.dart`'s own header comment says as much
-("not yet wired into this repo's mobile build"). See INTEGRATION.md for
-detail. **Treat this path as code-complete on the Dart side but not
-actually buildable/runnable end-to-end from this monorepo yet.**
+tm-web does not use it. app-backend does not call it, but calculates the
+same wallet addresses and must agree with it
+([INTEGRATION.md](INTEGRATION.md#3-app-backend-must-agree)).
 
 ## Tech stack
 
@@ -106,7 +98,8 @@ wallet-core/
 ├── Cargo.lock
 ├── src/
 │   ├── lib.rs             # crate root: wires up core/wasm/ffi modules
-│   ├── core.rs            # all the actual logic, plain Rust, platform-agnostic
+│   ├── core.rs            # keys, phrases and signing, plain Rust, platform-agnostic
+│   ├── safe.rs            # Safe wallet address calculation
 │   ├── wasm.rs             # wasm-bindgen bindings over core (wasm32 only)
 │   └── ffi.rs              # C ABI bindings over core (native targets only)
 ├── pkg-web/               # wasm-bindgen build output (gitignored, see below)
@@ -114,6 +107,7 @@ wallet-core/
 │   ├── wallet_core.d.ts
 │   ├── wallet_core_bg.wasm
 │   └── wallet_core_bg.wasm.d.ts
+├── testdata/safe_fixture.json  # Safe addresses from real contracts, for the tests
 ├── README.md               # this file
 ├── DEPLOYMENT.md           # how to build/publish this crate's outputs
 ├── CONFIGURATION.md        # build-time configuration surface (there isn't much)
@@ -127,43 +121,24 @@ deliberately-committed vendored copy — see INTEGRATION.md).
 
 ## Building it locally
 
-You need the Rust toolchain and, for the web target, `wasm-bindgen-cli`.
-Full detail (including the mobile/native path and exact version pinning)
-is in DEPLOYMENT.md; the short version, from the `wallet-core/` directory:
+The short version (the full guide is [DEPLOYMENT.md](DEPLOYMENT.md)):
 
 ```sh
-# 1. Install Rust (skip if already installed): https://rustup.rs
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# 2. Add the WebAssembly compilation target (one-time)
+# Rust from https://rustup.rs, then:
+cargo test                                                   # 11 tests pass
 rustup target add wasm32-unknown-unknown
-
-# 3. Install the wasm-bindgen CLI, matching Cargo.lock's wasm-bindgen version
-cargo install wasm-bindgen-cli --version 0.2.128
-
-# 4. Run the Rust test suite (native, no wasm needed)
-cargo test
-
-# 5. Build the release wasm binary
+cargo install wasm-bindgen-cli --version 0.2.128             # must match Cargo.lock
 cargo build --release --target wasm32-unknown-unknown
-
-# 6. Generate the JS/TS bindings + package the .wasm for web use
-wasm-bindgen --target web --out-dir pkg-web \
-  target/wasm32-unknown-unknown/release/wallet_core.wasm
+wasm-bindgen --target web --out-dir pkg-web target/wasm32-unknown-unknown/release/wallet_core.wasm
 ```
-
-That's it — `pkg-web/` now holds `wallet_core.js`, `wallet_core.d.ts`,
-`wallet_core_bg.wasm`, and `wallet_core_bg.wasm.d.ts`, ready to be copied
-into a consuming frontend (see INTEGRATION.md for exactly how `app-web`
-does this today).
 
 ## Further reading
 
-- **DEPLOYMENT.md** — prerequisites, exact build commands for both the
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** — prerequisites, exact build commands for both the
   web (wasm) and mobile (native cdylib/staticlib) targets, how a
-  frontend actually pulls this package in, running tests, and CI status.
-- **CONFIGURATION.md** — the crate's (minimal) build-time configuration
-  surface.
-- **INTEGRATION.md** — the exported API (`#[wasm_bindgen]` functions and
-  the C ABI `wc_*` functions), a TypeScript usage example, and an honest
-  accounting of who consumes this crate today.
+  frontend pulls this package in, checks, updates and troubleshooting.
+- **[CONFIGURATION.md](CONFIGURATION.md)** — build choices, and the values written in the code
+  that must match app-backend.
+- **[INTEGRATION.md](INTEGRATION.md)** — how app-web, app-mobile and app-backend connect to
+  it, the exported functions (`#[wasm_bindgen]` and C `wc_*`) and a
+  TypeScript example.

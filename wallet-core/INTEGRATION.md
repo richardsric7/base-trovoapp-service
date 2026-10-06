@@ -1,11 +1,84 @@
 # Integration
 
-This document lists the actual exported API and shows who calls it. It
-covers both binding layers: the `#[wasm_bindgen]` functions
-(`src/wasm.rs`, consumed by JS/TS) and the C ABI `wc_*` functions
-(`src/ffi.rs`, consumed by Dart via `dart:ffi`) — the two are the same
-underlying logic (`src/core.rs`) exposed two different ways for two
-different platforms.
+Everything `wallet-core` connects to, and how. wallet-core makes no network
+calls and has no server: it is code built into the two user apps. Its one
+outside rule is that the wallet addresses it calculates must match
+app-backend's.
+
+| Connects to | Direction | Through | Needed? |
+|---|---|---|---|
+| [1. app-web](#1-app-web) | app-web calls wallet-core | WebAssembly (`wasm-bindgen`) | yes |
+| [2. app-mobile](#2-app-mobile) | app-mobile calls wallet-core | native library (Dart FFI) | yes |
+| [3. app-backend](#3-app-backend-must-agree) | none at run time; results must agree | the same Safe address rules | yes |
+| [4. Not used by tm-web](#4-not-used-by-tm-web) | none | — | — |
+
+---
+
+## 1. app-web
+
+- **What it is and why:** the web wallet makes keys, phrases and signatures
+  in the browser with wallet-core, so keys never leave it.
+- **Direction:** app-web → wallet-core (in the browser).
+- **How they connect:** the WebAssembly package (`wallet_core.js`,
+  `wallet_core_bg.wasm` and their `.d.ts` files) is copied into
+  `app-web/src/walletCore/` and committed; `app-web/src/utils/trovoSDK.ts`
+  imports it and runs `await init()` once.
+- **Settings on this side:** the build choices in
+  [CONFIGURATION.md](CONFIGURATION.md#1-build-choices) (`wasm32-unknown-unknown`,
+  `wasm-bindgen --target web`).
+- **Settings on the other side:** none; app-web needs no Rust to build.
+- **How to check it works:** create an account in app-web: a phrase and
+  address appear.
+- **When it is broken:** app-web cannot start.
+
+## 2. app-mobile
+
+- **What it is and why:** the same functions for the Android and iOS app.
+- **Direction:** app-mobile → wallet-core (on the phone).
+- **How they connect:** Dart FFI: `app-mobile/lib/functions/wallet_core_ffi_io.dart`
+  calls the C functions in `src/ffi.rs` (`wc_*`, below) from
+  `libwallet_core.so` (Android, `DynamicLibrary.open`) or the linked
+  `libwallet_core.a` (iOS, `DynamicLibrary.process`).
+  `app-mobile/lib/functions/trovo-sdk.dart` wraps them.
+- **Settings on this side:** the Android and iOS targets
+  ([CONFIGURATION.md](CONFIGURATION.md#build-target---target)).
+- **Settings on the other side:** the compiled library must be placed in
+  the app; it is not committed
+  ([DEPLOYMENT.md](DEPLOYMENT.md#5-build-for-app-mobile-android)).
+- **How to check it works:** create a wallet in the app.
+- **When it is missing:** wallet creation and signing fail with "library
+  not found". On the app's web build, these functions report "not
+  available" (`wallet_core_ffi_web.dart`).
+
+## 3. app-backend (must agree)
+
+- **What it is and why:** at sign-up the app sends the wallet address
+  wallet-core calculated (`primarySafeAddress(key address, "0")`).
+  app-backend calculates it again (`PrimarySafeDeployment` in
+  `internal/components/users/models/user_methods.go`) and refuses the
+  sign-up if they differ.
+- **Direction:** no calls between them; the results must be identical.
+- **Settings on this side:** the Safe contract addresses in `src/safe.rs`
+  ([CONFIGURATION.md](CONFIGURATION.md#safe-contract-addresses-srcsafers)).
+- **Settings on the other side:** app-backend's `SAFE_PROXY_FACTORY_ADDRESS`,
+  `SAFE_SINGLETON_ADDRESS`, `SAFE_MODULE_SETUP_ADDRESS`,
+  `SAFE_4337_MODULE_ADDRESS` (defaults equal wallet-core's).
+- **How to check it works:** both test suites check against the same
+  addresses, made from real Safe contracts: `testdata/safe_fixture.json`
+  here (`cargo test`) and an identical copy in
+  `app-backend/internal/aa/testdata/` (`go test ./internal/aa/`). Keep the
+  two copies identical; regenerate them with
+  `paymaster/contracts/test/SafeWallet.test.js`.
+- **When they disagree:** every new sign-up is refused.
+
+## 4. Not used by tm-web
+
+tm-web (Trovo Manager's website) does not use wallet-core: admins sign in
+by approving in the mobile app, which uses it.
+
+---
+
+The sections below list every function wallet-core offers to each app.
 
 ## Exported API — WASM / JavaScript-TypeScript (`src/wasm.rs`)
 
@@ -85,7 +158,7 @@ console.log(isValid); // true
 ## Exported API — native / Dart FFI (`src/ffi.rs`)
 
 The C ABI surface consumed by `app-mobile`'s hand-written bindings in
-`app-mobile/lib/functions/wallet_core_ffi.dart`. Every fallible function
+`app-mobile/lib/functions/wallet_core_ffi_io.dart`. Every fallible function
 returns a heap-allocated, NUL-terminated JSON C string —
 `{"...fields":...}` on success, `{"error":"..."}` on failure — which
 must be released via `wc_free_string` after use.
@@ -104,23 +177,9 @@ must be released via `wc_free_string` after use.
 | `wc_primary_safe_address(owner, salt_nonce)` | `{"address"}` or `{"error"}` | The user's permanent wallet address: the counterfactual 1-of-1 Safe owned by `owner`, salt nonce `"0"` for the primary wallet (see `primarySafeAddress`). |
 | `wc_free_string(ptr)` | `void` | Frees a string returned by any of the above. **Must** be called on every returned pointer to avoid leaking the Rust-allocated buffer. |
 
-`app-mobile/lib/functions/wallet_core_ffi.dart`'s `WalletCoreFFI` class
+`app-mobile/lib/functions/wallet_core_ffi_io.dart`'s `WalletCoreFFI` class
 wraps all of this into a typed Dart API (`generateKeypair()`,
 `signPersonal(...)`, etc.), and `trovo-sdk.dart` calls that class. The
-Dart-side code is complete and in active use in that file — **what's
-missing is the native library it loads at runtime**; see DEPLOYMENT.md
-section 3 for the full detail.
-
-## Who actually consumes this today — the honest accounting
-
-| Consumer | Status | Evidence |
-|---|---|---|
-| **app-web** | **Wired up and in active use.** | `app-web/src/walletCore/` holds a committed copy of the wasm build output. `app-web/src/utils/trovoSDK.ts` imports it directly (`from '../walletCore/wallet_core.js'`) and is itself imported by roughly a dozen pages/components, including `walletOperations.tsx`, `importWallet.tsx`, `accountRecovery/main.tsx`, `createAccount/backup.tsx`, `createAccount/registrationForm.tsx`, `dashboard/wallet/walletView.tsx`, `dashboard/tokenize/confirmTokenizationDetails.tsx`, `dashboard/sharedAccess/landing.tsx`, `dashboard/p2p/orderDetail.tsx`, `pay/payLanding.tsx`, and `tokenizedAssetActionModals.tsx`. |
-| **tm-web** | **Not wired up.** | No reference to `wallet-core`, `wallet_core`, or `walletCore` anywhere in `tm-web/package.json` or `tm-web/`'s source tree. |
-| **app-mobile** | **Dart bindings written and used; native library not built or bundled.** | `app-mobile/lib/functions/wallet_core_ffi.dart` (typed `dart:ffi` bindings over `src/ffi.rs`) is imported and called by `app-mobile/lib/functions/trovo-sdk.dart`, and a test exists at `app-mobile/test/wallet_core_ffi_test.dart`. But no `.so`/`.a`/`.dylib` for `wallet-core` exists anywhere under `app-mobile/android` or `app-mobile/ios`, no Gradle/Podfile/Xcode config references it, and no CI step builds or places one — confirmed by searching those directories for `jniLibs`, `libwallet_core`, and `XCFramework` (no matches). At runtime, `WalletCoreFFI.instance`'s first access would throw when `DynamicLibrary.open`/`.process()` fails to find the library/symbols, unless someone has built and placed it manually and out-of-band. |
-
-**Do not describe `wallet-core` as fully integrated across the mobile
-app** — the Rust and Dart code for that path exist and are correct as
-far as they go, but the build/packaging step that would make it actually
-work at runtime is unfinished (see DEPLOYMENT.md §3.3 for what's needed
-to finish it).
+compiled library it loads is not committed: build it with
+[DEPLOYMENT.md](DEPLOYMENT.md#5-build-for-app-mobile-android) steps 5
+and 6 before building the app.

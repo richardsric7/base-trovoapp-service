@@ -1,44 +1,131 @@
 # Configuration
 
-**This crate has no runtime or feature-flag configuration surface.**
-That's an honest finding, not an oversight in this document — `wallet-core`
-is a small, fully static-behavior library: given the same inputs, its
-functions always do the same thing, regardless of environment variables,
-Cargo features, or build-time flags (beyond which *target* you compile
-for, which is a build-command choice, not a configuration toggle — see
-DEPLOYMENT.md).
+Every parameter `wallet-core` uses. Each one says what it is, why it is
+needed, whether you must set it, an example and how to get a real value.
 
-## What was checked
+## How to set them
 
-- **`Cargo.toml`** has no `[features]` section at all. There is nothing
-  to enable or disable with `cargo build --features <name>`.
-- **`src/core.rs`, `src/wasm.rs`, `src/ffi.rs`, `src/lib.rs`** were
-  grepped for both of Rust's common feature-flag patterns —
-  `cfg(feature = ...)` and `cfg!(feature = ...)` — and for any use of
-  `std::env::var`/`env::var`. Neither pattern appears anywhere in `src/`.
+wallet-core is a library, not a running program: it reads **no environment
+variables**, has no settings file and no Cargo features (`Cargo.toml` has
+no `[features]`; `src/` has no `env::var` or `cfg(feature)`). Given the
+same inputs, it always gives the same outputs.
 
-## The one thing that *does* vary: compile target
+What you choose is **how you build it** (sections 1 and 2), and a few
+values are **written in the code** and must agree with app-backend
+(section 3).
 
-The only thing that changes this crate's compiled output is which
-**target** you build for, controlled entirely by `cargo build`'s
-`--target` flag (not a feature flag):
+---
 
-- Building for `wasm32-unknown-unknown` compiles in `src/wasm.rs` (the
-  `wasm-bindgen` bindings) and excludes `src/ffi.rs`, per the
-  `#[cfg(target_arch = "wasm32")]` / `#[cfg(not(target_arch = "wasm32"))]`
-  guards in `src/lib.rs`.
-- Building for any native target (the default, or an explicit target
-  like `aarch64-linux-android`) does the reverse: `src/ffi.rs` is
-  compiled in, `src/wasm.rs` is not.
-- `crate-type = ["cdylib", "staticlib", "rlib"]` in `Cargo.toml` means
-  every build produces all three output kinds together — which one a
-  given consumer actually picks up (the `.wasm`, the `.so`/`.a`, or the
-  `.rlib` used by `cargo test`) depends on their own build/link step, not
-  on anything you configure here.
+## 1. Build choices
 
-This is "target selection," covered fully in DEPLOYMENT.md, not
-"configuration" in the feature-flag/env-var sense — there's no dial here
-for a consumer to turn based on their own needs (e.g. no
-"lite" vs "full" feature set, no debug-logging toggle, no alternate
-crypto backend). If a consumer needs different behavior from this crate,
-that's new code in `src/core.rs`, not a flag to flip.
+### Build target (`--target`)
+
+- **What it is:** Which kind of computer or phone to compile for. It picks
+  the binding code: WebAssembly builds include `src/wasm.rs` (for app-web),
+  every other target includes `src/ffi.rs` (for app-mobile).
+- **Why it's needed:** A browser, an Android phone and an iPhone each need
+  their own compiled file.
+- **Required:** Yes, for the web and the phones (none for `cargo test`,
+  which builds for your own computer).
+- **Example:** `wasm32-unknown-unknown`
+- **How to get it:**
+
+  | For | Target | Output |
+  |---|---|---|
+  | app-web | `wasm32-unknown-unknown` | `target/wasm32-unknown-unknown/release/wallet_core.wasm` |
+  | Android phones (64-bit) | `aarch64-linux-android` | `libwallet_core.so` |
+  | Android phones (32-bit) | `armv7-linux-androideabi` | `libwallet_core.so` |
+  | Android emulator | `x86_64-linux-android` | `libwallet_core.so` |
+  | iPhones | `aarch64-apple-ios` | `libwallet_core.a` |
+  | iOS simulator (Apple-silicon Mac) | `aarch64-apple-ios-sim` | `libwallet_core.a` |
+
+  Install each once with `rustup target add <target>`.
+
+### `wasm-bindgen` tool version
+
+- **What it is:** The version of the `wasm-bindgen` command that turns the
+  `.wasm` file into a JavaScript module.
+- **Why it's needed:** It must be **exactly** the version of the
+  `wasm-bindgen` library in `Cargo.lock`, or it stops with a version
+  mismatch error.
+- **Required:** Yes, for the web build.
+- **Example:** `0.2.128`
+- **How to get it:** `grep -A1 'name = "wasm-bindgen"' Cargo.lock`, then
+  `cargo install wasm-bindgen-cli --version <that version>`.
+
+### `wasm-bindgen --target web` and `--out-dir`
+
+- **What they are:** `--target web` makes a module a browser loads directly
+  (`import init from './wallet_core.js'; await init()`), which is how
+  app-web's `src/utils/trovoSDK.ts` uses it. `--out-dir` is the folder the
+  four output files go to.
+- **Why they're needed:** Other `--target` values make modules app-web
+  cannot load the same way.
+- **Required:** Yes, for the web build.
+- **Example:** `--target web --out-dir pkg-web`
+- **How to get it:** Use these values; `pkg-web/` is in `.gitignore`.
+
+### Android ABIs (`cargo ndk -t`)
+
+- **What they are:** Which Android processor types to build for:
+  `arm64-v8a`, `armeabi-v7a`, `x86_64`.
+- **Why they're needed:** An Android app needs one library per processor
+  type it runs on; a missing one fails on those phones.
+- **Required:** For Android; `arm64-v8a` at least (almost all phones),
+  `x86_64` for emulators.
+- **Example:** `-t arm64-v8a -t armeabi-v7a -t x86_64`
+- **How to get it:** Use all three.
+
+### `ANDROID_NDK_HOME`
+
+- **What it is:** Where the Android NDK (the compilers for Android) is
+  installed.
+- **Why it's needed:** `cargo ndk` uses it to build the Android library.
+- **Required:** For Android builds.
+- **Example:** `/home/ada/Android/Sdk/ndk/27.0.12077973`
+- **How to get it:** Install the NDK in Android Studio (**SDK Manager → SDK
+  Tools → NDK (Side by side)**), then look in `<Android SDK>/ndk/`.
+  app-mobile's Android build uses NDK `27.0.12077973`
+  (`app-mobile/android/app/build.gradle.kts`).
+
+## 2. Release profile
+
+`Cargo.toml` builds releases small (`opt-level = "s"`, `lto = true`). Keep
+it: the web file is downloaded by every visitor.
+
+## 3. Values written in the code
+
+### Safe contract addresses (`src/safe.rs`)
+
+- **What they are:** The addresses of Safe's standard contracts that every
+  Trovo wallet is built from: `SAFE_PROXY_FACTORY`
+  (`0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67`), `SAFE_L2_SINGLETON`
+  (`0x29fcB43b46531BcA003ddC8FCB67FFE91900C762`), `SAFE_MODULE_SETUP`
+  (`0x2dd68b007B46fBe91B9A7c3EDa5A7a1063cB5b47`), `SAFE_4337_MODULE`
+  (`0x75cf11467937ce3F2f357CE24ffc3DBF8fD5c226`), and the Safe proxy's
+  creation code.
+- **Why they're needed:** A wallet's address is calculated from them before
+  the wallet exists. The apps calculate it with wallet-core, app-backend
+  calculates it again, and **app-backend refuses a sign-up whose address
+  does not match its own**.
+- **Required:** Yes (already set to Safe's official deployments, the same
+  on Base and Base Sepolia).
+- **Example:** `0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67`
+- **How to get it:** Keep them. They must equal app-backend's
+  `SAFE_PROXY_FACTORY_ADDRESS`, `SAFE_SINGLETON_ADDRESS`,
+  `SAFE_MODULE_SETUP_ADDRESS` and `SAFE_4337_MODULE_ADDRESS`
+  ([app-backend/CONFIGURATION.md](../app-backend/CONFIGURATION.md#safe-and-entrypoint-contract-addresses)),
+  which default to the same values. Change both together, then rebuild
+  wallet-core into both apps.
+
+### Key derivation path
+
+- **What it is:** Keys come from the 12-word phrase at path
+  `m/44'/60'/0'/0/{index}` (the standard Ethereum path), index `0` for the
+  user's key.
+- **Why it's needed:** The same phrase must give the same key in the web
+  app, the mobile app and other Ethereum wallets.
+- **Required:** Yes (already set).
+- **Example:** `m/44'/60'/0'/0/0`
+- **How to get it:** Never change it: existing users would get different
+  keys.
