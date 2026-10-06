@@ -230,7 +230,7 @@ func (s *ServiceLink) VerifyAuthorizationRequest(trovoUser, authID string) (auth
 	//"/v1/servicelinks/authorize/verify/:targetUser"
 	fullPath := fmt.Sprintf("/v1/servicelinks/authorize/verify/%v/%v/%v", s.ServiceUsername, trovoUser, authID)
 
-	log.Printf("[VerifyAuthorizationRequest] DEBUG URL: %s%s | ServiceUsername: %s | ApiKey: %s", s.ApiBaseUrl, fullPath, s.ServiceUsername, s.ApiKey)
+	log.Printf("[VerifyAuthorizationRequest] URL: %s%s | ServiceUsername: %s", s.ApiBaseUrl, fullPath, s.ServiceUsername)
 
 	errorResponse := new(ErrorResponse)
 	authResponseData = new(TrovoWalletAuthorizationRespomseData)
