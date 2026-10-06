@@ -12,7 +12,7 @@
 // The owners sign the Safe4337Module's EIP-712 SafeOp hash with the apps'
 // existing personal_sign; Safe accepts those as eth_sign signatures (v+4).
 // The address formula is shared with wallet-core (src/safe.rs), and both
-// are tested against real Safe deployments (testdata/safe_fixture.json).
+// are tested against real Safe deployments (wallet-core/testdata/safe_fixture.json).
 package aa
 
 import (

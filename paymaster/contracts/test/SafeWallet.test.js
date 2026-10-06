@@ -195,12 +195,9 @@ describe("Safe wallets (Safe v1.4.1 + Safe4337Module)", function () {
         userOpHash, ownerSignatureWithV4: signature,
       },
     };
-    for (const file of [
-      path.join(__dirname, "..", "..", "..", "wallet-core", "testdata", "safe_fixture.json"),
-      path.join(__dirname, "..", "..", "..", "app-backend", "internal", "aa", "testdata", "safe_fixture.json"),
-    ]) {
-      fs.mkdirSync(path.dirname(file), { recursive: true });
-      fs.writeFileSync(file, JSON.stringify(out, null, 2) + "\n");
-    }
+    // one copy, read by both wallet-core's and app-backend's tests
+    const file = path.join(__dirname, "..", "..", "..", "wallet-core", "testdata", "safe_fixture.json");
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, JSON.stringify(out, null, 2) + "\n");
   });
 });

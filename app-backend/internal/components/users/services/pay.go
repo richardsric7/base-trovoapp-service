@@ -10,6 +10,7 @@ import (
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/evmkeypair"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -80,13 +81,23 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 
 	// }
 
-	chanAccount, releaseChanAccount, errCheckout := sharedconfig.CheckoutChannelAccount(gc)
-	if errCheckout != nil {
-		return "", nil, errCheckout
+	// only a shared-access (multi-party) mint is sent from a channel
+	// account; a direct mint needs none, so it works with no
+	// CHANNEL_ACCOUNTS configured
+	var chanAccount *evmkeypair.Full
+	var chanSourceAddress string
+	if mintingInfo.Multiparty == 1 {
+		ca, releaseChanAccount, errCheckout := sharedconfig.CheckoutChannelAccount(gc)
+		if errCheckout != nil {
+			return "", nil, errCheckout
+		}
+		defer releaseChanAccount()
+		chanAccount = ca
+		_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, ca.Address(), basetxn.NativeAsset{})
+		if chanSourceAccount != nil {
+			chanSourceAddress = chanSourceAccount.Address
+		}
 	}
-	defer releaseChanAccount()
-	// paymentInfo.Messages = messages
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), basetxn.NativeAsset{})
 	_, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, sourceWallet.ID, asset)
 
 	if sourceAccountErr != nil {
@@ -147,10 +158,10 @@ func generateMintingXdr(client *ethclient.Client, owner *userModels.User, source
 	var tx *basetxn.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if mintingInfo.Multiparty == 1 {
-		mintingInfo.TransactionSource = chanSourceAccount.Address
+		mintingInfo.TransactionSource = chanSourceAddress
 		tx, err = basetxn.NewTransaction(
 			basetxn.TransactionParams{
-				SourceAccount:        chanSourceAccount.Address,
+				SourceAccount:        chanSourceAddress,
 				IncrementSequenceNum: true,
 				Operations:           ops,
 				BaseFee:              2000,

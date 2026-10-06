@@ -6,7 +6,6 @@ import (
 
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/validators"
@@ -59,7 +58,7 @@ func WebSocketAuthenticationChecks(body, signature, signerAddress string) error 
 func AuthenticationMiddlewareUsingBody() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
-		if os.Getenv("ENABLE_AUTH_MIDDLEWARE") == "0" {
+		if AuthChecksDisabled() {
 			c.Next()
 			return
 		}
@@ -94,7 +93,7 @@ func AuthenticationMiddlewareUsingBody() gin.HandlerFunc {
 }
 func AuthenticationMiddlewareUsingTimestamp() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if os.Getenv("ENABLE_AUTH_MIDDLEWARE") == "0" {
+		if AuthChecksDisabled() {
 			c.Next()
 			return
 		}

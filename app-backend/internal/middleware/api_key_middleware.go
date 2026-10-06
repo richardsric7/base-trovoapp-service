@@ -3,7 +3,6 @@ package middleware
 import (
 	"log"
 	"net/http"
-	"os"
 	"trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -22,7 +21,7 @@ func apiKeyChecks(c *gin.Context, gc *sharedconfig.GlobalConfig) error {
 	// apiKey = strings.TrimSpace(apiKey)
 	fullUri := c.Request.URL.RequestURI()
 	serviceLinkKey := ExtractServiceLinkApiKey(c)
-	log.Printf("Full Path With Query:[%s] APIKEY:[%s]\n", fullUri, serviceLinkKey)
+	log.Printf("Full Path With Query:[%s] APIKEY:[%s]\n", fullUri, MaskSecret(serviceLinkKey))
 
 	if len(serviceLinkKey) == 0 {
 		return &errors.CustomError{Param: "apiKey", Err: "Error Missing APIKEY parameter", ErrMessage: "Missing APIKEY parameter"}
@@ -54,14 +53,14 @@ func VerifyServiceLinkAPIKey(apiKey string, db *gorm.DB) (err error) {
 }
 func AuthenticationMiddlewareUsingAPIKey(gc *sharedconfig.GlobalConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if os.Getenv("ENABLE_AUTH_MIDDLEWARE") == "0" {
+		if AuthChecksDisabled() {
 			c.Next()
 			return
 		}
 		h := c.Request.Header.Get("User-Agent")
 		serviceLinkKey := ExtractServiceLinkApiKey(c)
 
-		log.Printf("[%s] is using [%s]\n", serviceLinkKey, h)
+		log.Printf("[%s] is using [%s]\n", MaskSecret(serviceLinkKey), h)
 
 		authenticationError := apiKeyChecks(c, gc)
 

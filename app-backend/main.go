@@ -21,12 +21,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
 	msc "trovo-wallet-api/internal/components/announcements/controllers"
 	callbacks "trovo-wallet-api/internal/components/callbacks/controllers"
+	"trovo-wallet-api/internal/components/health"
 	p2p "trovo-wallet-api/internal/components/p2p/controllers"
 	payments "trovo-wallet-api/internal/components/payments/controllers"
 	publicmarkets "trovo-wallet-api/internal/components/publicmarkets/controllers"
@@ -39,7 +41,6 @@ import (
 	userServices "trovo-wallet-api/internal/components/users/services"
 	db "trovo-wallet-api/internal/db"
 	dl "trovo-wallet-api/internal/dynamiclinks"
-	m "trovo-wallet-api/internal/mail"
 	"trovo-wallet-api/internal/middleware"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -90,6 +91,12 @@ func main() {
 	// migrator does not. Exits non-zero on any failure so CI blocks the deploy.
 	migrateOnly := os.Getenv("MIGRATE_ONLY") == "1"
 
+	// ENABLE_AUTH_MIDDLEWARE=0 lets anyone act as any user; it is for a local
+	// debugging session only, never a release deployment
+	if os.Getenv("ENABLE_AUTH_MIDDLEWARE") == "0" && os.Getenv("GIN_MODE") == "release" {
+		log.Fatal("[main] ENABLE_AUTH_MIDDLEWARE=0 turns off all authentication and is refused with GIN_MODE=release")
+	}
+
 	//setup DB
 
 	var database, roachDB *gorm.DB
@@ -134,14 +141,14 @@ func main() {
 		// so they're no longer required to boot.
 		requiredEnvironmentVariables := []string{"BASE_RPC_URL",
 			"MAILGUN_PRIVATE_API_KEY", "CDB_CONNECTION_STRING",
-			"IPAPI_KEY", "IPAPI_HOST", "VERIFICATION_CODE_SALT", "ENABLE_EMAIL_VALIDATION", "ENABLE_CACHING", "DEFAULT_ASSET_IMAGE_URL",
+			"VERIFICATION_CODE_SALT", "ENABLE_EMAIL_VALIDATION", "ENABLE_CACHING", "DEFAULT_ASSET_IMAGE_URL",
 			"REDIS_HOST", "REDIS_PORT", "DYNAMIC_LINKS_DOMAIN_PREFIX", "DYNAMIC_LINKS_ANDROID_PACKAGE_NAME",
 			"DYNAMIC_LINKS_IOS_BUNDLE_ID", "DYNAMIC_LINKS_FALLBACK_BASE_URL", "MAILGUN_DOMAIN", "NATIVE_ASSET_IMAGE_URL",
 			"GC", "GOOGLE_PROJECT_ID",
 			"NATIVE_ASSET_CODE",
-			"CHANNEL_ACCOUNTS", "WALLET_DOMAIN",
+			"WALLET_DOMAIN",
 			"MNEMONIC_BULK_PAYMENT", "BULK_PAYMENT_SALT", "ENCODER_SALT", "MARKET_MAKING_SALT",
-			"MNEMONIC_MARKET_MAKING", "CHECK_CHANNEL_ACCOUNT_BALANCE",
+			"MNEMONIC_MARKET_MAKING",
 			"JWT_ACCESS_SECRET", "JWT_TOKEN_EXPIRY", "JWT_REFRESH_TOKEN_EXPIRY",
 			"DOLLAR_ASSET", "MARKET_MAKING_FEE_ENABLED", "SWAP_FEE_ENABLED",
 			"BLOCKCHAIN_DATA_CACHE_LIFETIME", "VAT_WALLET", "SUBWALLET_CREATION_FEE_WALLET", "TOKENIZATION_APPLICATION_FEE_WALLET",
@@ -432,19 +439,39 @@ func main() {
 		}()
 
 	}
+	// Channel accounts are legacy: only shared-access (multi-party) mints
+	// through the old minting path still sign with one. They are optional:
+	// with CHANNEL_ACCOUNTS unset nothing here runs. Keys are only ever
+	// read from CHANNEL_ACCOUNTS - they are never generated at run time (a
+	// generated key existed only on the instance that made it, and used to
+	// be emailed in plain text).
 	globalConfig.ChannelAccountKeysByAddress = make(map[string]*evmkeypair.Full)
-	scas := strings.Split(os.Getenv("CHANNEL_ACCOUNTS"), ",")
-	count := decimal.RequireFromString(os.Getenv("CHANNEL_ACCOUNT_MIN_COUNT")).IntPart()
+	var scas []string
+	for _, v := range strings.Split(os.Getenv("CHANNEL_ACCOUNTS"), ",") {
+		if strings.TrimSpace(v) != "" {
+			scas = append(scas, v)
+		}
+	}
+	if want, err := strconv.Atoi(strings.TrimSpace(os.Getenv("CHANNEL_ACCOUNT_MIN_COUNT"))); err == nil && want > len(scas) {
+		log.Printf("[CHANNEL ACCOUNTS] %d configured, CHANNEL_ACCOUNT_MIN_COUNT asks for %d: add keys to CHANNEL_ACCOUNTS (none are generated)\n", len(scas), want)
+	}
 
-	go func() {
-		funder := evmkeypair.MustParseFull(os.Getenv("CHANNEL_ACCOUNT_FUNDER"))
-		// instances booting together fund channel accounts one at a time (the
-		// second then finds them funded); each funding transaction's nonce is
-		// reserved under the funder key's own lock (network.ReserveNonce)
-		lockErr := sharedconfig.WithKeyLock(globalConfig.DB, "channel-account-funding", 10*time.Minute, func() (lockedErr error) {
-			var channelAccountsCSV string
-			if len(scas) >= 1 {
-
+	if len(scas) > 0 {
+		go func() {
+			// top-ups only with CHECK_CHANNEL_ACCOUNT_BALANCE=1 and a valid funder key
+			var funder *evmkeypair.Full
+			if os.Getenv("CHECK_CHANNEL_ACCOUNT_BALANCE") == "1" {
+				f, err := evmkeypair.ParseFull(strings.TrimSpace(os.Getenv("CHANNEL_ACCOUNT_FUNDER")))
+				if err != nil {
+					log.Printf("[CHANNEL ACCOUNTS] CHANNEL_ACCOUNT_FUNDER is not a valid key, balances are not topped up: %v\n", err)
+				} else {
+					funder = f
+				}
+			}
+			// instances booting together fund channel accounts one at a time (the
+			// second then finds them funded); each funding transaction's nonce is
+			// reserved under the funder key's own lock (network.ReserveNonce)
+			lockErr := sharedconfig.WithKeyLock(globalConfig.DB, "channel-account-funding", 10*time.Minute, func() (lockedErr error) {
 				for _, v := range scas {
 					k, e := evmkeypair.ParseFull(strings.ReplaceAll(v, " ", ""))
 					if e != nil {
@@ -497,19 +524,7 @@ func main() {
 							//the ExpireStalePaymentInvoices sweep - nothing to do, falls through to the pool
 						}
 					}
-					// log.Printf("Channel Account to be used:%v\n", k.Address())
-					//check minimum balance
-					if len(channelAccountsCSV) == 0 {
-						channelAccountsCSV = fmt.Sprintf("%s,", k.Seed())
-					} else {
-						if !strings.HasSuffix(channelAccountsCSV, ",") {
-							channelAccountsCSV = fmt.Sprintf("%s,%s,", channelAccountsCSV, k.Seed())
-						} else {
-							channelAccountsCSV = fmt.Sprintf("%s%s,", channelAccountsCSV, k.Seed())
-						}
-
-					}
-					if os.Getenv("CHECK_CHANNEL_ACCOUNT_BALANCE") == "0" || os.Getenv("CHECK_CHANNEL_ACCOUNT_BALANCE") == "" {
+					if funder == nil {
 						if errSeed := sharedconfig.SeedChannelAccount(&globalConfig, k); errSeed != nil {
 							log.Printf("[SEED CHANNEL ACCOUNT] error seeding %v: %v\n", k.Address(), errSeed)
 						}
@@ -576,143 +591,13 @@ func main() {
 					log.Println("[FUND CHANNEL ACCOUNT] success ", hash)
 
 				}
+				return
+			})
+			if lockErr != nil {
+				log.Printf("[CHANNEL ACCOUNTS] funding skipped: %v\n", lockErr)
 			}
-			//
-
-			//check of number of channel accounts is upto specified amount
-
-			// new accounts are generated by one instance per hour, not by every
-			// instance that boots
-			if len(scas) < int(count) && claimChannelAccountGeneration(globalConfig.DB) {
-				_, _, _, _, sact, _ := network.BlockchainAccountProperties(globalConfig.BantuExpansionClient, funder.Address(), basetxn.NativeAsset{})
-
-				b := 0
-				var ops []basetxn.Operation
-				log.Printf("NUMBER OF SUPPLIED chan account %v is less than the required number %v\n", len(scas), count)
-				for i := len(scas); i < int(count); i++ {
-					b++
-					// /
-					k, errRandom := evmkeypair.Random()
-					if errRandom != nil {
-						log.Printf("[GENERATE CHANNEL ACCOUNT] error generating account: %v\n", errRandom)
-						continue
-					}
-
-					log.Printf("Channel Account to be used:%v\n", k.Address())
-					if errSeed := sharedconfig.SeedChannelAccount(&globalConfig, k); errSeed != nil {
-						log.Printf("[SEED CHANNEL ACCOUNT] error seeding %v: %v\n", k.Address(), errSeed)
-					}
-
-					//check minimum balance
-
-					if len(channelAccountsCSV) == 0 {
-						channelAccountsCSV = fmt.Sprintf("%s,", k.Seed())
-					} else {
-						if !strings.HasSuffix(channelAccountsCSV, ",") {
-							channelAccountsCSV = fmt.Sprintf("%s,%s,", channelAccountsCSV, k.Seed())
-						} else {
-							channelAccountsCSV = fmt.Sprintf("%s%s,", channelAccountsCSV, k.Seed())
-						}
-
-					}
-
-					//fund from the funder
-
-					ops = append(ops, &basetxn.CreateAccount{
-						Destination: k.Address(),
-						Amount:      os.Getenv("CHANNEL_ACCOUNT_FUNDING_AMOUNT"),
-					})
-
-					if b == 97 {
-						tx, err := basetxn.NewTransaction(
-							basetxn.TransactionParams{
-								SourceAccount:        sact.Address,
-								IncrementSequenceNum: true,
-								Operations:           ops,
-								BaseFee:              2000,
-								Memo:                 "Fund channel account",
-							},
-						)
-						if err != nil {
-							log.Println("[FUND CHANNEL ACCOUNT] error constructing transaction ", err)
-							continue
-						}
-
-						tx, err = tx.Sign(globalConfig.BantuNetworkPassphrase, funder)
-						if err != nil {
-							log.Println("[FUND CHANNEL ACCOUNT] error signing transaction ", err)
-							continue
-						}
-
-						fundTxRaw, err := tx.Base64()
-						if err != nil {
-							log.Println("[FUND CHANNEL ACCOUNT] error serializing transaction ", err)
-							continue
-						}
-						hash, err := network.SubmitXdrWithSignature(globalConfig.BantuExpansionClient, funder.Address(), fundTxRaw, "")
-						if err != nil {
-							log.Println("[FUND CHANNEL ACCOUNT] error constructing transaction ", err)
-							continue
-						}
-						log.Println("[FUND CHANNEL ACCOUNT] success ", hash)
-
-						//reset trx
-						ops = make([]basetxn.Operation, 0)
-						///
-						_, _, _, _, sact, _ = network.BlockchainAccountProperties(globalConfig.BantuExpansionClient, funder.Address(), basetxn.NativeAsset{})
-						b = 0
-					}
-
-				}
-
-				if len(ops) > 0 {
-					tx, err := basetxn.NewTransaction(
-						basetxn.TransactionParams{
-							SourceAccount:        sact.Address,
-							IncrementSequenceNum: true,
-							Operations:           ops,
-							BaseFee:              2000,
-							Memo:                 "Fund channel account",
-						},
-					)
-					if err != nil {
-						log.Println("[FUND CHANNEL ACCOUNT] error constructing transaction ", err)
-						m.SendEmail(os.Getenv("CHANNEL_ACCOUNT_RECEIPIENT"), channelAccountsCSV)
-						return
-					}
-
-					tx, err = tx.Sign(globalConfig.BantuNetworkPassphrase, funder)
-					if err != nil {
-						log.Println("[FUND CHANNEL ACCOUNT] error signing transaction ", err)
-						m.SendEmail(os.Getenv("CHANNEL_ACCOUNT_RECEIPIENT"), channelAccountsCSV)
-						return
-					}
-
-					fundTxRaw, err := tx.Base64()
-					if err != nil {
-						log.Println("[FUND CHANNEL ACCOUNT] error serializing transaction ", err)
-						m.SendEmail(os.Getenv("CHANNEL_ACCOUNT_RECEIPIENT"), channelAccountsCSV)
-						return
-					}
-					hash, err := network.SubmitXdrWithSignature(globalConfig.BantuExpansionClient, funder.Address(), fundTxRaw, "")
-					if err != nil {
-						log.Println("[FUND CHANNEL ACCOUNT] error constructing transaction ", err)
-						m.SendEmail(os.Getenv("CHANNEL_ACCOUNT_RECEIPIENT"), channelAccountsCSV)
-						return
-					}
-					log.Println("[FUND CHANNEL ACCOUNT] success ", hash)
-				}
-
-				//send this securely to remote service.
-				m.SendEmail(os.Getenv("CHANNEL_ACCOUNT_RECEIPIENT"), channelAccountsCSV)
-				log.Println("DONE FUNDING CHANNEL ACCOUNTS")
-			}
-			return
-		})
-		if lockErr != nil {
-			log.Printf("[CHANNEL ACCOUNTS] funding skipped: %v\n", lockErr)
-		}
-	}()
+		}()
+	}
 	if os.Getenv("ENABLE_CRYPTO_WITHDRAWAL_SERVICE") == "1" {
 		go func() {
 			//LOAD WITHDRAWAL NETWORKS FROM 1L
@@ -944,6 +829,7 @@ func main() {
 	// router.SetTrustedProxies(nil)
 	router.Use(middleware.CORSMiddleware())
 
+	health.Init(router, &globalConfig)
 	root.Init(router)
 	log.Println("##root services initialized##")
 	users.Init(router, callBackRetryChan, &globalConfig)
@@ -1235,16 +1121,4 @@ func mintNextCryptoDeposit(database *gorm.DB, gc *sharedconfig.GlobalConfig) boo
 		}
 	}
 	return true
-}
-
-// claimChannelAccountGeneration reports whether this instance may generate
-// new channel accounts: at most one instance per hour does (the claim is
-// left to expire, not released).
-func claimChannelAccountGeneration(db *gorm.DB) bool {
-	const name = "channel-account-generation"
-	if err := sharedconfig.EnsureDistributedLock(db, name); err != nil {
-		return false
-	}
-	ok, err := sharedconfig.TryAcquireLock(db, name, sharedconfig.InstanceIdentity(), time.Hour)
-	return err == nil && ok
 }

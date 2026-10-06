@@ -52,7 +52,9 @@ func bigStr(s string) *big.Int {
 
 func loadFixture(t *testing.T) (safeFixture, Config) {
 	t.Helper()
-	raw, err := os.ReadFile("testdata/safe_fixture.json")
+	// the single copy, shared with wallet-core's tests (written by
+	// paymaster/contracts/test/SafeWallet.test.js)
+	raw, err := os.ReadFile("../../../wallet-core/testdata/safe_fixture.json")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -55,7 +55,7 @@ func postServicelinksLoginRequestTargetUserHandler(gc *sharedconfig.GlobalConfig
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET SERVICE] error for SERVICE:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET SERVICE] error for SERVICE:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -99,7 +99,7 @@ func postServicelinksLoginRequestTargetUserHandler(gc *sharedconfig.GlobalConfig
 			c.JSON(http.StatusBadRequest, gin.H{"error": "service account cannot be empty"})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/login/request/%v %v/%v", trovoUser, identifier, middleware.ExtractServiceLinkApiKey(c)), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/login/request/%v %v/%v", trovoUser, identifier, middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c))), gc.DB)
 
 		if mInfo.LoginPermission == 0 {
 			//wrong access
@@ -237,7 +237,7 @@ func postUsersServicelinksLoginApprovalTargetUserHandler(callBackRetryChan chan 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(loginSession.ApiKey, gc.DB)
 
 		if err != nil {
-			log.Println("[GET SERVICE INFO] error for SERVICE:", ownerUsername, loginSession.ApiKey, "error: ", err)
+			log.Println("[GET SERVICE INFO] error for SERVICE:", ownerUsername, middleware.MaskSecret(loginSession.ApiKey), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -432,7 +432,7 @@ func getServicelinksLoginVerifyOwnerUsernameTargetUserLoginIDHandler(gc *sharedc
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET SERVICE FOR USER LOGIN] error for servicelink:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET SERVICE FOR USER LOGIN] error for servicelink:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -720,7 +720,7 @@ func postServicelinksAuthorizeRequestTargetUserHandler(gc *sharedconfig.GlobalCo
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -859,7 +859,7 @@ func postServicelinksAuthorizeTokenizedAssetHandler(gc *sharedconfig.GlobalConfi
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -953,7 +953,7 @@ func postServicelinksEventsRequestHandler(gc *sharedconfig.GlobalConfig) gin.Han
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -2180,7 +2180,7 @@ func postTrovoApiUsersOnboardHandler(gc *sharedconfig.GlobalConfig) gin.HandlerF
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -2295,7 +2295,7 @@ func postTrovoApiUsersUpdateKycHandler(gc *sharedconfig.GlobalConfig) gin.Handle
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -2437,7 +2437,7 @@ func postTrovoApiTokensMintHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFun
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -2578,7 +2578,7 @@ func getTrovoApiUsersBalanceWalletAddressHandler(gc *sharedconfig.GlobalConfig) 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -2714,7 +2714,7 @@ func getTrovoApiUsersPaymentHistoryWalletAddressHandler(gc *sharedconfig.GlobalC
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -2861,7 +2861,7 @@ func postTrovoApiUsersPaymentHandler(callBackRetryChan chan retryCallbacks, gc *
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -3304,7 +3304,7 @@ func postTrovoApiUsersSubwalletHandler(gc *sharedconfig.GlobalConfig) gin.Handle
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -3406,7 +3406,7 @@ func getTrovoApiAssetsParametersHandler(gc *sharedconfig.GlobalConfig) gin.Handl
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -3477,7 +3477,7 @@ func getTrovoApiAssetsBankListCountryCodeHandler(gc *sharedconfig.GlobalConfig) 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -3530,7 +3530,7 @@ func getTrovoApiAssetsAdminListHandler(gc *sharedconfig.GlobalConfig) gin.Handle
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -3596,7 +3596,7 @@ func getTrovoApiAssetsMarketplaceListHandler(gc *sharedconfig.GlobalConfig) gin.
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -3665,7 +3665,7 @@ func postTrovoApiAssetsApplyHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFu
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -3762,7 +3762,7 @@ func putTrovoApiAssetsLogoHandler(gc *sharedconfig.GlobalConfig) gin.HandlerFunc
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -3904,7 +3904,7 @@ func putTrovoApiAssetsDocumentsHandler(gc *sharedconfig.GlobalConfig) gin.Handle
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -4074,7 +4074,7 @@ func putTrovoApiAssetsFeesDocumentHandler(gc *sharedconfig.GlobalConfig) gin.Han
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -4271,7 +4271,7 @@ func postTrovoApiAssetsFeesConfirmTokenizationIDHandler(gc *sharedconfig.GlobalC
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -4353,7 +4353,7 @@ func deleteTrovoApiAssetsTokenizationIDHandler(gc *sharedconfig.GlobalConfig) gi
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -4434,7 +4434,7 @@ func deleteTrovoApiAssetsDocumentsDocumentIDHandler(gc *sharedconfig.GlobalConfi
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -4544,7 +4544,7 @@ func deleteTrovoApiAssetsFeesDocumentsDocumentIDHandler(gc *sharedconfig.GlobalC
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -4657,7 +4657,7 @@ func postTrovoApiAssetsConfirmApplicationTokenizationIDHandler(gc *sharedconfig.
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -4751,7 +4751,7 @@ func postTrovoApiAssetsMarketplacePrimaryHandler(gc *sharedconfig.GlobalConfig) 
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.MaskSecret(middleware.ExtractServiceLinkApiKey(c)), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
