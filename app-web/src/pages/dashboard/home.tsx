@@ -71,25 +71,6 @@ export default function Home() {
     primaryWallet.claimedAssets.length > 0,
   );
 
-  const config = {
-    public_key: 'FLWPUBK-**************************-X',
-    tx_ref: Date.now().toString(),
-    amount: 100,
-    currency: 'NGN',
-    payment_options: 'card,mobilemoney,ussd',
-    customer: {
-      email: 'user@gmail.com',
-      phone_number: '070********',
-      name: 'john doe',
-    },
-    customizations: {
-      title: 'Activate Trovo Account',
-      description: 'Buy ETH and TROV with fiat',
-      logo: 'https://st2.depositphotos.com/4403291/7418/v/450/depositphotos_74189661-stock-illustration-online-shop-log.jpg',
-    },
-  };
-
-  const handleFlutterPayment = useFlutterwave(config);
 
   const getImage = (patronPackageId: string): string => {
     switch (patronPackageId.toLowerCase()) {
@@ -112,6 +93,28 @@ export default function Home() {
   const [showRequestETHModal, setShowRequestETHModal] = useState(false);
   const [showBuyETHWithFiatModal, setShowBuyETHWithFiatModal] = useState(false);
   const [activationAmount, setActivationAmount] = useState(0);
+  // Flutterwave's public key (never the secret key) comes from the build:
+  // VITE_FLUTTERWAVE_PUBLIC_KEY. Without it the card payment is not offered.
+  const flutterwavePublicKey = (import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY ?? '').trim();
+  const config = {
+    public_key: flutterwavePublicKey,
+    tx_ref: `${appUser.username}-${Date.now()}`,
+    amount: activationAmount,
+    currency: 'NGN',
+    payment_options: 'card,mobilemoney,ussd',
+    customer: {
+      email: appUser.email,
+      phone_number: '',
+      name: `${appUser.firstName ?? ''} ${appUser.lastName ?? ''}`.trim() || appUser.username,
+    },
+    customizations: {
+      title: 'Activate Trovo Account',
+      description: 'Buy ETH and TROV with fiat',
+      logo: `${window.location.origin}/logo192.png`,
+    },
+  };
+
+  const handleFlutterPayment = useFlutterwave(config);
   const [gasPercent, setGasPercent] = useState(0);
   const [confirmRequestETHModal, setConfirmRequestETHModal] = useState(false);
   const [qrCodeLink, setQrCodeLink] = useState('');
@@ -925,20 +928,24 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="w-full flex space-x-3 pt-5">
-                      <Button
-                        label="Make Payment"
-                        additionalClasses="font-montserratSemiBold"
-                        onclick={() => {
-                          // setConfirmRequestETHModal(false);
-                          handleFlutterPayment({
-                            callback: (response) => {
-                              console.log(response);
-                              closePaymentModal(); // this will close the modal programmatically
-                            },
-                            onClose: () => {},
-                          });
-                        }}
-                      />
+                      {flutterwavePublicKey ? (
+                        <Button
+                          label="Make Payment"
+                          additionalClasses="font-montserratSemiBold"
+                          onclick={() => {
+                            handleFlutterPayment({
+                              callback: () => {
+                                closePaymentModal(); // this will close the modal programmatically
+                              },
+                              onClose: () => {},
+                            });
+                          }}
+                        />
+                      ) : (
+                        <p className="text-center w-full">
+                          Card payment is not available yet.
+                        </p>
+                      )}
                     </div>
                     <div />
                   </div>

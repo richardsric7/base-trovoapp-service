@@ -216,12 +216,10 @@ export default function Backup() {
                 setShowEnterPassword(false);
                 setShowCredentials(true);
               } else {
-                console.log('not tempdata here...', appUser);
 
                 var backupData: any[] = [];
                 const encryptor = new Encryptor();
                 appUser.secretKeys.map(async (k) => {
-                  console.log('key...', k);
                   const decryptedData = await encryptor.decryptData(
                     k,
                     value,

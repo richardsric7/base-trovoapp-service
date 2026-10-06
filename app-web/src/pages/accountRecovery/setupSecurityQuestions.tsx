@@ -137,7 +137,6 @@ function SetupSecurityQuestions() {
       const body = {
         ...securityAnswers,
       };
-      console.log('sddsauser', user.primarySigner, secretKey);
       const res = await restoreInactiveAccount({
         signer: user.primarySigner,
         address: user.address,
