@@ -1,14 +1,361 @@
-# Integration Guide
+# Integration
 
-This document is for anyone integrating a new client, a new admin feature,
-or a new white-label partner against `app-backend`. It explains how the
-three kinds of callers this API already has — the end-user apps, the admin
-backend (`tm-api`), and white-label "service link" partners — each
-authenticate and talk to it.
+Everything `app-backend` connects to, and how. app-backend is the hub of
+the platform: the apps, Trovo Manager and partner businesses call it; it
+calls the blockchain and a set of outside services; and three other
+projects share its databases.
 
-For the exact request/response shape of any individual endpoint, the
-canonical reference is always the generated **Swagger UI**, not this
-document — see [the bottom of this file](#swagger-ui-the-per-endpoint-reference).
+For the exact request and response of any endpoint, the reference is the
+Swagger UI (<http://localhost:8080/swagger/index.html> on a running
+server), not this document.
+
+| Connects to | Direction | Through | Needed? |
+|---|---|---|---|
+| [1. The apps (app-mobile, app-web)](#1-the-apps-app-mobile-and-app-web) | apps → app-backend | HTTPS (signed requests) and a websocket | yes |
+| [2. Trovo Manager (tm-api)](#2-trovo-manager-tm-api) | both ways | the same database, plus HTTPS | yes, for admin |
+| [3. Partner businesses (service links)](#3-partner-businesses-service-links) | partners → app-backend, app-backend → partners | HTTPS with an API key; callbacks | optional |
+| [4. Main database](#4-main-database-postgres) | app-backend reads and writes | Postgres | yes |
+| [5. payment-history-engine](#5-payment-history-engine-and-the-tracking-database) | app-backend adds wallets; the engine writes history | the tracking database and the main database | yes, for history |
+| [6. payout-engine](#6-payout-engine) | they share payout tables | the main database | optional |
+| [7. Redis](#7-redis) | app-backend reads and writes | Redis | recommended |
+| [8. Base blockchain](#8-base-blockchain) | app-backend reads and sends | JSON-RPC over HTTPS | yes |
+| [9. Bundler, paymaster and quote service](#9-bundler-paymaster-and-quote-service) | app-backend → them | HTTPS | yes, to send |
+| [10. Platform contracts](#10-platform-contracts-offer-book-recovery-module-safes) | app-backend reads and sends | the blockchain | per feature |
+| [11. Email (Mailgun)](#11-email-mailgun) | app-backend → Mailgun | HTTPS | yes |
+| [12. SMS (Termii, Infobip)](#12-sms-termii-infobip) | app-backend → provider | HTTPS | optional |
+| [13. Firebase](#13-firebase) | app-backend → Firebase | Google APIs | yes |
+| [14. KYC (Sumsub, Doja)](#14-kyc-sumsub-doja) | both ways | HTTPS and webhooks | for KYC |
+| [15. Bank deposits and withdrawals (Stablerail)](#15-bank-deposits-and-withdrawals-stablerail) | app-backend → Stablerail | HTTPS | optional |
+| [16. Crypto deposits and withdrawals (1Liquidity)](#16-crypto-deposits-and-withdrawals-1liquidity) | both ways | HTTPS and callbacks | optional |
+| [17. Public Markets partners and price feed](#17-public-markets-partners-and-price-feed) | both ways | HTTPS and callbacks | for Public Markets |
+| [18. Naira price API](#18-naira-price-api) | app-backend → API | HTTPS | yes |
+| [19. Location lookup (ipapi)](#19-location-lookup-ipapi) | not called today | — | settings required at start |
+| [20. Discord](#20-discord-alerts) | app-backend → Discord | webhooks | optional |
+
+---
+
+## 1. The apps (app-mobile and app-web)
+
+- **What it is and why:** the Trovo mobile app and web wallet. Everything a
+  user does goes through app-backend.
+- **Direction:** apps → app-backend; app-backend → apps over the websocket
+  (live payments, P2P updates, login requests).
+- **How they connect:** HTTPS REST. Each request is **signed** with the
+  user's key (headers `X-TW-PUBLIC-KEY`, `X-TW-SIGNER`, `X-TW-TIMESTAMP`,
+  `X-TW-SIGNATURE`; see [Authentication](#authentication)); no password or
+  token is sent. The websocket is `GET /v1/stream/ws/<username>`.
+- **Settings on this side:** none beyond `PORT`; put app-backend behind
+  HTTPS.
+- **Settings on the other side:** app-web's
+  [`VITE_API_URL`](../app-web/CONFIGURATION.md) and `VITE_SOCKET_URL`;
+  app-mobile's API address ([app-mobile/CONFIGURATION.md](../app-mobile/CONFIGURATION.md)).
+  Example: `https://api.trovo.example.com`.
+- **How to check it works:** sign up in the app; the user appears in the
+  `users` table.
+- **When it is down:** the apps cannot load balances or send anything.
+
+## 2. Trovo Manager (tm-api)
+
+- **What it is and why:** the admin dashboard's backend. Staff manage
+  users, assets, fees, payouts, Public Markets and partners there.
+- **Direction:** both ways, in three forms:
+  1. **The same database.** tm-api reads and writes app-backend's tables
+     directly for settings and catalog data (curated assets, fees, service
+     links, Public Markets settings).
+  2. **tm-api → app-backend, with an API key**, for actions with business
+     rules: admin logins and authorizations (the admin approves in their
+     Trovo app), payments, push notifications, P2P dispute resolution.
+  3. **tm-api → app-backend, with the admin's login token**, for
+     `/v1/trovo-manager/...` reads (wallet balances, banks, tokenization).
+     app-backend issued that token at login and checks it with
+     `JWT_ACCESS_SECRET`.
+- **Settings on this side:** the [service link](#3-partner-businesses-service-links)
+  Trovo Manager uses (a row in `service_links`), and
+  [`JWT_ACCESS_SECRET`](CONFIGURATION.md#jwt_access_secret).
+- **Settings on the other side:** tm-api's `ADMIN_CONNECTION_STRING` (this
+  database), `TROVO_WALLET_BASE_URL` (this server's address),
+  `SERVICE_LINK_USERNAME` and `SERVICE_LINK_API_KEY`
+  ([tm-api/CONFIGURATION.md](../tm-api/CONFIGURATION.md)).
+- **How to check it works:** log in to Trovo Manager: the approval request
+  arrives in the Trovo app.
+- **When it is down:** the apps keep working; only admin work stops.
+
+More: [How tm-api relates to app-backend](#how-tm-api-relates-to-app-backend).
+
+## 3. Partner businesses (service links)
+
+- **What it is and why:** businesses that offer Trovo wallets, payments,
+  tokenized assets or Public Markets inside their own products.
+- **Direction:** partner → app-backend for requests; app-backend → partner
+  for callbacks (login and authorization results, payment notifications).
+- **How they connect:** HTTPS with the header `X-TW-SERVICE-LINK-API-KEY`.
+  Routes are under `/v1/servicelinks/...` and `/v1/trovo-api/...`. Callbacks
+  are saved in `callback_deliveries` and retried up to 10 times.
+- **Settings on this side:** a row in `service_links` per partner, made in
+  Trovo Manager's **Service Links** page: the API key, permission flags,
+  callback addresses and an optional rate limit
+  (`rateLimitPerMinute`). Validity of login and authorization requests:
+  [`SERVICE_LINK_LOGIN_REQUEST_VALIDITY`](CONFIGURATION.md#service_link_login_request_validity),
+  [`SERVICE_LINK_AUTHORIZATION_REQUEST_VALIDITY`](CONFIGURATION.md#service_link_authorization_request_validity).
+- **Settings on the other side:** the partner stores the API key and
+  app-backend's address, and answers on its callback addresses.
+- **How to check it works:**
+  `curl -H "X-TW-SERVICE-LINK-API-KEY: <key>" https://api.trovo.example.com/v1/trovo-api/users/balance/<address>`
+  answers instead of `401`.
+- **When it is down (the partner):** callbacks wait and are retried.
+
+More: [Service links](#service-links-white-label-partner-integration).
+
+## 4. Main database (Postgres)
+
+- **What it is and why:** where all accounts, wallets, history, offers,
+  orders and settings live.
+- **Direction:** app-backend reads and writes, and creates and updates the
+  tables (other projects that share it never change its tables).
+- **How they connect:** a direct Postgres connection.
+- **Settings on this side:** [`DB_CONNECTION_STRING`](CONFIGURATION.md#db_connection_string)
+  (example `host=db.internal user=trovo password=change-me dbname=trovo port=5432 sslmode=require`),
+  [`DB_TYPE`](CONFIGURATION.md#db_type),
+  [`DB_AUTOMIGRATE`](CONFIGURATION.md#db_automigrate).
+- **Settings on the other side:** the same database is
+  tm-api's `ADMIN_CONNECTION_STRING`, payment-history-engine's and
+  payout-engine's `DB_CONNECTION_STRING`.
+- **How to check it works:** app-backend starts without `Error opening DB`.
+- **When it is down:** app-backend cannot serve requests.
+
+## 5. payment-history-engine and the tracking database
+
+- **What it is and why:** payment-history-engine watches the blockchain for
+  transfers to and from Trovo wallets and records them, so users see their
+  history. It needs to know which wallets to watch.
+- **Direction:** app-backend writes each new wallet (on sign-up, new
+  sub-wallet and approvals) into the **tracking database**'s
+  `tracked_wallets` and `tracked_addresses`; the engine writes
+  `payment_history` in the main database, which app-backend reads. No API
+  calls either way.
+- **How they connect:** two shared databases.
+- **Settings on this side:** [`CDB_CONNECTION_STRING`](CONFIGURATION.md#cdb_connection_string)
+  (example `postgresql://root@roach.internal:26257/payment_history?sslmode=require`).
+- **Settings on the other side:** the engine's `CDB_CONNECTION_STRING` (the
+  same tracking database) and `DB_CONNECTION_STRING` (this main database)
+  ([payment-history-engine/CONFIGURATION.md](../payment-history-engine/CONFIGURATION.md)).
+- **How to check it works:** after a sign-up, `tracked_wallets` has the new
+  wallet; after a transfer, `payment_history` has a row.
+- **When it is down (the engine):** history stops updating, and catches up
+  when the engine is back.
+
+More: [Payment history: source vs. destination](#payment-history-source-vs-destination).
+
+## 6. payout-engine
+
+- **What it is and why:** pays dividends and interest to holders of
+  tokenized assets.
+- **Direction:** the engine reads and writes payout tables in the main
+  database, which app-backend creates; app-backend shows users their
+  payouts.
+- **How they connect:** the shared main database.
+- **Settings:** none on this side; the engine's `DB_CONNECTION_STRING`
+  points at this database ([payout-engine/CONFIGURATION.md](../payout-engine/CONFIGURATION.md)).
+- **When it is down:** payouts wait; nothing else is affected.
+
+More: [Proceeds payouts](#proceeds-payouts-dividends-and-interest).
+
+## 7. Redis
+
+- **What it is and why:** caching (balances, prices), rate limits and
+  passing websocket messages between copies of app-backend.
+- **Direction:** app-backend reads and writes.
+- **How they connect:** the Redis protocol.
+- **Settings on this side:** [`ENABLE_CACHING`](CONFIGURATION.md#enable_caching),
+  [`REDIS_HOST`](CONFIGURATION.md#redis_host) (example `redis.internal`),
+  [`REDIS_PORT`](CONFIGURATION.md#redis_port) (example `6379`),
+  [`REDIS_PASSWORD`](CONFIGURATION.md#redis_password).
+- **Settings on the other side:** none; payout-engine and tm-api may use the
+  same Redis.
+- **How to check it works:** the start-up log says `Testing redis
+  connection...` with no error after it.
+- **When it is down:** with caching on, app-backend does not start; once
+  running, cached reads fall back to the database and rate limits are off.
+
+## 8. Base blockchain
+
+- **What it is and why:** the network where wallets, tokens and payments
+  live.
+- **Direction:** app-backend reads (balances, contract state, events) and
+  sends (platform transactions such as P2P settlements, minting, recovery).
+- **How they connect:** JSON-RPC over HTTPS, with a time limit per request.
+- **Settings on this side:** [`BASE_RPC_URL`](CONFIGURATION.md#base_rpc_url)
+  (example `https://base-mainnet.g.alchemy.com/v2/your-api-key`),
+  [`BASE_CHAIN_ID`](CONFIGURATION.md#base_chain_id) (`8453` mainnet,
+  `84532` Base Sepolia), [`RPC_TIMEOUT`](CONFIGURATION.md#rpc_timeout).
+- **Settings on the other side:** an account with an RPC provider (Alchemy,
+  QuickNode, Coinbase Developer Platform) or your own node.
+- **How to check it works:** a wallet's balance loads in the app.
+- **When it is down:** balances and sends fail; nothing is lost.
+
+## 9. Bundler, paymaster and quote service
+
+- **What it is and why:** each user wallet is a Safe smart account. Its
+  transactions are "user operations" sent through a **bundler**; gas can be
+  paid in a stablecoin through the **paymaster** contract, at a price
+  signed by the **quote service**.
+- **Direction:** app-backend → quote service (gets a signed quote),
+  app-backend → bundler (estimates and submits operations).
+- **How they connect:** HTTPS. The quote service needs an API key.
+- **Settings on this side:** [`BUNDLER_URL`](CONFIGURATION.md#bundler_url),
+  [`PAYMASTER_ADDRESS`](CONFIGURATION.md#paymaster_address),
+  [`PAYMASTER_QUOTE_SERVICE_URL`](CONFIGURATION.md#paymaster_quote_service_url)
+  (example `http://quote-service.internal:8090`),
+  [`PAYMASTER_QUOTE_SERVICE_API_KEY`](CONFIGURATION.md#paymaster_quote_service_api_key).
+- **Settings on the other side:** the quote service's API keys and the
+  paymaster deployment ([paymaster/CONFIGURATION.md](../paymaster/CONFIGURATION.md)).
+- **How to check it works:** a test payment between two users succeeds.
+- **When it is down:** no wallet can send; paying gas in ETH still needs
+  the bundler.
+
+More: [Wallets and sending](#wallets-and-sending-safe-useroperations).
+
+## 10. Platform contracts (offer book, recovery module, Safes)
+
+- **What it is and why:** contracts app-backend uses for specific features:
+  the **offer book** (tokenized asset sales, swaps, market-making), the
+  **social recovery module** (account recovery) and Safe's standard
+  contracts.
+- **Direction:** app-backend reads them and sends transactions to them.
+- **Settings on this side:** [`OFFER_BOOK_ADDRESS`](CONFIGURATION.md#offer_book_address),
+  [`OFFER_BOOK_START_BLOCK`](CONFIGURATION.md#offer_book_start_block),
+  [`RECOVERY_MODULE_ADDRESS`](CONFIGURATION.md#recovery_module_address),
+  and the [Safe contract addresses](CONFIGURATION.md#safe-and-entrypoint-contract-addresses)
+  (defaults are Safe's official Base deployments).
+- **Settings on the other side:** the deployments in
+  [market/DEPLOYMENT.md](../market/DEPLOYMENT.md) and
+  [recovery/DEPLOYMENT.md](../recovery/DEPLOYMENT.md).
+- **When one is missing:** that feature is off (or answers with an error).
+
+More: [Tokenized assets](#tokenized-assets-token-issuing-and-distribution-wallets-sale-offer),
+[Account recovery](#account-recovery-opt-in-guardian).
+
+## 11. Email (Mailgun)
+
+- **What it is and why:** verification codes, notifications and receipts
+  by email.
+- **Direction:** app-backend → Mailgun.
+- **Settings on this side:** [`MAILGUN_PRIVATE_API_KEY`](CONFIGURATION.md#mailgun_private_api_key),
+  [`MAILGUN_DOMAIN`](CONFIGURATION.md#mailgun_domain) (example
+  `mg.trovo.example.com`), [`MAIL_SENDER`](CONFIGURATION.md#mail_sender)
+  and the other [email settings](CONFIGURATION.md#17-email-mailgun).
+- **Settings on the other side:** a verified sending domain and the email
+  templates in your Mailgun account.
+- **How to check it works:** sign up with a real address and receive the
+  code.
+- **When it is down:** emails fail; sign-ups that need a code wait.
+
+## 12. SMS (Termii, Infobip)
+
+- **What it is and why:** verification codes by text message.
+- **Direction:** app-backend → provider.
+- **Settings on this side:** [`DEFAULT_SMS_PROVIDER`](CONFIGURATION.md#default_sms_provider)
+  and the provider's [keys](CONFIGURATION.md#18-sms).
+- **Settings on the other side:** an account and approved sender id.
+- **When it is down:** phone verification fails.
+
+## 13. Firebase
+
+- **What it is and why:** push notifications to the apps, file storage
+  (logos, documents) and app links.
+- **Direction:** app-backend → Firebase.
+- **Settings on this side:** [`GC`](CONFIGURATION.md#gc) (the service
+  account key), [`GOOGLE_PROJECT_ID`](CONFIGURATION.md#google_project_id),
+  [`STORAGE_BUCKET_NAME`](CONFIGURATION.md#storage_bucket_name), and the
+  [link settings](CONFIGURATION.md#19-firebase-storage-and-links).
+- **Settings on the other side:** the same Firebase project in app-mobile
+  and app-web.
+- **When it is down:** notifications and uploads fail; payments still work.
+
+## 14. KYC (Sumsub, Doja)
+
+- **What it is and why:** identity checks before users reach higher limits
+  or features.
+- **Direction:** app-backend → provider (create applicants, read results);
+  provider → app-backend (webhooks: `POST /v1/webhook/sumsub/kyc/individual`,
+  `POST /v1/callbacks/doja/webhook`).
+- **Settings on this side:** **not** environment variables: each provider's
+  token and secret are a row in the `kyc_configs` table
+  (`service_provider` = `sumsub` or `doja`, `token`, `secret_key`).
+- **Settings on the other side:** the webhook addresses above, set in the
+  provider's dashboard.
+- **When it is down:** new KYC checks wait; existing levels stay.
+
+## 15. Bank deposits and withdrawals (Stablerail)
+
+- **What it is and why:** Naira bank deposits (on-ramp to cNGN) and
+  withdrawals to bank accounts.
+- **Direction:** app-backend → Stablerail; app-backend follows withdrawal
+  status itself.
+- **Settings on this side:** the `stablerail_configs` table (`api_key`,
+  `base_url`, `enable_stablerail`) and
+  [`STABLERAIL_MIN_WITHDRAWAL`](CONFIGURATION.md#stablerail_min_withdrawal).
+- **When it is down:** bank deposits and withdrawals are unavailable.
+
+More: [Bank deposits and withdrawals](#bank-deposits-and-withdrawals-stablerail).
+
+## 16. Crypto deposits and withdrawals (1Liquidity)
+
+- **What it is and why:** deposits from and withdrawals to outside crypto
+  networks.
+- **Direction:** both ways; 1Liquidity calls `POST /v1/callbacks/1l`.
+- **Settings on this side:** [`ONELIQUIDITY_BASE_URL`](CONFIGURATION.md#oneliquidity_base_url),
+  [`ONELIQUIDITY_TOKEN`](CONFIGURATION.md#oneliquidity_token) and the
+  [other settings](CONFIGURATION.md#15-crypto-deposits-and-withdrawals-1liquidity).
+- **When it is down:** these deposits and withdrawals wait.
+
+## 17. Public Markets partners and price feed
+
+- **What it is and why:** tokenized NGX stocks and FMDQ bonds are backed by
+  units a **Custodian** holds; a **Dealing Member** buys and sells on the
+  exchange; a **price feed** supplies prices.
+- **Direction:** app-backend → partners (instructions); partners →
+  app-backend (`/v1/custodian-partners/callbacks/...`,
+  `/v1/dealing-member-partners/callbacks/execution`); app-backend → price
+  feed.
+- **Settings on this side:** partner details in Trovo Manager; the
+  [price feed settings](CONFIGURATION.md#13-public-markets-tokenized-ngx-stocks-and-fmdq-bonds).
+  Until partners' specifications are final they run as mocks.
+- **When it is down:** orders wait in the instruction queue.
+
+More: [Public Markets](#public-markets-tokenized-equities-and-bonds),
+[PUBLIC_MARKETS.md](PUBLIC_MARKETS.md).
+
+## 18. Naira price API
+
+- **What it is and why:** converts between Naira and US dollars.
+- **Direction:** app-backend → API (`{url}/api/convert/ngn-to-usd/{amount}`
+  and `{url}/api/convert/usd-to-ngn/{amount}`).
+- **Settings on this side:** [`CNGN_PRICE_API_URL`](CONFIGURATION.md#cngn_price_api_url).
+- **When it is down:** Naira prices are unavailable.
+
+## 19. Location lookup (ipapi)
+
+- **What it is and why:** an IP-to-location service. The lookup code
+  exists but nothing calls it today; its two settings are still checked
+  at start.
+- **Direction:** none today.
+- **Settings on this side:** [`IPAPI_HOST`](CONFIGURATION.md#ipapi_host),
+  [`IPAPI_KEY`](CONFIGURATION.md#ipapi_key) (any non-empty values).
+- **When it is down:** nothing is affected.
+
+## 20. Discord alerts
+
+- **What it is and why:** chat alerts for errors (registration, payments,
+  connection pool, low faucet balance).
+- **Direction:** app-backend → Discord webhooks.
+- **Settings on this side:** the [Discord settings](CONFIGURATION.md#24-discord-alerts);
+  each falls back to a built-in webhook.
+
+---
+
+The sections below go into more depth on how the apps, tm-api and partners
+authenticate and on each feature's flow.
 
 ## Authentication
 
@@ -230,7 +577,7 @@ service-link route (`/v1/servicelinks/...`, `/v1/trovo-api/...`),
 `POST /v1/users/payment`, `POST /v1/shared-access/payment`,
 `POST /v1/users/swap`, `POST /v1/shared-access/swap`, and
 `GET /v1/users/:targetUser`, are rate-limited (see
-[Rate limiting](CONFIGURATION.md#rate-limiting) in `CONFIGURATION.md`) —
+[Rate limiting](CONFIGURATION.md#4-rate-limiting) in `CONFIGURATION.md`) —
 a request over the limit gets `429 Too Many Requests` with a
 `Retry-After` header. A service-link partner with unusually high (or low)
 traffic needs can get a per-partner limit override instead of the

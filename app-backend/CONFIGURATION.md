@@ -1604,17 +1604,22 @@ yet; set the row directly.
 - **How to get it:** Keep the default.
 
 Partners' API keys are rows of the `service_links` table, not environment
-variables (see [INTEGRATION.md](INTEGRATION.md#service-links)).
+variables (see [INTEGRATION.md](INTEGRATION.md#3-partner-businesses-service-links)).
 
 ## 22. Location lookup
+
+No code calls the location lookup today (`GetGeoIP` in
+`internal/components/users/models/geo.go` is never used), but both
+settings are on the start-up check, so they must not be empty.
 
 ### `IPAPI_HOST`
 
 - **What it is:** The address of an IP-to-location service.
-- **Why it's needed:** Adds a country to registrations and some requests.
+- **Why it's needed:** Only to pass the start-up check; nothing calls it.
 - **Required:** Yes (the start-up check requires it).
 - **Example:** `https://api.ipapi.com/api`
-- **How to get it:** Your provider's API address (for example ipapi.com).
+- **How to get it:** Your provider's API address (for example ipapi.com),
+  or any non-empty value.
 
 ### `IPAPI_KEY`
 
@@ -1623,7 +1628,7 @@ variables (see [INTEGRATION.md](INTEGRATION.md#service-links)).
 - **Required:** Yes.
 - **Example:** `xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` (placeholder)
 - **How to get it:** Sign up at the provider (for example
-  <https://ipapi.com>) and copy your key.
+  <https://ipapi.com>) and copy your key, or any non-empty value.
 
 ## 23. Features
 

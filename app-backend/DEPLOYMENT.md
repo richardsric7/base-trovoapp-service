@@ -1,255 +1,267 @@
-# Deployment Guide
+# Deployment
 
-This guide assumes you have never deployed a Go service before. It covers
-building, running, and (as far as this repository's own files let us verify
-accurately) how `app-backend` is deployed today.
+A step-by-step guide to getting `app-backend` running, written for someone
+doing it for the first time. Commands run from the `app-backend/` folder
+unless a step says otherwise.
 
-All commands below are run from the `app-backend/` directory unless stated
-otherwise.
+## 1. What you are deploying
 
-## 1. Prerequisites
+`app-backend` is the **Trovo Wallet API**: the server behind the Trovo
+mobile app (`app-mobile`) and web wallet (`app-web`). It holds user
+accounts, creates each user's wallet (a Safe smart account on the Base
+blockchain), sends payments and swaps, runs P2P trading, tokenized assets,
+Public Markets, KYC and account recovery, and gives partner businesses an
+API ("service links"). Trovo Manager (`tm-api`) shares its database.
 
-| Tool | Why you need it | Install |
-| --- | --- | --- |
-| **Go** (see `go.mod` for the exact version — currently `1.23`, toolchain `1.24.3`) | To build/run the service directly | [go.dev/doc/install](https://go.dev/doc/install) |
-| **Docker** | To build/run the container image the way it's deployed in production | [docs.docker.com/get-docker](https://docs.docker.com/get-docker/) |
-| **PostgreSQL** (optional for local dev — SQLite works too) | The production database | [postgresql.org/download](https://www.postgresql.org/download/) |
+**It needs these to be running first:**
 
-You do **not** need Postgres to get the app running locally: the
-`.env.example` file ships with `DB_TYPE=sqlite`, which needs no separate
-database server at all.
+| What | Why | Where |
+|---|---|---|
+| PostgreSQL (main database) | accounts, wallets, history and everything else | your Postgres; step 3 starts one locally |
+| A tracking database (Postgres or CockroachDB) | the list of wallets payment-history-engine watches; app-backend adds new wallets to it | the same server can hold both databases |
+| Redis | caching, rate limits, websocket fan-out between copies | step 3 starts one locally |
+| A Base RPC node | reads the blockchain and sends transactions | a provider such as Alchemy, or `https://sepolia.base.org` for testing |
+| A bundler, the paymaster contract and its quote service | every wallet transaction goes through them | [paymaster/DEPLOYMENT.md](../paymaster/DEPLOYMENT.md) |
+| Mailgun and Firebase | emails, push notifications and file storage | accounts with each provider ([CONFIGURATION.md](CONFIGURATION.md)) |
+| Optional contracts | the offer book (tokenization, swaps) and the recovery module | [market/DEPLOYMENT.md](../market/DEPLOYMENT.md), [recovery/DEPLOYMENT.md](../recovery/DEPLOYMENT.md) |
 
-## 2. Building
+After app-backend, deploy payment-history-engine, payout-engine, tm-api and
+the apps (see the root [README.md](../README.md) for the full order).
 
-### Plain Go build
+## 2. Before you start
 
-```bash
-go build ./...
-```
+| Tool | Install | Check |
+|---|---|---|
+| Git | <https://git-scm.com/downloads> | `git --version` |
+| Go 1.26 or newer | <https://go.dev/doc/install> | `go version` |
+| Docker | <https://docs.docker.com/get-docker/> | `docker --version` |
+| `psql` (PostgreSQL client) | <https://www.postgresql.org/download/> | `psql --version` |
+| `openssl` (to make secrets) | usually preinstalled | `openssl version` |
+| Foundry's `cast` (to make keys and phrases) | <https://book.getfoundry.sh/getting-started/installation> | `cast --version` |
+| `make` (optional) | usually preinstalled | `make --version` |
 
-This compiles every package and reports any compile errors. It does not
-produce a single runnable binary by itself for `main.go` if you're inside a
-subdirectory — to build the actual server binary:
+## 3. Start a database and Redis (local only)
 
-```bash
-go build -o trovo-wallet-api .
-```
-
-### Docker build
-
-The repository's `Dockerfile` is a two-stage build:
-
-```dockerfile
-FROM golang:alpine3.20 AS builder
-...
-RUN go build -o main .
-...
-FROM alpine:latest
-COPY --from=builder /dist/main /
-COPY trovo-logo.png /trovo-logo.png
-COPY ht2.png /ht2.png
-ENTRYPOINT ["/main"]
-```
-
-Stage by stage:
-
-1. **`builder` stage** (`golang:alpine3.20`) — installs `ca-certificates`,
-   `build-base`, `runc`, and `curl`; copies `go.mod`/`go.sum` and runs
-   `go mod download` first (so Docker's layer cache is reused across builds
-   that don't change dependencies); then copies the rest of the source and
-   runs `go build -o main .` to produce a single static-ish binary.
-2. **Final stage** (`alpine:latest`) — a small runtime image. It installs
-   only the runtime packages it needs (`ca-certificates`, `runc`, `curl`),
-   copies the compiled `main` binary and the two image assets the app
-   embeds by file path (`trovo-logo.png`, `ht2.png`) from the builder
-   stage, and sets `ENTRYPOINT ["/main"]`.
-
-To build the image yourself:
+On a server, use your managed Postgres and Redis instead and skip this
+step. Locally, Docker gives you both in two commands:
 
 ```bash
-docker build -t trovo-wallet-api:local .
+docker run -d --name trovo-postgres -p 5432:5432 \
+  -e POSTGRES_USER=trovo -e POSTGRES_PASSWORD=change-me -e POSTGRES_DB=trovo postgres:16
+docker run -d --name trovo-redis -p 6379:6379 redis:7
 ```
 
-## 3. Running locally
-
-### Directly with `go run`
+Then create the tracking database next to the main one:
 
 ```bash
-go run main.go
+psql "postgresql://trovo:change-me@localhost:5432/trovo" -c "CREATE DATABASE trovo_tracking;"
 ```
 
-At minimum, `main.go` refuses to start (see the `requiredEnvironmentVariables`
-list near the top of `main()`) unless roughly 50 environment variables are
-set — covering the blockchain RPC endpoint, mnemonics for several signer
-roles, the RoachDB connection string, Mailgun, Redis, JWT secrets, and a
-long list of fee-wallet addresses. The full, documented list — with example
-values and where to get real ones — is in
-**[CONFIGURATION.md](CONFIGURATION.md)**. The fastest way to get a complete,
-valid set for local development is:
+**You should see:** `CREATE DATABASE`.
+
+## 4. Get the code and build it
+
+```bash
+git clone https://github.com/richardsric7/base-trovoapp-service.git
+cd base-trovoapp-service/app-backend
+go mod download
+go build -o main .
+```
+
+**You should see:** no output from `go build`, and a `main` file in the
+folder.
+
+## 5. Set the parameters
 
 ```bash
 cp .env.example .env
-# then fill in the blanks per CONFIGURATION.md
-go run main.go
 ```
 
-The server listens on `PORT` if set, otherwise `:8080`.
+`.env.example` lists the **required** settings first (app-backend refuses
+to start without them), then the recommended and optional ones. Each is
+explained, with an example and where to get it, in
+[CONFIGURATION.md](CONFIGURATION.md). The ones you must create yourself:
 
-### Via Docker
+| Parameter | How to make it |
+|---|---|
+| [`VERIFICATION_CODE_SALT`](CONFIGURATION.md#verification_code_salt), [`ENCODER_SALT`](CONFIGURATION.md#encoder_salt), [`MARKET_MAKING_SALT`](CONFIGURATION.md#market_making_salt), [`BULK_PAYMENT_SALT`](CONFIGURATION.md#bulk_payment_salt) | `openssl rand -hex 16` (a different one each) |
+| [`MNEMONIC_MARKET_MAKING`](CONFIGURATION.md#mnemonic_market_making), [`MNEMONIC_BULK_PAYMENT`](CONFIGURATION.md#mnemonic_bulk_payment) | `cast wallet new-mnemonic` (a different one each) |
+| [`CHANNEL_ACCOUNTS`](CONFIGURATION.md#channel_accounts), [`CHANNEL_ACCOUNT_FUNDER`](CONFIGURATION.md#channel_account_funder) | `cast wallet new` twice; use the private keys. They hold no money. |
+| [`JWT_ACCESS_SECRET`](CONFIGURATION.md#jwt_access_secret) | `openssl rand -hex 32` |
+| the ten [fee wallets](CONFIGURATION.md#fee-wallets) | addresses of wallets your finance team controls (for testing: `cast wallet new` and use the addresses) |
+
+**Write the salts and phrases into your secrets manager now.** Changing
+`ENCODER_SALT`, the two phrases or their salts after users sign up breaks
+those users' security answers and wallets.
+
+The rest come from your providers: the database and Redis addresses (step
+3), [`BASE_RPC_URL`](CONFIGURATION.md#base_rpc_url), Mailgun
+([`MAILGUN_PRIVATE_API_KEY`](CONFIGURATION.md#mailgun_private_api_key)),
+Firebase ([`GC`](CONFIGURATION.md#gc),
+[`GOOGLE_PROJECT_ID`](CONFIGURATION.md#google_project_id)), and the paymaster stack
+([`BUNDLER_URL`](CONFIGURATION.md#bundler_url),
+[`PAYMASTER_ADDRESS`](CONFIGURATION.md#paymaster_address),
+[`PAYMASTER_QUOTE_SERVICE_URL`](CONFIGURATION.md#paymaster_quote_service_url),
+[`PAYMASTER_QUOTE_SERVICE_API_KEY`](CONFIGURATION.md#paymaster_quote_service_api_key)).
+
+For a first local run without every provider: `GC` only has to be base64
+(any value works until a push notification is sent), the Mailgun key is
+used only when an email is sent, and
+[`IPAPI_HOST`](CONFIGURATION.md#ipapi_host) /
+[`IPAPI_KEY`](CONFIGURATION.md#ipapi_key) only have to be non-empty
+(nothing calls the location lookup today).
+
+Never commit `.env`. On a server, set the same values in the hosting
+platform's environment settings or with `--env-file`.
+
+## 6. Create the tables (once per release)
+
+app-backend creates and updates its tables itself. Run the update as its
+own step, from a machine close to the database:
 
 ```bash
-docker run --rm -p 8080:8080 --env-file .env trovo-wallet-api:local
+MIGRATE_ONLY=1 ./main
 ```
 
-Same environment-variable requirements as above. If you're using SQLite in
-`DB_TYPE`, remember the SQLite file path is relative to the container's
-filesystem, not your host's — either bind-mount a directory in or switch to
-Postgres for a containerized run.
+**You should see**, after a while, `MIGRATE_ONLY=1 set — migrations
+complete, exiting without starting the server`. It only needs the database
+settings. It checks about 110 tables one by one, so over a slow or distant
+connection it can take many minutes; run it on the server or in the same
+region as the database.
 
-## 4. Database migrations and `DB_AUTOMIGRATE`
+Locally you can skip this: with `DB_AUTOMIGRATE=1` (the template's value)
+the server updates the tables every time it starts.
 
-This service uses **GORM `AutoMigrate`**, not hand-written SQL migration
-files. On every boot (see `internal/db/main.go`'s `MigrateDB` and
-`main.go`'s call to it), unless `DB_AUTOMIGRATE=0` is set, the app calls
-`AutoMigrate` against roughly **107 GORM models** — one call per model —
-which inspects and, if needed, alters the live schema to match each Go
-struct.
+## 7. Run it
 
-This has one important consequence: **it is slow**, especially over a
-network connection to the database rather than a local/same-datacenter one.
-Running this AutoMigrate step from a machine far from the database (e.g.
-a hosted build runner, over the public internet) has been observed to take
-**over 20 minutes**, because
-each of the ~107 models' AutoMigrate calls does multiple catalog round-trips
-against Postgres — roughly **~800 round-trips in total** for the full set.
-The practical implications for you:
-
-- **Local development**: leave `DB_AUTOMIGRATE` unset or `1` (the
-  `.env.example` default) — your DB is local, so the round-trip cost is
-  negligible.
-- **A real deployment**: run migrations from *inside* the same network as
-  the database (e.g. on the server itself, or a same-region CI runner), not
-  from a general-purpose CI runner reaching the DB over the public internet.
-  This codebase supports a **`MIGRATE_ONLY=1`** mode (see the top of
-  `main()` in `main.go`) specifically for this: with `MIGRATE_ONLY=1`, the
-  process opens only the wallet's own Postgres database, runs
-  `AutoMigrate`, and exits — without booting the HTTP server or requiring
-  the ~50 other required environment variables the serving process needs.
-  The serving process itself is then expected to run with
-  `DB_AUTOMIGRATE=0`, so it boots straight into serving traffic without
-  re-running AutoMigrate on every restart.
-
-### Running two or more instances (and a dependency fix this needed)
-
-If you scale this service to more than one instance — or if `DB_AUTOMIGRATE`
-ends up enabled on a serving instance alongside a separate `MIGRATE_ONLY=1`
-job — more than one process can end up calling `AutoMigrate` against the
-same database at the same time. `MigrateDB` (`internal/db/main.go`) now
-guards this with a small **distributed lock**: a `distributed_locks`
-database table, claimed with a plain `UPDATE ... WHERE` statement that's
-atomic on both SQLite and Postgres (deliberately *not* a Postgres advisory
-lock or `SELECT ... FOR UPDATE`, since SQLite — this project's local/test
-database — supports neither). A second instance booting at the same time
-just waits (up to 10 minutes) for the first one's migration to finish,
-instead of racing it. You don't need to configure anything for this; it's
-automatic. See `internal/sharedconfig/distributed_lock.go` if you want the
-details.
-
-Alongside this, a real bug was found and fixed: `gorm.io/driver/postgres`
-was pinned to a version (`v1.3.7`) badly out of sync with this project's
-`gorm.io/gorm` version. The practical effect: `AutoMigrate` worked the
-*first* time it ran against a fresh table, but **every subsequent run
-against an already-existing table failed** with an `insufficient
-arguments` error — meaning, in practice, every restart or redeploy after
-the very first one would have fatally errored during migration against a
-real Postgres database (this was reproduced and confirmed against real
-Postgres 13, 14, and 16). This has been fixed by bumping the driver to
-`v1.5.11` (verified against all three Postgres versions and SQLite; no
-other dependency needed to change). If you're setting up a fresh
-environment from this repo, you already have the fix — nothing to do.
-
-This service's background sweep loops (sales activation, Stablerail
-pollers, order-expiry checks, etc. — see `main.go` and
-`internal/components/p2p/controllers/main.go`) are also now safe to run
-on multiple instances: each tick is guarded by the same kind of
-distributed lock, so only one instance actually does the work on a given
-tick and the others skip it, rather than every instance doing the same
-work redundantly. Again, nothing to configure — see
-`internal/sharedconfig/singleton_lock.go`.
-
-Further multi-instance fixes (all automatic):
-
-- **Locks are renewed while their work runs.** A background job may take
-  longer than its lock's timeout without another instance starting the
-  same job; the timeout only decides how soon the others take over from
-  an instance that died. Waits between runs happen outside the lock.
-- **Platform signing keys are used by one instance at a time.** Every
-  transaction from a platform Safe (P2P escrow settlements and refunds,
-  fiat purchase delivery, the account-recovery guardian) holds a lock on
-  that Safe from reading its nonce until the transaction is mined, and
-  every transaction from a platform key holds a lock on the key from
-  reading its nonce until it is broadcast. Without this, two requests at
-  once (on one instance or several) signed the same nonce and one failed.
-  Requests wait for the lock (up to 3 minutes) rather than fail.
-- **Transactions signed now and sent later** (the older `basetxn` path,
-  e.g. swap fee payments signed by the fee wallet key and sent after the
-  user signs) cannot hold a lock in between, so each signature reserves
-  its key's next nonce in `nonce_reservations`, under the same key lock:
-  no two transactions get the same nonce, whichever path or instance
-  signs them (this also fixes two payments from one key in one
-  transaction getting the same nonce). A reservation that is never sent
-  stops counting after 10 minutes, and the key continues from the chain's
-  pending nonce.
-- **Sale-start notifications** are flagged on the asset in the database
-  instead of passed through an in-memory queue, so the instance that
-  starts a sale and the one that sends its notifications can differ.
-- **Partner callbacks** (service-link login/authorization/event callbacks
-  and payment notifications) are recorded in `callback_deliveries` before
-  they are sent and retried with backoff (up to 10 attempts) by one
-  instance at a time, so a stopped instance loses none. (Before this they
-  were retried from memory, so pending ones were lost on restart.)
-- **Graceful shutdown.** On SIGTERM/SIGINT (an autoscaler removing the
-  instance) it stops starting background work, lets in-flight requests
-  finish and waits for running jobs and platform-key transactions, for up
-  to `SHUTDOWN_GRACE_PERIOD` (default 60s). Give the platform's stop
-  timeout at least that long.
-- Tests: `internal/sharedconfig` (locks, nonce reservations, callbacks,
-  shutdown) and, against the local chain, `internal/gnosissafe` and
-  `internal/network` (concurrent sends from one Safe and one key). Run
-  local-chain packages one at a time (`go test -p 1 ./internal/...` with
-  `AA_LOCAL_CHAIN=1` and `AA_LOCAL_STACK=...`): the key test switches the
-  node to interval mining while it runs.
-- The offer book index (`OFFER_BOOK_ADDRESS`), the cache refresher that
-  follows new payments, and the Stablerail offramp status follow-up also
-  run on one instance at a time.
-- The crypto-deposit minting loop and referral-link generator run on one
-  instance at a time; channel-account funding at boot takes the funder
-  key's lock, and new channel accounts are generated by at most one
-  instance per hour.
-
-## 5. How this service is deployed
-
-There is **no CI/CD pipeline** in this repository (the inherited GitHub
-Actions workflows were removed - see the root `ARCHITECTURE.md`). Build
-and deploy by hand:
-
-1. Regenerate the Swagger docs if handlers changed (`swag init` - see the
-   header of `docs/docs.go` for the flags this project uses).
-2. Build the image from this directory: `docker build -t trovo-wallet-api .`
-3. Push it to your registry and redeploy it wherever it runs.
-
-Run schema migrations as a separate step when deploying to a remote
-database (see section 4: `MIGRATE_ONLY` / `DB_AUTOMIGRATE`).
-
-## 6. Makefile targets
-
-The `Makefile` in this directory has the checks to run before merging:
+**A. Directly:**
 
 ```bash
-make build   # go build ./...
-make vet     # go vet -stringintconv=false ./...  (see comment in Makefile for why)
-make lint    # golangci-lint run (requires golangci-lint installed)
-make test    # go test ./internal/... -race -vet=off -coverprofile=coverage.out
-make ci      # tidy-check + build + vet + lint + test, in that order
+./main          # or: go run main.go / make run
 ```
 
+**B. With Docker (recommended for servers):**
+
+```bash
+docker build -t trovo-wallet-api .
+docker run --rm --env-file .env -e MIGRATE_ONLY=1 trovo-wallet-api        # step 6, in Docker
+docker run -d --name trovo-wallet-api --restart unless-stopped \
+  -p 8080:8080 --env-file .env -e DB_AUTOMIGRATE=0 trovo-wallet-api
+```
+
+Inside Docker, `localhost` means the container itself: use the database's
+and Redis's real host names (or `host.docker.internal` with Docker
+Desktop).
+
+**At start app-backend:** loads `.env` if there is one, opens both
+databases, checks the required settings (printing `Required environment
+variable is missing <NAME>` for each one missing, then stopping), updates
+the tables unless `DB_AUTOMIGRATE=0`, connects to Redis, starts its
+background jobs, and listens on `PORT` (default `8080`). The last line is
+`##service started##`.
+
+## 8. Check it works
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/swagger/index.html
+```
+
+**You should see:** `200`. The API reference is at
+<http://localhost:8080/swagger/index.html>. app-backend has no separate
+`/health` route: point your hosting platform's health check at
+`/swagger/index.html` or at the port itself (a TCP check).
+
+Then:
+
+1. Start the web wallet ([app-web/DEPLOYMENT.md](../app-web/DEPLOYMENT.md))
+   or the mobile app with its API address set to this server, and sign up.
+2. In `psql`, the new user is in `users` and their wallet in
+   `user_wallets`; the tracking database's `tracked_wallets` has it too.
+3. Send a small test payment between two test users: it needs the bundler
+   and paymaster from step 1.
+
+## 9. Running in production, updating and rolling back
+
+- **Release order:** run the `MIGRATE_ONLY=1` step, then replace the
+  serving containers (which run with `DB_AUTOMIGRATE=0`). The old version
+  keeps serving while the tables update; a failed update exits with an
+  error and leaves it serving.
+- **More than one copy** is safe behind a load balancer. Turn on Redis
+  (`ENABLE_CACHING=1`) so rate limits, caches and websocket messages are
+  shared. Everything else is handled for you:
+  - copies starting together take turns updating the tables (a lock row in
+    `distributed_locks`);
+  - each background job (sale start, order expiry, offer book index,
+    callbacks to partners, crypto deposit minting, and others) runs on one
+    copy at a time;
+  - each platform signing key and platform Safe is used by one copy at a
+    time, so two copies never send transactions with the same nonce
+    (signatures made now and sent later reserve a nonce in
+    `nonce_reservations`);
+  - callbacks to partners are saved in `callback_deliveries` and retried
+    (up to 10 times), so a stopped copy loses none.
+- **Stopping** (`docker stop`, or an autoscaler removing a copy) is
+  graceful: app-backend stops taking new work and waits up to
+  [`SHUTDOWN_GRACE_PERIOD`](CONFIGURATION.md#shutdown_grace_period)
+  (default 60 seconds) for running requests and transactions. Give your
+  platform's stop timeout at least that long (`docker stop -t 90`).
+- **Updating:**
+  ```bash
+  git pull
+  docker build -t trovo-wallet-api .
+  docker run --rm --env-file .env -e MIGRATE_ONLY=1 trovo-wallet-api
+  docker rm -f trovo-wallet-api
+  docker run -d --name trovo-wallet-api --restart unless-stopped \
+    -p 8080:8080 --env-file .env -e DB_AUTOMIGRATE=0 trovo-wallet-api
+  ```
+  When a release changes tables tm-api or payment-history-engine also use,
+  update app-backend first.
+- **Rolling back:** `git checkout <previous-tag>`, rebuild and replace the
+  container the same way. Table updates add tables and columns and never
+  remove them, so an older version normally still runs against the newer
+  tables; check the release notes for renamed columns first.
+- There is no CI/CD pipeline in this repository: run `make ci` (tidy check,
+  build, vet, lint, tests) before merging, and build and deploy the image
+  by hand.
+
+## 10. Troubleshooting
+
+| You see | Cause | Fix |
+|---|---|---|
+| `Required environment variable is missing X` and the program stops | `X` is empty | set it ([CONFIGURATION.md](CONFIGURATION.md) explains each) |
+| `[main]Error opening DB` | wrong `DB_CONNECTION_STRING`, or the database is unreachable | test with `psql` from the same machine; inside Docker, don't use `localhost` |
+| a crash at start mentioning `CHANNEL_ACCOUNT_FUNDER` or `CHANNEL_ACCOUNT_MIN_COUNT` | not a private key, or not a number | a key from `cast wallet new`; `0` |
+| `[main]Error connecting to redis` and the program stops | `ENABLE_CACHING=1` but `REDIS_HOST`/`REDIS_PORT`/`REDIS_PASSWORD` are wrong or Redis is down | check Redis (`redis-cli -h <host> ping` answers `PONG`) |
+| the table update takes 20 minutes or more | it runs far from the database | run `MIGRATE_ONLY=1` in the database's region; serve with `DB_AUTOMIGRATE=0` |
+| `insufficient arguments` during the table update | an old Postgres driver (fixed in `v1.5.11`) | update to this repository's `go.mod` |
+| every send fails | `BUNDLER_URL` unset, or the bundler, paymaster or quote service is down | check them ([paymaster/DEPLOYMENT.md](../paymaster/DEPLOYMENT.md)) |
+| users can't log in after a redeploy | `JWT_ACCESS_SECRET` changed (logins are re-required), or the copies have different values | use one value on every copy |
+| security answers or market-making wallets stop working | `ENCODER_SALT` or a phrase or salt changed | restore the original value from your secrets manager |
+| new wallets have no payment history | payment-history-engine is not running, or its `CDB_CONNECTION_STRING` points elsewhere | use the same tracking database in both |
+| `429 Too Many Requests` | a rate limit | raise it ([CONFIGURATION.md](CONFIGURATION.md#4-rate-limiting)) or the partner's own limit in Trovo Manager |
+
+## Running the tests
+
+```bash
+make test       # go test ./internal/... -race
+make ci         # tidy check, build, vet, lint, tests
+```
+
+Tests against a local blockchain (the `internal/aa`, `internal/gnosissafe`
+and `internal/network` end-to-end tests) need the paymaster local stack
+running and `AA_LOCAL_CHAIN=1` plus the `AA_LOCAL_*` settings
+([CONFIGURATION.md](CONFIGURATION.md#25-used-only-by-tests),
+[paymaster/DEPLOYMENT.md](../paymaster/DEPLOYMENT.md#local-development-stack)).
+Run them one package at a time (`go test -p 1 ./internal/...`). To run the
+Public Markets tests against Postgres instead of SQLite, set
+`PUBLIC_MARKETS_TEST_POSTGRES`.
+
+## Swagger (API reference)
+
+If you change a route or its annotations, regenerate the reference and
+commit `docs/`:
+
+```bash
+go install github.com/swaggo/swag/cmd/swag@latest
+swag init --parseDependency=false
+```

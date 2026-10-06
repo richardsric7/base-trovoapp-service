@@ -1,65 +1,57 @@
 # Trovo Wallet API (`app-backend`)
 
-`app-backend` is the core backend for the Trovo Wallet platform. It is a REST
-API, written in Go, that owns user accounts, crypto wallets, deposits and
-withdrawals, P2P (peer-to-peer) trading, tokenized real-world assets, KYC
-verification, and white-label partner ("service link") integrations. If you
-are new to this codebase, this file is the map — start here, then follow the
-links at the bottom to the deeper docs.
+## What this project does
 
-## What this service does
+`app-backend` is the main server of the Trovo Wallet platform. When someone
+uses the Trovo mobile app or web wallet, every action (signing up, seeing a
+balance, sending money, trading) is a request to this server. It:
 
-- **User accounts & wallets** — registration, login (see
-  [INTEGRATION.md](INTEGRATION.md) for how clients authenticate), wallet
-  creation, sub-wallets, shared/approver access to a wallet, account
-  recovery.
-- **Payments & swaps** — sending assets between wallets, currency swaps,
-  crypto deposits/withdrawals.
-- **P2P marketplace** — merchants post buy/sell offers for assets against
-  fiat, customers place orders, funds move through an on-chain escrow, and
-  disputes can be raised and resolved.
-- **Tokenized assets** — issuing, subscribing to, and exiting tokenized
-  real-world assets (see `TOKENIZATION_PLAN.md` and
-  `TOKENIZED_ASSET_PURCHASE_BY_FIAT.md` in this directory for the original
-  design notes).
-- **Public Markets** — tokenized NGX equities and FMDQ bonds, backed by
-  units a Custodian holds at CSCS, bought and sold by Trovo App users and
-  partner exchanges (see [PUBLIC_MARKETS.md](PUBLIC_MARKETS.md)).
-- **KYC** — identity verification via third-party providers (Sumsub, Doja).
-- **Service links** — API-key-based integrations that let white-label
-  partners (and Trovo's own admin backend) act on behalf of users, mint
-  tokens, and read balances/history.
+- **keeps user accounts** and creates each user's wallet, a Safe smart
+  account on the **Base** blockchain, plus sub-wallets and shared wallets;
+- **sends payments and swaps** for users, paying gas in ETH or a
+  stablecoin through the paymaster;
+- runs the **P2P marketplace** (people buy and sell crypto for local
+  currency, with the platform holding funds in escrow);
+- issues and sells **tokenized assets** (real-world assets as tokens) and
+  runs **Public Markets** (tokenized Nigerian stocks and bonds);
+- handles **KYC** (identity checks), **account recovery**, bank deposits and
+  withdrawals, and emails, SMS and push notifications;
+- gives **partner businesses** an API ("service links") to offer these
+  features in their own products.
+
+It is a REST API written in Go. If you are new, read this file, then
+[DEPLOYMENT.md](DEPLOYMENT.md) to run it, [CONFIGURATION.md](CONFIGURATION.md)
+for every setting and [INTEGRATION.md](INTEGRATION.md) for everything it
+connects to.
 
 ## Where this fits in the monorepo
 
-This repository is one project inside a larger monorepo. The other three
-projects that matter for understanding it:
-
 | Project | Relationship to `app-backend` |
 | --- | --- |
-| **`tm-api`** | Trovo's internal admin/catalog backend. It **shares the same physical database** as `app-backend` and writes admin/catalog tables (curated assets, fee configuration, service link records) directly. For P2P transactional writes (creating orders, resolving disputes), it calls **`app-backend`'s own HTTP API** instead of writing to the DB directly — see [INTEGRATION.md](INTEGRATION.md) for why. |
-| **`app-web`** | The end-user web wallet (Vite/React). A REST client of this API. |
-| **`app-mobile`** | The end-user mobile wallet (Flutter). Also a REST client of this API. |
+| **`app-mobile`**, **`app-web`** | The user apps. They call this API, signing each request with the user's key. |
+| **`tm-api`** (and its website `tm-web`) | Trovo Manager, the admin dashboard. Shares this project's database for settings and catalog data, and calls this API for actions with business rules (admin logins, payments, P2P disputes). |
+| **`payment-history-engine`** | Watches the blockchain and writes users' payment history. app-backend tells it which wallets to watch through a shared "tracking" database. |
+| **`payout-engine`** | Pays dividends and interest on tokenized assets, working in this project's database. |
+| **`paymaster`** | The paymaster contract and quote service every wallet transaction uses. |
+| **`market`**, **`recovery`** | The offer book contract (sales, swaps) and the account recovery module. |
+| **`wallet-core`** | Key and Safe address code shared with the apps. |
 
-Both client apps authenticate with a request-signing scheme, not a bearer
-token — see [INTEGRATION.md](INTEGRATION.md#authentication) for the details.
+See [INTEGRATION.md](INTEGRATION.md) for how each connection works.
 
 ## Tech stack
 
-- **Language**: Go (see `go.mod` — currently `go 1.23`, built with toolchain
-  `go1.24.3`)
+- **Language**: Go 1.26 (see `go.mod`)
 - **Web framework**: [Gin](https://github.com/gin-gonic/gin)
-- **ORM**: [GORM](https://gorm.io/), with schema managed by GORM
-  `AutoMigrate` (see [DEPLOYMENT.md](DEPLOYMENT.md) for how/when this runs)
-- **Database**: PostgreSQL in production; SQLite is supported for local
-  development (`DB_TYPE=sqlite`)
-- **Docs**: [swaggo/swag](https://github.com/swaggo/swag)-generated OpenAPI
-  2.0 (Swagger) docs, served at `/swagger/index.html` once the app is
-  running (see [Swagger UI](#swagger-ui) below)
-- Also present: Redis (optional response caching), Firebase (push
-  notifications + file storage), a Base/EVM blockchain client
-  (`go-ethereum`), and a separate CockroachDB-compatible Postgres database
-  ("RoachDB") used only by the payment-history tracking tables.
+- **Database**: PostgreSQL through [GORM](https://gorm.io/); app-backend
+  creates and updates its own tables (see [DEPLOYMENT.md](DEPLOYMENT.md)).
+  SQLite works for local experiments (`DB_TYPE=sqlite`).
+- **Blockchain**: Base, through `go-ethereum`; wallets are Safe smart
+  accounts sent through an ERC-4337 bundler.
+- **Also**: Redis (cache, rate limits, websocket fan-out), Firebase (push
+  notifications, file storage), Mailgun (email), a second Postgres or
+  CockroachDB database ("RoachDB") for payment-history tracking.
+- **API reference**: [swaggo/swag](https://github.com/swaggo/swag)-generated
+  Swagger, served at `/swagger/index.html` once the app is running.
 
 ## Directory structure
 
@@ -91,7 +83,7 @@ models), `services/` (business logic), and sometimes `db/` (queries) or
 
 | Component | Owns |
 | --- | --- |
-| `root` | Health check, Apple/Android app-link well-known files |
+| `root` | A signed `GET /` check, and the Apple/Android app-link files under `/.well-known/` |
 | `users` | Accounts, wallets, KYC, shared access, tokenized assets, subwallets, account recovery — the largest component |
 | `payments` | Sending assets between wallets |
 | `swaps` | Currency/asset swaps |
@@ -123,35 +115,20 @@ without one.
 
 ## Running it locally
 
-You'll need Go installed (see `go.mod` for the version) and, for a full
-setup, a Postgres instance — but the fastest path uses the bundled SQLite
-mode, which needs nothing else installed. From the `app-backend/` directory:
+The short version (the full guide, with a local Postgres and Redis in
+Docker, is [DEPLOYMENT.md](DEPLOYMENT.md)):
 
 ```bash
-# 1. Clone the monorepo and cd into this project
-git clone <monorepo-url>
-cd src-monorepo/app-backend
-
-# 2. Copy the example environment file
-cp .env.example .env
-
-# 3. Fill in .env — see CONFIGURATION.md for what every variable does and
-#    how to get a real value for it. The .env.example ships with
-#    DB_TYPE=sqlite, so a local Postgres is optional to get started.
-
-# 4. Download Go module dependencies
+git clone https://github.com/richardsric7/base-trovoapp-service.git
+cd base-trovoapp-service/app-backend
+cp .env.example .env        # fill it in; CONFIGURATION.md explains each value
 go mod download
-
-# 5. Run the test suite to confirm everything compiles and passes
 go test ./internal/... -vet=off
-
-# 6. Start the server (defaults to 0.0.0.0:8080, or PORT if set)
-go run main.go
+go run main.go              # listens on PORT, default 8080
 ```
 
-That's 6 commands. The server logs each subsystem as it initializes
-(`##users services initialized##`, etc.) and finally `##service started##`
-once it's accepting requests.
+The server logs each part as it starts (`##users services initialized##`,
+...) and finally `##service started##`.
 
 ### Swagger UI
 
