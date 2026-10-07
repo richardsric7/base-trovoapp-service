@@ -63,9 +63,9 @@ switch picks between them. A new install starts on **Testnet**.
 
 The app opens no websocket and calls no blockchain node itself: keys are
 made and used on the phone with wallet-core, and app-backend does
-everything on the chain. The one other outside call is the market chart's
-prices, from `https://api.binance.com/api/v3/klines`
-(`lib/screens/market_trade/market_trade_info.dart`), which needs no key.
+everything on the chain. The market screens' prices, charts and order
+book come from app-backend too (`/v1/market/*`); there is no outside price
+feed.
 
 ## 2. Firebase (push notifications, analytics, crash reports, remote values)
 

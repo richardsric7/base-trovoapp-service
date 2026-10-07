@@ -807,9 +807,20 @@ response carries `transaction` (sign it as for a payment) and messages;
 send it back with `transactionSignature` to submit (shared wallets with
 approvers send `commit: 1` and get an approval request). The offer keeps
 the escrowed funds until it is filled or cancelled; proceeds go straight
-to the wallet. `GET /v1/users/trades` lists the wallet's offers with what
-each still sells and whether it is open; `DELETE /v1/users/trades/:id`
-cancels one in the same two steps, returning what is left.
+to the wallet. `GET /v1/users/trades` lists the wallet's offers
+(`{"offers": [...]}`), each with:
+
+- `open`: whether it is still on the book;
+- `remaining`: what it still sells, in the token it sells (whole tokens);
+- `sold` and `received`: what has traded so far, in the token it sells and
+  the token it buys; they stay correct after a cancellation, which sets
+  `remaining` to 0;
+- `fills`: how many trades it has had;
+- `canceled` (1 once cancelled) and `blockchainOfferId` (set once its
+  operation is mined).
+
+`DELETE /v1/users/trades/:id` cancels one in the same two steps, returning
+what is left.
 
 **Swaps** (`POST /v1/users/swap`, `POST /v1/shared-access/swap`) buy the
 destination token with the source token from the offers that sell it,
@@ -833,6 +844,21 @@ the currency; amount in the currency), both priced in the currency per
 asset, as Stellar's order book had. Trade candles aggregate the fills.
 The websockets `GET /v1/stream/orderbook` (`streamType: "orderBook"`) and
 `GET /v1/stream/tradechart` (`"tradeChart"`) push them as they change.
+
+**Public market data** (no sign-in; 120 requests a minute per caller, rate
+limit key `market`) is what the apps' market screens show. Tokens are
+named by their contract address; prices are in the counter token per one
+base token, and amounts are decimal strings in whole tokens:
+
+| Endpoint | Returns |
+|---|---|
+| `GET /v1/market/pairs` | `{"pairs": [...]}`: each pair's `base` and `counter` (`code`, `name`, `contractAddress`, `imageUrl`), `lastPrice`, `changePercent24h`, `high24h`, `low24h`, `baseVolume24h`, `counterVolume24h`, `trades24h`, `bestAsk`, `bestBid`, `lastTradeAt` (unix seconds). Bases are the curated tokens open on the book; counters are `NAIRA_ASSET` and `DOLLAR_ASSET`. |
+| `GET /v1/market/orderbook?base=&counter=&limit=20` | `{"asks": [{price, amount}], "bids": [...]}`, amounts in the base token, best first (up to 100 levels) |
+| `GET /v1/market/trades?base=&counter=&limit=50` | `{"trades": [{timestamp, price, baseAmount, counterAmount}]}`, newest first (up to 200) |
+| `GET /v1/market/candles?base=&counter=&resolution=1h&limit=100` | `{"resolution", "candles": [{timestamp, open, high, low, close, baseVolume, counterVolume, trades}]}`, oldest first (up to 500); `resolution` is `15m`, `1h`, `4h`, `1d` or `1w` |
+
+They answer 503 `error-market-not-configured` when `OFFER_BOOK_ADDRESS` is
+not set, and 400 for an unknown pair or resolution.
 
 ## Live payments over the websocket
 

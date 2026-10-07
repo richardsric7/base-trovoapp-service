@@ -9,7 +9,7 @@ uses Firebase for push notifications, crash reports and remote values.
 | [1. app-backend](#1-app-backend) | app → app-backend | HTTPS (REST) | yes |
 | [2. wallet-core](#2-wallet-core) | built into the app | native library (Dart FFI) | yes |
 | [3. Firebase](#3-firebase) | both ways | Firebase SDKs | yes |
-| [4. Binance market data](#4-binance-market-data) | app → Binance | HTTPS | optional |
+| [4. Market data (DEX Trade)](#4-market-data-dex-trade) | app → app-backend | HTTPS | optional |
 | [5. Not connected: tm-api and tm-web](#5-not-connected-tm-api-and-tm-web) | none | — | — |
 
 ---
@@ -74,13 +74,30 @@ uses Firebase for push notifications, crash reports and remote values.
   background: a notification arrives.
 - **When it is down:** no notifications; everything else works.
 
-## 4. Binance market data
+## 4. Market data (DEX Trade)
 
-- **What it is and why:** the market chart screen loads hourly price
-  candles from `https://api.binance.com/api/v3/klines`
-  (`lib/screens/market_trade/market_trade_info.dart`).
-- **Direction:** app → Binance; no key.
-- **When it is down:** that chart is empty.
+- **What it is and why:** the DEX Trade screens (side menu → **DEX
+  Trade**, `lib/screens/market_trade/`) show the tokens open for trading,
+  each pair's price chart, order book and recent trades, and let the user
+  place and cancel buy and sell orders.
+- **Direction:** app → app-backend only. There is no outside price feed:
+  every figure comes from trades on Trovo's own offer book.
+- **How they connect:** `lib/network/market_requests.dart` (`MarketApi`):
+  `GET /v1/market/pairs`, `/v1/market/orderbook`, `/v1/market/trades` and
+  `/v1/market/candles` (public), and the signed `GET`, `POST` and `DELETE
+  /v1/users/trades` for the wallet's own orders. Placing or cancelling an
+  order takes two calls: the first returns the operation, the app signs it
+  with wallet-core (or, on a shared wallet, sends `commit: 1` for
+  approval) and sends it back. Starred pairs are kept on the phone only.
+- **Settings on the other side:** app-backend's `OFFER_BOOK_ADDRESS`,
+  `NAIRA_ASSET` and `DOLLAR_ASSET`, and tokens marked tradable on the book
+  ([app-backend/INTEGRATION.md](../app-backend/INTEGRATION.md)).
+- **How to check it works:** open DEX Trade: the pairs list shows prices;
+  open a pair: the Order Book tab lists offers, and a small Buy order shows
+  under Orders a few seconds after you confirm it.
+- **When it is down:** the screens say the market could not be loaded;
+  the rest of the app works. Without `OFFER_BOOK_ADDRESS` app-backend
+  answers 503 and the list stays empty.
 
 ## 5. Not connected: tm-api and tm-web
 
