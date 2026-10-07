@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_app/custom_bloc_observer/button/custtom_button.dart';
@@ -10,7 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
-import 'package:trovo_app/widgets/utilities.dart';
+import 'package:trovo_app/network/market_requests.dart';
 
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -26,98 +24,9 @@ class _MarketTradeState extends State<MarketTrade>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  List<Map> marketPairs = <Map>[
-    {
-      'pair': 'TROV/CNGN',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': true,
-    },
-    {
-      'pair': 'TROV/USDC',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': false,
-    },
-    {
-      'pair': 'TROV/USDT',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': true,
-    },
-    {
-      'pair': 'TROV/ETH',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': false,
-    },
-    {
-      'pair': 'ETH/CNGN',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': false,
-    },
-    {
-      'pair': 'ETH/USDC',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': true,
-    },
-    {
-      'pair': 'ETH/USDT',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': false,
-    },
-    {
-      'pair': 'TROV/CNGN',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': false,
-    },
-    {
-      'pair': 'TROV/USDC',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': true,
-    },
-    {
-      'pair': 'TROV/USDT',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': false,
-    },
-    {
-      'pair': 'TROV/ETH',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': true,
-    },
-    {
-      'pair': 'ETH/CNGN',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': false,
-    },
-    {
-      'pair': 'ETH/USDC',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': false,
-    },
-    {
-      'pair': 'ETH/USDT',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': true,
-    },
-    {
-      'pair': 'TROV/USDT',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': false,
-    },
-    {
-      'pair': 'TROV/USDC',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': false,
-    },
-    {
-      'pair': 'TROV/CNGN',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': true,
-    },
-    {
-      'pair': 'TROV/ETH',
-      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
-      'isGreen': false,
-    },
-  ];
+  List<MarketPair>? pairs;
+  Set<String> favorites = {};
+  bool loading = true;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -129,10 +38,38 @@ class _MarketTradeState extends State<MarketTrade>
     }
   }
 
+  Future<void> load() async {
+    setState(() => loading = true);
+    final favs = await MarketFavorites.load();
+    List<MarketPair>? list;
+    try {
+      list = await MarketApi(appState).pairs();
+    } catch (_) {
+      list = null;
+    }
+    if (!mounted) return;
+    setState(() {
+      favorites = favs;
+      pairs = list;
+      loading = false;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    load();
+  }
+
+  void openPair(MarketPair pair) {
+    appState.viewData ??= {};
+    appState.viewData![MarketTradeInfoViewPageConfig.key] = pair.toMap();
+    appState.currentAction = PageAction(
+      state: PageState.addPage,
+      page: MarketTradeInfoViewPageConfig,
+    );
   }
 
   @override
@@ -141,90 +78,23 @@ class _MarketTradeState extends State<MarketTrade>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    final all = pairs ?? [];
+    final starred =
+        all.where((p) => favorites.contains(MarketFavorites.id(p))).toList();
+    final shown = starred.isNotEmpty ? starred : all;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // ignore: dead_code
-            if (false) ...[
+      body: RefreshIndicator(
+        onRefresh: load,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
               CustomAppBar(
                 context,
                 notifier.getwihitecolor,
-                'DEX Trade',
-                notifier.getbluewhitecolor,
-                height: height / 15,
-              ).getBar(),
-              Container(
-                height: height / 1.2,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        "assets/images/transfer.png",
-                        height: height / 2.5,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Card(
-                          shadowColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15.0),
-                          ),
-                          color: notifier.isDark
-                              ? notifier.getbluecolor90
-                              : notifier.getaddsubwalletgrey,
-                          child: Center(
-                            child: Column(
-                              children: [
-                                SizedBox(height: height / 70),
-                                Text(
-                                  "welcometoassettokenization2".tr(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontFamily: fontbody,
-                                    color: notifier.getbluewhitecolor,
-                                  ),
-                                ),
-                                SizedBox(height: height / 70),
-                                Text(
-                                  "welcometoassettokenization3".tr(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    height: 1.4,
-                                    fontFamily: fontbody,
-                                    color: notifier.getbluewhitecolor,
-                                  ),
-                                ),
-                                SizedBox(height: height / 50),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: height / 20),
-                      Text(
-                        'Coming Soon ...',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                      SizedBox(height: height / 90),
-                    ],
-                  ),
-                ),
-              ),
-            ] else ...[
-              CustomAppBar(
-                context,
-                notifier.getwihitecolor,
-                'Favorites',
+                starred.isNotEmpty ? 'Favorites' : 'DEX Trade',
                 notifier.getbluewhitecolor,
                 height: height / 15,
               ).getBar(),
@@ -232,7 +102,7 @@ class _MarketTradeState extends State<MarketTrade>
                 "marketpairs".tr(),
                 notifier.getbluewhitecolor,
                 notifier.getwihitecolor,
-                onTap: () {
+                onTap: () async {
                   appState.currentAction = PageAction(
                     state: PageState.addPage,
                     page: MarketPairsViewPageConfig,
@@ -240,34 +110,72 @@ class _MarketTradeState extends State<MarketTrade>
                 },
               ),
               SizedBox(height: height / 50),
-              Wrap(
-                spacing: 5,
-                runSpacing: 5,
-                children: [
-                  for (var i = 0; i < marketPairs.length; i++) ...[
-                    chartCard(
-                      Image.asset(
-                        'assets/images/trovo.png',
-                        height: height / 50,
+              if (loading && pairs == null)
+                Padding(
+                  padding: EdgeInsets.only(top: height / 5),
+                  child: const CircularProgressIndicator(),
+                )
+              else if (pairs == null)
+                message(
+                  'The market could not be loaded. Pull down to try again.',
+                )
+              else if (all.isEmpty)
+                message(
+                  'No tokens are open for trading yet. Pull down to check again.',
+                )
+              else
+                Wrap(
+                  spacing: 5,
+                  runSpacing: 5,
+                  children: [
+                    for (final pair in shown) ...[
+                      chartCard(
+                        pair,
+                        tokenLogo(pair.base.imageUrl),
+                        pair.symbol,
+                        '${formatMarketString(pair.lastPrice)} ${pair.counter.code}',
+                        '${pair.changePercent24h.abs().toStringAsFixed(2)}%',
+                        pair.isUp,
                       ),
-                      marketPairs[i]['pair'],
-                      marketPairs[i]['price'],
-                      '8.46%',
-                      marketPairs[i]['isGreen'],
-                    ),
+                    ],
                   ],
-                ],
-              ),
+                ),
+              SizedBox(height: height / 50),
             ],
-            SizedBox(height: height / 50),
-          ],
+          ),
         ),
       ),
     );
   }
 
+  Widget message(String text) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: height / 6),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 14,
+          fontFamily: fontbody,
+          color: notifier.getbluewhitecolor,
+        ),
+      ),
+    );
+  }
+
+  Widget tokenLogo(String url) {
+    final fallback = Image.asset('assets/images/trovo.png', height: height / 50);
+    if (url.isEmpty) return fallback;
+    return Image.network(
+      url,
+      height: height / 50,
+      errorBuilder: (_, __, ___) => fallback,
+    );
+  }
+
   Widget chartCard(
-    Image assetLogo,
+    MarketPair pair,
+    Widget assetLogo,
     String currency,
     String amount,
     String percentage,
@@ -284,12 +192,7 @@ class _MarketTradeState extends State<MarketTrade>
             ? notifier.getbluecolor90
             : notifier.getaddsubwalletgrey,
         child: TextButton(
-          onPressed: () {
-            appState.currentAction = PageAction(
-              state: PageState.addPage,
-              page: MarketTradeInfoViewPageConfig,
-            );
-          },
+          onPressed: () => openPair(pair),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -324,7 +227,7 @@ class _MarketTradeState extends State<MarketTrade>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${directionUp ? '+' : '-'}${percentage}',
+                    '${directionUp ? '+' : '-'}$percentage',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,

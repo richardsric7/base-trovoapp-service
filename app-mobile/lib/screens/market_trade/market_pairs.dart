@@ -7,6 +7,9 @@ import 'package:trovo_app/custom_bloc_observer/fonts.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_app/network/market_requests.dart';
+import 'package:trovo_app/router/page_actions.dart';
+import 'package:trovo_app/router/ui_pages.dart';
 import 'package:trovo_app/widgets/utilities.dart';
 
 import '../../storage/state.dart';
@@ -23,40 +26,41 @@ class _MarketPairsState extends State<MarketPairs>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  List<String> options = ['TROV', 'USDC', 'USDT', 'ETH'];
+  List<MarketPair>? pairs;
+  Set<String> favorites = {};
+  bool loading = true;
+  String token = allTokens;
+  String search = '';
 
-  List<Map> marketPairs = <Map>[
-    {'pair': 'TROV/CNGN', 'price': '450 CNGN', 'isChecked': true},
-    {'pair': 'TROV/USDC', 'price': '0.5 USDC', 'isChecked': false},
-    {'pair': 'TROV/USDT', 'price': '0.49 USDT', 'isChecked': true},
-    {'pair': 'TROV/ETH', 'price': '1000 ETH', 'isChecked': false},
-    {'pair': 'ETH/CNGN', 'price': '0.5 CNGN', 'isChecked': false},
-    {'pair': 'ETH/USDC', 'price': '0.0003 USDC', 'isChecked': true},
-    {'pair': 'ETH/USDT', 'price': '0.0003 USDT', 'isChecked': false},
-    {'pair': 'TROV/CNGN', 'price': '200 CNGN', 'isChecked': false},
-    {'pair': 'TROV/USDC', 'price': '0.24 USDC', 'isChecked': true},
-    {'pair': 'TROV/USDT', 'price': '1.5 USDT', 'isChecked': false},
-    {'pair': 'TROV/ETH', 'price': '1000 ETH', 'isChecked': true},
-    {'pair': 'ETH/CNGN', 'price': '0.5 CNGN', 'isChecked': false},
-    {'pair': 'ETH/USDC', 'price': '0.49 USDC', 'isChecked': false},
-    {'pair': 'ETH/USDT', 'price': '0.5 USDT', 'isChecked': true},
-    {'pair': 'TROV/USDT', 'price': '0.4 USDT', 'isChecked': false},
-    {'pair': 'TROV/USDC', 'price': '0.82 USDT', 'isChecked': false},
-    {'pair': 'TROV/CNGN', 'price': '30 CNGN', 'isChecked': true},
-    {'pair': 'TROV/ETH', 'price': '1.4 ETH', 'isChecked': false},
-  ];
+  static const allTokens = 'All tokens';
+
+  List<String> get options => [
+        allTokens,
+        ...{for (final p in pairs ?? <MarketPair>[]) p.base.code},
+      ];
 
   List<DropdownMenuItem<String>> get getOptions {
     List<DropdownMenuItem<String>> myOptions = [];
-    options.forEach((value) {
+    for (final value in options) {
       myOptions.add(
         DropdownMenuItem(
           child: Text(value, overflow: TextOverflow.ellipsis),
           value: value,
         ),
       );
-    });
+    }
     return myOptions;
+  }
+
+  List<MarketPair> get shown {
+    final q = search.trim().toLowerCase();
+    return (pairs ?? []).where((p) {
+      if (token != allTokens && p.base.code != token) return false;
+      if (q.isEmpty) return true;
+      return p.symbol.toLowerCase().contains(q) ||
+          p.base.name.toLowerCase().contains(q) ||
+          p.counter.name.toLowerCase().contains(q);
+    }).toList();
   }
 
   getdarkmodepreviousstate() async {
@@ -69,10 +73,38 @@ class _MarketPairsState extends State<MarketPairs>
     }
   }
 
+  Future<void> load() async {
+    setState(() => loading = true);
+    final favs = await MarketFavorites.load();
+    List<MarketPair>? list;
+    try {
+      list = await MarketApi(appState).pairs();
+    } catch (_) {
+      list = null;
+    }
+    if (!mounted) return;
+    setState(() {
+      favorites = favs;
+      pairs = list;
+      loading = false;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    load();
+  }
+
+  void openPair(MarketPair pair) {
+    appState.viewData ??= {};
+    appState.viewData![MarketTradeInfoViewPageConfig.key] = pair.toMap();
+    appState.currentAction = PageAction(
+      state: PageState.addPage,
+      page: MarketTradeInfoViewPageConfig,
+    );
   }
 
   @override
@@ -84,70 +116,96 @@ class _MarketPairsState extends State<MarketPairs>
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            CustomAppBar(
-              context,
-              notifier.getwihitecolor,
-              "marketpairs".tr(),
-              notifier.getbluewhitecolor,
-              height: height / 15,
-            ).getBar(),
-            Row(
-              children: [
-                Container(
-                  width: width / 2,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: dropdown(
-                      (value) {},
-                      getOptions,
-                      null,
-                      'Insurance',
-                      context,
-                      null,
+      body: RefreshIndicator(
+        onRefresh: load,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              CustomAppBar(
+                context,
+                notifier.getwihitecolor,
+                "marketpairs".tr(),
+                notifier.getbluewhitecolor,
+                height: height / 15,
+              ).getBar(),
+              Row(
+                children: [
+                  Container(
+                    width: width / 2,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: dropdown(
+                        (value) => setState(() => token = '$value'),
+                        getOptions,
+                        token,
+                        allTokens,
+                        context,
+                        null,
+                      ),
                     ),
                   ),
-                ),
-                CustomTextFormField.textField(
-                  'Search Pairs',
-                  notifier.getbluecolor,
-                  null,
-                  notifier.getgrey,
-                  null,
-                  notifier.getblck,
-                  notifier.getgrey,
-                  45.sp,
-                  150.sp,
-                  // controller: referrerController,
-                  // validator: validateReferrer,
-                  onSaved: (value) {},
-                ),
-              ],
-            ),
-            SizedBox(height: height / 50),
-            table(),
-            SizedBox(height: height / 50),
-          ],
+                  CustomTextFormField.textField(
+                    'Search Pairs',
+                    notifier.getbluecolor,
+                    null,
+                    notifier.getgrey,
+                    null,
+                    notifier.getblck,
+                    notifier.getgrey,
+                    45.sp,
+                    150.sp,
+                    onChanged: (value) => setState(() => search = '$value'),
+                  ),
+                ],
+              ),
+              SizedBox(height: height / 50),
+              if (loading && pairs == null)
+                Padding(
+                  padding: EdgeInsets.only(top: height / 5),
+                  child: const CircularProgressIndicator(),
+                )
+              else if (pairs == null)
+                message('The market could not be loaded. Pull down to try again.')
+              else if (shown.isEmpty)
+                message(pairs!.isEmpty
+                    ? 'No tokens are open for trading yet.'
+                    : 'No pairs match your search.')
+              else
+                table(),
+              SizedBox(height: height / 50),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget message(String text) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: height / 6),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 14,
+          fontFamily: fontbody,
+          color: notifier.getbluewhitecolor,
         ),
       ),
     );
   }
 
   Widget table() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          Table(children: getTableRows('TROV/CNGN', '450 CNGN', true)),
-        ],
-      ),
+    return Column(
+      children: [
+        Table(children: getTableRows(shown)),
+      ],
     );
   }
 
-  List<TableRow> getTableRows(String pairs, String price, bool isChecked) {
+  List<TableRow> getTableRows(List<MarketPair> marketPairs) {
     List<TableRow> tableRows = [];
-    // bool checked = isChecked;
 
     tableRows.add(
       TableRow(
@@ -222,18 +280,17 @@ class _MarketPairsState extends State<MarketPairs>
                       ? notifier.getbluecolor50
                       : notifier.getbluecolor90,
                 ),
-                value: marketPairs[i]['isChecked'],
-                onChanged: (bool? value) {
-                  setState(() {
-                    marketPairs[i]['isChecked'] = value!;
-                  });
+                value: favorites.contains(MarketFavorites.id(marketPairs[i])),
+                onChanged: (bool? value) async {
+                  final favs = await MarketFavorites.toggle(marketPairs[i]);
+                  if (mounted) setState(() => favorites = favs);
                 },
               ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 15),
               child: Text(
-                marketPairs[i]['pair'],
+                marketPairs[i].symbol,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: fontbody,
@@ -245,7 +302,7 @@ class _MarketPairsState extends State<MarketPairs>
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 15),
               child: Text(
-                marketPairs[i]['price'],
+                '${formatMarketString(marketPairs[i].lastPrice)} ${marketPairs[i].counter.code}',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: fontbody,
@@ -255,7 +312,7 @@ class _MarketPairsState extends State<MarketPairs>
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () => openPair(marketPairs[i]),
               child: Image.asset(
                 'assets/images/gotochart.png',
                 height: height / 50,
