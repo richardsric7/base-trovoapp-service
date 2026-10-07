@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_app/config/build_config.dart';
 import 'package:trovo_app/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_app/router/page_actions.dart';
 import 'package:trovo_app/router/ui_pages.dart';
@@ -88,6 +89,7 @@ class _FlutterwaveWebViewState extends State<FlutterwaveWebView> {
     var notifier = Provider.of<ColorNotifier>(context, listen: true);
     var viewData = appState.viewData!;
     var userInfo = appState.userInfo!;
+    final flutterwaveKey = BuildConfig.flutterwavePublicKey(appState.walletMode);
     String html =
         '''
           <!DOCTYPE html>
@@ -98,7 +100,7 @@ class _FlutterwaveWebViewState extends State<FlutterwaveWebView> {
               <script>
                   function makePayment() {
                       FlutterwaveCheckout({
-                        public_key: 'FLWPUBK_TEST-45bd332ee4bdefdcacd6d2513944cd16-X',
+                        public_key: '$flutterwaveKey',
                         tx_ref: '${viewData['id']}',
                         amount: ${viewData['activationAmount']},
                         currency: 'NGN',
@@ -133,6 +135,11 @@ class _FlutterwaveWebViewState extends State<FlutterwaveWebView> {
           </body>
           </html>
     ''';
+    if (flutterwaveKey.isEmpty) {
+      // no Flutterwave key for this network (FLUTTERWAVE_PUBLIC_KEY_*)
+      html =
+          '<!DOCTYPE html><html><meta name="viewport" content="width=device-width, initial-scale=1.0"><body style="font-family:sans-serif;padding:24px;color:#fff">Card payment is not available yet.</body></html>';
+    }
     return Scaffold(
       backgroundColor: notifier.getwihitecolor,
       appBar: AppBar(backgroundColor: notifier.getwihitecolor, elevation: 0),

@@ -130,3 +130,7 @@ build
 # FVM Version Cache
 .fvm/
 lib/screens/asset-tokenization/commodity_skr.txt
+
+# wallet-core native library, built by scripts/build_wallet_core.sh
+/android/app/src/main/jniLibs/
+/ios/WalletCore/WalletCore.xcframework/

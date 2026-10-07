@@ -31,6 +31,12 @@ target 'Runner' do
   use_frameworks!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  # wallet-core (keys and signing), once built with
+  # scripts/build_wallet_core.sh ios
+  if File.exist?(File.join(File.dirname(File.realpath(__FILE__)), 'WalletCore', 'WalletCore.xcframework'))
+    pod 'WalletCore', :path => 'WalletCore'
+  end
   target 'RunnerTests' do
     inherit! :search_paths
   end

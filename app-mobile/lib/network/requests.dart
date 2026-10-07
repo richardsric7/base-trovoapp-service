@@ -7,20 +7,15 @@ import 'package:mime/mime.dart';
 import 'package:trovo_app/functions/helpers.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:trovo_app/config/build_config.dart';
 import 'package:trovo_app/storage/store.dart';
 
 import '../functions/trovo-sdk.dart';
 
+/// app-backend's address for the current network (Testnet or Mainnet),
+/// chosen at build time with --dart-define (see BuildConfig).
 Future<String> getTrovoAppBaseURL() async {
-  String trovoBaseURL;
-  if (await StoreData().storeGetData('walletMode') == "Testnet") {
-    trovoBaseURL = 'https://api.dev.trovo.app';
-    print('testnet... $trovoBaseURL');
-  } else {
-    trovoBaseURL = 'https://api.trovotechnologies.com';
-    print('mainnet... $trovoBaseURL');
-  }
-  return trovoBaseURL;
+  return BuildConfig.apiUrl(await StoreData().storeGetData('walletMode'));
 }
 
 Future<Map> makePostRequest({

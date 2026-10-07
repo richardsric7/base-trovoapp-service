@@ -79,3 +79,19 @@ android {
 flutter {
     source = "../.."
 }
+
+// wallet-core's native library (keys and signing) is built by
+// scripts/build_wallet_core.sh android and is not committed. A release
+// build without it would install an app that cannot create a wallet, so
+// the build stops here instead. Debug builds still run without it.
+val walletCoreLibrary = file("src/main/jniLibs/arm64-v8a/libwallet_core.so")
+tasks.register("checkWalletCore") {
+    doLast {
+        if (!walletCoreLibrary.exists()) {
+            throw GradleException(
+                "wallet-core is not built into the app: run app-mobile/scripts/build_wallet_core.sh android first"
+            )
+        }
+    }
+}
+tasks.matching { it.name == "preReleaseBuild" }.configureEach { dependsOn("checkWalletCore") }
