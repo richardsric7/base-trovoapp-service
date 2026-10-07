@@ -1686,26 +1686,27 @@ Widget getDrawer(
             }
           },
         ),
-        // ListTile(
-        //   leading: Icon(
-        //     CupertinoIcons.doc_chart,
-        //     color: notifier.getgrey.withOpacity(.80),
-        //   ),
-        //   title: Text(
-        //     'DEX Trade',
-        //     style: TextStyle(
-        //       fontFamily: fontbody,
-        //       color: notifier.getbluewhitecolor,
-        //     ),
-        //   ),
-        //   onTap: () {
-        //     appState.currentAction = PageAction(
-        //       state: PageState.addPage,
-        //       page: MarketTradeViewPageConfig,
-        //     );
-        //     Navigator.pop(context);
-        //   },
-        // ),
+        ListTile(
+          leading: Icon(
+            Icons.candlestick_chart_outlined,
+            color: notifier.getgrey.withOpacity(.80),
+          ),
+          title: Text(
+            'DEX Trade',
+            style: TextStyle(
+              fontFamily: fontbody,
+              color: notifier.getbluewhitecolor,
+              fontSize: 14,
+            ),
+          ),
+          onTap: () {
+            appState.currentAction = PageAction(
+              state: PageState.addPage,
+              page: MarketTradeViewPageConfig,
+            );
+            Navigator.pop(context);
+          },
+        ),
         ListTile(
           leading: Image.asset(
             "assets/images/trovo.png",
