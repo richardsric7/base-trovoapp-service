@@ -349,6 +349,9 @@ type MarketOfferStatus struct {
 	userModels.MarketOffer
 	Open      bool   `json:"open"`
 	Remaining string `json:"remaining"` // what the offer still sells (whole tokens)
+	Sold      string `json:"sold"`      // what it has sold so far, in the token it sells (whole tokens)
+	Received  string `json:"received"`  // what it has been paid so far, in the token it buys (whole tokens)
+	Fills     int    `json:"fills"`
 }
 
 // ListOffers lists sourceWallet's market offers with their state on the
@@ -362,14 +365,36 @@ func ListOffers(sourceWallet *userModels.UserWallet, gc *sharedconfig.GlobalConf
 	defer cancel()
 	out := make([]MarketOfferStatus, 0, len(offers))
 	for i := range offers {
-		s := MarketOfferStatus{MarketOffer: offers[i], Remaining: "0"}
+		s := MarketOfferStatus{MarketOffer: offers[i], Remaining: "0", Sold: "0", Received: "0"}
 		if id, ok := marketOfferBookID(&s.MarketOffer, gc); ok {
 			var o offerbook.Offer
 			if gc.DB.First(&o, "id = ?", id.String()).Error == nil {
 				s.Open = o.Open
-				rem, _ := new(big.Int).SetString(o.Remaining, 10)
-				if dec, err := offerbook.Decimals(ctx, gc.DB, gc.BantuExpansionClient, common.HexToAddress(o.SellToken)); err == nil && rem != nil {
-					s.Remaining = decimal.NewFromBigInt(rem, -int32(dec)).String()
+				sellDec, err := offerbook.Decimals(ctx, gc.DB, gc.BantuExpansionClient, common.HexToAddress(o.SellToken))
+				if rem, _ := new(big.Int).SetString(o.Remaining, 10); err == nil && rem != nil {
+					s.Remaining = decimal.NewFromBigInt(rem, -int32(sellDec)).String()
+				}
+				var fills []offerbook.Fill
+				gc.DB.Where("offer_id = ?", o.ID).Find(&fills)
+				sold, received := new(big.Int), new(big.Int)
+				payToken := ""
+				for _, f := range fills {
+					if a, ok := new(big.Int).SetString(f.Amount, 10); ok {
+						sold.Add(sold, a)
+					}
+					if p, ok := new(big.Int).SetString(f.Payment, 10); ok {
+						received.Add(received, p)
+					}
+					payToken = f.PaymentToken
+				}
+				s.Fills = len(fills)
+				if err == nil {
+					s.Sold = decimal.NewFromBigInt(sold, -int32(sellDec)).String()
+				}
+				if payToken != "" {
+					if dec, err := offerbook.Decimals(ctx, gc.DB, gc.BantuExpansionClient, common.HexToAddress(payToken)); err == nil {
+						s.Received = decimal.NewFromBigInt(received, -int32(dec)).String()
+					}
 				}
 			}
 		}
