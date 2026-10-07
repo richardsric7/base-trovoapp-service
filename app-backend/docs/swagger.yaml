@@ -1,5 +1,23 @@
 basePath: /
 definitions:
+  market.Book:
+    properties:
+      asks:
+        items:
+          $ref: '#/definitions/market.Level'
+        type: array
+      bids:
+        items:
+          $ref: '#/definitions/market.Level'
+        type: array
+    type: object
+  market.Level:
+    properties:
+      amount:
+        type: string
+      price:
+        type: string
+    type: object
   network.WalletAssetAuthorization:
     properties:
       approvedBy:
@@ -3079,6 +3097,41 @@ paths:
       summary: Android Asset Links file (app links)
       tags:
       - Root
+  /health:
+    get:
+      description: 200 while the process is running. Use it as the liveness check.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Liveness check
+      tags:
+      - Health
+  /ready:
+    get:
+      description: Checks the main database, the tracking database, Redis (when caching
+        is on) and the Base RPC node. 200 when all are up, 503 otherwise.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Readiness check
+      tags:
+      - Health
   /v1/account/recovery/request-email-otp/{targetUser}:
     post:
       parameters:
@@ -3608,6 +3661,134 @@ paths:
       summary: GET /v1/forms/:formId
       tags:
       - users
+  /v1/market/candles:
+    get:
+      description: Open, high, low, close and volume per period, oldest first; periods
+        without trades are left out.
+      parameters:
+      - description: Base token contract address
+        in: query
+        name: base
+        required: true
+        type: string
+      - description: Counter (quote) token contract address
+        in: query
+        name: counter
+        required: true
+        type: string
+      - description: 15m, 1h, 4h, 1d or 1w (default 1h)
+        in: query
+        name: resolution
+        type: string
+      - description: Periods back (default 100, at most 500)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{resolution, candles: []Candle}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Price candles of a pair
+      tags:
+      - market
+  /v1/market/orderbook:
+    get:
+      description: Asks (selling base, amount in base, cheapest first) and bids (buying
+        base, amount in counter, best first), prices in counter per base.
+      parameters:
+      - description: Base token contract address
+        in: query
+        name: base
+        required: true
+        type: string
+      - description: Counter (quote) token contract address
+        in: query
+        name: counter
+        required: true
+        type: string
+      - description: Levels per side (default 20, at most 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/market.Book'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Order book of a pair
+      tags:
+      - market
+  /v1/market/pairs:
+    get:
+      description: Every tradable token against each quote currency (NAIRA_ASSET,
+        DOLLAR_ASSET) with its last price, 24-hour change, high, low, volume and best
+        bid and ask. Busiest first.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{pairs: []Pair}'
+          schema:
+            additionalProperties: true
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Market pairs
+      tags:
+      - market
+  /v1/market/trades:
+    get:
+      description: The last trades (up to 30 days back), newest first.
+      parameters:
+      - description: Base token contract address
+        in: query
+        name: base
+        required: true
+        type: string
+      - description: Counter (quote) token contract address
+        in: query
+        name: counter
+        required: true
+        type: string
+      - description: Trades (default 50, at most 200)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{trades: []Trade}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Recent trades of a pair
+      tags:
+      - market
   /v1/p2p/asset-classes:
     get:
       description: Returns every asset category the marketplace filter can narrow

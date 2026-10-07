@@ -29,6 +29,7 @@ import (
 	msc "trovo-wallet-api/internal/components/announcements/controllers"
 	callbacks "trovo-wallet-api/internal/components/callbacks/controllers"
 	"trovo-wallet-api/internal/components/health"
+	"trovo-wallet-api/internal/components/market"
 	p2p "trovo-wallet-api/internal/components/p2p/controllers"
 	payments "trovo-wallet-api/internal/components/payments/controllers"
 	publicmarkets "trovo-wallet-api/internal/components/publicmarkets/controllers"
@@ -830,6 +831,7 @@ func main() {
 	router.Use(middleware.CORSMiddleware())
 
 	health.Init(router, &globalConfig)
+	market.Init(router, &globalConfig)
 	root.Init(router)
 	log.Println("##root services initialized##")
 	users.Init(router, callBackRetryChan, &globalConfig)

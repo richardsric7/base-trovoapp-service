@@ -86,6 +86,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/health": {
+            "get": {
+                "description": "200 while the process is running. Use it as the liveness check.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Liveness check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ready": {
+            "get": {
+                "description": "Checks the main database, the tracking database, Redis (when caching is on) and the Base RPC node. 200 when all are up, 503 otherwise.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Readiness check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/account/recovery/request-email-otp/{targetUser}": {
             "post": {
                 "produces": [
@@ -847,6 +898,189 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/market/candles": {
+            "get": {
+                "description": "Open, high, low, close and volume per period, oldest first; periods without trades are left out.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "market"
+                ],
+                "summary": "Price candles of a pair",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Base token contract address",
+                        "name": "base",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Counter (quote) token contract address",
+                        "name": "counter",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "15m, 1h, 4h, 1d or 1w (default 1h)",
+                        "name": "resolution",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Periods back (default 100, at most 500)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{resolution, candles: []Candle}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/market/orderbook": {
+            "get": {
+                "description": "Asks (selling base, amount in base, cheapest first) and bids (buying base, amount in counter, best first), prices in counter per base.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "market"
+                ],
+                "summary": "Order book of a pair",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Base token contract address",
+                        "name": "base",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Counter (quote) token contract address",
+                        "name": "counter",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Levels per side (default 20, at most 100)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/market.Book"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/market/pairs": {
+            "get": {
+                "description": "Every tradable token against each quote currency (NAIRA_ASSET, DOLLAR_ASSET) with its last price, 24-hour change, high, low, volume and best bid and ask. Busiest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "market"
+                ],
+                "summary": "Market pairs",
+                "responses": {
+                    "200": {
+                        "description": "{pairs: []Pair}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/market/trades": {
+            "get": {
+                "description": "The last trades (up to 30 days back), newest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "market"
+                ],
+                "summary": "Recent trades of a pair",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Base token contract address",
+                        "name": "base",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Counter (quote) token contract address",
+                        "name": "counter",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Trades (default 50, at most 200)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{trades: []Trade}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -9189,6 +9423,34 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "market.Book": {
+            "type": "object",
+            "properties": {
+                "asks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/market.Level"
+                    }
+                },
+                "bids": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/market.Level"
+                    }
+                }
+            }
+        },
+        "market.Level": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "string"
+                }
+            }
+        },
         "network.WalletAssetAuthorization": {
             "type": "object",
             "properties": {
